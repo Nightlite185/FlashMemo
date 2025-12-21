@@ -1,13 +1,11 @@
 namespace FlashMemo.Model
 {
+    public interface IDefaultable
+    {
+        void ToDefault();
+    }
     public class Settings
     {
-        public class DeckSettings
-        {
-            public static DeckSettings GetDefault()
-            {
-                throw new NotImplementedException();
-            }
-        }
+        
     }
 }

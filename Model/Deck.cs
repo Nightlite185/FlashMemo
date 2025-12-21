@@ -79,9 +79,27 @@ namespace FlashMemo.Model
         }
         public Deck Clone()
         {
-            throw new NotImplementedException();
-            // return this.DeepClone();
-            // think ab what to do with the Ids bc they should be only assigned by the db
+            var clone = this.DeepClone();
+            clone.cards.ForEach(c => c.Id = 0);
+
+            // db.Save() here
+
+            return clone;
         }
+        public void Clear() => cards.Clear();
+        public int Count => cards.Count;
+
+        public Card this[int index]
+        {
+            get { return cards[index]; }
+            set { cards[index] = value; }
+        }
+        public IEnumerator<Card> GetEnumerator()
+        {
+            foreach (var card in cards)
+                yield return card;
+        }
+        IEnumerator IEnumerable.GetEnumerator() 
+            => GetEnumerator();
     }
 }

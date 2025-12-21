@@ -44,6 +44,10 @@ namespace FlashMemo.Model
                     SortHelper(x => x.NextReview, dir);
                     break;
 
+                case SortingOptions.State:
+                    SortHelper(x => x.State, dir);
+                    break;
+
                 case SortingOptions.Random:
                     SortHelper(_ => Random.Shared.Next(), dir);
                     break;

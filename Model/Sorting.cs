@@ -8,7 +8,8 @@ namespace FlashMemo.Model
         LastModified,
         NextReview,
         LastReviewed,
-        Interval
+        Interval,
+        State
     }
     public enum SortingDirection { Ascending, Descending }
 }

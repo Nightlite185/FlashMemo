@@ -70,24 +70,43 @@ namespace FlashMemo.Model
         #endregion
 
         #region Public Methods
+        public void Edit(string frontContent, string? backContent = null)
+        {
+            FrontContent = frontContent;
+            BackContent = backContent;
 
+            LastModified = DateTime.Now;
+        }
+        public void Review(TimeSpan newInterval, CardState newState, int? newLearningStage)
+        {
+            LastReviewed = DateTime.Now;
+            NextReview = LastReviewed.Add(Interval);
+
+            Interval = newInterval;
+            State = newState;
+            LearningStage = newLearningStage;
+        }
+        public void Reschedule(DateTime newReviewDate)
+        {
+            NextReview = newReviewDate;
+            LastModified = DateTime.Now;
+        }
+        public void Reschedule(TimeSpan timeFromNow)
+        {
+            var now = DateTime.Now;
+
+            NextReview = now.Add(timeFromNow);
+            LastModified = now;
+        }
+        public void Postpone(TimeSpan putOffBy)
+        {
+            NextReview = NextReview.Add(putOffBy);
+            LastModified = DateTime.Now;
+        }
         #endregion
 
         #region Protected Methods
-        protected void Ascend()
-        {
-            if (State == CardState.Review)
-                throw new InvalidOperationException($"You were trying to ascend a card that is already in its highest state. Card id: {Id}");
-
-            State++;
-        }
-        protected void Descend()
-        {
-            if (State == CardState.New)
-                throw new InvalidOperationException($"You were trying to descend a card that is already in its lowest state. Card id: {Id}");
-
-            State--;
-        }
+        
         #endregion
 
         #region Hashcode and Equals

@@ -1,21 +1,24 @@
+using System.Collections;
+using Force.DeepCloner;
 namespace FlashMemo.Model
 {
-    public class Deck
+    public class Deck: IEnumerable<Card>
     {
         public Deck(string name, params Card[]? cards)
         {   
             if (cards is not null)
-                Cards = [..cards];
+                this.cards = [..cards];
 
-            else Cards = [];
+            else this.cards = [];
 
             Name = name;
-            Options = Settings.DeckSettings.GetDefault();
+            Scheduler = new Scheduler();
         }
 
-        private List<Card> Cards { get; set; }
+        private List<Card> cards;
         public string Name { get; private set; }
-        public Settings.DeckSettings Options { get; init; }
+        public int Id { get; set; }
+        public Scheduler Scheduler { get; init; }
         public void Sort(SortingOptions sortBy = SortingOptions.Created, SortingDirection dir = SortingDirection.Descending)
         {
             switch (sortBy)
@@ -57,10 +60,10 @@ namespace FlashMemo.Model
         }
         private void SortHelper<TOut> (Func<Card, TOut> keySelector, SortingDirection dir)
         {
-            Cards = dir switch
+            cards = dir switch
             {
-                SortingDirection.Ascending => [.. Cards.OrderBy(keySelector)],
-                SortingDirection.Descending => [.. Cards.OrderByDescending(keySelector)],
+                SortingDirection.Ascending => [.. cards.OrderBy(keySelector)],
+                SortingDirection.Descending => [.. cards.OrderByDescending(keySelector)],
 
                 _ => throw new ArgumentOutOfRangeException(nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),
             };
@@ -72,7 +75,7 @@ namespace FlashMemo.Model
         }
         public void AddCards(params Card[] cards)
         {
-            Cards.AddRange(cards);
+            this.cards.AddRange(cards);
         }
         public Deck Clone()
         {

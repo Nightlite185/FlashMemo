@@ -1,3 +1,5 @@
+using System.Drawing.Text;
+
 namespace FlashMemo.Model
 {
     public enum CardState
@@ -6,7 +8,7 @@ namespace FlashMemo.Model
         Learning,
         Review
     }
-    public enum AnswerQuality
+    public enum Answers
     {
         Again,
         Hard,
@@ -15,26 +17,42 @@ namespace FlashMemo.Model
     }
     public abstract class Card: IEquatable<Card>
     {
-        public Card(float currentMultiplier)
+        public Card(string frontContent, string? backContent = null)
         {
+            FrontContent = frontContent;
+            BackContent = backContent;
+
             Created = DateTime.Now;
             LastModified = DateTime.Now;
+            NextReview = DateTime.MinValue;
+            LastReviewed = DateTime.MinValue;
             Interval = TimeSpan.Zero;
-            Multiplier = currentMultiplier;
+
             State = CardState.New;
             IsBuried = false;
             IsSuspended = false;
-            NextReview = DateTime.MinValue;
-            LastReviewed = DateTime.MinValue;
         }
         
         #region Properties
+
+        public string FrontContent { get; set; }
+        public string? BackContent { get; set; }
         public int Id { get; set; }
-        public bool IsBuried { get; set; }
+        public bool IsBuried
+        {
+            get;
+            set
+            {
+                if (field != value)
+                    field = value;
+                
+                else throw new InvalidOperationException($"You were trying to change buried to the same value. Card id: {Id}, isBuried: {IsBuried}"); 
+            }
+        }
         public bool IsSuspended
         {
-            get; 
-            protected set
+            get;
+            set
             {
                 if (field != value)
                     field = value;
@@ -43,12 +61,12 @@ namespace FlashMemo.Model
             } 
         }
         public CardState State { get; protected set; }
-        public float Multiplier { get; set; }
-        public TimeSpan Interval { get; set; }
+        public TimeSpan Interval { get; protected set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
         public DateTime NextReview { get; set; }
         public DateTime LastReviewed { get; set; }
+        public int? LearningStage { get; protected set; }
         #endregion
 
         #region Public Methods

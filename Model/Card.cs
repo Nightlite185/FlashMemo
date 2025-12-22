@@ -77,14 +77,14 @@ namespace FlashMemo.Model
 
             LastModified = DateTime.Now;
         }
-        public void Review(TimeSpan newInterval, CardState newState, int? newLearningStage)
+        public void Review(ScheduleInfo s)
         {
             LastReviewed = DateTime.Now;
             NextReview = LastReviewed.Add(Interval);
 
-            Interval = newInterval;
-            State = newState;
-            LearningStage = newLearningStage;
+            Interval = s.Interval;
+            State = s.State;
+            LearningStage = s.LearningStage;
         }
         public void Reschedule(DateTime newReviewDate)
         {
@@ -103,10 +103,6 @@ namespace FlashMemo.Model
             NextReview = NextReview.Add(putOffBy);
             LastModified = DateTime.Now;
         }
-        #endregion
-
-        #region Protected Methods
-        
         #endregion
 
         #region Hashcode and Equals

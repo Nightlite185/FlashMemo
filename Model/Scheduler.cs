@@ -2,6 +2,12 @@ using System.Collections.Immutable;
 
 namespace FlashMemo.Model
 {
+    public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStage)
+    {
+        public TimeSpan Interval { get; set; } = interval;
+        public CardState State { get; set; } = state;
+        public int? LearningStage { get; set; } = learningStage;
+    }
     public class Scheduler: IDefaultable
     {
         #region defaults
@@ -45,94 +51,126 @@ namespace FlashMemo.Model
         public int EasyOnNewDayCount { get; set; } = DefEasyOnNewDayCount;
         public int HardOnNewStage { get; set; } = DefHardOnNewStage;
         #endregion
-        public void ScheduleCard(Card card, Answers answer) // this should call priv methods that separately handle each answer (depending on it) - to encapsulate and clean the logic a bit.
+        public void ScheduleCard(Card card, Answers answer)
         {
-            TimeSpan interval;
-            CardState state = card.State;
-            int? learningStage = null;
-
-            if (answer == Answers.Easy)
+            ScheduleInfo info = answer switch
             {
-                state = CardState.Review;
+                Answers.Easy => ProcessEasy(card),
+                Answers.Good => ProcessGood(card),
+                Answers.Hard => ProcessHard(card),
+                Answers.Again => ProcessAgain(card),
 
-                interval = (card.State == CardState.New)
+                _ => throw new ArgumentException($"Invalid value of Answer enum - {answer}", nameof(answer))
+            };
+
+            card.Review(info);
+        }
+        
+        #region Private answer handlers
+        private ScheduleInfo ProcessHard(Card card)
+        {
+            return card.State switch
+            {
+                CardState.New => new(
+                    state: CardState.Learning,
+                    learningStage: HardOnNewStage,
+                    interval: LearningStages[HardOnNewStage]
+                ),
+                
+                CardState.Learning => new(
+                    learningStage: card.LearningStage,
+                    interval: LearningStages[(int)card.LearningStage!],
+                    state: card.State
+                ),
+                
+                CardState.Review => new(
+                    interval: card.Interval * HardMultiplier,
+                    state: card.State,
+                    learningStage: null
+                ),
+
+                _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
+            };
+        }
+        private ScheduleInfo ProcessEasy(Card card)
+        {
+            return new(
+                state: CardState.Review,
+                learningStage: null,
+
+                interval: (card.State == CardState.New)
                     ? new TimeSpan(days: EasyOnNewDayCount, 0, 0, 0)
                 : (card.State == CardState.Learning)
                     ? new TimeSpan(days: (int)Math.Round(EasyMultiplier, MidpointRounding.AwayFromZero), 0, 0, 0)
-                    : card.Interval * EasyMultiplier;
-
-                learningStage = null;
-            }
-
-            else if (answer == Answers.Again)
-            {
-                if (card.State == CardState.Review)
-                {
-                    state = CardState.Learning;
-                    interval = LearningStages[AgainStageFallback];
-                    learningStage = AgainStageFallback;
-                }
-
-                else if (card.State is CardState.New or CardState.Learning)
-                {
-                    state = CardState.Learning;
-                    interval = LearningStages[0];
-                    learningStage = 0;
-                }
-
-                else throw new Exception($"card has invalid state - {card.State}");
-            }
-
-            else if (answer == Answers.Good)
-            {
-                if (card.State == CardState.New)
-                {
-                    learningStage = GoodOnNewStage;
-                    state = CardState.Learning;
-                    interval = LearningStages[GoodOnNewStage];
-                }
-                
-                else if (card.State == CardState.Learning)
-                {
-                    learningStage = (card.LearningStage == 2) // if its already last learning stage:
-                        ? null                              // set to null
-                        : card.LearningStage + 1;           // else just add one 
-
-                    state = (card.LearningStage == null)
-                        ? CardState.Review
-                        : CardState.Learning;
-
-                    interval = (state == CardState.Learning)
-                        ? LearningStages[(int)learningStage!]
-                        : new TimeSpan(days: (int)Math.Round(GoodMultiplier, MidpointRounding.AwayFromZero), 0, 0, 0);
-                }
-
-                else // state = review
-                    interval = card.Interval * GoodMultiplier;
-            }
-
-            else // answer = hard
-            {
-                if (card.State == CardState.New)
-                {
-                    state = CardState.Learning;
-                    learningStage = HardOnNewStage;
-                    interval = LearningStages[HardOnNewStage];
-                }
-            
-                else if (card.State == CardState.Learning)
-                {
-                    learningStage = card.LearningStage;
-                    interval = LearningStages[(int)learningStage!];
-                }
-            
-                else // state = review
-                {
-                    interval = card.Interval * HardMultiplier;
-                }
-            }
-
-            card.Review(interval, state, learningStage);
+                    : card.Interval * EasyMultiplier
+            );
         }
+        private ScheduleInfo ProcessGood(Card card)
+        {
+            return card.State switch
+            {
+                CardState.New => new(
+                    learningStage: GoodOnNewStage,
+                    state: CardState.Learning,
+                    interval: LearningStages[GoodOnNewStage]
+                ),
+
+                CardState.Learning => ProcessGoodIfLearningStage(card),
+
+                CardState.Review => new(
+                    interval: card.Interval * GoodMultiplier,
+                    state: card.State,
+                    learningStage: null
+                ),
+                
+                _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
+            };
+        }
+        private ScheduleInfo ProcessGoodIfLearningStage(Card card)
+        {
+            /* this case has to be separate cuz next params depend on the previous variables set -> not to repeat the same ifs.
+            calling a ctor in switch case can't dynamically depend on previous args since the struct doesnt even exist yet. */
+
+            int? learningStage = (card.LearningStage == 2) // if its already last learning stage:
+                ? null                              // set to null
+                : card.LearningStage + 1;           // else just add one 
+
+            CardState state = (learningStage == null)
+                ? CardState.Review
+                : CardState.Learning;
+
+            TimeSpan interval = (state == CardState.Learning)
+                ? LearningStages[(int)learningStage!]
+                : new TimeSpan(days: (int)Math.Round(GoodMultiplier, MidpointRounding.AwayFromZero), 0, 0, 0);
+
+
+            return new(
+                learningStage: learningStage,
+                state: state,
+                interval: interval
+            );
+        }
+        private ScheduleInfo ProcessAgain(Card card)
+        {
+            return card.State switch 
+            {
+                CardState.Review => new(
+                    state: CardState.Learning,
+                    interval: LearningStages[AgainStageFallback],
+                    learningStage: AgainStageFallback
+                ),
+            
+                CardState.New or CardState.Learning => new(
+                    state: CardState.Learning,
+                    interval: LearningStages[0],
+                    learningStage: 0
+                ),
+
+                _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
+            };
+        }
+        #endregion
+        private static string InvalidStateExMessage(Card c)
+            => $"card has invalid state enum value ({c.State}), card's id = {c.Id}";
     }
 }

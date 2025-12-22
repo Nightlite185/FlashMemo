@@ -2,9 +2,9 @@ using System.Collections;
 using Force.DeepCloner;
 namespace FlashMemo.Model
 {
-    public class Deck: IEnumerable<Card>
+    public class Deck: IEnumerable<Card>, IEquatable<Deck>
     {
-        public Deck(string name, params Card[]? cards)
+        public Deck(string name, int? parentId = null, params Card[]? cards)
         {   
             if (cards is not null)
                 this.cards = [..cards];
@@ -13,14 +13,15 @@ namespace FlashMemo.Model
 
             Name = name;
             Scheduler = new Scheduler();
+            ParentId = parentId;
         }
-
-        private List<Card> cards;
+        protected List<Card> cards;
         public string Name { get; private set; }
         public int Id { get; set; }
+        public int? ParentId { get; set; }
         public Scheduler Scheduler { get; init; }
         public void Sort(SortingOptions sortBy = SortingOptions.Created, SortingDirection dir = SortingDirection.Descending)
-        {
+        {   // TO DO: this should probably be encapsulated in sorting class, not here.
             switch (sortBy)
             {
                 case SortingOptions.Created:
@@ -68,23 +69,26 @@ namespace FlashMemo.Model
                 _ => throw new ArgumentOutOfRangeException(nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),
             };
         }
-        public void Rename(string newName)
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(newName, nameof(newName));
-            this.Name = newName;
+        public void AddCards(params Card[] newCards) // if its temp deck? dont clone, else if normal: deep clone all arg cards 
+        {                                           // BUT NOT IN BASE -> IN IMPLEMENTATION
+            foreach (var c in newCards) c.DeckId = this.Id;
+            cards.AddRange(newCards);
         }
-        public void AddCards(params Card[] cards)
-        {
-            this.cards.AddRange(cards);
-        }
-        public Deck Clone()
-        {
-            var clone = this.DeepClone();
-            clone.cards.ForEach(c => c.Id = 0);
+        public Deck Duplicate(int? HighestCopyNum) // this shouldnt be a thing in temp deck, only in normal one.
+        {                                      // TO DO: get this out of base -> to the normal deck implementation. 
+            if (HighestCopyNum <= 0) throw new ArgumentOutOfRangeException(nameof(HighestCopyNum));
+            
+            var copy = this.DeepClone();
+            
+            copy.cards.ForEach(c => c.Id = 0);
 
-            // db.Save() here
+            copy.Name = $"{this.Name} - copy" + (
+                HighestCopyNum != null
+                    ? $"({HighestCopyNum+1})" 
+                    : ""
+            );
 
-            return clone;
+            return copy;
         }
         public void Clear() => cards.Clear();
         public int Count => cards.Count;
@@ -101,5 +105,14 @@ namespace FlashMemo.Model
         }
         IEnumerator IEnumerable.GetEnumerator() 
             => GetEnumerator();
+
+        #region Hashcode and Equals
+        public override bool Equals(object? obj)
+            => obj is Deck d && this.Id == d.Id;
+        public override int GetHashCode()
+            => HashCode.Combine(Id);
+        public bool Equals(Deck? other)
+            => other is Deck d && d.Id == this.Id;
+        #endregion
     }
 }

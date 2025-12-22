@@ -1,5 +1,3 @@
-using System.Drawing.Text;
-
 namespace FlashMemo.Model
 {
     public enum CardState
@@ -17,10 +15,12 @@ namespace FlashMemo.Model
     }
     public abstract class Card: IEquatable<Card>
     {
-        public Card(string frontContent, string? backContent = null)
+        public Card(int deckId, string frontContent, string? backContent = null)
         {
             FrontContent = frontContent;
             BackContent = backContent;
+            DeckId = deckId;
+            Tags = [];
 
             Created = DateTime.Now;
             LastModified = DateTime.Now;
@@ -38,6 +38,8 @@ namespace FlashMemo.Model
         public string FrontContent { get; set; }
         public string? BackContent { get; set; }
         public int Id { get; set; }
+        public int DeckId { get; set; }
+        public string[] Tags;
         public bool IsBuried
         {
             get;

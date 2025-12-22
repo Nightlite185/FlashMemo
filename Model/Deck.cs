@@ -4,21 +4,20 @@ namespace FlashMemo.Model
 {
     public class Deck: IEnumerable<Card>, IEquatable<Deck>
     {
-        public Deck(string name, int? parentId = null, params Card[]? cards)
+        public Deck(string name, int userId, int? parentDeckId = null, params Card[]? cards)
         {   
-            if (cards is not null)
-                this.cards = [..cards];
-
-            else this.cards = [];
+            this.cards = cards is not null ? [..cards] : [];
 
             Name = name;
             Scheduler = new Scheduler();
-            ParentId = parentId;
+            ParentDeckId = parentDeckId;
+            UserId = userId;
         }
         protected List<Card> cards;
         public string Name { get; private set; }
         public int Id { get; set; }
-        public int? ParentId { get; set; }
+        public int? ParentDeckId { get; set; }
+        public int UserId { get; }
         public Scheduler Scheduler { get; init; }
         public void Sort(SortingOptions sortBy = SortingOptions.Created, SortingDirection dir = SortingDirection.Descending)
         {   // TO DO: this should probably be encapsulated in sorting class, not here.

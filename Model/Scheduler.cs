@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Force.DeepCloner;
 
 namespace FlashMemo.Model
 {
@@ -8,8 +9,9 @@ namespace FlashMemo.Model
         public CardState State { get; set; } = state;
         public int? LearningStage { get; set; } = learningStage;
     }
-    public class Scheduler: IDefaultable
+    public class Scheduler(string name = "Default"): IDefaultable
     {
+        public string Name { get; set; } = name;
         #region defaults
         public const float DefGoodMultiplier = 2.0f;
         public const float DefEasyMultiplier = 3.0f;
@@ -64,6 +66,21 @@ namespace FlashMemo.Model
             };
 
             card.Review(info);
+        }
+
+        public Scheduler Clone(int? HighestCopyNum = null)
+        {
+            if (HighestCopyNum <= 0) throw new ArgumentOutOfRangeException(nameof(HighestCopyNum));
+
+            var copy = this.DeepClone();
+
+            copy.Name = $"{this.Name} - copy" + (
+                HighestCopyNum != null
+                    ? $"({HighestCopyNum+1})" 
+                    : ""
+            );
+
+            return copy;
         }
         
         #region Private answer handlers

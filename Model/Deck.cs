@@ -4,14 +4,13 @@ namespace FlashMemo.Model
 {
     public class Deck: IEnumerable<Card>, IEquatable<Deck>
     {
-        public Deck(string name, int userId, int? parentDeckId = null, params Card[]? cards)
+        public Deck(string name, int? parentDeckId = null, params Card[]? cards)
         {   
             this.cards = cards is not null ? [..cards] : [];
 
             Name = name;
             Scheduler = new Scheduler();
             ParentDeckId = parentDeckId;
-            UserId = userId;
         }
         protected List<Card> cards;
         public string Name { get; private set; }

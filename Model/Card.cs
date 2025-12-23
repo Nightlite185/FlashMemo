@@ -15,11 +15,10 @@ namespace FlashMemo.Model
     }
     public abstract class Card: IEquatable<Card>
     {
-        public Card(int deckId, string frontContent, string? backContent = null)
+        public Card(string frontContent, string? backContent = null)
         {
             FrontContent = frontContent;
             BackContent = backContent;
-            DeckId = deckId;
             Tags = [];
 
             Created = DateTime.Now;
@@ -38,8 +37,8 @@ namespace FlashMemo.Model
         public string FrontContent { get; set; }
         public string? BackContent { get; set; }
         public int Id { get; set; }
+        public ICollection<Tag> Tags { get; set; }
         public int DeckId { get; set; }
-        public string[] Tags;
         public bool IsBuried
         {
             get;

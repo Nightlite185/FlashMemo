@@ -9,8 +9,10 @@ namespace FlashMemo.Model
         {
             HashedPassword = SHA256.HashData(Encoding.UTF8.GetBytes(password));
             Username = name;
+            Cfg = new();
         }
         public string Username { get; set; }
+        public Settings Cfg { get; init; }
         public int Id { get; set; }
         private byte[] HashedPassword;
 

@@ -9,10 +9,11 @@ namespace FlashMemo.Model
         public CardState State { get; set; } = state;
         public int? LearningStage { get; set; } = learningStage;
     }
-    public class Scheduler(int userId, string name = "Default"): IDefaultable
+    public class Scheduler(string name = "Default"): IDefaultable
     {
         public string Name { get; set; } = name;
-        public int UserId { get; } = userId;
+        public int UserId { get; set; }
+        public int DeckId { get; set; }
         
         #region defaults
         public const float DefGoodMultiplier = 2.0f;

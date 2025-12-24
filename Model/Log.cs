@@ -3,11 +3,13 @@ namespace FlashMemo.Model
     public enum CardAction { Review, Modify, Delete, Create, Reschedule }
     public class CardLog
     {
-        public CardLog(CardAction action, Answers? answer, User user, Card card, CardState newState)
+        public CardLog(CardAction action, Answers? answer, TimeSpan? answerTime, User user, Card card, CardState newState)
         {
-            if (action == CardAction.Review && answer == null)
-                throw new ArgumentNullException(nameof(answer), "'answer' parameter cannot be null if given CardAction is review.");
+            if (action is CardAction.Review && (answer is null || answerTime is null))
+                throw new ArgumentNullException(nameof(answer), "'answer' and 'answerTime' parameter cannot be null if given CardAction is review.");
 
+            this.TimeStamp = DateTime.Now;
+            this.AnswerTime = answerTime;
             this.Action = action;
             this.Answer = answer;
             this.User = user;
@@ -21,7 +23,8 @@ namespace FlashMemo.Model
         public readonly Card Card;
         public readonly CardAction Action;
         public readonly Answers? Answer;
+        public readonly TimeSpan? AnswerTime;
         public readonly CardState NewCardState;
-        public readonly DateTime TimeStamp = DateTime.Now;
+        public readonly DateTime TimeStamp;
     }
 }

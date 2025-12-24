@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace FlashMemo.Model
 {
     public enum CardState
@@ -45,8 +47,16 @@ namespace FlashMemo.Model
             set
             {
                 if (field != value)
+                {
                     field = value;
+
+                    NextReview = (NextReview.Date == DateTime.Now.Date)
+                        ? DateTime.Today.AddDays(1) 
+                        : NextReview;
+                }
                 
+                
+
                 else throw new InvalidOperationException($"You were trying to change buried to the same value. Card id: {Id}, isBuried: {IsBuried}"); 
             }
         }
@@ -62,6 +72,7 @@ namespace FlashMemo.Model
             } 
         }
         public CardState State { get; protected set; }
+        public TimeSpan TimeTillNextReview => NextReview - DateTime.Now;
         public TimeSpan Interval { get; protected set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
@@ -87,22 +98,41 @@ namespace FlashMemo.Model
             State = s.State;
             LearningStage = s.LearningStage;
         }
-        public void Reschedule(DateTime newReviewDate)
+        public void Reschedule(DateTime newReviewDate, bool keepInterval)
         {
+            State = CardState.Review; // reschedule forces state to review, weird outcomes otherwise.
             NextReview = newReviewDate;
             LastModified = DateTime.Now;
+
+            if (!keepInterval)
+                Interval += newReviewDate - DateTime.Now;
         }
-        public void Reschedule(TimeSpan timeFromNow)
+        public void Reschedule(TimeSpan timeFromNow, bool keepInterval)
         {
             var now = DateTime.Now;
 
             NextReview = now.Add(timeFromNow);
             LastModified = now;
+            State = CardState.Review;
+
+            if (!keepInterval) 
+                Interval += timeFromNow;
         }
-        public void Postpone(TimeSpan putOffBy)
+        public void Postpone(TimeSpan putOffBy, bool keepInterval)
         {
             NextReview = NextReview.Add(putOffBy);
             LastModified = DateTime.Now;
+            State = CardState.Review;
+
+            if (!keepInterval) 
+                Interval += putOffBy;
+        }
+        public void Forget()
+        {
+            State = CardState.New;
+            NextReview = DateTime.Now;
+            LastModified = DateTime.Now;
+            Interval = TimeSpan.MinValue;
         }
         #endregion
 

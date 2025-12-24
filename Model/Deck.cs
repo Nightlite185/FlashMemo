@@ -5,9 +5,13 @@ namespace FlashMemo.Model
     public class Deck: IEnumerable<Card>, IEquatable<Deck>
     {
         public Deck(string name, int? parentDeckId = null, params Card[]? cards)
-        {   
-            this.cards = cards is not null ? [..cards] : [];
+        {
+            this.cards = cards is not null 
+                ? [..cards] 
+                : [];
 
+            Created = DateTime.Now;
+            
             Name = name;
             Scheduler = new Scheduler();
             ParentDeckId = parentDeckId;
@@ -16,7 +20,8 @@ namespace FlashMemo.Model
         public string Name { get; private set; }
         public int Id { get; set; }
         public int? ParentDeckId { get; set; }
-        public int UserId { get; }
+        public int UserId { get; set; }
+        public DateTime Created { get; }
         public Scheduler Scheduler { get; init; }
         public void Sort(SortingOptions sortBy = SortingOptions.Created, SortingDirection dir = SortingDirection.Descending)
         {   // TO DO: this should probably be encapsulated in sorting class, not here.

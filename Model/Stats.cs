@@ -1,7 +1,7 @@
 namespace FlashMemo.Model
 {
-    public class Stats(int userId)
+    public class Stats()
     {
-        public int UserId { get; } = userId;
+        public int UserId { get; }
     }
 }

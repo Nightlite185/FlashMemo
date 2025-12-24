@@ -23,56 +23,8 @@ namespace FlashMemo.Model
         public int UserId { get; set; }
         public DateTime Created { get; }
         public Scheduler Scheduler { get; init; }
-        public void Sort(SortingOptions sortBy = SortingOptions.Created, SortingDirection dir = SortingDirection.Descending)
-        {   // TO DO: this should probably be encapsulated in sorting class, not here.
-            switch (sortBy)
-            {
-                case SortingOptions.Created:
-                    SortHelper(x => x.Created, dir);
-                    break;
-
-                case SortingOptions.Id:
-                    SortHelper(x => x.Id, dir);
-                    break;
-
-                case SortingOptions.LastModified:
-                    SortHelper(x => x.LastModified, dir);
-                    break;
-
-                case SortingOptions.LastReviewed:
-                    SortHelper(x => x.LastReviewed, dir);
-                    break;
-
-                case SortingOptions.Interval:
-                    SortHelper(x => x.Interval, dir);
-                    break;
-
-                case SortingOptions.NextReview:
-                    SortHelper(x => x.NextReview, dir);
-                    break;
-
-                case SortingOptions.State:
-                    SortHelper(x => x.State, dir);
-                    break;
-
-                case SortingOptions.Random:
-                    SortHelper(_ => Random.Shared.Next(), dir);
-                    break;
-
-                default: throw new ArgumentOutOfRangeException(nameof(sortBy), $"Wrong {nameof(SortingOptions)} enum value, its {sortBy}");
-            }
-        }
-        private void SortHelper<TOut> (Func<Card, TOut> keySelector, SortingDirection dir)
-        {
-            cards = dir switch
-            {
-                SortingDirection.Ascending => [.. cards.OrderBy(keySelector)],
-                SortingDirection.Descending => [.. cards.OrderByDescending(keySelector)],
-
-                _ => throw new ArgumentOutOfRangeException(nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),
-            };
-        }
-        public void AddCards(params Card[] newCards) // if its temp deck? dont clone, else if normal: deep clone all arg cards 
+        
+        public void AddCards(params Card[] newCards) // if its temp deck ? dont clone, else if normal: deep clone all arg cards 
         {                                           // BUT NOT IN BASE -> IN IMPLEMENTATION
             foreach (var c in newCards) c.DeckId = this.Id;
             cards.AddRange(newCards);
@@ -94,6 +46,8 @@ namespace FlashMemo.Model
             return copy;
         }
         public void Clear() => cards.Clear();
+        public void SortBy(SortingOptions options, SortingDirection direction)
+            => cards = [..this.Sort(options, direction)];
         public int Count => cards.Count;
 
         public Card this[int index]

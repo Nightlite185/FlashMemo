@@ -4,11 +4,14 @@ namespace FlashMemo.Model
 {
     public class Deck: IEnumerable<Card>, IEquatable<Deck>
     {
-        public Deck(string name, int? parentDeckId = null, params Card[]? cards)
+        public Deck(bool temporary, string name, int? parentDeckId = null, params Card[]? newCards)
         {
-            this.cards = cards is not null 
-                ? [..cards] 
-                : [];
+            IsTemporary = temporary;
+
+            cards = [];
+
+            if (newCards is not null) 
+                AddCards(newCards);
 
             Created = DateTime.Now;
             
@@ -17,22 +20,27 @@ namespace FlashMemo.Model
             ParentDeckId = parentDeckId;
         }
         protected List<Card> cards;
-        public string Name { get; private set; }
+        public string Name { get; set; }
         public int Id { get; set; }
         public int? ParentDeckId { get; set; }
         public int UserId { get; set; }
         public DateTime Created { get; }
         public Scheduler Scheduler { get; init; }
+        public bool IsTemporary { get; init; }
         
-        public void AddCards(params Card[] newCards) // if its temp deck ? dont clone, else if normal: deep clone all arg cards 
-        {                                           // BUT NOT IN BASE -> IN IMPLEMENTATION
-            foreach (var c in newCards) c.DeckId = this.Id;
+        public void AddCards(params Card[] newCards)
+        {                                         
+            if (!this.IsTemporary)
+                foreach (var c in newCards)
+                    c.DeckId = this.Id;
+
             cards.AddRange(newCards);
         }
-        public Deck Duplicate(int? HighestCopyNum) // this shouldnt be a thing in temp deck, only in normal one.
-        {                                      // TO DO: get this out of base -> to the normal deck implementation. 
+        public Deck Duplicate(int? HighestCopyNum)
+        {
             if (HighestCopyNum <= 0) throw new ArgumentOutOfRangeException(nameof(HighestCopyNum));
-            
+            if (IsTemporary) throw new InvalidOperationException("Cannot duplicate a temporary deck.");
+
             var copy = this.DeepClone();
             
             copy.cards.ForEach(c => c.Id = 0);

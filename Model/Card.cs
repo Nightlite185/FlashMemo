@@ -34,8 +34,8 @@ namespace FlashMemo.Model
         
         #region Properties
 
-        public string FrontContent { get; set; }
-        public string? BackContent { get; set; }
+        public virtual string FrontContent { get; set; }
+        public virtual string? BackContent { get; set; }
         public int Id { get; set; }
         public ICollection<Tag> Tags { get; set; }
         public int DeckId { get; set; }

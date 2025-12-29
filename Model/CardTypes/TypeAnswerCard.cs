@@ -3,8 +3,7 @@
 // If its type-list card, asnwers order should not matter, as long as they're separated with chosen del.
 namespace FlashMemo.Model.CardTypes
 {
-    public class TypeAnswerCard: Card
+    public class TypeAnswerCard(string frontContent, string? backContent = null) : Card(frontContent, backContent)
     {
-        
     }
 }

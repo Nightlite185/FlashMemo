@@ -13,7 +13,7 @@ namespace FlashMemo.Model
         Good,
         Easy
     }
-    public abstract class Card: IEquatable<Card>
+    public class Card: IEquatable<Card>
     {
         public Card(string frontContent, string? backContent = null)
         {

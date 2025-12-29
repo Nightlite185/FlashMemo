@@ -1,0 +1,83 @@
+﻿<UserControl x:Class="FlashMemo.View.DecksUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FlashMemo.View"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="#FF000912"/>
+                <GradientStop Color="#FF0053A0" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        
+        <TreeView
+            Grid.Row="1"
+            ItemsSource="{Binding Decks}"
+            Background="Transparent"
+            BorderThickness="0"
+            ItemContainerStyle="{StaticResource DeckTreeItemStyle}">
+
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="32" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Deck name -->
+                        <TextBlock
+                    Text="{Binding Name}"
+                    Foreground="{StaticResource DeckTextBrush}"
+                    VerticalAlignment="Center"/>
+
+                        <!-- New -->
+                        <TextBlock
+                    Grid.Column="1"
+                    Text="{Binding NewCount}"
+                    Foreground="{StaticResource DeckNewBrush}"
+                    HorizontalAlignment="Center"/>
+
+                        <!-- Learn -->
+                        <TextBlock
+                    Grid.Column="2"
+                    Text="{Binding LearnCount}"
+                    Foreground="{StaticResource DeckLearnBrush}"
+                    HorizontalAlignment="Center"/>
+
+                        <!-- Due -->
+                        <TextBlock
+                    Grid.Column="3"
+                    Text="{Binding DueCount}"
+                    Foreground="{StaticResource DeckDueBrush}"
+                    HorizontalAlignment="Center"/>
+
+                        <!-- Options button -->
+                        <Button
+                    Grid.Column="4"
+                    Content="⚙"
+                    Style="{StaticResource DeckOptionsButtonStyle}"
+                    Click="DeckOptions_Click">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Rename"/>
+                                    <MenuItem Header="Options"/>
+                                    <MenuItem Header="Export"/>
+                                    <Separator/>
+                                    <MenuItem Header="Delete"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                    </Grid>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</UserControl>

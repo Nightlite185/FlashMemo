@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Force.DeepCloner;
 
-namespace FlashMemo.Model
+namespace FlashMemo.Model.Domain
 {
     public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStage)
     {
@@ -11,9 +11,8 @@ namespace FlashMemo.Model
     }
     public class Scheduler(string name = "Default"): IDefaultable
     {
-        public string Name { get; set; } = name;
-        public int UserId { get; set; }
-        public int DeckId { get; set; }
+        public string Name { get; private set; } = name;
+        public int Id { get; init; }
         
         #region defaults
         public const float DefGoodMultiplier = 2.0f;
@@ -46,15 +45,15 @@ namespace FlashMemo.Model
         #endregion
         
         #region scheduling parameters
-        public float GoodMultiplier { get; set; } = DefGoodMultiplier;
-        public float EasyMultiplier { get; set; } = DefEasyMultiplier;
-        public float HardMultiplier { get; set; } = DefHardMultiplier;
-        public int AgainDayCount { get; set; } = DefAgainDayCount;
-        public List<TimeSpan> LearningStages { get; set; } = [..DefLearningStages];
-        public int AgainStageFallback { get; set; } = DefAgainOnReviewStage;
-        public int GoodOnNewStage { get; set; } = DefGoodOnNewStage;
-        public int EasyOnNewDayCount { get; set; } = DefEasyOnNewDayCount;
-        public int HardOnNewStage { get; set; } = DefHardOnNewStage;
+        public float GoodMultiplier { get; private set; } = DefGoodMultiplier;
+        public float EasyMultiplier { get; private set; } = DefEasyMultiplier;
+        public float HardMultiplier { get; private set; } = DefHardMultiplier;
+        public int AgainDayCount { get; private set; } = DefAgainDayCount;
+        public List<TimeSpan> LearningStages { get; private set; } = [..DefLearningStages]; // in minutes
+        public int AgainStageFallback { get; private set; } = DefAgainOnReviewStage;
+        public int GoodOnNewStage { get; private set; } = DefGoodOnNewStage;
+        public int EasyOnNewDayCount { get; private set; } = DefEasyOnNewDayCount;
+        public int HardOnNewStage { get; private set; } = DefHardOnNewStage;
         #endregion
         public void ScheduleCard(Card card, Answers answer)
         {

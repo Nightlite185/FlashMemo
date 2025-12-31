@@ -1,3 +1,5 @@
+using FlashMemo.Model.Domain;
+
 namespace FlashMemo.Model.Persistence
 {
     public interface IEntity{ }

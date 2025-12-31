@@ -1,4 +1,4 @@
-namespace FlashMemo.Model
+namespace FlashMemo.Model.Domain
 {
     public enum CardState
     {
@@ -36,9 +36,9 @@ namespace FlashMemo.Model
 
         public virtual string FrontContent { get; set; }
         public virtual string? BackContent { get; set; }
-        public int Id { get; set; }
-        public ICollection<Tag> Tags { get; set; }
-        public int DeckId { get; set; }
+        public int Id { get; set; } // its fine just for equality checking, can come from corresponding entity's Id
+        public List<Tag> Tags { get; set; }
+        public Deck ParentDeck { get; set; } = null!;
         public bool IsBuried
         {
             get;
@@ -53,8 +53,6 @@ namespace FlashMemo.Model
                         : NextReview;
                 }
                 
-                
-
                 else throw new InvalidOperationException($"You were trying to change buried to the same value. Card id: {Id}, isBuried: {IsBuried}"); 
             }
         }
@@ -72,10 +70,10 @@ namespace FlashMemo.Model
         public CardState State { get; protected set; }
         public TimeSpan TimeTillNextReview => NextReview - DateTime.Now;
         public TimeSpan Interval { get; protected set; }
-        public DateTime Created { get; set; }
-        public DateTime LastModified { get; set; }
-        public DateTime NextReview { get; set; }
-        public DateTime LastReviewed { get; set; }
+        public DateTime Created { get; protected set; }
+        public DateTime LastModified { get; protected set; }
+        public DateTime NextReview { get; protected set; }
+        public DateTime LastReviewed { get; protected set; }
         public int? LearningStage { get; protected set; }
         #endregion
 

@@ -1,14 +1,13 @@
-using System.Windows.Media;
-
-namespace FlashMemo.Model
+namespace FlashMemo.Model.Domain
 {
     public class Tag(string name): IEquatable<Tag>
     {
         public int Id { get; set; }
+        public User Owner { get; set; } = null!;
         public string Name { get; set; } = name;
-        public int UserId { get; set; }
-        public ICollection<Card> Cards { get; set; } = [];
-        public Color Color { get; set; }
+        public uint Color { get; set; }
+        
+        #region equality
 
         public override bool Equals(object? obj)
             => obj is Tag other && other.Id == this.Id;
@@ -18,5 +17,7 @@ namespace FlashMemo.Model
 
         public override int GetHashCode()
             => HashCode.Combine(Id);
+        
+        #endregion
     }
 }

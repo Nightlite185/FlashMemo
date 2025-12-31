@@ -8,6 +8,7 @@ namespace FlashMemo.Model.Persistence
         public ICollection<DeckEntity> Decks { get; set; } = [];
         public ICollection<SchedulerEntity> SchedulerPresets { get; set; } = [];
         public ICollection<TagEntity> Tags { get; set; } = [];
+        public ICollection<CardLogEntity> Logs { get; set; } = [];
         // TO DO: add settings entity in the future, when its implemented.
     }
 }

@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace FlashMemo.Model
+namespace FlashMemo.Model.Domain
 {
     public class User: IEquatable<User>
     {
@@ -12,11 +12,11 @@ namespace FlashMemo.Model
             Cfg = new();
         }
         public string Username { get; set; }
-        public Settings Cfg { get; init; }
+        public Settings Cfg { get; set; }
         public int Id { get; set; }
         private byte[] HashedPassword;
 
-        public List<Deck> Collection { get; set; } = [];
+        public List<Deck> Decks { get; set; } = [];
         public List<Scheduler> SchedulerPresets { get; set; } = [];
         
         #region Hashcode and Equals

@@ -15,7 +15,7 @@ namespace FlashMemo.Model.Domain
     }
     public class Card: IEquatable<Card>
     {
-        public Card(string frontContent, string? backContent = null)
+        public Card(string frontContent, string? backContent = null) // new fresh card ctor
         {
             FrontContent = frontContent;
             BackContent = backContent;
@@ -31,7 +31,25 @@ namespace FlashMemo.Model.Domain
             IsBuried = false;
             IsSuspended = false;
         }
-        
+        public Card(string frontContent, string? backContent, DateTime created, DateTime lastModified,
+                    DateTime nextReview, DateTime lastReviewed, TimeSpan interval, CardState state,
+                    int? learningStage, Deck parentDeck, bool isBuried, bool isSuspended, ICollection<Tag> tags, int id) // ctor for mapper
+        {
+            FrontContent = frontContent;
+            BackContent = backContent;
+            Created = created;
+            ParentDeck = parentDeck;
+            LastModified = lastModified;
+            NextReview = nextReview;
+            LastReviewed = lastReviewed;
+            Interval = interval;
+            State = state;
+            LearningStage = learningStage;
+            IsBuried = isBuried;
+            IsSuspended = isSuspended;
+            Tags = [..tags];
+            Id = id;
+        }
         #region Properties
 
         public virtual string FrontContent { get; set; }
@@ -130,6 +148,7 @@ namespace FlashMemo.Model.Domain
             LastModified = DateTime.Now;
             Interval = TimeSpan.MinValue;
         }
+
         #endregion
 
         #region Hashcode and Equals

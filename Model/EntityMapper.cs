@@ -14,29 +14,78 @@ namespace FlashMemo.Model
     public static class EntityMapper
     {
         #region Domain to Entity
-        public static CardEntity MapToEntity(this Card card, MappingCache cache)
+        public static CardEntity MapToEntity(this Card card)
         {
-            
+            return new CardEntity
+            {
+                Id = card.Id,
+                FrontContent = card.FrontContent,
+                BackContent = card.BackContent,
+                Created = card.Created,
+                LastModified = card.LastModified,
+                NextReview = card.NextReview,
+                LastReviewed = card.LastReviewed,
+                Interval = card.Interval,
+                State = card.State,
+                LearningStage = card.LearningStage,
+                Deck = card.ParentDeck.MapToEntity(),
+                IsBuried = card.IsBuried,
+                IsSuspended = card.IsSuspended,
+                Tags = [..card.Tags.Select(t => t.MapToEntity())]
+            };
         }
-
-        public static DeckEntity MapToEntity(this Deck deck, MappingCache cache)
+        public static DeckEntity MapToEntity(this Deck deck)
         {
-            
+            return new DeckEntity
+            {
+                Id = deck.Id,
+                Cards = [..deck.Select(c => c.MapToEntity())],
+                Name = deck.Name,
+                Owner = deck.Owner.MapToEntity(),
+                Created = deck.Created,
+                Scheduler = deck.Scheduler.MapToEntity(),
+                IsTemporary = deck.IsTemporary
+            };
         }
-
-        public static SchedulerEntity MapToEntity(this Scheduler scheduler, MappingCache cache)
+        public static SchedulerEntity MapToEntity(this Scheduler scheduler)
         {
-            
+            return new SchedulerEntity
+            {
+                Id = scheduler.Id,
+                Name = scheduler.Name,
+
+                GoodMultiplier = scheduler.GoodMultiplier,
+                EasyMultiplier = scheduler.EasyMultiplier,
+                HardMultiplier = scheduler.HardMultiplier,
+                AgainDayCount = scheduler.AgainDayCount,
+                AgainStageFallback = scheduler.AgainStageFallback,
+                GoodOnNewStage = scheduler.GoodOnNewStage,
+                EasyOnNewDayCount = scheduler.EasyOnNewDayCount,
+                HardOnNewStage = scheduler.HardOnNewStage,
+                LearningStages = [..scheduler.LearningStages.Select(ts => ts.Minutes)]
+            };
         }
-
-        public static UserEntity MapToEntity(this User User, MappingCache cache)
+        public static UserEntity MapToEntity(this User User)
         {
-            
+            return new UserEntity
+            {
+                Id = User.Id,
+                Username = User.Username,
+                HashedPassword = User.HashedPassword,
+                Decks = [..User.Decks.Select(d => d.MapToEntity())],
+                Tags = [..User.Tags.Select(t => t.MapToEntity())],
+                SchedulerPresets = [..User.SchedulerPresets.Select(s => s.MapToEntity())]
+            };
         }
-
-        public static TagEntity MapToEntity(this Tag Tag, MappingCache cache)
+        public static TagEntity MapToEntity(this Tag Tag)
         {
-            
+            return new TagEntity
+            {
+                Id = Tag.Id,
+                Name = Tag.Name,
+                Color = Tag.Color,
+                Owner = Tag.Owner.MapToEntity()
+            };
         }
         #endregion
 

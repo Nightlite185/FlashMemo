@@ -22,7 +22,7 @@ namespace FlashMemo.Model.Domain
         public string Username { get; set; } = null!;
         public Settings Cfg { get; private set; } = null!;
         public long Id { get; private init; }
-        private byte[] HashedPassword = null!;
+        public byte[] HashedPassword { get; private set; } = null!;
 
         public List<Deck> Decks { get; set; } = null!;
         public List<Scheduler> SchedulerPresets { get; set; } = null!;

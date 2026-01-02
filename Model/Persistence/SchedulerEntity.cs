@@ -4,8 +4,8 @@ namespace FlashMemo.Model.Persistence
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public long UserId { get; set; }
-        public long DeckId { get; set; }
+        public long? UserId { get; set; }
+        public long? DeckId { get; set; }
         public float GoodMultiplier { get; set; }
         public float EasyMultiplier { get; set; }
         public float HardMultiplier { get; set; }

@@ -5,7 +5,7 @@ namespace FlashMemo.Model.Persistence
         public long Id { get; set; }
         public string Name { get; set; } = null!;
         public int Color { get; set; }
-        public long UserId { get; set; }
+        public long? UserId { get; set; }
         public UserEntity Owner { get; set; } = null!;
         public ICollection<CardEntity> Cards { get; set; } = [];
     }

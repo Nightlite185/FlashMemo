@@ -5,13 +5,15 @@ namespace FlashMemo.Model
 {
     public static class EntityMapper
     {
+        // caches being static is an issue for multiple users but whatever for now
         #region Caching
-        private readonly static Dictionary<long, Tag> cachedTags = [];
+        private readonly static Dictionary<long, Tag> cachedTags = []; 
         private readonly static Dictionary<long, Card> cachedCards = [];
         private readonly static Dictionary<long, Deck> cachedDecks = [];
         private readonly static Dictionary<long, Scheduler> cachedSchedulers = [];
         private readonly static Dictionary<long, User> cachedUsers = [];
         #endregion
+        
         #region Domain to Entity
         public static CardEntity MapToEntity(Card card)
         {
@@ -44,6 +46,8 @@ namespace FlashMemo.Model
         {
             if (cachedCards.TryGetValue(ce.Id, out var cachedCard))
                 return cachedCard;
+
+            // cache it BEFORE MAPPING YOU MORON
             
             return new Card(
                 frontContent: ce.FrontContent,
@@ -55,7 +59,7 @@ namespace FlashMemo.Model
                 interval: ce.Interval,
                 state: ce.State,
                 learningStage: ce.LearningStage,
-                parentDeck: cachedDecks.GetValueOrDefault(ce.Id) ?? ce.Deck.MapToDomain(),
+                parentDeck: cachedDecks.GetValueOrDefault(ce.DeckId) ?? ce.Deck.MapToDomain(),
                 isBuried: ce.IsBuried,
                 isSuspended: ce.IsSuspended,
                 tags: [..ce.Tags.Select(t => t.MapToDomain())],
@@ -67,9 +71,9 @@ namespace FlashMemo.Model
             if (cachedDecks.TryGetValue(de.Id, out var cachedDeck))
                 return cachedDeck;
 
+            // cache it BEFORE MAPPING YOU MORON
+            
             // map it here
-
-            // cache it right after mapping
         }
 
         public static Scheduler MapToDomain(this SchedulerEntity se)
@@ -77,9 +81,9 @@ namespace FlashMemo.Model
             if (cachedSchedulers.TryGetValue(se.Id, out var cachedScheduler))
                 return cachedScheduler;
 
+            // cache it BEFORE MAPPING YOU MORON
+            
             // map it here
-
-            // cache it right after mapping
         }
 
         public static User MapToDomain(this UserEntity ue)
@@ -87,9 +91,9 @@ namespace FlashMemo.Model
             if (cachedUsers.TryGetValue(ue.Id, out var cachedUser))
                 return cachedUser;
 
+            // cache it BEFORE MAPPING YOU MORON
+            
             // map it here
-
-            // cache it right after mapping
         }
 
         public static Tag MapToDomain(this TagEntity te)
@@ -98,9 +102,9 @@ namespace FlashMemo.Model
                 return cachedTag;
 
             
-            // map it to domain Tag here
-
             // cachedTags.Add(tag.Id, tag);
+
+            // map it to domain Tag here
         }
         #endregion
     }

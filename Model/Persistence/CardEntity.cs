@@ -19,5 +19,6 @@ namespace FlashMemo.Model.Persistence
         public DateTime LastReviewed { get; set; }
         public TimeSpan Interval { get; set; }
         public CardState State { get; set; }
+        public int? LearningStage { get; set; }
     }
 }

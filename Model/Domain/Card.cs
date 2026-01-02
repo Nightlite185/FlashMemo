@@ -17,6 +17,7 @@ namespace FlashMemo.Model.Domain
     {
         public Card(string frontContent, string? backContent = null) // new fresh card ctor
         {
+            Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             FrontContent = frontContent;
             BackContent = backContent;
             Tags = [];
@@ -52,39 +53,13 @@ namespace FlashMemo.Model.Domain
         }
         #region Properties
 
-        public virtual string FrontContent { get; set; }
-        public virtual string? BackContent { get; set; }
-        public int Id { get; set; } // its fine just for equality checking, can come from corresponding entity's Id
-        public List<Tag> Tags { get; set; }
-        public Deck ParentDeck { get; set; } = null!;
-        public bool IsBuried
-        {
-            get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-
-                    NextReview = (NextReview.Date == DateTime.Now.Date)
-                        ? DateTime.Today.AddDays(1) 
-                        : NextReview;
-                }
-                
-                else throw new InvalidOperationException($"You were trying to change buried to the same value. Card id: {Id}, isBuried: {IsBuried}"); 
-            }
-        }
-        public bool IsSuspended
-        {
-            get;
-            set
-            {
-                if (field != value)
-                    field = value;
-                
-                else throw new InvalidOperationException($"You were trying to change suspension to the same value. Card id: {Id}, isSuspended: {IsSuspended}");
-            } 
-        }
+        public virtual string FrontContent { get; protected set; }
+        public virtual string? BackContent { get; protected set; }
+        public long Id { get; init; } // change this to 'long' and get it from miliseconds rn at creation time.
+        public List<Tag> Tags { get; protected set; }
+        public Deck ParentDeck { get; protected set; } = null!;
+        public bool IsBuried { get; protected set; }
+        public bool IsSuspended { get; protected set; }
         public CardState State { get; protected set; }
         public TimeSpan TimeTillNextReview => NextReview - DateTime.Now;
         public TimeSpan Interval { get; protected set; }
@@ -96,6 +71,8 @@ namespace FlashMemo.Model.Domain
         #endregion
 
         #region Public Methods
+        public void FlipBuried() => IsBuried = !IsBuried;
+        public void FlipSuspended() => IsSuspended = !IsSuspended;
         public void Edit(string frontContent, string? backContent = null)
         {
             FrontContent = frontContent;

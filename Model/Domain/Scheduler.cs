@@ -9,10 +9,23 @@ namespace FlashMemo.Model.Domain
         public CardState State { get; set; } = state;
         public int? LearningStage { get; set; } = learningStage;
     }
-    public class Scheduler(string name = "Default"): IDefaultable
+    public class Scheduler: IDefaultable
     {
-        public string Name { get; private set; } = name;
-        public int Id { get; init; }
+        public Scheduler(string name = "New preset") // default ctor for genuine creation
+        {
+            Id = IdGetter.Next();
+            Name = name;
+
+            GoodMultiplier = DefGoodMultiplier;
+            EasyMultiplier = DefEasyMultiplier;
+            HardMultiplier = DefHardMultiplier;
+            LearningStages = [..DefLearningStages];
+            AgainDayCount = DefAgainDayCount;
+            AgainStageFallback = DefAgainOnReviewStage;
+            GoodOnNewStage = DefGoodOnNewStage;
+            EasyOnNewDayCount = DefEasyOnNewDayCount;
+            HardOnNewStage = DefHardOnNewStage;
+        }
         
         #region defaults
         public const float DefGoodMultiplier = 2.0f;
@@ -45,15 +58,15 @@ namespace FlashMemo.Model.Domain
         #endregion
         
         #region scheduling parameters
-        public float GoodMultiplier { get; private set; } = DefGoodMultiplier;
-        public float EasyMultiplier { get; private set; } = DefEasyMultiplier;
-        public float HardMultiplier { get; private set; } = DefHardMultiplier;
-        public int AgainDayCount { get; private set; } = DefAgainDayCount;
-        public List<TimeSpan> LearningStages { get; private set; } = [..DefLearningStages]; // in minutes
-        public int AgainStageFallback { get; private set; } = DefAgainOnReviewStage;
-        public int GoodOnNewStage { get; private set; } = DefGoodOnNewStage;
-        public int EasyOnNewDayCount { get; private set; } = DefEasyOnNewDayCount;
-        public int HardOnNewStage { get; private set; } = DefHardOnNewStage;
+        public float GoodMultiplier { get; private set; }
+        public float EasyMultiplier { get; private set; }
+        public float HardMultiplier { get; private set; }
+        public int AgainDayCount { get; private set; }
+        public List<TimeSpan> LearningStages { get; private set; } = null!; // in minutes
+        public int AgainStageFallback { get; private set; }
+        public int GoodOnNewStage { get; private set; }
+        public int EasyOnNewDayCount { get; private set; }
+        public int HardOnNewStage { get; private set; }
         #endregion
         public void ScheduleCard(Card card, Answers answer)
         {
@@ -69,7 +82,6 @@ namespace FlashMemo.Model.Domain
 
             card.Review(info);
         }
-
         public Scheduler Clone(int? HighestCopyNum = null)
         {
             if (HighestCopyNum <= 0) throw new ArgumentOutOfRangeException(nameof(HighestCopyNum));

@@ -17,7 +17,7 @@ namespace FlashMemo.Model.Domain
     {
         public Card(string frontContent, string? backContent = null) // new fresh card ctor
         {
-            Id = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            Id = IdGetter.Next();
             FrontContent = frontContent;
             BackContent = backContent;
             Tags = [];

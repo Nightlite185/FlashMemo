@@ -8,6 +8,7 @@ namespace FlashMemo.Model.Domain
     {
         public Deck(bool temporary, string name, Deck? parentDeck = null, params Card[]? newCards)
         {
+            Id = IdGetter.Next();
             IsTemporary = temporary;
 
             cards = [];

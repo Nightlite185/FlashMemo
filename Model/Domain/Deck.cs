@@ -1,12 +1,11 @@
 using System.Collections;
 using Force.DeepCloner;
-using FlashMemo.Model;
 
 namespace FlashMemo.Model.Domain
 {
     public class Deck: IEnumerable<Card>, IEquatable<Deck>
     {
-        public Deck(bool temporary, string name, Deck? parentDeck = null, params Card[]? newCards)
+        public Deck(bool temporary, string name, params Card[]? newCards)
         {
             Id = IdGetter.Next();
             IsTemporary = temporary;
@@ -20,18 +19,31 @@ namespace FlashMemo.Model.Domain
             
             Name = name;
             Scheduler = new Scheduler();
-            ParentDeck = parentDeck;
         }
-        
+        public Deck(long id) => Id = id; // ctor for mapper only
+        public Deck Rehydrate(ICollection<Card> cards, string name, User owner, 
+                              DateTime created, Scheduler scheduler, bool isTemporary)
+        {
+            this.cards = [..cards];
+            Name = name;
+            Owner = owner;
+            Created = created;
+            Scheduler = scheduler;
+            IsTemporary = isTemporary;
+
+            return this;
+        }
         #region Properties
-        protected List<Card> cards;
-        public string Name { get; set; }
-        public int Id { get; init; }
+        protected List<Card> cards = null!;
+        public string Name { get; set; } = null!;
+        public long Id { get; init; }
+
+        [Obsolete]
         public Deck? ParentDeck { get; set; } // this stays or not: depending on if parent deck's options affect the children's, or the hierarchy is purely for visual UI organizing.
-        public User Owner { get; init; } = null!;
-        public DateTime Created { get; init; }
-        public Scheduler Scheduler { get; protected set; } // only one scheduler per deck, can be shared tho.
-        public bool IsTemporary { get; init; } // idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
+        public User Owner { get; protected set; } = null!;
+        public DateTime Created { get; protected set; }
+        public Scheduler Scheduler { get; protected set; } = null!; // only one scheduler per deck, can be shared tho.
+        public bool IsTemporary { get; protected set; } // idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
         public int Count => cards.Count;
         #endregion
         
@@ -57,8 +69,6 @@ namespace FlashMemo.Model.Domain
             if (IsTemporary) throw new InvalidOperationException("Cannot duplicate a temporary deck.");
 
             var copy = this.DeepClone();
-            
-            copy.cards.ForEach(c => c.Id = 0);
 
             copy.Name = $"{this.Name} - copy" + (
                 HighestCopyNum != null

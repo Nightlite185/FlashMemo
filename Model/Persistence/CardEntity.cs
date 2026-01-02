@@ -5,10 +5,10 @@ namespace FlashMemo.Model.Persistence
     public interface IEntity{ }
     public class CardEntity: IEntity
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string FrontContent { get; set; } = null!;
         public string? BackContent { get; set; }
-        public int DeckId { get; set; }
+        public long DeckId { get; set; }
         public ICollection<TagEntity> Tags { get; set; } = [];
         public DeckEntity Deck { get; set; } = null!;
         public bool IsBuried { get; set; }

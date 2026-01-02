@@ -15,12 +15,12 @@ namespace FlashMemo.Model.Domain
     }
     public class Card: IEquatable<Card>
     {
-        public Card(string frontContent, string? backContent = null) // new fresh card ctor
+        public Card(string frontContent, ICollection<Tag> tags, string? backContent = null) // new fresh card ctor
         {
             Id = IdGetter.Next();
             FrontContent = frontContent;
             BackContent = backContent;
-            Tags = [];
+            Tags = [..tags];
 
             Created = DateTime.Now;
             LastModified = DateTime.Now;
@@ -32,9 +32,29 @@ namespace FlashMemo.Model.Domain
             IsBuried = false;
             IsSuspended = false;
         }
-        public Card(string frontContent, string? backContent, DateTime created, DateTime lastModified,
+        public Card(long id) => this.Id = id; // for mapper use only
+        #region Properties
+        public virtual string FrontContent { get; protected set; } = null!;
+        public virtual string? BackContent { get; protected set; }
+        public long Id { get; init; } // change this to 'long' and get it from miliseconds rn at creation time.
+        public List<Tag> Tags { get; protected set; } = null!;
+        public Deck ParentDeck { get; set; } = null!;
+        public bool IsBuried { get; protected set; }
+        public bool IsSuspended { get; protected set; }
+        public CardState State { get; protected set; }
+        public TimeSpan TimeTillNextReview => NextReview - DateTime.Now;
+        public TimeSpan Interval { get; protected set; }
+        public DateTime Created { get; protected set; }
+        public DateTime LastModified { get; protected set; }
+        public DateTime NextReview { get; protected set; }
+        public DateTime LastReviewed { get; protected set; }
+        public int? LearningStage { get; protected set; }
+        #endregion
+
+        #region Public Methods
+        public Card Rehydrate(string frontContent, string? backContent, DateTime created, DateTime lastModified,
                     DateTime nextReview, DateTime lastReviewed, TimeSpan interval, CardState state,
-                    int? learningStage, Deck parentDeck, bool isBuried, bool isSuspended, ICollection<Tag> tags, int id) // ctor for mapper
+                    int? learningStage, Deck parentDeck, bool isBuried, bool isSuspended, ICollection<Tag> tags) // for mapper use only
         {
             FrontContent = frontContent;
             BackContent = backContent;
@@ -49,28 +69,9 @@ namespace FlashMemo.Model.Domain
             IsBuried = isBuried;
             IsSuspended = isSuspended;
             Tags = [..tags];
-            Id = id;
+
+            return this;
         }
-        #region Properties
-
-        public virtual string FrontContent { get; protected set; }
-        public virtual string? BackContent { get; protected set; }
-        public long Id { get; init; } // change this to 'long' and get it from miliseconds rn at creation time.
-        public List<Tag> Tags { get; protected set; }
-        public Deck ParentDeck { get; protected set; } = null!;
-        public bool IsBuried { get; protected set; }
-        public bool IsSuspended { get; protected set; }
-        public CardState State { get; protected set; }
-        public TimeSpan TimeTillNextReview => NextReview - DateTime.Now;
-        public TimeSpan Interval { get; protected set; }
-        public DateTime Created { get; protected set; }
-        public DateTime LastModified { get; protected set; }
-        public DateTime NextReview { get; protected set; }
-        public DateTime LastReviewed { get; protected set; }
-        public int? LearningStage { get; protected set; }
-        #endregion
-
-        #region Public Methods
         public void FlipBuried() => IsBuried = !IsBuried;
         public void FlipSuspended() => IsSuspended = !IsSuspended;
         public void Edit(string frontContent, string? backContent = null)

@@ -5,9 +5,9 @@ namespace FlashMemo.Model.Persistence
     public enum CardAction { Review, Modify, Delete, Create, Reschedule }
     public class CardLogEntity: IEntity
     {
-        public int Id { get; set; }
-        public int CardId { get; set; }
-        public int UserId { get; set; }
+        public long Id { get; set; }
+        public long CardId { get; set; }
+        public long UserId { get; set; }
         public User User { get; set; } = null!;
         public Card Card { get; set; } = null!;
         public CardAction Action { get; set; }

@@ -2,10 +2,10 @@ namespace FlashMemo.Model.Persistence
 {
     public class SchedulerEntity: IEntity
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string Name { get; set; } = null!;
-        public int UserId { get; set; }
-        public int DeckId { get; set; }
+        public long UserId { get; set; }
+        public long DeckId { get; set; }
         public float GoodMultiplier { get; set; }
         public float EasyMultiplier { get; set; }
         public float HardMultiplier { get; set; }

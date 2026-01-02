@@ -1,11 +1,28 @@
 namespace FlashMemo.Model.Domain
 {
-    public class Tag(string name): IEquatable<Tag>
+    public class Tag: IEquatable<Tag>
     {
-        public int Id { get; set; }
+        public Tag(string name, int color) // genuine creation
+        {
+            Id = IdGetter.Next();
+            
+            Color = color;
+            Name = name;
+        }
+        public Tag(long id) => Id = id; // ctor for mapper only
+        public long Id { get; set; }
         public User Owner { get; set; } = null!;
-        public string Name { get; set; } = name;
-        public uint Color { get; set; }
+        public string Name { get; set; } = null!;
+        public int Color { get; set; }
+        
+        public Tag Rehydrate(string name, int color, User owner)
+        {
+            Name = name;
+            Color = color;
+            Owner = owner;
+
+            return this;
+        }
         
         #region equality
 

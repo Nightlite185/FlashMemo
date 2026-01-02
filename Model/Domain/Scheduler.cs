@@ -11,6 +11,7 @@ namespace FlashMemo.Model.Domain
     }
     public class Scheduler: IDefaultable
     {
+        public Scheduler(long id) => Id = id; // ctor for mapper only
         public Scheduler(string name = "New preset") // default ctor for genuine creation
         {
             Id = IdGetter.Next();
@@ -26,6 +27,8 @@ namespace FlashMemo.Model.Domain
             EasyOnNewDayCount = DefEasyOnNewDayCount;
             HardOnNewStage = DefHardOnNewStage;
         }
+        public string Name { get; private set; } = null!;
+        public long Id { get; private set; }
         
         #region defaults
         public const float DefGoodMultiplier = 2.0f;
@@ -81,6 +84,23 @@ namespace FlashMemo.Model.Domain
             };
 
             card.Review(info);
+        }
+        public Scheduler Rehydrate(string name, float goodMultiplier, float easyMultiplier, float hardMultiplier,
+                                   IEnumerable<TimeSpan> learningStages, int againDayCount, int againStageFallback, int goodOnNewStage,
+                                   int easyOnNewDayCount, int hardOnNewStage)
+        {
+            Name = name;
+            GoodMultiplier = goodMultiplier;
+            EasyMultiplier = easyMultiplier;
+            HardMultiplier = hardMultiplier;
+            LearningStages = [..learningStages];
+            AgainDayCount = againDayCount;
+            AgainStageFallback = againStageFallback;
+            GoodOnNewStage = goodOnNewStage;
+            EasyOnNewDayCount = easyOnNewDayCount;
+            HardOnNewStage = hardOnNewStage;
+
+            return this;
         }
         public Scheduler Clone(int? HighestCopyNum = null)
         {

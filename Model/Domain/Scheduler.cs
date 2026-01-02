@@ -28,7 +28,7 @@ namespace FlashMemo.Model.Domain
             HardOnNewStage = DefHardOnNewStage;
         }
         public string Name { get; private set; } = null!;
-        public long Id { get; private set; }
+        public long Id { get; private init; }
         
         #region defaults
         public const float DefGoodMultiplier = 2.0f;
@@ -102,6 +102,7 @@ namespace FlashMemo.Model.Domain
 
             return this;
         }
+        [Obsolete("Cloning in domain is wrong bc it creates coupling between domain and lib")]
         public Scheduler Clone(int? HighestCopyNum = null)
         {
             if (HighestCopyNum <= 0) throw new ArgumentOutOfRangeException(nameof(HighestCopyNum));

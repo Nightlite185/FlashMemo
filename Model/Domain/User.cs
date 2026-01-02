@@ -21,7 +21,7 @@ namespace FlashMemo.Model.Domain
         #region Properties
         public string Username { get; set; } = null!;
         public Settings Cfg { get; private set; } = null!;
-        public long Id { get; set; }
+        public long Id { get; private init; }
         private byte[] HashedPassword = null!;
 
         public List<Deck> Decks { get; set; } = null!;

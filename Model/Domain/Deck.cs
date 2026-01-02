@@ -36,7 +36,7 @@ namespace FlashMemo.Model.Domain
         #region Properties
         protected List<Card> cards = null!;
         public string Name { get; set; } = null!;
-        public long Id { get; init; }
+        public long Id { get; private init; }
 
         [Obsolete]
         public Deck? ParentDeck { get; set; } // this stays or not: depending on if parent deck's options affect the children's, or the hierarchy is purely for visual UI organizing.

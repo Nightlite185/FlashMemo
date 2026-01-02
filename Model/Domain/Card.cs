@@ -36,7 +36,7 @@ namespace FlashMemo.Model.Domain
         #region Properties
         public virtual string FrontContent { get; protected set; } = null!;
         public virtual string? BackContent { get; protected set; }
-        public long Id { get; init; } // change this to 'long' and get it from miliseconds rn at creation time.
+        public long Id { get; private init; } // change this to 'long' and get it from miliseconds rn at creation time.
         public List<Tag> Tags { get; protected set; } = null!;
         public Deck ParentDeck { get; set; } = null!;
         public bool IsBuried { get; protected set; }

@@ -68,7 +68,7 @@ namespace FlashMemo.Model
                 interval: ce.Interval,
                 state: ce.State,
                 learningStage: ce.LearningStage,
-                parentDeck: cachedDecks.GetValueOrDefault(ce.DeckId) ?? ce.Deck.MapToDomain(),
+                parentDeck: ce.Deck.MapToDomain(),
                 isBuried: ce.IsBuried,
                 isSuspended: ce.IsSuspended,
                 tags: [..ce.Tags.Select(t => t.MapToDomain())]

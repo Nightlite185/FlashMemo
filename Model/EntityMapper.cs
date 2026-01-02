@@ -3,60 +3,51 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model
 {
+    public sealed class MappingCache()
+    {
+        public readonly Dictionary<long, Tag> tags = [];
+        public readonly Dictionary<long, Card> cards = [];
+        public readonly Dictionary<long, Deck> decks = [];
+        public readonly Dictionary<long, Scheduler> schedulers = [];
+        public readonly Dictionary<long, User> users = [];
+    }
     public static class EntityMapper
     {
-        // caches being static is an issue for multiple users but whatever for now
-        #region Caching
-        public static void ClearCache()
-        {
-            cachedSchedulers.Clear();
-            cachedCards.Clear();
-            cachedDecks.Clear();
-            cachedUsers.Clear();
-            cachedTags.Clear();
-        }
-        private readonly static Dictionary<long, Tag> cachedTags = []; 
-        private readonly static Dictionary<long, Card> cachedCards = [];
-        private readonly static Dictionary<long, Deck> cachedDecks = [];
-        private readonly static Dictionary<long, Scheduler> cachedSchedulers = [];
-        private readonly static Dictionary<long, User> cachedUsers = [];
-        #endregion
-        
         #region Domain to Entity
-        public static CardEntity MapToEntity(this Card card)
+        public static CardEntity MapToEntity(this Card card, MappingCache cache)
         {
             
         }
 
-        public static DeckEntity MapToEntity(this Deck deck)
+        public static DeckEntity MapToEntity(this Deck deck, MappingCache cache)
         {
             
         }
 
-        public static SchedulerEntity MapToEntity(this Scheduler scheduler)
+        public static SchedulerEntity MapToEntity(this Scheduler scheduler, MappingCache cache)
         {
             
         }
 
-        public static UserEntity MapToEntity(this User User)
+        public static UserEntity MapToEntity(this User User, MappingCache cache)
         {
             
         }
 
-        public static TagEntity MapToEntity(this Tag Tag)
+        public static TagEntity MapToEntity(this Tag Tag, MappingCache cache)
         {
             
         }
         #endregion
 
         #region Entity to Domain
-        public static Card MapToDomain(this CardEntity ce)
+        public static Card MapToDomain(this CardEntity ce, MappingCache cache)
         {
-            if (cachedCards.TryGetValue(ce.Id, out var cachedCard))
+            if (cache.cards.TryGetValue(ce.Id, out var cachedCard))
                 return cachedCard;
 
             Card card = new(ce.Id); // db's primary key is generated in the domain when creating a genuinely new card, then mapped to persistence.
-            cachedCards.Add(ce.Id, card); // same with Deck, User, etc.
+            cache.cards.Add(ce.Id, card); // same with Deck, User, etc.
             
             return card.Rehydrate(
                 frontContent: ce.FrontContent,
@@ -68,36 +59,36 @@ namespace FlashMemo.Model
                 interval: ce.Interval,
                 state: ce.State,
                 learningStage: ce.LearningStage,
-                parentDeck: ce.Deck.MapToDomain(),
+                parentDeck: ce.Deck.MapToDomain(cache),
                 isBuried: ce.IsBuried,
                 isSuspended: ce.IsSuspended,
-                tags: [..ce.Tags.Select(t => t.MapToDomain())]
+                tags: [..ce.Tags.Select(t => t.MapToDomain(cache))]
             );
         }
-        public static Deck MapToDomain(this DeckEntity de)
+        public static Deck MapToDomain(this DeckEntity de, MappingCache cache)
         {
-            if (cachedDecks.TryGetValue(de.Id, out var cachedDeck))
+            if (cache.decks.TryGetValue(de.Id, out var cachedDeck))
                 return cachedDeck;
 
             Deck deck = new(de.Id);
-            cachedDecks.Add(de.Id, deck);
+            cache.decks.Add(de.Id, deck);
             
             return deck.Rehydrate(
-                cards: [..de.Cards.Select(c => c.MapToDomain())],
+                cards: [..de.Cards.Select(c => c.MapToDomain(cache))],
                 name: de.Name,
-                owner: de.Owner.MapToDomain(),
+                owner: de.Owner.MapToDomain(cache),
                 created: de.Created,
-                scheduler: de.Scheduler.MapToDomain(),
+                scheduler: de.Scheduler.MapToDomain(cache),
                 isTemporary: de.IsTemporary
             );
         }
-        public static Scheduler MapToDomain(this SchedulerEntity se)
+        public static Scheduler MapToDomain(this SchedulerEntity se, MappingCache cache)
         {
-            if (cachedSchedulers.TryGetValue(se.Id, out var cachedScheduler))
+            if (cache.schedulers.TryGetValue(se.Id, out var cachedScheduler))
                 return cachedScheduler;
 
             Scheduler scheduler = new(se.Id);
-            cachedSchedulers.Add(se.Id, scheduler);
+            cache.schedulers.Add(se.Id, scheduler);
 
             return scheduler.Rehydrate(
                 name: se.Name,
@@ -112,36 +103,36 @@ namespace FlashMemo.Model
                 learningStages: se.LearningStages.Select(min => TimeSpan.FromMinutes(min))
             );
         }
-        public static User MapToDomain(this UserEntity ue)
+        public static User MapToDomain(this UserEntity ue, MappingCache cache)
         {
-            if (cachedUsers.TryGetValue(ue.Id, out var cachedUser))
+            if (cache.users.TryGetValue(ue.Id, out var cachedUser))
                 return cachedUser;
 
             User user = new(ue.Id);
-            cachedUsers.Add(ue.Id, user);
+            cache.users.Add(ue.Id, user);
 
             return user.Rehydrate(
                 username: ue.Username,
                 hashedPassword: ue.HashedPassword,
                 //cfg: ue.Cfg.MapToDomain(), // not implemented yet
-                decks: [..ue.Decks.Select(d => d.MapToDomain())],
-                tags: [..ue.Tags.Select(t => t.MapToDomain())],
-                schedulers: [..ue.SchedulerPresets.Select(s => s.MapToDomain())]
+                decks: [..ue.Decks.Select(d => d.MapToDomain(cache))],
+                tags: [..ue.Tags.Select(t => t.MapToDomain(cache))],
+                schedulers: [..ue.SchedulerPresets.Select(s => s.MapToDomain(cache))]
             );
         }
-        public static Tag MapToDomain(this TagEntity te)
+        public static Tag MapToDomain(this TagEntity te, MappingCache cache)
         {
-            if (cachedTags.TryGetValue(te.Id, out var cachedTag))
+            if (cache.tags.TryGetValue(te.Id, out var cachedTag))
                 return cachedTag;
 
             Tag tag = new(te.Id);
 
-            cachedTags.Add(tag.Id, tag);
+            cache.tags.Add(tag.Id, tag);
  
             return tag.Rehydrate(
                 name: te.Name,
                 color: te.Color,
-                owner: te.Owner.MapToDomain()
+                owner: te.Owner.MapToDomain(cache)
             );
         }
         #endregion

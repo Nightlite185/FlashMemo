@@ -3,7 +3,7 @@ using FlashMemo.Model.Domain;
 namespace FlashMemo.Model.Persistence
 {
     public interface IEntity{ }
-    public class CardEntity: IEntity
+    public class CardEntity(): IEntity
     {
         public long Id { get; set; }
         public string FrontContent { get; set; } = null!;

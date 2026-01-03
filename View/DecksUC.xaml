@@ -63,8 +63,8 @@
                         <Button
                     Grid.Column="4"
                     Content="⚙"
-                    Style="{StaticResource DeckOptionsButtonStyle}"
-                    Click="DeckOptions_Click">
+                    Style="{StaticResource DeckOptionsButtonStyle}">
+                     <!-- Click="DeckOptions_Click"> -->
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Rename"/>

@@ -3,6 +3,8 @@ using FlashMemo.View;
 using FlashMemo.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
+using FlashMemo.Model.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo
 {
@@ -41,7 +43,8 @@ namespace FlashMemo
             
             
             // ==== DB CONTEXT ====
-            sc.AddSqlite<FlashMemoDbContext>($"Data Source={DbPath}");
+            sc.AddDbContext<AppDbContext>(o => 
+                o.UseSqlite($"Data Source={DbPath}"));
 
             return sc;
         }

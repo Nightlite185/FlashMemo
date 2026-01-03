@@ -1,6 +1,6 @@
 namespace FlashMemo.Model.Persistence
 {
-    public class UserEntity: IEntity
+    public class UserEntity(): IEntity
     {
         public long Id { get; set; }
         public string Username { get; set; } = null!;

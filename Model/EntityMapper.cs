@@ -41,7 +41,7 @@ namespace FlashMemo.Model
                 Id = deck.Id,
                 Cards = [..deck.Select(c => c.MapToEntity())],
                 Name = deck.Name,
-                Owner = deck.Owner.MapToEntity(),
+                User = deck.Owner.MapToEntity(),
                 Created = deck.Created,
                 Scheduler = deck.Scheduler.MapToEntity(),
                 IsTemporary = deck.IsTemporary
@@ -84,7 +84,7 @@ namespace FlashMemo.Model
                 Id = Tag.Id,
                 Name = Tag.Name,
                 Color = Tag.Color,
-                Owner = Tag.Owner.MapToEntity()
+                User = Tag.Owner.MapToEntity()
             };
         }
         #endregion
@@ -125,7 +125,7 @@ namespace FlashMemo.Model
             return deck.Rehydrate(
                 cards: [..de.Cards.Select(c => c.MapToDomain(cache))],
                 name: de.Name,
-                owner: de.Owner.MapToDomain(cache),
+                owner: de.User.MapToDomain(cache),
                 created: de.Created,
                 scheduler: de.Scheduler.MapToDomain(cache),
                 isTemporary: de.IsTemporary
@@ -181,7 +181,7 @@ namespace FlashMemo.Model
             return tag.Rehydrate(
                 name: te.Name,
                 color: te.Color,
-                owner: te.Owner.MapToDomain(cache)
+                owner: te.User.MapToDomain(cache)
             );
         }
         #endregion

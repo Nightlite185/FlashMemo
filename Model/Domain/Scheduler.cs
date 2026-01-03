@@ -29,6 +29,7 @@ namespace FlashMemo.Model.Domain
         }
         public string Name { get; private set; } = null!;
         public long Id { get; private init; }
+        public User Owner { get; private set; } = null!;
         
         #region defaults
         public const float DefGoodMultiplier = 2.0f;
@@ -87,7 +88,7 @@ namespace FlashMemo.Model.Domain
         }
         public Scheduler Rehydrate(string name, float goodMultiplier, float easyMultiplier, float hardMultiplier,
                                    IEnumerable<TimeSpan> learningStages, int againDayCount, int againStageFallback, int goodOnNewStage,
-                                   int easyOnNewDayCount, int hardOnNewStage)
+                                   int easyOnNewDayCount, int hardOnNewStage, User owner)
         {
             Name = name;
             GoodMultiplier = goodMultiplier;
@@ -99,6 +100,7 @@ namespace FlashMemo.Model.Domain
             GoodOnNewStage = goodOnNewStage;
             EasyOnNewDayCount = easyOnNewDayCount;
             HardOnNewStage = hardOnNewStage;
+            Owner = owner;
 
             return this;
         }

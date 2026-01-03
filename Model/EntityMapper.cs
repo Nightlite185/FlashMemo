@@ -62,7 +62,8 @@ namespace FlashMemo.Model
                 GoodOnNewStage = scheduler.GoodOnNewStage,
                 EasyOnNewDayCount = scheduler.EasyOnNewDayCount,
                 HardOnNewStage = scheduler.HardOnNewStage,
-                LearningStages = [..scheduler.LearningStages.Select(ts => ts.Minutes)]
+                LearningStages = [..scheduler.LearningStages.Select(ts => ts.Minutes)],
+                User = scheduler.Owner.MapToEntity()
             };
         }
         public static UserEntity MapToEntity(this User User)
@@ -149,7 +150,8 @@ namespace FlashMemo.Model
                 goodOnNewStage: se.GoodOnNewStage,
                 easyOnNewDayCount: se.EasyOnNewDayCount,
                 hardOnNewStage: se.HardOnNewStage,
-                learningStages: se.LearningStages.Select(min => TimeSpan.FromMinutes(min))
+                learningStages: se.LearningStages.Select(min => TimeSpan.FromMinutes(min)),
+                owner: se.User.MapToDomain(cache)
             );
         }
         public static User MapToDomain(this UserEntity ue, MappingCache cache)

@@ -42,6 +42,7 @@ namespace FlashMemo.Model.Domain
         public bool IsBuried { get; protected set; }
         public bool IsSuspended { get; protected set; }
         public CardState State { get; protected set; }
+        public bool IsDue => NextReview <= DateTime.Now;
         public TimeSpan TimeTillNextReview => NextReview - DateTime.Now;
         public TimeSpan Interval { get; protected set; }
         public DateTime Created { get; protected set; }

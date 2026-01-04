@@ -1,8 +1,8 @@
-using CommunityToolkit.Mvvm;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace FlashMemo.ViewModel
 {
-    public class ReviewVM
+    public class ReviewVM: ObservableObject, IViewModel
     {
         
     }

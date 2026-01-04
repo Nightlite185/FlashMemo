@@ -3,7 +3,7 @@ using FlashMemo.Model;
 
 namespace FlashMemo.ViewModel
 {
-    public partial class DeckVM : ObservableObject
+    public partial class DeckVM : ObservableObject, IViewModel
     {
         [ObservableProperty]
         public partial bool IsSelected { get; set; }

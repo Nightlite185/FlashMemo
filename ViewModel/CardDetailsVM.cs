@@ -1,8 +1,8 @@
-using CommunityToolkit.Mvvm;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace FlashMemo.ViewModel
 {
-    public class CardDetailsVM
+    public class CardDetailsVM: ObservableObject, IViewModel
     {
         
     }

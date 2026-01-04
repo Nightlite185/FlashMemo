@@ -10,12 +10,13 @@ namespace FlashMemo
 {
     public partial class App : Application
     {
-        public static ServiceProvider SP { get; private set; } = null!;
-        private static string DbPath => Path.Combine(
+        private static ServiceProvider SP { get; } = null!;
+        public static string DbPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "FlashMemo", "Data",
             dbFileName
         );
-        private const string dbFileName = "FlashMemo.db";
+        private const string dbFileName = "flashmemo.db";
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -24,7 +25,7 @@ namespace FlashMemo
             var services = ConfigureServices();
             services.BuildServiceProvider();
 
-            SP.GetRequiredService<MainWindow>().Show();
+            SP.GetRequiredService<MainWindow>().Show(); // resolving the MainWindow and setting off the "ctor chain reaction"
         }
 
         private static ServiceCollection ConfigureServices()
@@ -41,6 +42,7 @@ namespace FlashMemo
             sc.AddTransient<OptionsVM>();
             sc.AddTransient<BrowseVM>();
             
+            sc.AddDbContextFactory<AppDbContext>();
             
             // ==== DB CONTEXT ====
             sc.AddDbContext<AppDbContext>(o => 

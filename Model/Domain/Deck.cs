@@ -1,13 +1,14 @@
 using System.Collections;
+using FlashMemo.Model.Persistence;
 using Force.DeepCloner;
 
 namespace FlashMemo.Model.Domain
 {
     public class Deck: IEnumerable<Card>, IEquatable<Deck>
     {
+        [Obsolete]
         public Deck(bool temporary, string name, params Card[]? newCards)
         {
-            Id = IdGetter.Next();
             IsTemporary = temporary;
 
             cards = [];
@@ -34,20 +35,19 @@ namespace FlashMemo.Model.Domain
             return this;
         }
         #region Properties
-        protected List<Card> cards = null!;
+        protected Card[] cards = null!;
         public string Name { get; set; } = null!;
         public long Id { get; private init; }
 
-        [Obsolete]
-        public Deck? ParentDeck { get; set; } // this stays or not: depending on if parent deck's options affect the children's, or the hierarchy is purely for visual UI organizing.
         public User Owner { get; protected set; } = null!;
         public DateTime Created { get; protected set; }
         public Scheduler Scheduler { get; protected set; } = null!; // only one scheduler per deck, can be shared tho.
         public bool IsTemporary { get; protected set; } // idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
-        public int Count => cards.Count;
+        public int Count => cards.Length;
         #endregion
         
         #region Methods
+        [Obsolete]
         public void AddCards(params Card[] newCards)
         {
             if (!this.IsTemporary)
@@ -58,8 +58,8 @@ namespace FlashMemo.Model.Domain
                     
                     c.ParentDeck = this;
                 }
-
-            cards.AddRange(newCards);
+            
+            //cards.AddRange(newCards);
         }
         
         [Obsolete("this does not belong here, should be somewhere else, bc it couples library with persistance and domain")]
@@ -96,6 +96,7 @@ namespace FlashMemo.Model.Domain
                 yield return card;
         }
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         public Card this[int index]
         {
             get { return cards[index]; }

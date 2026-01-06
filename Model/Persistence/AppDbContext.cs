@@ -53,6 +53,15 @@ namespace FlashMemo.Model.Persistence
                 .ValueGeneratedNever();
             #endregion
 
+            #region auto include cards
+            mb.Entity<DeckEntity>()
+                .Navigation(d => d.Cards)
+                .AutoInclude();
+
+            mb.Entity<CardEntity>()
+                .Navigation(c => c.Tags)
+                .AutoInclude();
+            #endregion
             #region cascade deletion
             mb.Entity<CardEntity>()
                 .HasOne(c => c.Deck)

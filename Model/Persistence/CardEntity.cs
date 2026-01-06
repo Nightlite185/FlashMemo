@@ -8,8 +8,9 @@ namespace FlashMemo.Model.Persistence
         public long Id { get; set; }
         public string FrontContent { get; set; } = null!;
         public string? BackContent { get; set; }
-        public long? DeckId { get; set; }
+        public long DeckId { get; set; }
         public ICollection<TagEntity> Tags { get; set; } = [];
+        public ICollection<CardLogEntity> CardLogs { get; set; } = [];
         public DeckEntity Deck { get; set; } = null!;
         public bool IsBuried { get; set; }
         public bool IsSuspended { get; set; }

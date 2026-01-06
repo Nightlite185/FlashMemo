@@ -43,7 +43,7 @@ namespace FlashMemo.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("DeckId")
+                    b.Property<long>("DeckId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("FrontContent")
@@ -95,7 +95,7 @@ namespace FlashMemo.Migrations
                     b.Property<TimeSpan?>("AnswerTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("CardId")
+                    b.Property<long>("CardId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NewCardState")
@@ -131,7 +131,7 @@ namespace FlashMemo.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("SchedulerId")
+                    b.Property<long?>("SchedulerId")
                         .HasColumnType("INTEGER");
 
                     b.Property<long?>("UserId")
@@ -252,7 +252,9 @@ namespace FlashMemo.Migrations
                 {
                     b.HasOne("FlashMemo.Model.Persistence.DeckEntity", "Deck")
                         .WithMany("Cards")
-                        .HasForeignKey("DeckId");
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Deck");
                 });
@@ -260,8 +262,10 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardLogEntity", b =>
                 {
                     b.HasOne("FlashMemo.Model.Persistence.CardEntity", "Card")
-                        .WithMany()
-                        .HasForeignKey("CardId");
+                        .WithMany("CardLogs")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
                         .WithMany("Logs")
@@ -277,8 +281,7 @@ namespace FlashMemo.Migrations
                     b.HasOne("FlashMemo.Model.Persistence.SchedulerEntity", "Scheduler")
                         .WithMany("Decks")
                         .HasForeignKey("SchedulerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
                         .WithMany("Decks")
@@ -305,6 +308,11 @@ namespace FlashMemo.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
+                {
+                    b.Navigation("CardLogs");
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.DeckEntity", b =>

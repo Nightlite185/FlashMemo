@@ -38,8 +38,8 @@ namespace FlashMemo.Repositories
             await db.Decks.AddAsync(deck);
             await db.SaveChangesAsync();
         }
-        public async Task DeleteDeck(long deckId) // TO DO: cascade delete cards later too and all fk entries too.
-        {                                         // as well as cardlogs with same ids.
+        public async Task DeleteDeck(long deckId)
+        {
             var db = GetDb();
 
             var deck = await db.Decks.FindAsync(deckId) 

@@ -6,7 +6,7 @@ namespace FlashMemo.Model.Persistence
     public class CardLogEntity(): IEntity
     {
         public long Id { get; set; }
-        public long? CardId { get; set; }
+        public long CardId { get; set; }
         public long? UserId { get; set; }
         public UserEntity User { get; set; } = null!;
         public CardEntity Card { get; set; } = null!;

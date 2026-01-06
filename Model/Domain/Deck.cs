@@ -1,5 +1,4 @@
 using System.Collections;
-using FlashMemo.Model.Persistence;
 using Force.DeepCloner;
 
 namespace FlashMemo.Model.Domain

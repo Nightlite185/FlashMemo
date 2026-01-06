@@ -78,7 +78,7 @@ namespace FlashMemo.Migrations
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    SchedulerId = table.Column<long>(type: "INTEGER", nullable: false),
+                    SchedulerId = table.Column<long>(type: "INTEGER", nullable: true),
                     IsTemporary = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -89,7 +89,7 @@ namespace FlashMemo.Migrations
                         column: x => x.SchedulerId,
                         principalTable: "Schedulers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Decks_Users_UserId",
                         column: x => x.UserId,
@@ -104,7 +104,7 @@ namespace FlashMemo.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
                     FrontContent = table.Column<string>(type: "TEXT", nullable: false),
                     BackContent = table.Column<string>(type: "TEXT", nullable: true),
-                    DeckId = table.Column<long>(type: "INTEGER", nullable: true),
+                    DeckId = table.Column<long>(type: "INTEGER", nullable: false),
                     IsBuried = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsSuspended = table.Column<bool>(type: "INTEGER", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -122,7 +122,8 @@ namespace FlashMemo.Migrations
                         name: "FK_Cards_Decks_DeckId",
                         column: x => x.DeckId,
                         principalTable: "Decks",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -154,7 +155,7 @@ namespace FlashMemo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
-                    CardId = table.Column<long>(type: "INTEGER", nullable: true),
+                    CardId = table.Column<long>(type: "INTEGER", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: true),
                     Action = table.Column<int>(type: "INTEGER", nullable: false),
                     Answer = table.Column<int>(type: "INTEGER", nullable: true),
@@ -169,7 +170,8 @@ namespace FlashMemo.Migrations
                         name: "FK_CardLogs_Cards_CardId",
                         column: x => x.CardId,
                         principalTable: "Cards",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_CardLogs_Users_UserId",
                         column: x => x.UserId,

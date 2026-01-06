@@ -21,6 +21,7 @@ namespace FlashMemo.Model.Persistence
         {
             base.OnModelCreating(mb);
 
+            #region Tables definitions and don't generate PK 
             mb.Entity<CardEntity>()
                 .ToTable("Cards")
                 .Property(c => c.Id)
@@ -50,6 +51,27 @@ namespace FlashMemo.Model.Persistence
                 .ToTable("CardLogs")
                 .Property(cl => cl.Id)
                 .ValueGeneratedNever();
+            #endregion
+
+            #region cascade deletion
+            mb.Entity<CardEntity>()
+                .HasOne(c => c.Deck)
+                .WithMany(d => d.Cards)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            mb.Entity<CardLogEntity>()
+                .HasOne(cl => cl.Card)
+                .WithMany(c => c.CardLogs)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            mb.Entity<DeckEntity>()
+                .HasOne(d => d.Scheduler)
+                .WithMany(s => s.Decks)
+                .HasForeignKey(d => d.SchedulerId)
+                .OnDelete(DeleteBehavior.SetNull); // TO DO: Decide later on app behaviour when user deletes a scheduler preset
+                                                // most likely set all decks that were using it to constant non-deletable default preset
+            
+            #endregion
         }
     }
 }

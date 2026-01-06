@@ -14,79 +14,105 @@ namespace FlashMemo.Model
     public static class EntityMapper
     {
         #region Domain to Entity
-        public static CardEntity MapToEntity(this Card card)
+        public static void MapToEntity(this Card card, CardEntity entity)
         {
-            return new CardEntity
-            {
-                Id = card.Id,
-                FrontContent = card.FrontContent,
-                BackContent = card.BackContent,
-                Created = card.Created,
-                LastModified = card.LastModified,
-                NextReview = card.NextReview,
-                LastReviewed = card.LastReviewed,
-                Interval = card.Interval,
-                State = card.State,
-                LearningStage = card.LearningStage,
-                Deck = card.ParentDeck.MapToEntity(),
-                IsBuried = card.IsBuried,
-                IsSuspended = card.IsSuspended,
-                Tags = [..card.Tags.Select(t => t.MapToEntity())]
-            };
-        }
-        public static DeckEntity MapToEntity(this Deck deck)
-        {
-            return new DeckEntity
-            {
-                Id = deck.Id,
-                Cards = [..deck.Select(c => c.MapToEntity())],
-                Name = deck.Name,
-                User = deck.Owner.MapToEntity(),
-                Created = deck.Created,
-                Scheduler = deck.Scheduler.MapToEntity(),
-                IsTemporary = deck.IsTemporary
-            };
-        }
-        public static SchedulerEntity MapToEntity(this Scheduler scheduler)
-        {
-            return new SchedulerEntity
-            {
-                Id = scheduler.Id,
-                Name = scheduler.Name,
+            entity.Id = card.Id;
+            entity.FrontContent = card.FrontContent;
+            entity.BackContent = card.BackContent;
+            entity.Created = card.Created;
+            entity.LastModified = card.LastModified;
+            entity.NextReview = card.NextReview;
+            entity.LastReviewed = card.LastReviewed;
+            entity.Interval = card.Interval;
+            entity.State = card.State;
+            entity.LearningStage = card.LearningStage;
+            entity.IsBuried = card.IsBuried;
+            entity.IsSuspended = card.IsSuspended;
 
-                GoodMultiplier = scheduler.GoodMultiplier,
-                EasyMultiplier = scheduler.EasyMultiplier,
-                HardMultiplier = scheduler.HardMultiplier,
-                AgainDayCount = scheduler.AgainDayCount,
-                AgainStageFallback = scheduler.AgainStageFallback,
-                GoodOnNewStage = scheduler.GoodOnNewStage,
-                EasyOnNewDayCount = scheduler.EasyOnNewDayCount,
-                HardOnNewStage = scheduler.HardOnNewStage,
-                LearningStages = [..scheduler.LearningStages.Select(ts => ts.Minutes)],
-                User = scheduler.Owner.MapToEntity()
-            };
+            card.ParentDeck.MapToEntity(entity.Deck);
+            //entity.Tags = [..card.Tags.Select(t => t.MapToEntity())];
+            //card.SyncTags(entity);
         }
-        public static UserEntity MapToEntity(this User User)
+        public static void MapToEntity(this Deck deck, DeckEntity entity)
         {
-            return new UserEntity
-            {
-                Id = User.Id,
-                Username = User.Username,
-                HashedPassword = User.HashedPassword,
-                Decks = [..User.Decks.Select(d => d.MapToEntity())],
-                Tags = [..User.Tags.Select(t => t.MapToEntity())],
-                SchedulerPresets = [..User.SchedulerPresets.Select(s => s.MapToEntity())]
-            };
+            entity.Id = deck.Id;
+            entity.Name = deck.Name;
+            entity.Created = deck.Created;
+            entity.IsTemporary = deck.IsTemporary;
+
+            SyncCards(deck, entity);
+
+            deck.Scheduler.MapToEntity(entity.Scheduler);
+            deck.Owner.MapToEntity(entity.User);
         }
-        public static TagEntity MapToEntity(this Tag Tag)
+        private static void SyncCards(this Deck deck, DeckEntity entity)
         {
-            return new TagEntity
+            var domainIds = deck
+                .Select(c => c.Id)
+                .ToHashSet();
+
+            var entityCardsById = entity.Cards
+                .ToDictionary(c => c.Id);
+
+            foreach (var domainCard in deck)
             {
-                Id = Tag.Id,
-                Name = Tag.Name,
-                Color = Tag.Color,
-                User = Tag.Owner.MapToEntity()
-            };
+                if (entityCardsById.TryGetValue(domainCard.Id, out var entityCard))
+                    domainCard.MapToEntity(entityCard); // UPDATE existing tracked entity
+
+                else
+                {
+                    // ADD new entity
+                    var newEntity = new CardEntity();
+                    domainCard.MapToEntity(newEntity);
+                    entity.Cards.Add(newEntity);
+                }
+            }
+
+            foreach (var entityCard in entity.Cards)
+            {
+                if (!domainIds.Contains(entityCard.Id))
+                    entity.Cards.Remove(entityCard);
+            }
+        }
+
+        // private static void SyncTags(this Card card, CardEntity entity)
+        // {
+            
+        // }
+        public static void MapToEntity(this Scheduler scheduler, SchedulerEntity entity)
+        {
+            entity.Id = scheduler.Id;
+            entity.Name = scheduler.Name;
+
+            entity.GoodMultiplier = scheduler.GoodMultiplier;
+            entity.EasyMultiplier = scheduler.EasyMultiplier;
+            entity.HardMultiplier = scheduler.HardMultiplier;
+            entity.AgainDayCount = scheduler.AgainDayCount;
+            entity.AgainStageFallback = scheduler.AgainStageFallback;
+            entity.GoodOnNewStage = scheduler.GoodOnNewStage;
+            entity.EasyOnNewDayCount = scheduler.EasyOnNewDayCount;
+            entity.HardOnNewStage = scheduler.HardOnNewStage;
+            entity.LearningStages = [..scheduler.LearningStages.Select(ts => ts.Minutes)];
+
+            scheduler.Owner.MapToEntity(entity.User);
+        }
+        public static void MapToEntity(this User User, UserEntity entity)
+        {
+            entity.Id = User.Id;
+            entity.Username = User.Username;
+            entity.HashedPassword = User.HashedPassword;
+
+            // entity.Decks = [..User.Decks.Select(d => d.MapToEntity())];
+            // entity.Tags = [..User.Tags.Select(t => t.MapToEntity())];
+            // entity.SchedulerPresets = [..User.SchedulerPresets.Select(s => s.MapToEntity())];
+        }
+        public static void MapToEntity(this Tag Tag, TagEntity entity)
+        {
+            entity.Id = Tag.Id;
+            entity.Name = Tag.Name;
+            entity.Color = Tag.Color;
+
+            Tag.Owner.MapToEntity(entity.User);
         }
         #endregion
 

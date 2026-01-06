@@ -2,7 +2,7 @@ using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Model.Persistence
 {
-    public interface IEntity;
+    public interface IEntity { long Id { get; set; } }
     public class CardEntity(): IEntity
     {
         public long Id { get; set; }
@@ -21,5 +21,32 @@ namespace FlashMemo.Model.Persistence
         public TimeSpan Interval { get; set; }
         public CardState State { get; set; }
         public int? LearningStage { get; set; }
+
+        public void SyncTagsFrom(CardEntity other)
+        {
+            // Current tracked tag IDs
+            var myTagIds = Tags
+                .Select(t => t.Id)
+                .ToHashSet();
+
+            // Incoming tag IDs
+            var otherTagIds = other.Tags
+                .Select(t => t.Id)
+                .ToHashSet();
+
+            // Remove tags that no longer exist
+            var toRemove = Tags
+                .Where(t => !otherTagIds.Contains(t.Id))
+                .ToList();
+
+            toRemove.ForEach(t => Tags.Remove(t));
+
+            // Add new tags
+            foreach (var tag in other.Tags)
+            {
+                if (!myTagIds.Contains(tag.Id))
+                    Tags.Add(new TagEntity { Id = tag.Id });
+            }
+        }
     }
 }

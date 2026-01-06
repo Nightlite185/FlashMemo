@@ -1,3 +1,4 @@
+using FlashMemo.Helpers;
 namespace FlashMemo.Model.Domain
 {
     public class Tag: IEquatable<Tag>

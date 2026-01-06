@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using FlashMemo.Helpers;
 
 namespace FlashMemo.Model.Domain
 {

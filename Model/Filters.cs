@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.Helpers;
 
 namespace FlashMemo.Model
 {

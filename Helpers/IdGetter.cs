@@ -1,4 +1,4 @@
-namespace FlashMemo.Model
+namespace FlashMemo.Helpers
 {
     public static class IdGetter
     {

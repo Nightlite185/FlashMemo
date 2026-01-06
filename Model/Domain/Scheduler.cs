@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Force.DeepCloner;
+using FlashMemo.Helpers;
 
 namespace FlashMemo.Model.Domain
 {

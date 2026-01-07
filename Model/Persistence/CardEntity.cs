@@ -5,6 +5,7 @@ namespace FlashMemo.Model.Persistence
     public interface IEntity { long Id { get; set; } }
     public class CardEntity(): IEntity
     {
+        #region Properties
         public long Id { get; set; }
         public string FrontContent { get; set; } = null!;
         public string? BackContent { get; set; }
@@ -21,7 +22,47 @@ namespace FlashMemo.Model.Persistence
         public TimeSpan Interval { get; set; }
         public CardState State { get; set; }
         public int? LearningStage { get; set; }
+        #endregion
 
+        #region methods
+        public void FlipBuried() => IsBuried = !IsBuried;
+        public void FlipSuspended() => IsSuspended = !IsSuspended;
+        public void Reschedule(DateTime newReviewDate, bool keepInterval)
+        {
+            State = CardState.Review; // reschedule forces state to review, weird outcomes otherwise.
+            NextReview = newReviewDate;
+            LastModified = DateTime.Now;
+
+            if (!keepInterval)
+                Interval += newReviewDate - DateTime.Now;
+        }
+        public void Reschedule(TimeSpan timeFromNow, bool keepInterval)
+        {
+            var now = DateTime.Now;
+
+            NextReview = now.Add(timeFromNow);
+            LastModified = now;
+            State = CardState.Review;
+
+            if (!keepInterval) 
+                Interval += timeFromNow;
+        }
+        public void Postpone(TimeSpan putOffBy, bool keepInterval)
+        {
+            NextReview = NextReview.Add(putOffBy);
+            LastModified = DateTime.Now;
+            State = CardState.Review;
+
+            if (!keepInterval) 
+                Interval += putOffBy;
+        }
+        public void Forget()
+        {
+            State = CardState.New;
+            NextReview = DateTime.Now;
+            LastModified = DateTime.Now;
+            Interval = TimeSpan.MinValue;
+        }
         public void SyncTagsFrom(CardEntity other)
         {
             // Current tracked tag IDs
@@ -48,5 +89,6 @@ namespace FlashMemo.Model.Persistence
                     Tags.Add(new TagEntity { Id = tag.Id });
             }
         }
+        #endregion
     }
 }

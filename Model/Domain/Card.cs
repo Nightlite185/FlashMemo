@@ -75,10 +75,10 @@ namespace FlashMemo.Model.Domain
 
             return this;
         }
-        public void FlipBuried() => IsBuried = !IsBuried;
-        public void FlipSuspended() => IsSuspended = !IsSuspended;
         public void Review(ScheduleInfo s)
         {
+            if (!IsDue) throw new InvalidOperationException("Cannot review a card that is not due atm.");
+
             LastReviewed = DateTime.Now;
             NextReview = LastReviewed.Add(Interval);
 
@@ -86,43 +86,6 @@ namespace FlashMemo.Model.Domain
             State = s.State;
             LearningStage = s.LearningStage;
         }
-        public void Reschedule(DateTime newReviewDate, bool keepInterval)
-        {
-            State = CardState.Review; // reschedule forces state to review, weird outcomes otherwise.
-            NextReview = newReviewDate;
-            LastModified = DateTime.Now;
-
-            if (!keepInterval)
-                Interval += newReviewDate - DateTime.Now;
-        }
-        public void Reschedule(TimeSpan timeFromNow, bool keepInterval)
-        {
-            var now = DateTime.Now;
-
-            NextReview = now.Add(timeFromNow);
-            LastModified = now;
-            State = CardState.Review;
-
-            if (!keepInterval) 
-                Interval += timeFromNow;
-        }
-        public void Postpone(TimeSpan putOffBy, bool keepInterval)
-        {
-            NextReview = NextReview.Add(putOffBy);
-            LastModified = DateTime.Now;
-            State = CardState.Review;
-
-            if (!keepInterval) 
-                Interval += putOffBy;
-        }
-        public void Forget()
-        {
-            State = CardState.New;
-            NextReview = DateTime.Now;
-            LastModified = DateTime.Now;
-            Interval = TimeSpan.MinValue;
-        }
-
         #endregion
 
         #region Hashcode and Equals

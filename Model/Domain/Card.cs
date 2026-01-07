@@ -77,13 +77,6 @@ namespace FlashMemo.Model.Domain
         }
         public void FlipBuried() => IsBuried = !IsBuried;
         public void FlipSuspended() => IsSuspended = !IsSuspended;
-        public void Edit(string frontContent, string? backContent = null)
-        {
-            FrontContent = frontContent;
-            BackContent = backContent;
-
-            LastModified = DateTime.Now;
-        }
         public void Review(ScheduleInfo s)
         {
             LastReviewed = DateTime.Now;

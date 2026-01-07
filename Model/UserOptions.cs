@@ -4,7 +4,7 @@ namespace FlashMemo.Model
     {
         void ToDefault();
     }
-    public class Settings: IDefaultable
+    public class UserOptions: IDefaultable
     {
         public int UserId { get; }
         public void ToDefault()

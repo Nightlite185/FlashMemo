@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace FlashMemo.Model.Persistence
 {
@@ -7,9 +6,9 @@ namespace FlashMemo.Model.Persistence
     {
         public DbSet<CardEntity> Cards { get; set; }
         public DbSet<DeckEntity> Decks { get; set; }
+        public DbSet<DeckOptions> DeckOptions { get; set; }
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<TagEntity> Tags { get; set; }
-        public DbSet<SchedulerEntity> Schedulers { get; set; }
         public DbSet<CardLogEntity> CardLogs { get; set; }
     
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -24,6 +23,11 @@ namespace FlashMemo.Model.Persistence
             #region Tables definitions and don't generate PK 
             mb.Entity<CardEntity>()
                 .ToTable("Cards")
+                .Property(c => c.Id)
+                .ValueGeneratedNever();
+
+            mb.Entity<DeckOptions>()
+                .ToTable("DeckOptions")
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
@@ -42,18 +46,13 @@ namespace FlashMemo.Model.Persistence
                 .Property(t => t.Id)
                 .ValueGeneratedNever();
 
-            mb.Entity<SchedulerEntity>()
-                .ToTable("Schedulers")
-                .Property(s => s.Id)
-                .ValueGeneratedNever();
-
             mb.Entity<CardLogEntity>()
                 .ToTable("CardLogs")
                 .Property(cl => cl.Id)
                 .ValueGeneratedNever();
             #endregion
 
-            #region auto include cards
+            #region auto includes
             mb.Entity<DeckEntity>()
                 .Navigation(d => d.Cards)
                 .AutoInclude();
@@ -81,9 +80,9 @@ namespace FlashMemo.Model.Persistence
                 .OnDelete(DeleteBehavior.Cascade);
 
             mb.Entity<DeckEntity>()
-                .HasOne(d => d.Scheduler)
-                .WithMany(s => s.Decks)
-                .HasForeignKey(d => d.SchedulerId)
+                .HasOne(d => d.Options)
+                .WithMany(o => o.DecksUsingThis)
+                .HasForeignKey(d => d.OptionsId)
                 .OnDelete(DeleteBehavior.SetNull); // TO DO: Decide later on app behaviour when user deletes a scheduler preset
                                                 // most likely set all decks that were using it to constant non-deletable default preset
             #endregion

@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Immutable;
-using FlashMemo.Model.Persistence;
 using Force.DeepCloner;
 
 namespace FlashMemo.Model.Domain
@@ -20,17 +19,17 @@ namespace FlashMemo.Model.Domain
             Created = DateTime.Now;
             
             Name = name;
-            Scheduler = new Scheduler();
+            //Scheduler = new Scheduler();
         }
         public Deck(long id) => Id = id; // ctor for mapper only
         public Deck Rehydrate(ICollection<Card> cards, string name, User owner,
-                              DateTime created, Scheduler scheduler, bool isTemporary, IEnumerable<Deck> childrenDecks)
+                              DateTime created, DeckOptions options, bool isTemporary, IEnumerable<Deck> childrenDecks)
         {
             this.cards = [..cards];
             Name = name;
             Owner = owner;
             Created = created;
-            Scheduler = scheduler;
+            Options = options;
             IsTemporary = isTemporary;
             ChildrenDecks = [..childrenDecks];
             
@@ -44,7 +43,7 @@ namespace FlashMemo.Model.Domain
         public ImmutableList<Deck> ChildrenDecks { get; set; } = [];
         public User Owner { get; protected set; } = null!;
         public DateTime Created { get; protected set; }
-        public Scheduler Scheduler { get; protected set; } = null!; // only one scheduler per deck, can be shared tho.
+        public DeckOptions Options { get; protected set; } = null!;
         public bool IsTemporary { get; protected set; } // idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
         public int Count => cards.Count;
         #endregion

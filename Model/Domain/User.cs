@@ -13,7 +13,7 @@ namespace FlashMemo.Model.Domain
             Username = name;
             Cfg = new();
 
-            SchedulerPresets = [];
+            DeckOptionsPresets = [];
             Decks = [];
             Tags = [];
         }
@@ -21,23 +21,23 @@ namespace FlashMemo.Model.Domain
         
         #region Properties
         public string Username { get; set; } = null!;
-        public Settings Cfg { get; private set; } = null!;
+        public UserOptions Cfg { get; private set; } = null!;
         public long Id { get; private init; }
         public byte[] HashedPassword { get; private set; } = null!;
 
         public List<Deck> Decks { get; set; } = null!;
-        public List<Scheduler> SchedulerPresets { get; set; } = null!;
+        public List<DeckOptions> DeckOptionsPresets { get; set; } = null!;
         public List<Tag> Tags { get; set; } = null!;
         #endregion
         public User Rehydrate(string username, byte[] hashedPassword, ICollection<Deck> decks, // TO DO: add settings object later
-                              ICollection<Scheduler> schedulers, ICollection<Tag> tags)
+                              ICollection<DeckOptions> deckOptionsPresets, ICollection<Tag> tags)
         {                                                                                                                                                                              
             Username = username;
             HashedPassword = hashedPassword;
             //Cfg = cfg; // not implemented yet
 
             Decks = [..decks];
-            SchedulerPresets = [..schedulers];
+            DeckOptionsPresets = [..deckOptionsPresets];
             Tags = [..tags];
             
             return this;

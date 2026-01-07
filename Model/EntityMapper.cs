@@ -44,6 +44,7 @@ namespace FlashMemo.Model
 
             deck.Scheduler.MapToEntity(entity.Scheduler);
             deck.Owner.MapToEntity(entity.User);
+            deck.ChildrenDecks.ForEach(d => d.MapToEntity(entity));
         }
         private static void SyncCards(this Deck deck, DeckEntity entity)
         {
@@ -155,7 +156,8 @@ namespace FlashMemo.Model
                 owner: de.User.MapToDomain(cache),
                 created: de.Created,
                 scheduler: de.Scheduler.MapToDomain(cache),
-                isTemporary: de.IsTemporary
+                isTemporary: de.IsTemporary,
+                childrenDecks: de.ChildrenDecks.Select(d => d.MapToDomain(cache))
             );
         }
         public static Scheduler MapToDomain(this SchedulerEntity se, MappingCache cache)

@@ -62,6 +62,7 @@ namespace FlashMemo.Model.Persistence
                 .Navigation(c => c.Tags)
                 .AutoInclude();
             #endregion
+            
             #region cascade deletion
             mb.Entity<CardEntity>()
                 .HasOne(c => c.Deck)
@@ -74,12 +75,17 @@ namespace FlashMemo.Model.Persistence
                 .OnDelete(DeleteBehavior.Cascade);
 
             mb.Entity<DeckEntity>()
+                .HasOne(d => d.ParentDeck)
+                .WithMany(d => d.ChildrenDecks)
+                .HasForeignKey(d => d.ParentDeckId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            mb.Entity<DeckEntity>()
                 .HasOne(d => d.Scheduler)
                 .WithMany(s => s.Decks)
                 .HasForeignKey(d => d.SchedulerId)
                 .OnDelete(DeleteBehavior.SetNull); // TO DO: Decide later on app behaviour when user deletes a scheduler preset
                                                 // most likely set all decks that were using it to constant non-deletable default preset
-            
             #endregion
         }
     }

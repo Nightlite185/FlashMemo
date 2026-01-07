@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Immutable;
+using FlashMemo.Model.Persistence;
 using Force.DeepCloner;
 
 namespace FlashMemo.Model.Domain
@@ -21,8 +23,8 @@ namespace FlashMemo.Model.Domain
             Scheduler = new Scheduler();
         }
         public Deck(long id) => Id = id; // ctor for mapper only
-        public Deck Rehydrate(ICollection<Card> cards, string name, User owner, 
-                              DateTime created, Scheduler scheduler, bool isTemporary)
+        public Deck Rehydrate(ICollection<Card> cards, string name, User owner,
+                              DateTime created, Scheduler scheduler, bool isTemporary, IEnumerable<Deck> childrenDecks)
         {
             this.cards = [..cards];
             Name = name;
@@ -30,19 +32,21 @@ namespace FlashMemo.Model.Domain
             Created = created;
             Scheduler = scheduler;
             IsTemporary = isTemporary;
+            ChildrenDecks = [..childrenDecks];
+            
 
             return this;
         }
         #region Properties
-        protected Card[] cards = null!;
+        protected ImmutableList<Card> cards = null!;
         public string Name { get; set; } = null!;
         public long Id { get; private init; }
-
+        public ImmutableList<Deck> ChildrenDecks { get; set; } = [];
         public User Owner { get; protected set; } = null!;
         public DateTime Created { get; protected set; }
         public Scheduler Scheduler { get; protected set; } = null!; // only one scheduler per deck, can be shared tho.
         public bool IsTemporary { get; protected set; } // idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
-        public int Count => cards.Length;
+        public int Count => cards.Count;
         #endregion
         
         #region Methods
@@ -99,7 +103,7 @@ namespace FlashMemo.Model.Domain
         public Card this[int index]
         {
             get { return cards[index]; }
-            set { cards[index] = value; }
+            //set { cards[index] = value; }
         }
         #endregion
     }

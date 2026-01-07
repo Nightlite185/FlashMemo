@@ -48,7 +48,12 @@ namespace FlashMemo.Repositories
                 ?? throw new ArgumentException(IdNotFoundMsg("Card"), nameof(cardId));
         }
 
-        public async Task<IEnumerable<CardEntity>> GetCards()
+        public async Task<IEnumerable<CardEntity>> GetFromDeck(long deckId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<CardEntity>> GetAllCards()
         {
             throw new NotImplementedException();
         }

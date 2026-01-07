@@ -79,11 +79,20 @@ namespace FlashMemo.Migrations
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: true),
                     SchedulerId = table.Column<long>(type: "INTEGER", nullable: true),
+                    DailyReviewLimit = table.Column<int>(type: "INTEGER", nullable: false),
+                    DailyNewLimit = table.Column<int>(type: "INTEGER", nullable: false),
+                    ParentDeckId = table.Column<long>(type: "INTEGER", nullable: true),
                     IsTemporary = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Decks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Decks_Decks_ParentDeckId",
+                        column: x => x.ParentDeckId,
+                        principalTable: "Decks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Decks_Schedulers_SchedulerId",
                         column: x => x.SchedulerId,
@@ -198,6 +207,11 @@ namespace FlashMemo.Migrations
                 name: "IX_Cards_DeckId",
                 table: "Cards",
                 column: "DeckId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Decks_ParentDeckId",
+                table: "Decks",
+                column: "ParentDeckId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Decks_SchedulerId",

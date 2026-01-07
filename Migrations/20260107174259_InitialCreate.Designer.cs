@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260106125142_InitialCreate")]
+    [Migration("20260107174259_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -127,12 +127,21 @@ namespace FlashMemo.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("DailyNewLimit")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DailyReviewLimit")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("IsTemporary")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<long?>("ParentDeckId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<long?>("SchedulerId")
                         .HasColumnType("INTEGER");
@@ -141,6 +150,8 @@ namespace FlashMemo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentDeckId");
 
                     b.HasIndex("SchedulerId");
 
@@ -281,6 +292,11 @@ namespace FlashMemo.Migrations
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.DeckEntity", b =>
                 {
+                    b.HasOne("FlashMemo.Model.Persistence.DeckEntity", "ParentDeck")
+                        .WithMany("ChildrenDecks")
+                        .HasForeignKey("ParentDeckId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("FlashMemo.Model.Persistence.SchedulerEntity", "Scheduler")
                         .WithMany("Decks")
                         .HasForeignKey("SchedulerId")
@@ -289,6 +305,8 @@ namespace FlashMemo.Migrations
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
                         .WithMany("Decks")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("ParentDeck");
 
                     b.Navigation("Scheduler");
 
@@ -321,6 +339,8 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.DeckEntity", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("ChildrenDecks");
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.SchedulerEntity", b =>

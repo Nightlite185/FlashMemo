@@ -8,7 +8,7 @@ namespace FlashMemo.Model
         public readonly Dictionary<long, Tag> tags = [];
         public readonly Dictionary<long, Card> cards = [];
         public readonly Dictionary<long, Deck> decks = [];
-        public readonly Dictionary<long, Scheduler> schedulers = [];
+        public readonly Dictionary<long, DeckOptions> deckOptions = [];
         public readonly Dictionary<long, User> users = [];
     }
     public static class EntityMapper
@@ -80,23 +80,6 @@ namespace FlashMemo.Model
         // {
             
         // }
-        public static void MapToEntity(this Scheduler scheduler, SchedulerEntity entity)
-        {
-            entity.Id = scheduler.Id;
-            entity.Name = scheduler.Name;
-
-            entity.GoodMultiplier = scheduler.GoodMultiplier;
-            entity.EasyMultiplier = scheduler.EasyMultiplier;
-            entity.HardMultiplier = scheduler.HardMultiplier;
-            entity.AgainDayCount = scheduler.AgainDayCount;
-            entity.AgainStageFallback = scheduler.AgainStageFallback;
-            entity.GoodOnNewStage = scheduler.GoodOnNewStage;
-            entity.EasyOnNewDayCount = scheduler.EasyOnNewDayCount;
-            entity.HardOnNewStage = scheduler.HardOnNewStage;
-            entity.LearningStages = [..scheduler.LearningStages.Select(ts => ts.Minutes)];
-
-            scheduler.Owner.MapToEntity(entity.User);
-        }
         public static void MapToEntity(this User User, UserEntity entity)
         {
             entity.Id = User.Id;
@@ -105,7 +88,6 @@ namespace FlashMemo.Model
 
             // entity.Decks = [..User.Decks.Select(d => d.MapToEntity())];
             // entity.Tags = [..User.Tags.Select(t => t.MapToEntity())];
-            // entity.SchedulerPresets = [..User.SchedulerPresets.Select(s => s.MapToEntity())];
         }
         public static void MapToEntity(this Tag Tag, TagEntity entity)
         {
@@ -158,28 +140,6 @@ namespace FlashMemo.Model
                 scheduler: de.Scheduler.MapToDomain(cache),
                 isTemporary: de.IsTemporary,
                 childrenDecks: de.ChildrenDecks.Select(d => d.MapToDomain(cache))
-            );
-        }
-        public static Scheduler MapToDomain(this SchedulerEntity se, MappingCache cache)
-        {
-            if (cache.schedulers.TryGetValue(se.Id, out var cachedScheduler))
-                return cachedScheduler;
-
-            Scheduler scheduler = new(se.Id);
-            cache.schedulers.Add(se.Id, scheduler);
-
-            return scheduler.Rehydrate(
-                name: se.Name,
-                goodMultiplier: se.GoodMultiplier,
-                easyMultiplier: se.EasyMultiplier,
-                hardMultiplier: se.HardMultiplier,
-                againDayCount: se.AgainDayCount,
-                againStageFallback: se.AgainStageFallback,
-                goodOnNewStage: se.GoodOnNewStage,
-                easyOnNewDayCount: se.EasyOnNewDayCount,
-                hardOnNewStage: se.HardOnNewStage,
-                learningStages: se.LearningStages.Select(min => TimeSpan.FromMinutes(min)),
-                owner: se.User.MapToDomain(cache)
             );
         }
         public static User MapToDomain(this UserEntity ue, MappingCache cache)

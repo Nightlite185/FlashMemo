@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260107174259_InitialCreate")]
+    [Migration("20260108132552_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,6 +33,25 @@ namespace FlashMemo.Migrations
                     b.HasIndex("TagsId");
 
                     b.ToTable("CardEntityTagEntity");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.DeckOptions", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeckOptions", (string)null);
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
@@ -127,12 +146,6 @@ namespace FlashMemo.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DailyNewLimit")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DailyReviewLimit")
-                        .HasColumnType("INTEGER");
-
                     b.Property<bool>("IsTemporary")
                         .HasColumnType("INTEGER");
 
@@ -140,10 +153,10 @@ namespace FlashMemo.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("ParentDeckId")
+                    b.Property<long?>("OptionsId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("SchedulerId")
+                    b.Property<long?>("ParentDeckId")
                         .HasColumnType("INTEGER");
 
                     b.Property<long?>("UserId")
@@ -151,60 +164,13 @@ namespace FlashMemo.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentDeckId");
+                    b.HasIndex("OptionsId");
 
-                    b.HasIndex("SchedulerId");
+                    b.HasIndex("ParentDeckId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Decks", (string)null);
-                });
-
-            modelBuilder.Entity("FlashMemo.Model.Persistence.SchedulerEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AgainDayCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AgainStageFallback")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<float>("EasyMultiplier")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("EasyOnNewDayCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<float>("GoodMultiplier")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("GoodOnNewStage")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<float>("HardMultiplier")
-                        .HasColumnType("REAL");
-
-                    b.Property<int>("HardOnNewStage")
-                        .HasColumnType("INTEGER");
-
-                    b.PrimitiveCollection<string>("LearningStages")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<long?>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Schedulers", (string)null);
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.TagEntity", b =>
@@ -262,6 +228,108 @@ namespace FlashMemo.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FlashMemo.Model.DeckOptions", b =>
+                {
+                    b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
+                        .WithMany("DeckOptions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("FlashMemo.Model.DeckOptions+DailyLimitsOpt", "DailyLimits", b1 =>
+                        {
+                            b1.Property<long>("DeckOptionsId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("DailyLessonsLimit")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("DailyReviewsLimit")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("DeckOptionsId");
+
+                            b1.ToTable("DeckOptions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DeckOptionsId");
+                        });
+
+                    b.OwnsOne("FlashMemo.Model.DeckOptions+OrderingOpt", "Sorting", b1 =>
+                        {
+                            b1.Property<long>("DeckOptionsId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("CardTypeOrder")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("NewCardSortOrder")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("ReviewSortOrder")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("DeckOptionsId");
+
+                            b1.ToTable("DeckOptions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DeckOptionsId");
+                        });
+
+                    b.OwnsOne("FlashMemo.Model.DeckOptions+SchedulingOpt", "Scheduling", b1 =>
+                        {
+                            b1.Property<long>("DeckOptionsId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("AgainDayCount")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("AgainStageFallback")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<float>("EasyMultiplier")
+                                .HasColumnType("REAL");
+
+                            b1.Property<int>("EasyOnNewDayCount")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<float>("GoodMultiplier")
+                                .HasColumnType("REAL");
+
+                            b1.Property<int>("GoodOnNewStage")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<float>("HardMultiplier")
+                                .HasColumnType("REAL");
+
+                            b1.Property<int>("HardOnNewStage")
+                                .HasColumnType("INTEGER");
+
+                            b1.PrimitiveCollection<string>("LearningStages")
+                                .IsRequired()
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("DeckOptionsId");
+
+                            b1.ToTable("DeckOptions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DeckOptionsId");
+                        });
+
+                    b.Navigation("DailyLimits")
+                        .IsRequired();
+
+                    b.Navigation("Scheduling")
+                        .IsRequired();
+
+                    b.Navigation("Sorting")
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
                 {
                     b.HasOne("FlashMemo.Model.Persistence.DeckEntity", "Deck")
@@ -292,32 +360,23 @@ namespace FlashMemo.Migrations
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.DeckEntity", b =>
                 {
+                    b.HasOne("FlashMemo.Model.DeckOptions", "Options")
+                        .WithMany("DecksUsingThis")
+                        .HasForeignKey("OptionsId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("FlashMemo.Model.Persistence.DeckEntity", "ParentDeck")
                         .WithMany("ChildrenDecks")
                         .HasForeignKey("ParentDeckId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("FlashMemo.Model.Persistence.SchedulerEntity", "Scheduler")
-                        .WithMany("Decks")
-                        .HasForeignKey("SchedulerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
                         .WithMany("Decks")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Options");
 
                     b.Navigation("ParentDeck");
-
-                    b.Navigation("Scheduler");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FlashMemo.Model.Persistence.SchedulerEntity", b =>
-                {
-                    b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("SchedulerPresets")
-                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
@@ -329,6 +388,30 @@ namespace FlashMemo.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.UserEntity", b =>
+                {
+                    b.OwnsOne("FlashMemo.Model.UserOptions", "Options", b1 =>
+                        {
+                            b1.Property<long>("UserEntityId")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("UserEntityId");
+
+                            b1.ToTable("Users");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserEntityId");
+                        });
+
+                    b.Navigation("Options")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.DeckOptions", b =>
+                {
+                    b.Navigation("DecksUsingThis");
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
@@ -343,18 +426,13 @@ namespace FlashMemo.Migrations
                     b.Navigation("ChildrenDecks");
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.Persistence.SchedulerEntity", b =>
-                {
-                    b.Navigation("Decks");
-                });
-
             modelBuilder.Entity("FlashMemo.Model.Persistence.UserEntity", b =>
                 {
+                    b.Navigation("DeckOptions");
+
                     b.Navigation("Decks");
 
                     b.Navigation("Logs");
-
-                    b.Navigation("SchedulerPresets");
 
                     b.Navigation("Tags");
                 });

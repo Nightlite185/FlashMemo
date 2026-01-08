@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.ComponentModel.DataAnnotations.Schema;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model
@@ -6,8 +7,13 @@ namespace FlashMemo.Model
     public enum CardTypeOrder { NewThenReviews, ReviewsThenNew, Mix }
     public sealed class DeckOptions: IDefaultable
     {
-        public DeckOptions() // ctor for default preset
+        public DeckOptions() // ctor for EF
         {
+            
+        }
+        public DeckOptions(UserEntity user) // ctor for default preset
+        {
+            User = user;
             Name = "Default";
 
             Scheduling = new();
@@ -16,9 +22,12 @@ namespace FlashMemo.Model
 
             ToDefault();
         }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public long Id { get; set; }
+
+        [ForeignKey(nameof(UserId))]
         public long UserId { get; set; }
+        public UserEntity User { get; set; } = null!;
         public ICollection<DeckEntity> DecksUsingThis { get; set; } = [];
         public void ToDefault()
         {
@@ -28,9 +37,9 @@ namespace FlashMemo.Model
         }
         
         #region sub-options properties
-        public SchedulingOpt Scheduling { get; set; }
-        public DailyLimitsOpt DailyLimits { get; set; }
-        public OrderingOpt Sorting { get; set; }
+        public SchedulingOpt Scheduling { get; set; } = null!;
+        public DailyLimitsOpt DailyLimits { get; set; } = null!;
+        public OrderingOpt Sorting { get; set; } = null!;
         #endregion
 
         #region options sub-classes
@@ -93,7 +102,9 @@ namespace FlashMemo.Model
             #endregion
 
             #region options
-            public static bool NewIgnoreReviewLimit { get; set; } // global option (not per preset)
+            /* global option (not per preset). TO DO: Later figure out how to persist this bc EF ignores static 
+            and I dont wanna create a separate table just for this. Maybe belongs in UserOptions?? */
+            public static bool NewIgnoreReviewLimit { get; set; } 
             public int DailyReviewsLimit { get; set; }
             public int DailyLessonsLimit { get; set; }
             #endregion

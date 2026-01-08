@@ -25,30 +25,36 @@ namespace FlashMemo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Schedulers",
+                name: "DeckOptions",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    GoodMultiplier = table.Column<float>(type: "REAL", nullable: false),
-                    EasyMultiplier = table.Column<float>(type: "REAL", nullable: false),
-                    HardMultiplier = table.Column<float>(type: "REAL", nullable: false),
-                    AgainDayCount = table.Column<int>(type: "INTEGER", nullable: false),
-                    LearningStages = table.Column<string>(type: "TEXT", nullable: false),
-                    AgainStageFallback = table.Column<int>(type: "INTEGER", nullable: false),
-                    GoodOnNewStage = table.Column<int>(type: "INTEGER", nullable: false),
-                    EasyOnNewDayCount = table.Column<int>(type: "INTEGER", nullable: false),
-                    HardOnNewStage = table.Column<int>(type: "INTEGER", nullable: false)
+                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
+                    Scheduling_GoodMultiplier = table.Column<float>(type: "REAL", nullable: false),
+                    Scheduling_EasyMultiplier = table.Column<float>(type: "REAL", nullable: false),
+                    Scheduling_HardMultiplier = table.Column<float>(type: "REAL", nullable: false),
+                    Scheduling_AgainDayCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    Scheduling_LearningStages = table.Column<string>(type: "TEXT", nullable: false),
+                    Scheduling_AgainStageFallback = table.Column<int>(type: "INTEGER", nullable: false),
+                    Scheduling_GoodOnNewStage = table.Column<int>(type: "INTEGER", nullable: false),
+                    Scheduling_EasyOnNewDayCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    Scheduling_HardOnNewStage = table.Column<int>(type: "INTEGER", nullable: false),
+                    DailyLimits_DailyReviewsLimit = table.Column<int>(type: "INTEGER", nullable: false),
+                    DailyLimits_DailyLessonsLimit = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sorting_NewCardSortOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sorting_ReviewSortOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sorting_CardTypeOrder = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Schedulers", x => x.Id);
+                    table.PrimaryKey("PK_DeckOptions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Schedulers_Users_UserId",
+                        name: "FK_DeckOptions_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -78,9 +84,7 @@ namespace FlashMemo.Migrations
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    SchedulerId = table.Column<long>(type: "INTEGER", nullable: true),
-                    DailyReviewLimit = table.Column<int>(type: "INTEGER", nullable: false),
-                    DailyNewLimit = table.Column<int>(type: "INTEGER", nullable: false),
+                    OptionsId = table.Column<long>(type: "INTEGER", nullable: true),
                     ParentDeckId = table.Column<long>(type: "INTEGER", nullable: true),
                     IsTemporary = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
@@ -88,17 +92,17 @@ namespace FlashMemo.Migrations
                 {
                     table.PrimaryKey("PK_Decks", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Decks_DeckOptions_OptionsId",
+                        column: x => x.OptionsId,
+                        principalTable: "DeckOptions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
                         name: "FK_Decks_Decks_ParentDeckId",
                         column: x => x.ParentDeckId,
                         principalTable: "Decks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Decks_Schedulers_SchedulerId",
-                        column: x => x.SchedulerId,
-                        principalTable: "Schedulers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Decks_Users_UserId",
                         column: x => x.UserId,
@@ -209,23 +213,23 @@ namespace FlashMemo.Migrations
                 column: "DeckId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DeckOptions_UserId",
+                table: "DeckOptions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Decks_OptionsId",
+                table: "Decks",
+                column: "OptionsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Decks_ParentDeckId",
                 table: "Decks",
                 column: "ParentDeckId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Decks_SchedulerId",
-                table: "Decks",
-                column: "SchedulerId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Decks_UserId",
                 table: "Decks",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Schedulers_UserId",
-                table: "Schedulers",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -253,7 +257,7 @@ namespace FlashMemo.Migrations
                 name: "Decks");
 
             migrationBuilder.DropTable(
-                name: "Schedulers");
+                name: "DeckOptions");
 
             migrationBuilder.DropTable(
                 name: "Users");

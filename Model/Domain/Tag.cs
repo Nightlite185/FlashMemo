@@ -11,7 +11,7 @@ namespace FlashMemo.Model.Domain
             Name = name;
         }
         public Tag(long id) => Id = id; // ctor for mapper only
-        public long Id { get; private init; }
+        public long Id { get; set; }
         public User Owner { get; set; } = null!;
         public string Name { get; set; } = null!;
         public int Color { get; set; }

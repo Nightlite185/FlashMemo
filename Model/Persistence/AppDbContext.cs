@@ -20,26 +20,37 @@ namespace FlashMemo.Model.Persistence
         {
             base.OnModelCreating(mb);
 
-            #region Tables definitions and don't generate PK 
+            #region Tables definitions and don't generate PK
             mb.Entity<CardEntity>()
                 .ToTable("Cards")
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
-            mb.Entity<DeckOptions>()
-                .ToTable("DeckOptions")
+            mb.Entity<DeckOptions>(mb =>
+            {
+                mb.ToTable("DeckOptions")
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
+
+                mb.OwnsOne(d => d.Scheduling);
+                mb.OwnsOne(d => d.DailyLimits);
+                mb.OwnsOne(d => d.Sorting);
+            });
 
             mb.Entity<DeckEntity>()
                 .ToTable("Decks")
                 .Property(d => d.Id)
                 .ValueGeneratedNever();
 
-            mb.Entity<UserEntity>()
-                .ToTable("Users")
+            mb.Entity<UserEntity>(mb =>
+            {
+                mb.ToTable("Users")
                 .Property(u => u.Id)
                 .ValueGeneratedNever();
+
+                mb.OwnsOne(u => u.Options);
+            });
+                
 
             mb.Entity<TagEntity>()
                 .ToTable("Tags")

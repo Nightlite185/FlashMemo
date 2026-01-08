@@ -11,34 +11,34 @@ namespace FlashMemo.Model.Domain
             HashedPassword = SHA256.HashData(Encoding.UTF8.GetBytes(password));
             Id = IdGetter.Next();
             Username = name;
-            Cfg = new();
+            Options = new();
 
-            DeckOptionsPresets = [];
-            Decks = [];
-            Tags = [];
+            DeckOptionsIds = [];
+            DeckIds = [];
+            TagIds = [];
         }
         public User(long id) => Id = id; // for mapper use only
         
         #region Properties
         public string Username { get; set; } = null!;
-        public UserOptions Cfg { get; private set; } = null!;
+        public UserOptions Options { get; private set; } = null!;
         public long Id { get; private init; }
-        public byte[] HashedPassword { get; private set; } = null!;
+        public byte[] HashedPassword { get; private set; } = [];
 
-        public List<Deck> Decks { get; set; } = null!;
-        public List<DeckOptions> DeckOptionsPresets { get; set; } = null!;
-        public List<Tag> Tags { get; set; } = null!;
+        public List<long> DeckIds { get; set; } = [];
+        public List<long> DeckOptionsIds { get; set; } = [];
+        public List<long> TagIds { get; set; } = [];
         #endregion
-        public User Rehydrate(string username, byte[] hashedPassword, ICollection<Deck> decks, // TO DO: add settings object later
-                              ICollection<DeckOptions> deckOptionsPresets, ICollection<Tag> tags)
+        public User Rehydrate(string username, byte[] hashedPassword, ICollection<long> deckIds, // TO DO: add settings object later
+                              ICollection<long> deckOptionsIds, ICollection<long> tagIds, UserOptions options)
         {                                                                                                                                                                              
             Username = username;
             HashedPassword = hashedPassword;
-            //Cfg = cfg; // not implemented yet
+            Options = options;
 
-            Decks = [..decks];
-            DeckOptionsPresets = [..deckOptionsPresets];
-            Tags = [..tags];
+            DeckIds = [..deckIds];
+            DeckOptionsIds = [..deckOptionsIds];
+            TagIds = [..tagIds];
             
             return this;
         }

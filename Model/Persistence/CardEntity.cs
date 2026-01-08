@@ -10,7 +10,7 @@ namespace FlashMemo.Model.Persistence
         public string FrontContent { get; set; } = null!;
         public string? BackContent { get; set; }
         public long DeckId { get; set; }
-        public ICollection<TagEntity> Tags { get; set; } = [];
+        public ICollection<Tag> Tags { get; set; } = [];
         public ICollection<CardLogEntity> CardLogs { get; set; } = [];
         public DeckEntity Deck { get; set; } = null!;
         public bool IsBuried { get; set; }
@@ -86,7 +86,7 @@ namespace FlashMemo.Model.Persistence
             foreach (var tag in other.Tags)
             {
                 if (!myTagIds.Contains(tag.Id))
-                    Tags.Add(new TagEntity { Id = tag.Id });
+                    Tags.Add(new Tag(tag.Id));
             }
         }
         #endregion

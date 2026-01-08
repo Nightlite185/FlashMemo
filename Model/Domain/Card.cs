@@ -1,5 +1,3 @@
-using FlashMemo.Helpers;
-
 namespace FlashMemo.Model.Domain
 {
     public enum CardState
@@ -17,30 +15,12 @@ namespace FlashMemo.Model.Domain
     }
     public class Card: IEquatable<Card>
     {
-        public Card(string frontContent, ICollection<Tag> tags, string? backContent = null) // new fresh card ctor
-        {
-            Id = IdGetter.Next();
-            FrontContent = frontContent;
-            BackContent = backContent;
-            Tags = [..tags];
-
-            Created = DateTime.Now;
-            LastModified = DateTime.Now;
-            NextReview = DateTime.MinValue;
-            LastReviewed = DateTime.MinValue;
-            Interval = TimeSpan.Zero;
-
-            State = CardState.New;
-            IsBuried = false;
-            IsSuspended = false;
-        }
         public Card(long id) => this.Id = id; // for mapper use only
         #region Properties
         public virtual string FrontContent { get; protected set; } = null!;
         public virtual string? BackContent { get; protected set; }
         public long Id { get; private init; } // change this to 'long' and get it from miliseconds rn at creation time.
-        public List<Tag> Tags { get; protected set; } = null!;
-        public Deck ParentDeck { get; set; } = null!;
+        public long ParentDeckId { get; set; }
         public bool IsBuried { get; protected set; }
         public bool IsSuspended { get; protected set; }
         public CardState State { get; protected set; }
@@ -57,12 +37,12 @@ namespace FlashMemo.Model.Domain
         #region Public Methods
         public Card Rehydrate(string frontContent, string? backContent, DateTime created, DateTime lastModified,
                     DateTime nextReview, DateTime lastReviewed, TimeSpan interval, CardState state,
-                    int? learningStage, Deck parentDeck, bool isBuried, bool isSuspended, ICollection<Tag> tags) // for mapper use only
+                    int? learningStage, long parentDeckId, bool isBuried, bool isSuspended) // for mapper use only
         {
             FrontContent = frontContent;
             BackContent = backContent;
             Created = created;
-            ParentDeck = parentDeck;
+            ParentDeckId = parentDeckId;
             LastModified = lastModified;
             NextReview = nextReview;
             LastReviewed = lastReviewed;
@@ -71,7 +51,6 @@ namespace FlashMemo.Model.Domain
             LearningStage = learningStage;
             IsBuried = isBuried;
             IsSuspended = isSuspended;
-            Tags = [..tags];
 
             return this;
         }

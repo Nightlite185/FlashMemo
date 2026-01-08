@@ -2,19 +2,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Model.Persistence
 {
-    public class AppDbContext: DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<CardEntity> Cards { get; set; }
         public DbSet<DeckEntity> Decks { get; set; }
         public DbSet<DeckOptions> DeckOptions { get; set; }
         public DbSet<UserEntity> Users { get; set; }
-        public DbSet<TagEntity> Tags { get; set; }
+        public DbSet<Tag> Tags { get; set; }
         public DbSet<CardLogEntity> CardLogs { get; set; }
-    
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-            
-        }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -52,7 +47,7 @@ namespace FlashMemo.Model.Persistence
             });
                 
 
-            mb.Entity<TagEntity>()
+            mb.Entity<Tag>()
                 .ToTable("Tags")
                 .Property(t => t.Id)
                 .ValueGeneratedNever();

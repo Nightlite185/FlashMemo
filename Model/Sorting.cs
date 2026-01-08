@@ -1,4 +1,4 @@
-using FlashMemo.Model.Domain;
+using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model
 {
@@ -19,7 +19,7 @@ namespace FlashMemo.Model
     {
         private const SortingOptions DefSortBy = SortingOptions.Created;
         private const SortingDirection DefDir = SortingDirection.Descending;
-        public static IEnumerable<Card> Sort(this Deck d, SortingOptions sortBy = DefSortBy, SortingDirection dir = DefDir)
+        public static IEnumerable<CardEntity> Sort(this DeckEntity d, SortingOptions sortBy = DefSortBy, SortingDirection dir = DefDir)
         {
             return sortBy switch
             {
@@ -35,7 +35,7 @@ namespace FlashMemo.Model
                 _ => throw new ArgumentOutOfRangeException(nameof(sortBy), $"Wrong {nameof(SortingOptions)} enum value, its {sortBy}")
             };
         }
-        private static IEnumerable<Card> SortHelper<TOut> (this Deck d, Func<Card, TOut> keySelector, SortingDirection dir)
+        private static IEnumerable<CardEntity> SortHelper<TOut> (this DeckEntity d, Func<CardEntity, TOut> keySelector, SortingDirection dir)
         {
             return dir switch
             {

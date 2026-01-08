@@ -7,7 +7,7 @@ namespace FlashMemo.Model.Persistence
         public byte[] HashedPassword { get; set; } = null!;
         public UserOptions Options { get; set; } = null!;
         public ICollection<DeckEntity> Decks { get; set; } = [];
-        public ICollection<TagEntity> Tags { get; set; } = [];
+        public ICollection<Tag> Tags { get; set; } = [];
         public ICollection<CardLogEntity> Logs { get; set; } = [];
         public ICollection<DeckOptions> DeckOptions { get; set; } = [];
     }

@@ -5,30 +5,31 @@ using FlashMemo.Model.Persistence;
 namespace FlashMemo.Model
 {
     public enum CardTypeOrder { NewThenReviews, ReviewsThenNew, Mix }
-    public sealed class DeckOptions: IDefaultable
+    public class DeckOptions: IDefaultable
     {
-        public DeckOptions() // ctor for EF
+        public DeckOptions(){} // ctor for EF
+        public static DeckOptions CreateDefault(string name) // Factory for default preset
         {
-            
+            DeckOptions o = new()
+            {
+                Name = name,
+
+                Scheduling = new(),
+                DailyLimits = new(),
+                Sorting = new()
+            };
+
+            o.ToDefault();
+
+            return o;
         }
-        public DeckOptions(UserEntity user) // ctor for default preset
-        {
-            User = user;
-            Name = "Default";
-
-            Scheduling = new();
-            DailyLimits = new();
-            Sorting = new();
-
-            ToDefault();
-        }
-        public string Name { get; set; } = null!;
-        public long Id { get; set; }
-
+        
         [ForeignKey(nameof(UserId))]
+        public long Id { get; set; }
         public long UserId { get; set; }
         public UserEntity User { get; set; } = null!;
         public ICollection<DeckEntity> DecksUsingThis { get; set; } = [];
+        public string Name { get; set; } = null!;
         public void ToDefault()
         {
             Scheduling.ToDefault();

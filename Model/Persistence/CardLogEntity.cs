@@ -1,3 +1,4 @@
+using System.Windows.Automation;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 
@@ -18,7 +19,21 @@ namespace FlashMemo.Model.Persistence
         public DateTime TimeStamp { get; set; }
 
         /// <summary>Deck needs to be included with card; otherwise this won't work</summary>
-        public static CardLogEntity CreateNew(CardEntity card, CardAction action, Answers? ans, TimeSpan? ansTime)
+        public static CardLogEntity CreateReviewLog(CardEntity card, Answers ans, TimeSpan ansTime)
+        {
+            return new()
+            {
+                Id = IdGetter.Next(),
+                UserId = card.Deck.UserId,
+                Card = card,
+                Action = CardAction.Review,
+                Answer = ans,
+                AnswerTime = ansTime,
+                NewCardState = card.State,
+                TimeStamp = DateTime.Now,
+            };
+        }
+        public static CardLogEntity CreateLog(CardEntity card, CardAction action)
         {
             return new()
             {
@@ -26,8 +41,6 @@ namespace FlashMemo.Model.Persistence
                 UserId = card.Deck.UserId,
                 Card = card,
                 Action = action,
-                Answer = ans,
-                AnswerTime = ansTime,
                 NewCardState = card.State,
                 TimeStamp = DateTime.Now,
             };

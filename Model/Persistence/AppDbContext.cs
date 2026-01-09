@@ -15,7 +15,7 @@ namespace FlashMemo.Model.Persistence
         {
             base.OnModelCreating(mb);
 
-            #region Tables definitions and don't generate PK
+            #region Tables naming and don't generate PK
             mb.Entity<CardEntity>()
                 .ToTable("Cards")
                 .Property(c => c.Id)

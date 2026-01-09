@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services
 {
-    public class ReviewService(IDbContextFactory<AppDbContext> factory, IMapper mapper): DbDependentClass(factory)
+    public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper): DbDependentClass(factory)
     {
         private readonly IMapper mapper = mapper;
         
         /// <summary>Deck needs to be included in cardEntity argument; otherwise this won't work</summary>
-        public async Task ReviewCard(long cardId, Answers answer, TimeSpan answerTime)
+        public async Task ReviewCardAsync(long cardId, Answers answer, TimeSpan answerTime)
         {
             var db = GetDb;
 
@@ -32,11 +32,25 @@ namespace FlashMemo.Services
                 .CurrentValues
                 .SetValues(updatedCard);
 
-            var log = CardLogEntity.CreateNew(
-                cardEntity, CardAction.Review, 
-                answer, answerTime);
+            var log = CardLogEntity.CreateReviewLog(
+                cardEntity, answer, answerTime);
             
             await db.CardLogs.AddAsync(log);
+            await db.SaveChangesAsync();
+        }
+        public async Task SaveEditedCard(CardEntity editedCard, CardAction action)
+        {
+            var db = GetDb;
+
+            var trackedCard = await db.Cards
+                .SingleAsync(c => c.Id == editedCard.Id);
+
+            db.Entry(trackedCard).CurrentValues
+                .SetValues(editedCard);
+            
+            var log = CardLogEntity
+                .CreateLog(trackedCard, action);
+                
             await db.SaveChangesAsync();
         }
     }

@@ -1,4 +1,6 @@
 using System.Collections;
+using FlashMemo.Model.Domain;
+using FlashMemo.Services;
 using Force.DeepCloner;
 
 namespace FlashMemo.Model.Persistence
@@ -50,8 +52,17 @@ namespace FlashMemo.Model.Persistence
 
             return copy;
         }
-        public void SortBy(SortingOptions options, SortingDirection direction)
-            => Cards = [..this.Sort(options, direction)];
+
+        // public IOrderedEnumerable<CardEntity> GetOrderedForStudy()
+        // {
+        //     var cards = this.AsEnumerable();
+
+        //     var 
+
+        //     this.Sort(Options.Sorting, direction)
+            
+            
+        // }
         #endregion
 
         #region Equality, IEnumerable, and indexer boilerplate
@@ -63,10 +74,8 @@ namespace FlashMemo.Model.Persistence
             => other is DeckEntity d && d.Id == this.Id;
 
         public IEnumerator<CardEntity> GetEnumerator()
-        {
-            foreach (var card in Cards)
-                yield return card;
-        }
+            => Cards.Concat(ChildrenDecks.SelectMany(d => d.AsEnumerable()))
+              .GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         #endregion
     }

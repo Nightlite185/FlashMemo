@@ -4,7 +4,7 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model
 {
-    public enum CardTypeOrder { NewThenReviews, ReviewsThenNew, Mix }
+    public enum CardStateOrder { NewThenReviews, ReviewsThenNew, Mix }
     public class DeckOptions: IDefaultable
     {
         public DeckOptions(){} // ctor for EF
@@ -113,21 +113,29 @@ namespace FlashMemo.Model
         public sealed class OrderingOpt: IDefaultable
         {
             #region defaults
-            public const SortingOptions DefNewCardSortOrder = SortingOptions.Created; // TO DO: maybe also split sorting enum into review and lessons sorting.
-            public const SortingOptions DefReviewSortOrder = SortingOptions.Random; // TO DO: add sorting option 'overdueness'
-            public const CardTypeOrder DefCardTypeOrder = CardTypeOrder.ReviewsThenNew;
+            public const SortingOptions DefLessonSortOrder = SortingOptions.Created; // TO DO: maybe also split sorting enum into review and lessons sorting.
+            public const SortingOptions DefReviewSortOrder = SortingOptions.NextReview;
+            public const SortingDirection DefLessonSortDir = SortingDirection.Descending;
+            public const SortingDirection DefReviewSortDir = SortingDirection.Descending;
+            public const CardStateOrder DefCardTypeOrder = CardStateOrder.ReviewsThenNew;
             public void ToDefault()
             {
-                NewCardSortOrder = DefNewCardSortOrder;
+                LessonSortOrder = DefLessonSortOrder;
                 ReviewSortOrder = DefReviewSortOrder;
-                CardTypeOrder = DefCardTypeOrder;
+
+                ReviewSortDir = DefReviewSortDir;
+                LessonSortDir = DefLessonSortDir;
+                
+                CardStateOrder = DefCardTypeOrder;
             }
             #endregion
 
             #region options
-            public SortingOptions NewCardSortOrder { get; set; }
+            public SortingOptions LessonSortOrder { get; set; }
             public SortingOptions ReviewSortOrder { get; set; }
-            public CardTypeOrder CardTypeOrder { get; set; }
+            public SortingDirection ReviewSortDir { get; set; }
+            public SortingDirection LessonSortDir { get; set; }
+            public CardStateOrder CardStateOrder { get; set; }
             #endregion
         }
         #endregion

@@ -37,6 +37,7 @@ namespace FlashMemo.Repositories
             var db = GetDb;
 
             var deckEntity = await db.Decks
+                .AsNoTracking()
                 .SingleAsync(d => d.Id == id);
 
             return deckEntity;

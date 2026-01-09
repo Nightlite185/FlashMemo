@@ -1,3 +1,4 @@
+using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model
@@ -19,28 +20,32 @@ namespace FlashMemo.Model
     {
         private const SortingOptions DefSortBy = SortingOptions.Created;
         private const SortingDirection DefDir = SortingDirection.Descending;
-        public static IEnumerable<CardEntity> Sort(this DeckEntity d, SortingOptions sortBy = DefSortBy, SortingDirection dir = DefDir)
+        private static IEnumerable<CardEntity> SortDispatcher(this IEnumerable<CardEntity> cards, SortingOptions sortBy = DefSortBy, SortingDirection dir = DefDir)
         {
             return sortBy switch
             {
-                SortingOptions.Created => d.SortHelper(x => x.Created, dir),
-                SortingOptions.LastModified => d.SortHelper(x => x.LastModified, dir),
-                SortingOptions.NextReview => d.SortHelper(x => x.NextReview, dir),
-                SortingOptions.LastReviewed => d.SortHelper(x => x.LastReviewed, dir),
-                SortingOptions.Interval => d.SortHelper(x => x.Interval, dir),
-                SortingOptions.State => d.SortHelper(x => x.State, dir),
-                SortingOptions.Id => d.SortHelper(x => x.Id, dir),
-                SortingOptions.Random => d.SortHelper(_ => Random.Shared.Next(), dir),
+                SortingOptions.Created => cards.SortHelper(x => x.Created, dir),
+                SortingOptions.LastModified => cards.SortHelper(x => x.LastModified, dir),
+                SortingOptions.NextReview => cards.SortHelper(x => x.NextReview, dir),
+                SortingOptions.LastReviewed => cards.SortHelper(x => x.LastReviewed, dir),
+                SortingOptions.Interval => cards.SortHelper(x => x.Interval, dir),
+                SortingOptions.State => cards.SortHelper(x => x.State, dir),
+                SortingOptions.Id => cards.SortHelper(x => x.Id, dir),
+                SortingOptions.Random => cards.SortHelper(_ => Random.Shared.Next(), dir),
 
                 _ => throw new ArgumentOutOfRangeException(nameof(sortBy), $"Wrong {nameof(SortingOptions)} enum value, its {sortBy}")
             };
         }
-        private static IEnumerable<CardEntity> SortHelper<TOut> (this DeckEntity d, Func<CardEntity, TOut> keySelector, SortingDirection dir)
+        public static IOrderedEnumerable<CardEntity> OrderCards(this IEnumerable<CardEntity> cards, DeckOptions.OrderingOpt options)
+        {
+            throw new NotImplementedException(); // TO DO: IMPLEMENT THISSSS
+        }
+        private static IOrderedEnumerable<CardEntity> SortHelper<TOut> (this IEnumerable<CardEntity> cards, Func<CardEntity, TOut> keySelector, SortingDirection dir)
         {
             return dir switch
             {
-                SortingDirection.Ascending => [.. d.OrderBy(keySelector)],
-                SortingDirection.Descending => [.. d.OrderByDescending(keySelector)],
+                SortingDirection.Ascending => cards.OrderBy(keySelector),
+                SortingDirection.Descending => cards.OrderByDescending(keySelector),
 
                 _ => throw new ArgumentOutOfRangeException(nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),
             };

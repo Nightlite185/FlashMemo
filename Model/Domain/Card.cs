@@ -17,10 +17,8 @@ namespace FlashMemo.Model.Domain
     {
         public Card(long id) => this.Id = id; // for mapper use only
         #region Properties
-        public virtual string FrontContent { get; protected set; } = null!;
-        public virtual string? BackContent { get; protected set; }
-        public long Id { get; private init; } // change this to 'long' and get it from miliseconds rn at creation time.
-        public long ParentDeckId { get; set; }
+        public long Id { get; private init; }
+        public long DeckId { get; set; }
         public bool IsBuried { get; protected set; }
         public bool IsSuspended { get; protected set; }
         public CardState State { get; protected set; }
@@ -35,14 +33,12 @@ namespace FlashMemo.Model.Domain
         #endregion
 
         #region Public Methods
-        public Card Rehydrate(string frontContent, string? backContent, DateTime created, DateTime lastModified,
+        public Card Rehydrate(DateTime created, DateTime lastModified,
                     DateTime nextReview, DateTime lastReviewed, TimeSpan interval, CardState state,
                     int? learningStage, long parentDeckId, bool isBuried, bool isSuspended) // for mapper use only
         {
-            FrontContent = frontContent;
-            BackContent = backContent;
             Created = created;
-            ParentDeckId = parentDeckId;
+            DeckId = parentDeckId;
             LastModified = lastModified;
             NextReview = nextReview;
             LastReviewed = lastReviewed;

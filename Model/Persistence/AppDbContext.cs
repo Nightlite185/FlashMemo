@@ -59,13 +59,13 @@ namespace FlashMemo.Model.Persistence
             #endregion
 
             #region auto includes
-            mb.Entity<DeckEntity>()
-                .Navigation(d => d.Cards)
-                .AutoInclude();
+            // mb.Entity<DeckEntity>()
+            //     .Navigation(d => d.Cards)
+            //     .AutoInclude();
 
-            mb.Entity<CardEntity>()
-                .Navigation(c => c.Tags)
-                .AutoInclude();
+            // mb.Entity<CardEntity>()
+            //     .Navigation(c => c.Tags)
+            //     .AutoInclude();
             #endregion
             
             #region cascade deletion

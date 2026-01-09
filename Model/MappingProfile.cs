@@ -9,7 +9,10 @@ namespace FlashMemo.Model
         public MappingProfile()
         {
             CreateMap<Card, CardEntity>();
+            CreateMap<CardEntity, Card>();
+
             CreateMap<User, UserEntity>();
+            CreateMap<UserEntity, User>();
         }
     }
 }

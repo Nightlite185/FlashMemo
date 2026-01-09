@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Repositories
 {
-    public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : RepoBase(dbFactory)
+    public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
     {
         ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
         public async Task UpdateCard(CardEntity detached)

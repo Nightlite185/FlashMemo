@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Repositories
 {
-    public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : RepoBase(dbFactory)
+    public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
     {
         public async Task RenameDeck(long deckId, string newName)
         {

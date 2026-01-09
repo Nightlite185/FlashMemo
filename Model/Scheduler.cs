@@ -10,7 +10,7 @@ namespace FlashMemo.Model
     }
     public static class Scheduler
     {
-        public static void ScheduleCard(Card card, Answers answer, DeckOptions.SchedulingOpt options)
+        public static void Schedule(this Card card, Answers answer, DeckOptions.SchedulingOpt options)
         {
             ScheduleInfo info = answer switch
             {

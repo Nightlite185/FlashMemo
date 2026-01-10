@@ -5,7 +5,7 @@ namespace FlashMemo.Services
 
     public static class Sorting
     {
-        public static IAsyncEnumerable<CardEntity> SortLessons(this IEnumerable<CardEntity> cards, DeckOptions.OrderingOpt options)
+        public static IQueryable<CardEntity> SortLessons(this IQueryable<CardEntity> cards, DeckOptions.OrderingOpt options)
         {
             var orderBy = options.LessonsOrder;
             var dir = options.LessonsSortDir;
@@ -15,11 +15,12 @@ namespace FlashMemo.Services
                 LessonOrder.Created => cards.SortHelper(c => c.Created, dir),
                 LessonOrder.LastModified => cards.SortHelper(c => c.LastModified, dir),
                 LessonOrder.Random => cards.SortHelper(_ => Random.Shared.Next(), dir),
+                // IMPORTANT TO DO: random sorting NEEDS to be done in memory.
 
                 _ => throw new ArgumentOutOfRangeException(nameof(options.LessonsOrder), $"Wrong {nameof(LessonOrder)} enum value: {orderBy}")
             };
         }
-        public static IAsyncEnumerable<CardEntity> SortReviews(this IEnumerable<CardEntity> cards, DeckOptions.OrderingOpt options)
+        public static IQueryable<CardEntity> SortReviews(this IQueryable<CardEntity> cards, DeckOptions.OrderingOpt options)
         {
             var orderBy = options.ReviewsOrder;
             var dir = options.ReviewsSortDir;
@@ -32,11 +33,12 @@ namespace FlashMemo.Services
                 ReviewOrder.LastModified => cards.SortHelper(c => c.LastModified, dir),
                 ReviewOrder.LastReviewed => cards.SortHelper(c => c.LastReviewed, dir),
                 ReviewOrder.Random => cards.SortHelper(_ => Random.Shared.Next(), dir),
+                // IMPORTANT TO DO: random sorting NEEDS to be done in memory.
 
                 _ => throw new ArgumentOutOfRangeException(nameof(options.ReviewsOrder), $"Wrong {nameof(ReviewOrder)} enum value: {orderBy}")
             };
         }
-        public static IAsyncEnumerable<CardEntity> SortAny(this IEnumerable<CardEntity> cards, CardsOrder orderBy, SortingDirection dir)
+        public static IQueryable<CardEntity> SortAny(this IQueryable<CardEntity> cards, CardsOrder orderBy, SortingDirection dir)
         {
             return orderBy switch
             {
@@ -48,21 +50,22 @@ namespace FlashMemo.Services
                 CardsOrder.Interval => cards.SortHelper(c => c.Interval, dir),
                 CardsOrder.State => cards.SortHelper(c => c.State, dir),
                 CardsOrder.Random => cards.SortHelper(_ => Random.Shared.Next(), dir),
+                // IMPORTANT TO DO: random sorting NEEDS to be done in memory.
 
                 _ => throw new ArgumentOutOfRangeException(nameof(orderBy), $"Wrong {nameof(CardsOrder)} enum value: {orderBy}")
             };
         }
-        private static IAsyncEnumerable<CardEntity> SortHelper<TOut> (this IEnumerable<CardEntity> cards, Func<CardEntity, TOut> keySelector, SortingDirection dir)
+        private static IQueryable<CardEntity> SortHelper<TOut> (this IQueryable<CardEntity> cards, Func<CardEntity, TOut> keySelector, SortingDirection dir)
         {
             return dir switch
             {
                 SortingDirection.Ascending 
                     => cards.OrderBy(keySelector)
-                    .ToAsyncEnumerable(),
+                    .AsQueryable(),
 
                 SortingDirection.Descending 
                     => cards.OrderByDescending(keySelector)
-                    .ToAsyncEnumerable(),
+                    .AsQueryable(),
 
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),

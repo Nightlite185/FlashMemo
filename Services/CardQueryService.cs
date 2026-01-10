@@ -30,7 +30,7 @@ namespace FlashMemo.Services
             // I know this is ugly as hell, but the only way to put parentDeckId as a key in dict. 
             // It wont believe me its not null otherwise.
             var deckGroups = (IEnumerable<IGrouping<long, Deck>>) allDecks
-                .Where(d => d.ParentDeckId is not null)
+                .Where(d => d.ParentDeckId is not null) // TO DO: IMPORTANT: handle edge case where the desired deck actually is on root-level and has no parent.
                 .GroupBy(x => x.ParentDeckId);
                 
             var parentChildrenMap = deckGroups

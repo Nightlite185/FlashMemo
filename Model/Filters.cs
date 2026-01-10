@@ -22,7 +22,7 @@ namespace FlashMemo.Model
 
             if (IsDue is not null)
                 query.Combine(c => 
-                    c.NextReview <= DateTime.Now);
+                    c.Due <= DateTime.Now);
             #endregion
             
             #region collection filters
@@ -44,7 +44,7 @@ namespace FlashMemo.Model
 
             if (OverdueByDays is not null)
                 query.Combine(c => 
-                    (c.NextReview - DateTime.Now).Days == OverdueByDays);
+                    (c.Due - DateTime.Now).Days == OverdueByDays);
 
             if (Interval is TimeSpan interval)
                 query.Combine(c => c.Interval.Days == interval.Days);
@@ -54,8 +54,8 @@ namespace FlashMemo.Model
             if (Created is DateTime created)
                 query.Combine(c => c.Created.Date == created.Date);
 
-            if (NextReview is DateTime nextR)
-                query.Combine(c => c.NextReview.Date == nextR.Date);
+            if (Due is DateTime nextR)
+                query.Combine(c => c.Due.Date == nextR.Date);
 
             if (LastReviewed is DateTime lastR)
                 query.Combine(c => c.LastReviewed.Date == lastR.Date);
@@ -76,7 +76,7 @@ namespace FlashMemo.Model
         public IReadOnlySet<CardState>? States { get; init; }
         public TimeSpan? Interval { get; init; }
         public DateTime? Created { get; init; } // everywhere with datetime I can do like int input box with 0 meaning today, -1 yesterday, and 1 meaning tmrw, Instead of some fancy-ass datetime picker.
-        public DateTime? NextReview { get; init; }
+        public DateTime? Due { get; init; }
         public DateTime? LastReviewed { get; init; }
         public DateTime? LastModified { get; init; }
     }

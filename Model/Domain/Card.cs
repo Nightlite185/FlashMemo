@@ -13,6 +13,12 @@ namespace FlashMemo.Model.Domain
         Good,
         Easy
     }
+    public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStage)
+    {
+        public TimeSpan Interval { get; set; } = interval;
+        public CardState State { get; set; } = state;
+        public int? LearningStage { get; set; } = learningStage;
+    }
     public class Card: IEquatable<Card>
     {
         public Card(long id) => this.Id = id; // for mapper use only
@@ -22,25 +28,25 @@ namespace FlashMemo.Model.Domain
         public bool IsBuried { get; protected set; }
         public bool IsSuspended { get; protected set; }
         public CardState State { get; protected set; }
-        public bool IsDue => NextReview <= DateTime.Now;
-        public TimeSpan TimeTillNextReview => NextReview - DateTime.Now;
+        public bool IsDue => Due <= DateTime.Now;
+        public TimeSpan TimeTillNextReview => Due - DateTime.Now;
         public TimeSpan Interval { get; protected set; }
         public DateTime Created { get; protected set; }
         public DateTime LastModified { get; protected set; }
-        public DateTime NextReview { get; protected set; }
+        public DateTime Due { get; protected set; }
         public DateTime LastReviewed { get; protected set; }
         public int? LearningStage { get; protected set; }
         #endregion
 
         #region Public Methods
         public Card Rehydrate(DateTime created, DateTime lastModified,
-                    DateTime nextReview, DateTime lastReviewed, TimeSpan interval, CardState state,
+                    DateTime due, DateTime lastReviewed, TimeSpan interval, CardState state,
                     int? learningStage, long parentDeckId, bool isBuried, bool isSuspended) // for mapper use only
         {
             Created = created;
             DeckId = parentDeckId;
             LastModified = lastModified;
-            NextReview = nextReview;
+            Due = due;
             LastReviewed = lastReviewed;
             Interval = interval;
             State = state;
@@ -55,7 +61,7 @@ namespace FlashMemo.Model.Domain
             if (!IsDue) throw new InvalidOperationException("Cannot review a card that is not due atm.");
 
             LastReviewed = DateTime.Now;
-            NextReview = LastReviewed.Add(Interval);
+            Due = LastReviewed.Add(Interval);
 
             Interval = s.Interval;
             State = s.State;

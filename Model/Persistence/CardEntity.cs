@@ -11,13 +11,13 @@ namespace FlashMemo.Model.Persistence
         public string? BackContent { get; set; }
         public long DeckId { get; set; }
         public ICollection<Tag> Tags { get; set; } = [];
-        public ICollection<CardLogEntity> CardLogs { get; set; } = [];
-        public DeckEntity Deck { get; set; } = null!;
+        public ICollection<CardLog> CardLogs { get; set; } = [];
+        public Deck Deck { get; set; } = null!;
         public bool IsBuried { get; set; }
         public bool IsSuspended { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
-        public DateTime NextReview { get; set; }
+        public DateTime Due { get; set; }
         public DateTime LastReviewed { get; set; }
         public TimeSpan Interval { get; set; }
         public CardState State { get; set; }
@@ -30,7 +30,7 @@ namespace FlashMemo.Model.Persistence
         public void Reschedule(DateTime newReviewDate, bool keepInterval)
         {
             State = CardState.Review; // reschedule forces state to review, weird outcomes otherwise.
-            NextReview = newReviewDate;
+            Due = newReviewDate;
             LastModified = DateTime.Now;
 
             if (!keepInterval)
@@ -40,7 +40,7 @@ namespace FlashMemo.Model.Persistence
         {
             var now = DateTime.Now;
 
-            NextReview = now.Add(timeFromNow);
+            Due = now.Add(timeFromNow);
             LastModified = now;
             State = CardState.Review;
 
@@ -49,7 +49,7 @@ namespace FlashMemo.Model.Persistence
         }
         public void Postpone(TimeSpan putOffBy, bool keepInterval)
         {
-            NextReview = NextReview.Add(putOffBy);
+            Due = Due.Add(putOffBy);
             LastModified = DateTime.Now;
             State = CardState.Review;
 
@@ -59,7 +59,7 @@ namespace FlashMemo.Model.Persistence
         public void Forget()
         {
             State = CardState.New;
-            NextReview = DateTime.Now;
+            Due = DateTime.Now;
             LastModified = DateTime.Now;
             Interval = TimeSpan.MinValue;
         }

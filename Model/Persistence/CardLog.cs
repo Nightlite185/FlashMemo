@@ -1,11 +1,10 @@
-using System.Windows.Automation;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Model.Persistence
 {
     public enum CardAction { Review, Modify, Reschedule, Bury, Suspend }
-    public class CardLogEntity(): IEntity
+    public class CardLog(): IEntity
     {
         public long Id { get; set; }
         public long CardId { get; set; }
@@ -19,7 +18,7 @@ namespace FlashMemo.Model.Persistence
         public DateTime TimeStamp { get; set; }
 
         /// <summary>Deck needs to be included with card; otherwise this won't work</summary>
-        public static CardLogEntity CreateReviewLog(CardEntity card, Answers ans, TimeSpan ansTime)
+        public static CardLog CreateReviewLog(CardEntity card, Answers ans, TimeSpan ansTime)
         {
             return new()
             {
@@ -33,7 +32,7 @@ namespace FlashMemo.Model.Persistence
                 TimeStamp = DateTime.Now,
             };
         }
-        public static CardLogEntity CreateLog(CardEntity card, CardAction action)
+        public static CardLog CreateLog(CardEntity card, CardAction action)
         {
             return new()
             {

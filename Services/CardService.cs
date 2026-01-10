@@ -32,7 +32,7 @@ namespace FlashMemo.Services
                 .CurrentValues
                 .SetValues(updatedCard);
 
-            var log = CardLogEntity.CreateReviewLog(
+            var log = CardLog.CreateReviewLog(
                 cardEntity, answer, answerTime);
             
             await db.CardLogs.AddAsync(log);
@@ -48,7 +48,7 @@ namespace FlashMemo.Services
             db.Entry(trackedCard).CurrentValues
                 .SetValues(editedCard);
             
-            var log = CardLogEntity
+            var log = CardLog
                 .CreateLog(trackedCard, action);
                 
             await db.SaveChangesAsync();

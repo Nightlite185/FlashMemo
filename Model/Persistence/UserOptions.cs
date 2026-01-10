@@ -1,4 +1,4 @@
-namespace FlashMemo.Model
+namespace FlashMemo.Model.Persistence
 {
     public interface IDefaultable
     {

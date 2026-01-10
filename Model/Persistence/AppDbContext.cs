@@ -5,11 +5,11 @@ namespace FlashMemo.Model.Persistence
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<CardEntity> Cards { get; set; }
-        public DbSet<DeckEntity> Decks { get; set; }
+        public DbSet<Deck> Decks { get; set; }
         public DbSet<DeckOptions> DeckOptions { get; set; }
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<Tag> Tags { get; set; }
-        public DbSet<CardLogEntity> CardLogs { get; set; }
+        public DbSet<CardLog> CardLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -32,7 +32,7 @@ namespace FlashMemo.Model.Persistence
                 mb.OwnsOne(d => d.Sorting);
             });
 
-            mb.Entity<DeckEntity>()
+            mb.Entity<Deck>()
                 .ToTable("Decks")
                 .Property(d => d.Id)
                 .ValueGeneratedNever();
@@ -52,7 +52,7 @@ namespace FlashMemo.Model.Persistence
                 .Property(t => t.Id)
                 .ValueGeneratedNever();
 
-            mb.Entity<CardLogEntity>()
+            mb.Entity<CardLog>()
                 .ToTable("CardLogs")
                 .Property(cl => cl.Id)
                 .ValueGeneratedNever();
@@ -74,18 +74,18 @@ namespace FlashMemo.Model.Persistence
                 .WithMany(d => d.Cards)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            mb.Entity<CardLogEntity>()
+            mb.Entity<CardLog>()
                 .HasOne(cl => cl.Card)
                 .WithMany(c => c.CardLogs)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            mb.Entity<DeckEntity>()
+            mb.Entity<Deck>()
                 .HasOne(d => d.ParentDeck)
                 .WithMany(d => d.ChildrenDecks)
                 .HasForeignKey(d => d.ParentDeckId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            mb.Entity<DeckEntity>()
+            mb.Entity<Deck>()
                 .HasOne(d => d.Options)
                 .WithMany(o => o.DecksUsingThis)
                 .HasForeignKey(d => d.OptionsId)

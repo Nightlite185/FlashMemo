@@ -1,13 +1,9 @@
 using FlashMemo.Model.Domain;
+using FlashMemo.Model.Persistence;
 
-namespace FlashMemo.Model
+namespace FlashMemo.Services
 {
-    public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStage)
-    {
-        public TimeSpan Interval { get; set; } = interval;
-        public CardState State { get; set; } = state;
-        public int? LearningStage { get; set; } = learningStage;
-    }
+    
     public static class Scheduler
     {
         public static void Schedule(this Card card, Answers answer, DeckOptions.SchedulingOpt options)

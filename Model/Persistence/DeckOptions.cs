@@ -1,10 +1,19 @@
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
-using FlashMemo.Model.Persistence;
 
-namespace FlashMemo.Model
-{
+namespace FlashMemo.Model.Persistence
+{   
+    #region enums
     public enum CardStateOrder { NewThenReviews, ReviewsThenNew, Mix }
+
+    public enum CardsOrder { Created, Id, LastModified, Due, LastReviewed, Interval, State, Random }
+
+    public enum LessonOrder { Created, LastModified, Random }
+
+    public enum ReviewOrder { Created, Due, Interval, LastModified, LastReviewed, Random }
+
+    public enum SortingDirection { Ascending, Descending }
+    #endregion
     public class DeckOptions: IDefaultable
     {
         public DeckOptions(){} // ctor for EF
@@ -28,7 +37,7 @@ namespace FlashMemo.Model
         public long Id { get; set; }
         public long UserId { get; set; }
         public UserEntity User { get; set; } = null!;
-        public ICollection<DeckEntity> DecksUsingThis { get; set; } = [];
+        public ICollection<Deck> DecksUsingThis { get; set; } = [];
         public string Name { get; set; } = null!;
         public void ToDefault()
         {
@@ -113,28 +122,28 @@ namespace FlashMemo.Model
         public sealed class OrderingOpt: IDefaultable
         {
             #region defaults
-            public const SortingOptions DefLessonSortOrder = SortingOptions.Created; // TO DO: maybe also split sorting enum into review and lessons sorting.
-            public const SortingOptions DefReviewSortOrder = SortingOptions.NextReview;
+            public const LessonOrder DefLessonSortOrder = LessonOrder.Created; // TO DO: maybe also split sorting enum into review and lessons sorting.
+            public const ReviewOrder DefReviewSortOrder = ReviewOrder.Due;
             public const SortingDirection DefLessonSortDir = SortingDirection.Descending;
             public const SortingDirection DefReviewSortDir = SortingDirection.Descending;
             public const CardStateOrder DefCardTypeOrder = CardStateOrder.ReviewsThenNew;
             public void ToDefault()
             {
-                LessonSortOrder = DefLessonSortOrder;
-                ReviewSortOrder = DefReviewSortOrder;
+                LessonsOrder = DefLessonSortOrder;
+                ReviewsOrder = DefReviewSortOrder;
 
-                ReviewSortDir = DefReviewSortDir;
-                LessonSortDir = DefLessonSortDir;
+                ReviewsSortDir = DefReviewSortDir;
+                LessonsSortDir = DefLessonSortDir;
                 
                 CardStateOrder = DefCardTypeOrder;
             }
             #endregion
 
             #region options
-            public SortingOptions LessonSortOrder { get; set; }
-            public SortingOptions ReviewSortOrder { get; set; }
-            public SortingDirection ReviewSortDir { get; set; }
-            public SortingDirection LessonSortDir { get; set; }
+            public LessonOrder LessonsOrder { get; set; }
+            public ReviewOrder ReviewsOrder { get; set; }
+            public SortingDirection ReviewsSortDir { get; set; }
+            public SortingDirection LessonsSortDir { get; set; }
             public CardStateOrder CardStateOrder { get; set; }
             #endregion
         }

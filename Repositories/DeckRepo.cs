@@ -15,7 +15,7 @@ namespace FlashMemo.Repositories
             deck.Name = newName;
             await db.SaveChangesAsync();
         }
-        public async Task AddNewDeck(DeckEntity deck)
+        public async Task AddNewDeck(Deck deck)
         {
             var db = GetDb;
             
@@ -32,7 +32,7 @@ namespace FlashMemo.Repositories
             db.Decks.Remove(deck);
             await db.SaveChangesAsync();
         }
-        public async Task<DeckEntity> LoadDeck(long id)
+        public async Task<Deck> LoadDeck(long id)
         {
             var db = GetDb;
 

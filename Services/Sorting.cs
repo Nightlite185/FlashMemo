@@ -14,8 +14,8 @@ namespace FlashMemo.Services
             {
                 LessonOrder.Created => cards.SortHelper(c => c.Created, dir),
                 LessonOrder.LastModified => cards.SortHelper(c => c.LastModified, dir),
-                LessonOrder.Random => cards.SortHelper(_ => Random.Shared.Next(), dir),
-                // IMPORTANT TO DO: random sorting NEEDS to be done in memory.
+                LessonOrder.Random => cards, // random sorting NEEDS to be done in memory AFTER materializing,
+                                            // so this line doesn't do anything.
 
                 _ => throw new ArgumentOutOfRangeException(nameof(options.LessonsOrder), $"Wrong {nameof(LessonOrder)} enum value: {orderBy}")
             };
@@ -32,8 +32,8 @@ namespace FlashMemo.Services
                 ReviewOrder.Interval => cards.SortHelper(c => c.Interval, dir),
                 ReviewOrder.LastModified => cards.SortHelper(c => c.LastModified, dir),
                 ReviewOrder.LastReviewed => cards.SortHelper(c => c.LastReviewed, dir),
-                ReviewOrder.Random => cards.SortHelper(_ => Random.Shared.Next(), dir),
-                // IMPORTANT TO DO: random sorting NEEDS to be done in memory.
+                ReviewOrder.Random => cards, // random sorting NEEDS to be done in memory AFTER materializing,
+                                            // so this line doesn't do anything.
 
                 _ => throw new ArgumentOutOfRangeException(nameof(options.ReviewsOrder), $"Wrong {nameof(ReviewOrder)} enum value: {orderBy}")
             };
@@ -49,13 +49,13 @@ namespace FlashMemo.Services
                 CardsOrder.LastReviewed => cards.SortHelper(c => c.LastReviewed, dir),
                 CardsOrder.Interval => cards.SortHelper(c => c.Interval, dir),
                 CardsOrder.State => cards.SortHelper(c => c.State, dir),
-                CardsOrder.Random => cards.SortHelper(_ => Random.Shared.Next(), dir),
-                // IMPORTANT TO DO: random sorting NEEDS to be done in memory.
+                CardsOrder.Random => cards, // random sorting NEEDS to be done in memory AFTER materializing,
+                                            // so this line doesn't do anything.
 
                 _ => throw new ArgumentOutOfRangeException(nameof(orderBy), $"Wrong {nameof(CardsOrder)} enum value: {orderBy}")
             };
         }
-        private static IQueryable<CardEntity> SortHelper<TOut> (this IQueryable<CardEntity> cards, Func<CardEntity, TOut> keySelector, SortingDirection dir)
+        private static IQueryable<CardEntity> SortHelper<TOut>(this IQueryable<CardEntity> cards, Func<CardEntity, TOut> keySelector, SortingDirection dir)
         {
             return dir switch
             {
@@ -69,6 +69,14 @@ namespace FlashMemo.Services
 
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),
+            };
+        }
+        public static IList<CardEntity> ShuffleIf(this IList<CardEntity> cards, bool wantRandom)
+        {
+            return wantRandom switch
+            {
+                true => [..cards.Shuffle()],
+                false => [..cards]
             };
         }
     }

@@ -8,7 +8,7 @@ namespace FlashMemo.Services
 {
     public class CardQueryService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory)
     {
-        public async Task<IEnumerable<CardEntity>> GetFilteredCards(Filters filters)
+        public async Task<IList<CardEntity>> GetFilteredCards(Filters filters)
         {
             var db = GetDb;
             var query = filters.ToExpression();
@@ -19,7 +19,7 @@ namespace FlashMemo.Services
 
             return cards;
         }
-        public async Task<IEnumerable<CardEntity>> GetForStudy(long deckId)
+        public async Task<IList<CardEntity>> GetForStudy(long deckId)
         {
             #region base query
             var db = GetDb;
@@ -61,19 +61,27 @@ namespace FlashMemo.Services
                 .SortReviews(sortOpt)
                 .Take(limitsOpt.DailyReviewsLimit)
                 .ToListAsync();
+
+            lessons.ShuffleIf(sortOpt.LessonsOrder == LessonOrder.Random);
+            reviews.ShuffleIf(sortOpt.ReviewsOrder == ReviewOrder.Random);
             #endregion
             
             #region final return
             return sortOpt.CardStateOrder switch
             {
                 CardStateOrder.NewThenReviews
-                    => learning.Concat(lessons).Concat(reviews),
+                    => [..learning
+                        .Concat(lessons)
+                        .Concat(reviews)],
 
                 CardStateOrder.ReviewsThenNew
-                    => learning.Concat(reviews).Concat(lessons),
+                    => [..learning
+                        .Concat(reviews)
+                        .Concat(lessons)],
 
                 CardStateOrder.Mix
-                    => learning.Concat(reviews.Concat(lessons).Shuffle()),
+                    => [..learning.Concat(
+                            reviews.Concat(lessons).Shuffle())],
 
                 _ => throw new ArgumentException(
                     $"Invalid {nameof(CardStateOrder)} enum value: {sortOpt.CardStateOrder}")

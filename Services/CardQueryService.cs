@@ -27,14 +27,8 @@ namespace FlashMemo.Services
             var rootDeck = await db.Decks.FindAsync(deckId)
                 ?? throw new ArgumentException(IdNotFoundMsg("Deck"), nameof(deckId));
 
-            // I know this is ugly as hell, but the only way to put parentDeckId as a key in dict. 
-            // It wont believe me its not null otherwise.
-            var deckGroups = (IEnumerable<IGrouping<long, Deck>>) allDecks
-                .Where(d => d.ParentDeckId is not null) // TO DO: IMPORTANT: handle edge case where the desired deck actually is on root-level and has no parent.
-                .GroupBy(x => x.ParentDeckId);
-                
-            var parentChildrenMap = deckGroups
-                .ToDictionary(d => d.Key, d => d.AsEnumerable());
+            var parentChildrenMap = allDecks
+                .ToLookup(d => d.ParentDeckId);
 
             var deckIds = new HashSet<long>();
             GetChildrenIds(deckId, parentChildrenMap, deckIds);
@@ -86,13 +80,14 @@ namespace FlashMemo.Services
             };
             #endregion
         }
-        private static void GetChildrenIds(long deckId, Dictionary<long, IEnumerable<Deck>> lookup, HashSet<long> result)
+        private static void GetChildrenIds(long deckId, ILookup<long?, Deck> lookup, HashSet<long> result)
         {
             result.Add(deckId);
 
-            if (!lookup.TryGetValue(deckId, out var children))
-                return;
-
+            var children = lookup[deckId];
+            
+            if (!children.Any()) return;
+            
             foreach (var deck in children)
                 GetChildrenIds(deck.Id, lookup, result);
         }

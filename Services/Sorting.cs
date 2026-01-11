@@ -63,7 +63,7 @@ namespace FlashMemo.Services
                     => cards.OrderBy(keySelector)
                     .AsQueryable(),
 
-                SortingDirection.Descending 
+                SortingDirection.Descending
                     => cards.OrderByDescending(keySelector)
                     .AsQueryable(),
 

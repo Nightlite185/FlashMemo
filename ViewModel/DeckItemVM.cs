@@ -1,10 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using FlashMemo.Model;
+using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel
 {
-    public partial class DeckVM : ObservableObject, IViewModel
+    public partial class DeckItemVM : ObservableObject, IViewModel
     {
+        [ObservableProperty]
+        public partial Deck Deck { get; set; }
+
         [ObservableProperty]
         public partial bool IsSelected { get; set; }
         

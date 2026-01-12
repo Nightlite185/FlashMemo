@@ -22,7 +22,7 @@ namespace FlashMemo.Services
 
             return cards;
         }
-        public async Task<IList<CardEntity>> GetForStudy(long deckId)
+        public async Task<IReadOnlyList<CardEntity>> GetForStudy(long deckId)
         {
             #region base query
             var db = GetDb;

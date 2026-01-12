@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace FlashMemo.ViewModel
 {
-    public class OptionsVM: ObservableObject, IViewModel
+    public partial class OptionsVM: ObservableObject, IViewModel
     {
         
     }

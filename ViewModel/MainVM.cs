@@ -4,10 +4,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace FlashMemo.ViewModel
 {
     public interface IViewModel;
-    public class MainVM: ObservableObject, IViewModel
+    public partial class MainVM: ObservableObject, IViewModel
     {
-        private ObservableCollection<DeckVM> Decks { get; } = [];
-        public DeckVM? SelectedDeck { get; set; }
+        private ObservableCollection<DeckItemVM> Decks { get; } = [];
+        public DeckItemVM? SelectedDeck { get; set; }
         public object? CurrentView { get; set; }
     }
 }

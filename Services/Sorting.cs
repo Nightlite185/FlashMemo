@@ -71,13 +71,15 @@ namespace FlashMemo.Services
                     nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),
             };
         }
-        public static IList<CardEntity> ShuffleIf(this IList<CardEntity> cards, bool wantRandom)
+        public static void ShuffleIf(this List<CardEntity> cards, bool wantRandom)
         {
-            return wantRandom switch
+            if (wantRandom)
             {
-                true => [..cards.Shuffle()],
-                false => [..cards]
-            };
+                var shuffled = cards.Shuffle();
+
+                cards.Clear();
+                cards.AddRange(shuffled);
+            }
         }
     }
 }

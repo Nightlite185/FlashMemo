@@ -13,55 +13,55 @@ namespace FlashMemo.Model
 
             #region bool filters
             if (IsBuried is not null)
-                query.Combine(c =>
+                query = query.Combine(c =>
                     c.IsBuried == this.IsBuried);
 
             if (IsSuspended is not null)
-                query.Combine(c => 
+                query = query.Combine(c => 
                     c.IsSuspended == this.IsSuspended);
 
             if (IsDue is not null)
-                query.Combine(c => 
+                query = query.Combine(c => 
                     c.Due <= DateTime.Now);
             #endregion
             
             #region collection filters
             if (TagIds is not null && TagIds.Any())  
-                query.Combine(c => 
+                query = query.Combine(c => 
                     TagIds.Any(t => 
                         c.Tags.Select(t => t.Id)
                         .Contains(t)));
 
             if (States is not null && States.Count > 0)
-                query.Combine(c => States.Any(s => s == c.State));
+                query = query.Combine(c => States.Any(s => s == c.State));
 
             #endregion
             
             #region Numeric filters
             if (DeckId is not null)
-                query.Combine(c => 
+                query = query.Combine(c => 
                     c.DeckId == this.DeckId);
 
             if (OverdueByDays is not null)
-                query.Combine(c => 
+                query = query.Combine(c => 
                     (c.Due - DateTime.Now).Days == OverdueByDays);
 
             if (Interval is TimeSpan interval)
-                query.Combine(c => c.Interval.Days == interval.Days);
+                query = query.Combine(c => c.Interval.Days == interval.Days);
             #endregion
 
             #region DateTime filters
             if (Created is DateTime created)
-                query.Combine(c => c.Created.Date == created.Date);
+                query = query.Combine(c => c.Created.Date == created.Date);
 
             if (Due is DateTime nextR)
-                query.Combine(c => c.Due.Date == nextR.Date);
+                query = query.Combine(c => c.Due.Date == nextR.Date);
 
             if (LastReviewed is DateTime lastR)
-                query.Combine(c => c.LastReviewed.Date == lastR.Date);
+                query = query.Combine(c => c.LastReviewed.Date == lastR.Date);
 
             if (LastModified is DateTime lastM)
-                query.Combine(c => c.LastModified.Date == lastM.Date);
+                query = query.Combine(c => c.LastModified.Date == lastM.Date);
             #endregion
             
             return query;

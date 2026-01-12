@@ -2,9 +2,9 @@ using System.Linq.Expressions;
 
 namespace FlashMemo.Helpers
 {
-    public static class PredicateExtensions
+    public static class ExpressionExtensions
     {
-        public static void Combine<T>(
+        public static Expression<Func<T, bool>> Combine<T>(
             this Expression<Func<T, bool>> left,
             Expression<Func<T, bool>> right)
         {
@@ -15,7 +15,7 @@ namespace FlashMemo.Helpers
                 Expression.Invoke(right, param)
             );
 
-            left = Expression.Lambda<Func<T, bool>>(body, param);
+            return Expression.Lambda<Func<T, bool>>(body, param);
         }
     }    
 }

@@ -18,6 +18,8 @@ namespace FlashMemo.Services
                 .SortAnyCards(order, dir)
                 .ToListAsync();
 
+            cards.ShuffleIf(order == CardsOrder.Random);
+
             return cards;
         }
         public async Task<IList<CardEntity>> GetForStudy(long deckId)

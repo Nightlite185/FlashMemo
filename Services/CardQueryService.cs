@@ -8,13 +8,14 @@ namespace FlashMemo.Services
 {
     public class CardQueryService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory)
     {
-        public async Task<IList<CardEntity>> GetFilteredCards(Filters filters)
+        public async Task<IList<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
         {
             var db = GetDb;
             var query = filters.ToExpression();
 
             var cards = await db.Cards
                 .Where(query)
+                .SortAnyCards(order, dir)
                 .ToListAsync();
 
             return cards;

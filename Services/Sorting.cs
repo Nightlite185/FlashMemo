@@ -38,7 +38,7 @@ namespace FlashMemo.Services
                 _ => throw new ArgumentOutOfRangeException(nameof(options.ReviewsOrder), $"Wrong {nameof(ReviewOrder)} enum value: {orderBy}")
             };
         }
-        public static IQueryable<CardEntity> SortAny(this IQueryable<CardEntity> cards, CardsOrder orderBy, SortingDirection dir)
+        public static IQueryable<CardEntity> SortAnyCards(this IQueryable<CardEntity> cards, CardsOrder orderBy, SortingDirection dir)
         {
             return orderBy switch
             {

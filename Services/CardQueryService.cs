@@ -91,6 +91,26 @@ namespace FlashMemo.Services
             };
             #endregion
         }
+        public async Task<IList<CardEntity>> GetAllCards(long userId)
+        {
+            var db = GetDb;
+
+            var deckIds = db.Decks
+                .Where(d => d.UserId == userId)
+                .Select(d => d.Id);
+
+            return await db.Cards
+                .Where(c => deckIds.Contains(c.DeckId))
+                .ToListAsync();
+        }
+        public async Task<IList<CardEntity>> GetFromDeck(long deckId)
+        {
+            var db = GetDb;
+
+            return await db.Cards
+                .Where(c => c.DeckId == deckId)
+                .ToListAsync();
+        }
         private static void GetChildrenIds(long deckId, ILookup<long?, Deck> lookup, HashSet<long> result)
         {
             result.Add(deckId);

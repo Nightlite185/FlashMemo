@@ -5,14 +5,18 @@ namespace FlashMemo.Repositories
 {
     public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
     {
-        public async Task RenameDeck(long deckId, string newName)
+        ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
+        public async Task SaveEditedDeck(Deck updated)
         {
             var db = GetDb;
+
+            var tracked = await db.Decks
+                .SingleAsync(d => d.Id == updated.Id);
             
-            var deck = await db.Decks.FindAsync(deckId)
-                ?? throw new ArgumentException(IdNotFoundMsg("Deck"), nameof(newName));
-            
-            deck.Name = newName;
+            db.Entry(tracked)
+                .CurrentValues
+                .SetValues(updated);
+
             await db.SaveChangesAsync();
         }
         public async Task AddNewDeck(Deck deck)
@@ -26,7 +30,7 @@ namespace FlashMemo.Repositories
         {
             var db = GetDb;
 
-            var deck = await db.Decks.FindAsync(deckId) 
+            var deck = await db.Decks.FindAsync(deckId)
                 ?? throw new ArgumentException("deck with this id was not found in database.", nameof(deckId));
 
             db.Decks.Remove(deck);

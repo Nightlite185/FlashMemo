@@ -1,5 +1,4 @@
 using AutoMapper;
-using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
@@ -38,18 +37,22 @@ namespace FlashMemo.Services
             await db.CardLogs.AddAsync(log);
             await db.SaveChangesAsync();
         }
-        public async Task SaveEditedCard(CardEntity editedCard, CardAction action)
+        
+        ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
+        public async Task SaveEditedCard(CardEntity updated, CardAction action)
         {
             var db = GetDb;
 
-            var trackedCard = await db.Cards
-                .SingleAsync(c => c.Id == editedCard.Id);
+            var tracked = await db.Cards
+                .SingleAsync(c => c.Id == updated.Id);
 
-            db.Entry(trackedCard).CurrentValues
-                .SetValues(editedCard);
+            db.Entry(tracked).CurrentValues
+                .SetValues(updated);
+
+            tracked.SyncTagsFrom(updated);
             
             var log = CardLog
-                .CreateLog(trackedCard, action);
+                .CreateLog(tracked, action);
                 
             await db.SaveChangesAsync();
         }

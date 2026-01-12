@@ -5,23 +5,6 @@ namespace FlashMemo.Repositories
 {
     public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
     {
-        ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
-        public async Task UpdateCard(CardEntity detached)
-        {
-            var db = GetDb;
-
-            var tracked = await db.Cards
-                .FirstAsync(c => c.Id == detached.Id);
-
-            db.Entry(tracked)
-                .CurrentValues
-                .SetValues(detached);
-
-            tracked.SyncTagsFrom(detached);
-
-            await db.SaveChangesAsync();
-        }
-
         public async Task DeleteCard(CardEntity card)
         {
             var db = GetDb;
@@ -46,16 +29,6 @@ namespace FlashMemo.Repositories
 
             return await db.Cards.FindAsync(cardId)
                 ?? throw new ArgumentException(IdNotFoundMsg("Card"), nameof(cardId));
-        }
-
-        public async Task<IEnumerable<CardEntity>> GetFromDeck(long deckId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<IEnumerable<CardEntity>> GetAllCards()
-        {
-            throw new NotImplementedException();
         }
     }
 }

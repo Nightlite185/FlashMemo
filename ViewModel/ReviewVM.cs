@@ -14,8 +14,6 @@ namespace FlashMemo.ViewModel
     {
         public ReviewVM(WindowService windowS, CardService cardS, CardQueryService cardQS)
         {
-            ReviewButtonsVis = Visibility.Collapsed;
-
             ws = windowS;
             cs = cardS;
             cqs = cardQS;
@@ -38,12 +36,6 @@ namespace FlashMemo.ViewModel
         public partial string BackContent { get; set; } = null!;
         
         [ObservableProperty]
-        public partial Visibility ReviewButtonsVis { get; set; }
-
-        [ObservableProperty]
-        public partial Visibility RevealAnswerVis { get; set; }
-
-        [ObservableProperty]
         public partial string ElapsedTime { get; set; } = "00:00";
         #endregion
 
@@ -54,7 +46,6 @@ namespace FlashMemo.ViewModel
 
             enumerator = cards.GetEnumerator();
             enumerator.MoveNext();
-            ReviewButtonsVis = Visibility.Visible;
         }
         private void ShowNextCard()
         {
@@ -65,7 +56,6 @@ namespace FlashMemo.ViewModel
 
             else
             {
-                ReviewButtonsVis = Visibility.Collapsed;
                 CurrentCard = null;
 
                 // Show congrats screen here or sth, like お疲れ様です with some fireworks or confetti lol
@@ -92,16 +82,13 @@ namespace FlashMemo.ViewModel
                     @"Cannot review a card without loading any first or after having already reviewed everything. 
                     Review buttons should not be visible now.");
 
-            ReviewButtonsVis = Visibility.Collapsed;
 
             await cs.ReviewCardAsync(CurrentCard!.Id, ans, sw.Elapsed);
 
             ShowNextCard();
 
             AnswerRevealed = false;
-            RevealAnswerVis = Visibility.Visible;
-
-
+            
             StartTimer();
         }
         private bool CanExecuteReviewCommands()

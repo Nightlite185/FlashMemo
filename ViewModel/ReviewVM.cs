@@ -6,6 +6,7 @@ using FlashMemo.Services;
 using FlashMemo.Model.Domain;
 using System.Windows.Threading;
 using System.Diagnostics;
+using FlashMemo.View;
 
 namespace FlashMemo.ViewModel
 {
@@ -13,11 +14,13 @@ namespace FlashMemo.ViewModel
     {
         public ReviewVM(WindowService windowS, CardService cardS, CardQueryService cardQS)
         {
-            this.ws = windowS;
-            this.cs = cardS;
-            this.cqs = cardQS;
+            ReviewButtonsVis = Visibility.Collapsed;
 
-            stopWatch = new();
+            ws = windowS;
+            cs = cardS;
+            cqs = cardQS;
+
+            sw = new();
             timer = new() { Interval = TimeSpan.FromSeconds(1) };
             timer.Tick += (_, _) => UpdateTime();
 
@@ -38,6 +41,9 @@ namespace FlashMemo.ViewModel
         public partial Visibility ReviewButtonsVis { get; set; }
 
         [ObservableProperty]
+        public partial Visibility RevealAnswerVis { get; set; }
+
+        [ObservableProperty]
         public partial string ElapsedTime { get; set; } = "00:00";
         #endregion
 
@@ -50,7 +56,7 @@ namespace FlashMemo.ViewModel
             enumerator.MoveNext();
             ReviewButtonsVis = Visibility.Visible;
         }
-        private void NextCard()
+        private void ShowNextCard()
         {
             if (enumerator.MoveNext())
             {
@@ -67,29 +73,39 @@ namespace FlashMemo.ViewModel
         }
         private void StopTimer()
         {
-            stopWatch.Stop();
+            sw.Stop();
             timer.Stop();
         }
         private void StartTimer()
         {
-            stopWatch.Start();
+            sw.Start();
             timer.Start();
         }
         private void UpdateTime()
-        {
-            elapsed = elapsed.Add(TimeSpan.FromSeconds(1));
-            ElapsedTime = $"{elapsed.Minutes}:{elapsed.Seconds}";
-        }
+            => ElapsedTime = $"{(int)sw.Elapsed.TotalMinutes: 00}:{sw.Elapsed.Seconds: 00}";
         private async Task ReviewHelper(Answers ans)
         {
             StopTimer();
-            elapsed = TimeSpan.Zero;
-            
-            await cs.ReviewCardAsync(CurrentCard!.Id, ans, elapsed);
 
-            NextCard();
+            if (!CardLoaded)
+                throw new InvalidOperationException(
+                    @"Cannot review a card without loading any first or after having already reviewed everything. 
+                    Review buttons should not be visible now.");
+
+            ReviewButtonsVis = Visibility.Collapsed;
+
+            await cs.ReviewCardAsync(CurrentCard!.Id, ans, sw.Elapsed);
+
+            ShowNextCard();
+
+            AnswerRevealed = false;
+            RevealAnswerVis = Visibility.Visible;
+
+
             StartTimer();
         }
+        private bool CanExecuteReviewCommands()
+            => CardLoaded && AnswerRevealed;
         #endregion
 
         #region private things
@@ -99,37 +115,65 @@ namespace FlashMemo.ViewModel
         private IReadOnlyList<CardEntity> cards = null!;
         private IEnumerator<CardEntity> enumerator = null!;
         private readonly DispatcherTimer timer = null!;
-        private readonly Stopwatch stopWatch = null!;
-        private TimeSpan elapsed = TimeSpan.Zero;
+        private readonly Stopwatch sw = null!;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(RevealAnswer), nameof(AgainAnswer),
+        nameof(HardAnswer), nameof(GoodAnswer), nameof(EasyAnswer))]
+        private partial bool AnswerRevealed { get; set; } = false;
+
+        private bool CardLoaded => CurrentCard is not null;
         #endregion
 
         #region ICommands
         private void DefineCommands()
         {
+            RevealAnswer = new(
+                execute: () =>
+                {
+                    AnswerRevealed = true;
+                    ReviewButtonsVis = Visibility.Visible;
+                },
+
+                canExecute: () => CardLoaded && !AnswerRevealed
+            );
+
+            #region Review card buttons
             AgainAnswer = new(
-                execute: async () => await ReviewHelper(Answers.Again)
-                //canExecute:
+                execute: async () => await ReviewHelper(Answers.Again),
+                canExecute: CanExecuteReviewCommands
             );
 
             HardAnswer = new(
-                execute: async () => await ReviewHelper(Answers.Hard)
-                //canExecute:
+                execute: async () => await ReviewHelper(Answers.Hard),
+                canExecute: CanExecuteReviewCommands
             );
 
             GoodAnswer = new(
-                execute: async () => await ReviewHelper(Answers.Good)
-                //canExecute:
+                execute: async () => await ReviewHelper(Answers.Good),
+                canExecute: CanExecuteReviewCommands
             );
 
             EasyAnswer = new(
-                execute: async () => await ReviewHelper(Answers.Easy)
-                //canExecute:
+                execute: async () => await ReviewHelper(Answers.Easy),
+                canExecute: CanExecuteReviewCommands
             );
+            #endregion
+
+            OpenEditWindow = new(
+                execute: ws.ShowWindow<EditWindow>,
+                canExecute: () => CardLoaded
+            );
+
         }
+        // TO DO: turn those into normal methods with RelayCommand attribute instead.
+        public RelayCommand RevealAnswer { get; private set; } = null!;
+
         public RelayCommand AgainAnswer { get; private set; } = null!;
         public RelayCommand HardAnswer { get; private set; } = null!;
         public RelayCommand GoodAnswer { get; private set; } = null!;
         public RelayCommand EasyAnswer { get; private set; } = null!;
+        public RelayCommand OpenEditWindow { get; set; } = null!;
         #endregion
     }
 }

@@ -24,7 +24,10 @@ namespace FlashMemo.Services
             IList<CardEntity> dueLearning = [];
 
             while (learningPool.TryPeek(out var card, out _) && card.IsDueNow)
+            {
                 dueLearning.Add(card);
+                learningPool.Dequeue();
+            }
 
             return dueLearning.AsReadOnly();
         }

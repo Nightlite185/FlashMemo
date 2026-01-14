@@ -18,6 +18,7 @@ namespace FlashMemo.Model.Persistence
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
         public DateTime Due { get; set; }
+        public bool IsDueNow => Due <= DateTime.Now;
         public DateTime LastReviewed { get; set; }
         public TimeSpan Interval { get; set; }
         public CardState State { get; set; }

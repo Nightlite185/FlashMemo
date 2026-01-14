@@ -11,7 +11,8 @@ namespace FlashMemo.Services
         private readonly IMapper mapper = mapper;
         
         /// <summary>Deck needs to be included in cardEntity argument; otherwise this won't work</summary>
-        public async Task ReviewCardAsync(long cardId, Answers answer, TimeSpan answerTime)
+        /// <returns>reviewed card's new state</returns>
+        public async Task<CardState> ReviewCardAsync(long cardId, Answers answer, TimeSpan answerTime)
         {
             var db = GetDb;
 
@@ -25,6 +26,7 @@ namespace FlashMemo.Services
             var options = cardEntity.Deck.Options.Scheduling;
 
             domainCard.Schedule(answer, options);
+            
             var updatedCard = mapper.Map<CardEntity>(domainCard);
             
             db.Entry(cardEntity)
@@ -36,6 +38,8 @@ namespace FlashMemo.Services
             
             await db.CardLogs.AddAsync(log);
             await db.SaveChangesAsync();
+            
+            return domainCard.State;
         }
         
         ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>

@@ -22,7 +22,7 @@ namespace FlashMemo.Services
 
             return cards;
         }
-        public async Task<IReadOnlyList<CardEntity>> GetForStudy(long deckId)
+        public async Task<IEnumerable<CardEntity>> GetForStudy(long deckId)
         {
             #region base query
             var db = GetDb;
@@ -73,18 +73,18 @@ namespace FlashMemo.Services
             return sortOpt.CardStateOrder switch
             {
                 CardStateOrder.NewThenReviews
-                    => [..learning
+                    => learning
                         .Concat(lessons)
-                        .Concat(reviews)],
+                        .Concat(reviews),
 
                 CardStateOrder.ReviewsThenNew
-                    => [..learning
+                    => learning
                         .Concat(reviews)
-                        .Concat(lessons)],
+                        .Concat(lessons),
 
                 CardStateOrder.Mix
-                    => [..learning.Concat(
-                            reviews.Concat(lessons).Shuffle())],
+                    => learning.Concat(
+                            reviews.Concat(lessons).Shuffle()),
 
                 _ => throw new ArgumentException(
                     $"Invalid {nameof(CardStateOrder)} enum value: {sortOpt.CardStateOrder}")

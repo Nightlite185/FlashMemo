@@ -11,13 +11,14 @@ namespace FlashMemo.ViewModel
 {
     public partial class ReviewVM: ObservableObject, IViewModel
     {
-        public ReviewVM(WindowService windowS, CardService cardS, CardQueryService cardQS)
+        public ReviewVM(WindowService ws, CardService cs, CardQueryService cqs, LearningPool lp)
         {
-            ws = windowS;
-            cs = cardS;
-            cqs = cardQS;
+            windowService = ws;
+            cardService = cs;
+            cardQuery = cqs;
+            learningPool = lp;
 
-            sw = new();
+            stopWatch = new();
             timer = new() { Interval = TimeSpan.FromSeconds(1) };
             timer.Tick += (_, _) => UpdateTime();
         }
@@ -49,32 +50,38 @@ namespace FlashMemo.ViewModel
         #region methods
         public async Task LoadDeckAsync(long deckId)
         {
-            cards = await cqs.GetForStudy(deckId);
+            cards = new (await cardQuery.GetForStudy(deckId));
+            
+            if (cards.Count == 0) throw new ArgumentException(
+                "Deck with this id does not contain any cards for study atm.",
+                nameof(deckId));
 
-            cardIdx = 0;
-            CurrentCard = cards[cardIdx];
+            CurrentCard = cards.Pop();
         }
         private void ShowNextCard()
         {
-            CurrentCard = cards.ElementAtOrDefault(++cardIdx);
+            if (cards.TryPop(out var popped))
+                CurrentCard = popped;
 
-            if (CurrentCard is null)
+            else
             {
+                CurrentCard = null;
+                isSessionFinished = true;
                 // Show congrats screen here or sth, like お疲れ様です with some fireworks or confetti lol
             }
         }
         private void StopTimer()
         {
-            sw.Stop();
+            stopWatch.Stop();
             timer.Stop();
         }
         private void StartTimer()
         {
-            sw.Start();
+            stopWatch.Start();
             timer.Start();
         }
         private void UpdateTime()
-            => ElapsedTime = $"{(int)sw.Elapsed.TotalMinutes: 00}:{sw.Elapsed.Seconds: 00}";
+            => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes: 00}:{stopWatch.Elapsed.Seconds: 00}";
         private async Task ReviewHelperAsync(Answers ans)
         {
             StopTimer();
@@ -82,13 +89,17 @@ namespace FlashMemo.ViewModel
             if (!CardLoaded)
                 throw new InvalidOperationException("Review called without an active card.");
 
+            AnswerRevealed = false;
 
-            await cs.ReviewCardAsync(CurrentCard!.Id, ans, sw.Elapsed);
+            var newState = await cardService
+                .ReviewCardAsync(CurrentCard!.Id, ans, stopWatch.Elapsed);
+
+            if (newState == CardState.Learning)
+                learningPool.Add(CurrentCard);
+
+            learningPool.InjectDueInto(cards);
 
             ShowNextCard();
-
-            AnswerRevealed = false;
-            
             StartTimer();
         }
         
@@ -103,14 +114,14 @@ namespace FlashMemo.ViewModel
         #endregion
 
         #region private things
-        private readonly WindowService ws;
-        private readonly CardService cs;
-        private readonly CardQueryService cqs;
-        private IReadOnlyList<CardEntity> cards = null!;
-        private int cardIdx;
+        private readonly WindowService windowService;
+        private readonly CardService cardService;
+        private readonly CardQueryService cardQuery;
+        private readonly LearningPool learningPool;
+        private Stack<CardEntity> cards = null!;
         private readonly DispatcherTimer timer = null!;
-        private readonly Stopwatch sw = null!;
-        private bool isSessionFinished = false;
+        private readonly Stopwatch stopWatch = null!;
+        private bool isSessionFinished = false; // TO DO: make this actually matter later, so the state derived properties actually depend on it.
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanReview), nameof(CanRevealAnswer))]
@@ -152,7 +163,7 @@ namespace FlashMemo.ViewModel
         #endregion
 
         [RelayCommand(CanExecute = nameof(CardLoaded))]
-        public void OpenEditWindow() => ws.ShowWindow<EditWindow>();
+        public void OpenEditWindow() => windowService.ShowWindow<EditWindow>();
         
         #endregion
     }

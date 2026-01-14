@@ -28,12 +28,19 @@ namespace FlashMemo.ViewModel
         [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
         nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
         public partial CardEntity? CurrentCard { get; set; }
+        
+        public string FrontContent => CurrentCard?.FrontContent 
+            ?? throw new InvalidOperationException($"tried to access {nameof(FrontContent)} property, but no card was loaded atm.");
+        public string BackContent
+        {
+            get
+            {
+                if (CurrentCard is null) throw new InvalidOperationException(
+                    $"tried to access {nameof(BackContent)} property, but no card was loaded atm.");
 
-        [ObservableProperty]
-        public partial string FrontContent { get; set; } = null!;
-
-        [ObservableProperty]
-        public partial string BackContent { get; set; } = null!;
+                return CurrentCard.BackContent ?? "うら空っぽみたい"; // just for testing so ik if its actually empty or sth bugged
+            }
+        }
         
         [ObservableProperty]
         public partial string ElapsedTime { get; set; } = "00:00";
@@ -44,20 +51,15 @@ namespace FlashMemo.ViewModel
         {
             cards = await cqs.GetForStudy(deckId);
 
-            enumerator = cards.GetEnumerator();
-            enumerator.MoveNext();
+            cardIdx = 0;
+            CurrentCard = cards[cardIdx];
         }
         private void ShowNextCard()
         {
-            if (enumerator.MoveNext())
-            {
-                CurrentCard = enumerator.Current;
-            }
+            CurrentCard = cards.ElementAtOrDefault(++cardIdx);
 
-            else
+            if (CurrentCard is null)
             {
-                CurrentCard = null;
-
                 // Show congrats screen here or sth, like お疲れ様です with some fireworks or confetti lol
             }
         }
@@ -105,9 +107,10 @@ namespace FlashMemo.ViewModel
         private readonly CardService cs;
         private readonly CardQueryService cqs;
         private IReadOnlyList<CardEntity> cards = null!;
-        private IEnumerator<CardEntity> enumerator = null!; // maybe refactor to index into deck's cards instead
+        private int cardIdx;
         private readonly DispatcherTimer timer = null!;
         private readonly Stopwatch sw = null!;
+        private bool isSessionFinished = false;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanReview), nameof(CanRevealAnswer))]

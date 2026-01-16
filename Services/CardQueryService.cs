@@ -12,10 +12,15 @@ namespace FlashMemo.Services
         public async Task<IList<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
         {
             var db = GetDb;
-            var query = filters.ToExpression();
 
-            var cards = await db.Cards
-                .Where(query)
+            var baseQuery = filters.DeckId is not null
+                ? await AllCardsInDeckQAsync((long)filters.DeckId, db)
+                : db.Cards;
+            
+            var filtersQuery = filters.ToExpression();
+
+            var cards = await baseQuery
+                .Where(filtersQuery)
                 .SortAnyCards(order, dir)
                 .ToListAsync();
 
@@ -84,6 +89,9 @@ namespace FlashMemo.Services
 
             return await cardsQuery.ToListAsync();
         }
+        
+        ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
+        ///containing count of cards grouped by their state.</returns>
         public async Task<IDictionary<long, CardsCount>> GetCardsCountFor(IEnumerable<long> deckIds)
         {
             var db = GetDb;

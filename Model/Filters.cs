@@ -38,9 +38,6 @@ namespace FlashMemo.Model
             #endregion
             
             #region Numeric filters
-            if (DeckId is not null)
-                query = query.Combine(c => // TO DO: FIX THIS, IT'S WRONG!!!
-                    c.DeckId == this.DeckId); // does't get cards from deck's children
 
             if (OverdueByDays is not null)
                 query = query.Combine(c => 

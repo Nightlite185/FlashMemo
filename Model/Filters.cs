@@ -5,8 +5,8 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.Model
 {
-    public class Filters // all those filter props should be in BrowseVM or even FiltersVM (on class-level bc nesting + INPC is hell).
-    {
+    public class Filters // all those filter props should be in BrowseVM or even FiltersVM 
+    {                   // (on class-level bc nesting + INPC is hell).
         public Expression<Func<CardEntity, bool>> ToExpression()
         {
             Expression<Func<CardEntity, bool>> query = c => true;
@@ -39,8 +39,8 @@ namespace FlashMemo.Model
             
             #region Numeric filters
             if (DeckId is not null)
-                query = query.Combine(c => 
-                    c.DeckId == this.DeckId);
+                query = query.Combine(c => // TO DO: FIX THIS, IT'S WRONG!!!
+                    c.DeckId == this.DeckId); // does't get cards from deck's children
 
             if (OverdueByDays is not null)
                 query = query.Combine(c => 

@@ -32,55 +32,36 @@ namespace FlashMemo.Services
             baseQuery = baseQuery.Where(c =>
                 !c.IsSuspended 
                 && !c.IsBuried);
-            
-            #region branching into 3 subsets and ordering
+
+            var grouped = GroupByStateQ(baseQuery);
+
             var rootDeck = await db.Decks.FindAsync(deckId)
                 ?? throw new ArgumentException(IdNotFoundMsg("Deck"), nameof(deckId));
 
             var sortOpt = rootDeck.Options.Sorting;
-            var limitsOpt = rootDeck.Options.DailyLimits;
 
-            var grouped = GroupByStateQ(baseQuery);
-
-            var learning = await grouped.Learning
-                .OrderBy(c => c.Due)
-                .ToListAsync();
-
-            var lessons = await grouped.Lessons
-                .SortLessons(sortOpt)
-                .Take(limitsOpt.DailyLessonsLimit)
-                .ToListAsync();
+            var cards = await SortAndLimitAsync(rootDeck, grouped);
             
-            var reviews = await grouped.Reviews
-                .SortReviews(sortOpt)
-                .Take(limitsOpt.DailyReviewsLimit)
-                .ToListAsync();
 
-            lessons.ShuffleIf(sortOpt.LessonsOrder == LessonOrder.Random);
-            reviews.ShuffleIf(sortOpt.ReviewsOrder == ReviewOrder.Random);
-            #endregion
-            
-            #region final return
             return sortOpt.CardStateOrder switch
             {
                 CardStateOrder.NewThenReviews
-                    => learning
-                        .Concat(lessons)
-                        .Concat(reviews),
+                    => cards.Learning
+                        .Concat(cards.Lessons)
+                        .Concat(cards.Reviews),
 
                 CardStateOrder.ReviewsThenNew
-                    => learning
-                        .Concat(reviews)
-                        .Concat(lessons),
+                    => cards.Learning
+                        .Concat(cards.Reviews)
+                        .Concat(cards.Lessons),
 
                 CardStateOrder.Mix
-                    => learning.Concat(
-                            reviews.Concat(lessons).Shuffle()),
+                    => cards.Learning.Concat(
+                            cards.Reviews.Concat(cards.Lessons).Shuffle()),
 
                 _ => throw new ArgumentException(
                     $"Invalid {nameof(CardStateOrder)} enum value: {sortOpt.CardStateOrder}")
             };
-            #endregion
         }
         public async Task<IList<CardEntity>> GetAllFromUser(long userId)
         {
@@ -182,11 +163,8 @@ namespace FlashMemo.Services
                 Review = await grouped.Reviews.CountAsync()
             };
         }
-        private async static Task<CardsByState> SortAndLimit(long deckId, AppDbContext db, CardsByStateQ grouped)
+        private async static Task<CardsByState> SortAndLimitAsync(Deck rootDeck, CardsByStateQ grouped)
         {
-            var rootDeck = await db.Decks.FindAsync(deckId)
-                ?? throw new ArgumentException(IdNotFoundMsg("Deck"), nameof(deckId));
-
             var sortOpt = rootDeck.Options.Sorting;
             var limitsOpt = rootDeck.Options.DailyLimits;
 

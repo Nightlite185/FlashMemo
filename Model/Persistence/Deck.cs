@@ -8,8 +8,8 @@ namespace FlashMemo.Model.Persistence
         public long Id { get; set; }
         public string Name { get; set; } = null!;
         public DateTime Created { get; set; }
-        public long? UserId { get; set; }
-        public long? OptionsId { get; set; }
+        public long UserId { get; set; }
+        public long OptionsId { get; set; }
         public DeckOptions Options { get; set; } = null!;
         public UserEntity User { get; set; } = null!;
         public ICollection<CardEntity> Cards { get; set; } = [];

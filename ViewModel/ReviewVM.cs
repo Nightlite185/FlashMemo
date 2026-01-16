@@ -11,12 +11,12 @@ namespace FlashMemo.ViewModel
 {
     public partial class ReviewVM: ObservableObject, IViewModel
     {
-        public ReviewVM(WindowService ws, CardService cs, CardQueryService cqs, LearningPool lp)
+        public ReviewVM(WindowService ws, CardService cs, CardQueryService cqs)
         {
             windowService = ws;
             cardService = cs;
             cardQuery = cqs;
-            learningPool = lp;
+            learningPool = new();
 
             stopWatch = new();
             timer = new() { Interval = TimeSpan.FromSeconds(1) };

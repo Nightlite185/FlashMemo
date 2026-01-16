@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Services
@@ -19,9 +20,9 @@ namespace FlashMemo.Services
             for (int i = dueCards.Count - 1; i >= 0 ; i--)
                 allCards.Push(dueCards[i]);
         }
-        private IReadOnlyList<CardEntity> GetDue()
+        private ReadOnlyCollection<CardEntity> GetDue()
         {
-            IList<CardEntity> dueLearning = [];
+            List<CardEntity> dueLearning = [];
 
             while (learningPool.TryPeek(out var card, out _) && card.IsDueNow)
             {

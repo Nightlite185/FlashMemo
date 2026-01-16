@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services
 {
-    public class CardQueryService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory)
+    public class CardQueryService(IDbContextFactory<AppDbContext> factory, DeckRepo dr): DbDependentClass(factory)
     {
+        private readonly DeckRepo deckRepo = dr;
+
         #region Public methods
         public async Task<IList<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
         {
@@ -35,8 +37,9 @@ namespace FlashMemo.Services
                 AllCardsInDeckQAsync(deckId, db);
             
             baseQuery = baseQuery.Where(c =>
-                !c.IsSuspended 
-                && !c.IsBuried);
+                !c.IsSuspended
+                && !c.IsBuried
+                && c.IsDueNow);
 
             var grouped = GroupByStateQ(baseQuery);
 
@@ -92,7 +95,7 @@ namespace FlashMemo.Services
         
         ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
         ///containing count of cards grouped by their state.</returns>
-        public async Task<IDictionary<long, CardsCount>> GetCardsCountFor(IEnumerable<long> deckIds)
+        public async Task<IDictionary<long, CardsCount>> CountCardsAsync(IEnumerable<long> deckIds, bool countOnlyStudyable)
         {
             var db = GetDb;
             Dictionary<long, CardsCount> result = [];
@@ -100,6 +103,11 @@ namespace FlashMemo.Services
             foreach(long id in deckIds)
             {
                 var allCardsQuery = await AllCardsInDeckQAsync(id, db);
+
+                if (countOnlyStudyable)
+                    allCardsQuery = allCardsQuery
+                        .Where(c => !c.IsSuspended && !c.IsBuried && c.IsDueNow); // IMPORTANT PLACE deciding if decks are loaded
+                                                                                  // based on due NOW IN THIS SECOND or due TODAY
                 var grouped = GroupByStateQ(allCardsQuery);
                 var counted = await CountByStateAsync(grouped);
 
@@ -170,7 +178,7 @@ namespace FlashMemo.Services
             {
                 Lessons = await grouped.Lessons.CountAsync(),
                 Learning = await grouped.Learning.CountAsync(),
-                Review = await grouped.Reviews.CountAsync()
+                Reviews = await grouped.Reviews.CountAsync()
             };
         }
         private async static Task<CardsByState> SortAndLimitAsync(Deck rootDeck, CardsByStateQ grouped)
@@ -206,10 +214,9 @@ namespace FlashMemo.Services
     }
     public readonly struct CardsCount
     {
-        public readonly long DeckId { get; init; }
         public readonly int Lessons { get; init; }
         public readonly int Learning { get; init; }
-        public readonly int Review { get; init; }
+        public readonly int Reviews { get; init; }
     }
     internal readonly struct CardsByStateQ
     {

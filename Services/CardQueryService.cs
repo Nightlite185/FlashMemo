@@ -132,11 +132,13 @@ namespace FlashMemo.Services
         {
             db ??= GetDb;
 
-            var allDecks = await
-                db.Decks.ToListAsync();
+            long userId = await db.Decks
+                .Where(d => d.Id == deckId)
+                .Select(d => d.UserId)
+                .SingleAsync();
 
-            var deckTree = allDecks // cache this somewhere, its dumb to create a new one every time.
-                .ToLookup(d => d.ParentDeckId);
+            var deckTree = await deckRepo
+                .BuildDeckTreeAsync(userId, db);
 
             List<long> deckIds = [];
             GetChildrenIds(deckId, deckTree, deckIds);

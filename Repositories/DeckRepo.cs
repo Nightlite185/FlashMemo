@@ -6,7 +6,7 @@ namespace FlashMemo.Repositories
     public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
     {
         ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
-        public async Task SaveEditedDeck(Deck updated)
+        public async Task SaveEditedDeckAsync(Deck updated)
         {
             var db = GetDb;
 
@@ -19,14 +19,14 @@ namespace FlashMemo.Repositories
 
             await db.SaveChangesAsync();
         }
-        public async Task AddNewDeck(Deck deck)
+        public async Task AddNewDeckAsync(Deck deck)
         {
             var db = GetDb;
             
             await db.Decks.AddAsync(deck);
             await db.SaveChangesAsync();
         }
-        public async Task DeleteDeck(long deckId)
+        public async Task DeleteDeckAsync(long deckId)
         {
             var db = GetDb;
 
@@ -36,7 +36,7 @@ namespace FlashMemo.Repositories
             db.Decks.Remove(deck);
             await db.SaveChangesAsync();
         }
-        public async Task<Deck> LoadDeck(long id)
+        public async Task<Deck> LoadDeckAsync(long id)
         {
             var db = GetDb;
 
@@ -45,6 +45,17 @@ namespace FlashMemo.Repositories
                 .SingleAsync(d => d.Id == id);
 
             return deckEntity;
+        }
+        public async Task<ILookup<long?, Deck>> BuildDeckTreeAsync(long userId, AppDbContext? db = null)
+        {
+            db ??= GetDb;
+
+            var decks = await db.Decks
+                .Where(d => d.UserId == userId)
+                .ToListAsync();
+
+            return decks.ToLookup(
+                d => d.ParentDeckId);
         }
     }
 }

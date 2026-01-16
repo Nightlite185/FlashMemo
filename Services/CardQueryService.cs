@@ -120,6 +120,21 @@ namespace FlashMemo.Services
             
             return result;
         }
+        public async Task<IDictionary<long, CardsCount>> CountCardsAsync(long userId, bool countOnlyStudyable)
+        {
+            var db = GetDb;
+
+            var deckIds = await db.Decks
+                .Where(d => d.UserId == userId)
+                .Select(d => d.Id)
+                .ToArrayAsync();
+
+            return await CountCardsAsync(
+                deckIds,
+                countOnlyStudyable
+            );
+        }
+        
         #endregion
         
         #region Private helpers || Q in member names stands for Query

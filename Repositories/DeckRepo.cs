@@ -46,7 +46,7 @@ namespace FlashMemo.Repositories
 
             return deckEntity;
         }
-        public async Task<ILookup<long?, Deck>> BuildDeckTreeAsync(long userId, AppDbContext? db = null)
+        public async Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null)
         {
             db ??= GetDb;
 

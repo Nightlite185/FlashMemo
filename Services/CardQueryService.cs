@@ -161,7 +161,7 @@ namespace FlashMemo.Services
                 .SingleAsync();
 
             var deckTree = await deckRepo
-                .BuildDeckTreeAsync(userId, db);
+                .BuildDeckLookupAsync(userId, db);
 
             List<long> deckIds = [];
             GetChildrenIds(deckId, deckTree, deckIds);

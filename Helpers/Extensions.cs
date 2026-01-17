@@ -1,8 +1,9 @@
 using System.Linq.Expressions;
+using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Helpers
 {
-    public static class ExpressionExtensions
+    public static class Extensions
     {
         public static Expression<Func<T, bool>> Combine<T>(
             this Expression<Func<T, bool>> left,
@@ -17,6 +18,18 @@ namespace FlashMemo.Helpers
 
             return Expression.Lambda<Func<T, bool>>(body, param);
         }
+
+        public static void AddRange<T>(this ICollection<T> col, IEnumerable<T> toAdd)
+        {
+            foreach (var item in toAdd)
+                col.Add(item);
+        }
+
+        public static void GenerateNewId (this IEntity entity)
+        {
+            entity.Id = DateTimeOffset
+                .UtcNow
+                .ToUnixTimeMilliseconds();
+        }
     }    
 }
-

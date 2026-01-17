@@ -52,6 +52,7 @@ namespace FlashMemo.Repositories
 
             var decks = await db.Decks
                 .Where(d => d.UserId == userId)
+                .AsNoTracking()
                 .ToListAsync();
 
             return decks.ToLookup(

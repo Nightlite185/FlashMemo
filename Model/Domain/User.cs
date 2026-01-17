@@ -6,7 +6,7 @@ namespace FlashMemo.Model.Domain
 {
     public sealed class User: IEquatable<User>
     {
-        public User(string name, string password) // genuine creation
+        public User(string name, string password) // move this to entity
         {
             HashedPassword = SHA256.HashData(Encoding.UTF8.GetBytes(password));
             Id = IdGetter.Next();

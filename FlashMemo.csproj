@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Compile Remove="Model/EntityMapper.cs" />
+    <Compile Remove="Model/Domain/User.cs" />
   </ItemGroup>
 
 

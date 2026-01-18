@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FlashMemo.Services;
+using FlashMemo.Repositories;
 
 namespace FlashMemo
 {
@@ -36,17 +38,35 @@ namespace FlashMemo
             sc.AddSingleton<MainWindow>();
             sc.AddTransient<BrowseWindow>();
             sc.AddTransient<OptionsWindow>();
+            sc.AddTransient<EditWindow>();
 
             // ==== VIEWMODELS ====
-            sc.AddTransient<MainVM>();
+            sc.AddSingleton<MainVM>();
+            sc.AddTransient<ReviewVM>();
+            sc.AddTransient<StatsVM>();
+            sc.AddTransient<EditCardVM>();
+            sc.AddTransient<DecksVM>();
             sc.AddTransient<OptionsVM>();
             sc.AddTransient<BrowseVM>();
-            
-            sc.AddDbContextFactory<AppDbContext>();
-            
+
+            // ==== SERVICES ====
+            sc.AddSingleton<WindowService>();
+            sc.AddSingleton<NavigationService>();
+            sc.AddSingleton<CardService>();
+            sc.AddSingleton<CardQueryService>();
+            sc.AddSingleton<LearningPool>();
+            sc.AddAutoMapper(typeof(App));
+
+            // ==== REPOS ====
+            sc.AddSingleton<DeckRepo>();
+            sc.AddSingleton<TagRepo>();
+            sc.AddSingleton<CardRepo>();
+
             // ==== DB CONTEXT ====
             sc.AddDbContext<AppDbContext>(o => 
                 o.UseSqlite($"Data Source={DbPath}"));
+
+            sc.AddDbContextFactory<AppDbContext>();
 
             return sc;
         }

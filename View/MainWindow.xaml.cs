@@ -2,16 +2,24 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace FlashMemo
+namespace FlashMemo.View
 {
-    public partial class MainWindow : Window
+    interface IViewFor<TViewModel>
     {
-        private readonly MainVM mainVM;
+        public void SetVM(TViewModel vm);
+    }
+    public partial class MainWindow: Window, IViewFor<MainVM>
+    {
+        private MainVM vm = null!;
         public MainWindow()
         {
             InitializeComponent();
-            mainVM = new();
-            this.DataContext = mainVM;
+        }
+
+        public void SetVM(MainVM vm)
+        {
+            this.DataContext = vm;
+            this.vm = vm;
         }
 
         private void DeckOptions_Click(object sender, RoutedEventArgs e)
@@ -22,6 +30,5 @@ namespace FlashMemo
                 bt.ContextMenu.IsOpen = true;
             }
         }
-
     }
 }

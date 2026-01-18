@@ -1,6 +1,7 @@
 using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel;
 
 namespace FlashMemo.Model
 {
@@ -11,8 +12,8 @@ namespace FlashMemo.Model
             CreateMap<Card, CardEntity>();
             CreateMap<CardEntity, Card>();
 
-            CreateMap<User, UserEntity>();
-            CreateMap<UserEntity, User>();
+            CreateMap<Filters, FiltersVM>();
+            CreateMap<FiltersVM, Filters>();
         }
     }
 }

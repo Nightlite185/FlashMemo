@@ -1,0 +1,1 @@
+Personal project written in C# WPF, heavily inspired by Anki. Still work-in-progress. Just like anki, this is an app for reviewing flashcards with customizable SRS (spaced repetition system). App is for offline local use, but my plan is to implement multiple users support, so many people can create and review their own flashcards, with own configs - independently of one another.

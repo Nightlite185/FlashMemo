@@ -24,6 +24,7 @@ namespace FlashMemo.Services
             var cards = await baseQuery
                 .Where(filtersQuery)
                 .SortAnyCards(order, dir)
+                .Include(c => c.Deck)
                 .ToListAsync();
 
             cards.ShuffleIf(order == CardsOrder.Random);
@@ -81,6 +82,7 @@ namespace FlashMemo.Services
 
             return await db.Cards
                 .Where(c => deckIds.Contains(c.DeckId))
+                .Include(c => c.Deck)
                 .ToListAsync();
         }
         public async Task<IList<CardEntity>> GetAllFromDeck(long deckId)

@@ -43,10 +43,11 @@ namespace FlashMemo.Services
         }
         
         ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
-        public async Task SaveEditedCard(CardEntity updated, CardAction action)
+        public async Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null)
         {
-            var db = GetDb;
-
+            bool dbProvided = db is not null;
+            db ??= GetDb;
+            
             var tracked = await db.Cards
                 .SingleAsync(c => c.Id == updated.Id);
 
@@ -57,7 +58,19 @@ namespace FlashMemo.Services
             
             var log = CardLog
                 .CreateLog(tracked, action);
-                
+
+            await db.CardLogs.AddAsync(log);
+
+            if (!dbProvided) 
+                await db.SaveChangesAsync();
+        }
+        public async Task SaveEditedCards(IEnumerable<CardEntity> updatedCards, CardAction action)
+        {
+            var db = GetDb;
+
+            foreach (var card in updatedCards)
+                await SaveEditedCard(card, action, db);
+
             await db.SaveChangesAsync();
         }
     }

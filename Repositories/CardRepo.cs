@@ -5,7 +5,7 @@ namespace FlashMemo.Repositories
 {
     public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
     {
-        public async Task DeleteCard(IEnumerable<CardEntity> cards)
+        public async Task DeleteCards(IEnumerable<CardEntity> cards)
         {
             var db = GetDb;
 

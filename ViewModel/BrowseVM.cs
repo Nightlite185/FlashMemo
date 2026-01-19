@@ -24,25 +24,31 @@ namespace FlashMemo.ViewModel
         #region Public properties 
         [ObservableProperty]
         public partial ObservableCollection<CardItemVM> Cards { get; set; }
+
         [ObservableProperty]
         public partial string SearchBar { get; set; }
-        public IReadOnlyCollection<CardEntity> SelectedCards { get
-        {
-            throw new NotImplementedException();
-        }}
+        public IReadOnlyCollection<CardItemVM> SelectedCardVMs => [..Cards
+            .Where(vm => vm.IsSelected)];
         #endregion
         
         #region methods
-        private void ThrowIfNoneSelected(IReadOnlyCollection<CardEntity> selected, bool throwIfNotSingle = false)
+        private static void ThrowIfInvalidSelected(int selectedCount, bool throwIfNotSingle = false)
         {
-            if (throwIfNotSingle && selected.Count != 1)
+            if (selectedCount <= 0)
                 throw new InvalidOperationException(
-                    $"Cannot execute this context command since exactly one card has to be selected and you had {selected.Count}");
+                "Cannot execute context command with no cards selected");
 
-
-            else if (selected.Count <= 0)
+            if (throwIfNotSingle && selectedCount != 1)
                 throw new InvalidOperationException(
-                "Cannot execute context command since no cards were selected");
+                $"Cannot execute this context command since exactly one card has to be selected but you had {selectedCount}");
+        }
+        private IReadOnlyCollection<CardItemVM> ValidSelectedVMs(bool throwIfNotSingle = false)
+        {
+            var cards = SelectedCardVMs;
+
+            ThrowIfInvalidSelected(cards.Count, throwIfNotSingle);
+
+            return [..cards];
         }
         #endregion
         
@@ -57,63 +63,104 @@ namespace FlashMemo.ViewModel
     
         #region ICommands
         #region context menu commands (Ctx suffix in members stands for context commands)
-        // IMPORTANT: commands that open a window dont get async, 
-        // but those that directly call async internal methods and use services should 
+        // IMPORTANT: commands that open a window -> dont get async, 
+        // but those that directly call async internal methods and use services -> should
+
+        // TO DO: Maybe encapsulate this later, since card review VM might be using this context menu as well.
 
         [RelayCommand]
         public void MoveCardsCtx()
         {
-            
+            var selected = ValidSelectedVMs();
+
+            // open a new window/grid here
         }
 
         [RelayCommand]
-        public void RescheduleCardsCtx() // this lets u choose datetime
+        public void ShowRescheduleCtx() // this lets u choose datetime
         {
-            
+            var selected = ValidSelectedVMs();
+
+            // open new window/grid here
         }
 
         [RelayCommand]
-        public void PostponeCardsCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
+        public void ShowPostponeCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
         {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE 
-            var selected = SelectedCards;
-            ThrowIfNoneSelected(selected);
+            var selected = ValidSelectedVMs();
+
+            // open new window/grid here
         }
 
         [RelayCommand]
         public async Task ForgetCardsCtx()
         {
-            var selected = SelectedCards;
-            ThrowIfNoneSelected(selected);
+            var cardVMs = ValidSelectedVMs();
+
+            foreach (var vm in cardVMs)
+            {
+                vm.Card.Forget();
+                vm.NotifyUI();
+            }
+
+            await cardService.SaveEditedCards(
+                cardVMs.Select(vm => vm.Card),
+                CardAction.Reschedule);
         }
 
         [RelayCommand]
         public async Task ToggleBuryCtx()
         {
-            var selected = SelectedCards;
-            ThrowIfNoneSelected(selected);
+            var cardVMs = ValidSelectedVMs();
+            
+            foreach (var vm in cardVMs)
+            {
+                vm.Card.FlipBuried();
+                vm.NotifyUI();
+            }
+
+            await cardService.SaveEditedCards(
+                cardVMs.Select(vm => vm.Card),
+                CardAction.Bury
+            );
         }
 
         [RelayCommand]
         public async Task ToggleSuspendedCtx()
         {
-            var selected = SelectedCards;
-            ThrowIfNoneSelected(selected);
+            var cardVMs = ValidSelectedVMs();
+            
+            foreach (var vm in cardVMs)
+            {
+                vm.Card.FlipSuspended();
+                vm.NotifyUI();
+            }
+
+            await cardService.SaveEditedCards(
+                cardVMs.Select(vm => vm.Card),
+                CardAction.Suspend
+            );
         }
 
         [RelayCommand]
         public async Task DeleteCardsCtx()
         {
-            var selected = SelectedCards;
-            ThrowIfNoneSelected(selected);
-
-            await cardRepo.DeleteCard(selected);
+            var cardVMs = ValidSelectedVMs();
+            
+            foreach (var vm in cardVMs)
+            {
+                vm.IsDeleted = true;
+                vm.NotifyUI();
+            }
+            
+            await cardRepo.DeleteCards(
+                cardVMs.Select(vm => vm.Card));
         }
 
         [RelayCommand]
         public async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
         {
-            var selected = SelectedCards;
-            ThrowIfNoneSelected(selected, throwIfNotSingle: true);
+            var cardVMs = ValidSelectedVMs(throwIfNotSingle: true);
 
             // Open ManageTagsWindow here
         }

@@ -6,8 +6,13 @@ namespace FlashMemo.ViewModel
 {
     public partial class CardItemVM: ObservableObject, IViewModel
     {
+        public void NotifyUI() => CardVersion++;
+
         [ObservableProperty]
         public partial bool IsSelected { get; set; }
+        
+        [ObservableProperty]
+        public partial bool IsDeleted { get; set; }
         
         [ObservableProperty]
         public partial CardEntity Card { get; set; }
@@ -18,9 +23,10 @@ namespace FlashMemo.ViewModel
         public CardState CardState => Card.State;
         public int DayInterval => (int)Card.Interval.TotalDays;
 
+        
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(CardState))]
-        // TO DO: etc etc add more notifications in the future
-        public partial int CardVersion { get; set; }
+        private partial int CardVersion { get; set; }
+        // this is incremented every time when card is updated, to notify the UI.
     }
 }

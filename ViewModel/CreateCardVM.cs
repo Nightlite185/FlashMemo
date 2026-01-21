@@ -1,8 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Repositories;
+using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel
 {
-    public partial class CreateCardVM: ObservableObject, IViewModel
+    public partial class CreateCardVM(CardService cs, TagRepo tr) : EditorVMBase(cs, tr), IViewModel
     {
         
     }

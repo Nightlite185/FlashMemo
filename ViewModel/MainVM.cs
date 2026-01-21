@@ -1,4 +1,3 @@
-using System.Windows;
 using System.Windows.Navigation;
 using CommunityToolkit.Mvvm.ComponentModel;
 

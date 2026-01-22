@@ -5,7 +5,7 @@ namespace FlashMemo.Repositories
 {
     public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory)
     {
-        public async Task<IEnumerable<Tag>> GetAllFromUserAsync(long userId)
+        public async Task<IEnumerable<Tag>> GetFromUserAsync(long userId)
         {
             var db = GetDb;
 
@@ -13,6 +13,17 @@ namespace FlashMemo.Repositories
                 .Where(t => t.UserId == userId)
                 .AsNoTracking()
                 .ToListAsync();
+        }
+        public async Task<IEnumerable<Tag>> GetFromCardAsync(long cardId)
+        {
+            var db = GetDb;
+            
+            var card = await db.Cards
+                .AsNoTracking()
+                .Include(c => c.Tags)
+                .SingleAsync(c => c.Id == cardId);
+                
+            return card.Tags;
         }
         public async Task AddNewAsync(params IEnumerable<Tag> tags)
         {

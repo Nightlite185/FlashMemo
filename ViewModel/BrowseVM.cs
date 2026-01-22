@@ -22,6 +22,8 @@ namespace FlashMemo.ViewModel
         }
 
         #region Public properties 
+        
+        // === WINDOW-LEVEL BINDING === \\
         [ObservableProperty]
         public partial ObservableCollection<CardItemVM> Cards { get; set; }
 
@@ -29,6 +31,33 @@ namespace FlashMemo.ViewModel
         public partial string SearchBar { get; set; }
         public IReadOnlyCollection<CardItemVM> SelectedCardVMs => [..Cards
             .Where(vm => vm.IsSelected)];
+        
+
+        // === RESCHEDULING POP-UP === \\
+        [ObservableProperty]
+        public partial bool RescheduleGridVis { get; set; }
+
+        [ObservableProperty]
+        public partial DateTime RescheduleDate { get; set; }
+
+
+        // === POSTPONE POP-UP === \\
+        [ObservableProperty]
+        public partial bool PostponeGridVis { get; set; }
+
+        [ObservableProperty]
+        public partial bool KeepIntervalOnPostpone { get; set; }
+
+        [ObservableProperty]
+        public partial int PostponeByDays { get; set; }
+
+        // === MOVE CARDS POP-UP === \\
+        [ObservableProperty]
+        public partial bool MoveCardsGridVis { get; set; }
+        
+        [ObservableProperty]
+        public partial DeckNode? MoveToSelectedDeck { get; set; }
+        // as for deck tree: reuse the cached one from the window-level tree on the left in filters
         #endregion
         
         #region methods
@@ -73,7 +102,8 @@ namespace FlashMemo.ViewModel
         {
             var selected = ValidSelectedVMs();
 
-            // open a new window/grid here
+            MoveCardsGridVis = true;
+
         }
 
         [RelayCommand]
@@ -81,7 +111,7 @@ namespace FlashMemo.ViewModel
         {
             var selected = ValidSelectedVMs();
 
-            // open new window/grid here
+            RescheduleGridVis = true;
         }
 
         [RelayCommand]
@@ -89,7 +119,7 @@ namespace FlashMemo.ViewModel
         {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE 
             var selected = ValidSelectedVMs();
 
-            // open new window/grid here
+            PostponeGridVis = true;
         }
 
         [RelayCommand]
@@ -162,7 +192,7 @@ namespace FlashMemo.ViewModel
         {
             var cardVMs = ValidSelectedVMs(throwIfNotSingle: true);
 
-            // Open ManageTagsWindow here
+            // Open ManageTagsWindow here?? idk yet
         }
         #endregion
 

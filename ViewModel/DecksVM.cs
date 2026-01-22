@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
@@ -9,8 +10,9 @@ namespace FlashMemo.ViewModel
     public interface IViewModel;
     public partial class DecksVM: ObservableObject, IViewModel
     {
-        public DecksVM(WindowService ws, CardQueryService cqs, DeckRepo dr)
+        public DecksVM(WindowService ws, CardQueryService cqs, DeckRepo dr, DeckTreeBuilder dtr)
         {
+            deckTreeBuilder = dtr;
             windowService = ws;
             cardQueryS = cqs;
             deckRepo = dr;
@@ -19,68 +21,39 @@ namespace FlashMemo.ViewModel
         }
 
         #region methods
-        public async Task LoadUser(long userId) 
+        public async Task LoadUser(long userId)
         {
             this.userId = userId;
-            
-            cardsCount = await 
-                cardQueryS.CountCardsAsync(
-                    userId, 
-                    countOnlyStudyable: true
-                );
-            
-            decksLookup = await deckRepo
-                .BuildDeckLookupAsync(userId);
-
-            DeckLookupToTree();
+            await SyncDeckTree();
         }
-        private void DeckLookupToTree()
+        private async Task SyncDeckTree()
         {
+            if (!UserLoaded) throw new InvalidOperationException(
+                "Cannot sync deck tree without loading the user first.");
+
             Decks.Clear();
 
-            // build root-level decks without parents (parent id == null)
-            var rootVMs = BuildDeckLevel(parentId: null);
+            // build root-level decks without parents (ParentId == null)
+            var deckTree = await deckTreeBuilder.BuildCountedAsync((long)userId!);
 
-            foreach (var VM in rootVMs)
-                Decks.Add(VM);
+            Decks.AddRange(deckTree);
         }
-        
-        private IEnumerable<DeckItemVM> BuildDeckLevel(long? parentId)
-        {
-            foreach (var deck in decksLookup[parentId])
-            {
-                // build children recursively
-                var children = BuildDeckLevel(deck.Id);
-
-                // get card counts for this deck
-                if (!cardsCount.TryGetValue(deck.Id, out var cc))
-                {
-                    throw new InvalidOperationException(
-                        $"{nameof(cardsCount)} deck ids don't match the ones in {nameof(decksLookup)}");
-                }
-
-                // create the VM
-                yield return new DeckItemVM(deck, cc, children);
-            }
-        }
-
         #endregion
 
         #region public properties
-        public ObservableCollection<DeckItemVM> Decks { get; init; }
+        public ObservableCollection<DeckNode> Decks { get; init; }
         
         [ObservableProperty]
-        public partial DeckItemVM? SelectedDeck { get; private set; }
+        public partial DeckNode? SelectedDeck { get; private set; }
         #endregion
 
         #region private things
         private readonly WindowService windowService;
         private readonly CardQueryService cardQueryS;
         private readonly DeckRepo deckRepo;
+        private readonly DeckTreeBuilder deckTreeBuilder;
         private long? userId;
         private bool UserLoaded => userId is not null;
-        private ILookup<long?, Deck> decksLookup = null!; // remember to invalidate this and replace when hierarchy changes, or when user clicks refresh button
-        private IDictionary<long, CardsCount> cardsCount = null!; // this as well
         #endregion
     }
 }

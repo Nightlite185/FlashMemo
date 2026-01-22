@@ -5,9 +5,9 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel
 {
-    public partial class DeckItemVM : ObservableObject, IViewModel
+    public partial class DeckNode : ObservableObject, IViewModel
     {
-        public DeckItemVM(Deck deck, CardsCount cc, IEnumerable<DeckItemVM> children)
+        public DeckNode(Deck deck, IEnumerable<DeckNode> children, CardsCount? cc = null)
         {
             Deck = deck;
             DeckId = deck.Id;
@@ -15,13 +15,14 @@ namespace FlashMemo.ViewModel
 
             Children = [..children];
 
-            this.SetCardCount(cc);
+            if (cc is CardsCount validCC)
+                SetCardCount(validCC);
         }
         
         #region public properties
         public long DeckId { get; init; }
         public Deck Deck { get; init; }
-        public ObservableCollection<DeckItemVM> Children { get; set; }
+        public ObservableCollection<DeckNode> Children { get; set; }
 
         [ObservableProperty]
         public partial string Name { get; set; }
@@ -40,11 +41,21 @@ namespace FlashMemo.ViewModel
         #endregion
         
         #region methods
-        public void SetCardCount(CardsCount cc)
+        public void SetCardCount(CardsCount? cc)
         {
-            LessonsCount = cc.Lessons;
-            LearningCount = cc.Learning;
-            ReviewsCount = cc.Reviews;   
+            if (cc is CardsCount validCC)
+            {
+                LessonsCount = validCC.Lessons;
+                LearningCount = validCC.Learning;
+                ReviewsCount = validCC.Reviews;   
+            }
+
+            else
+            {
+                LessonsCount = -1;
+                LearningCount = -1;
+                ReviewsCount = -1;
+            }
         }
         #endregion
     }

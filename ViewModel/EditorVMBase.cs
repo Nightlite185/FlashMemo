@@ -42,7 +42,7 @@ namespace FlashMemo.ViewModel
             AllTags.Clear(); // here too
 
             var all = await tagRepo
-                .GetAllFromUserAsync(currentUserId);
+                .GetFromUserAsync(currentUserId);
 
             AllTags.AddRange(all);
         }

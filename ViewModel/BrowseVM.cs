@@ -22,42 +22,17 @@ namespace FlashMemo.ViewModel
         }
 
         #region Public properties 
-        
-        // === WINDOW-LEVEL BINDING === \\
         [ObservableProperty]
         public partial ObservableCollection<CardItemVM> Cards { get; set; }
 
         [ObservableProperty]
         public partial string SearchBar { get; set; }
+        
         public IReadOnlyCollection<CardItemVM> SelectedCardVMs => [..Cards
             .Where(vm => vm.IsSelected)];
         
-
-        // === RESCHEDULING POP-UP === \\
         [ObservableProperty]
-        public partial bool RescheduleGridVis { get; set; }
-
-        [ObservableProperty]
-        public partial DateTime RescheduleDate { get; set; }
-
-
-        // === POSTPONE POP-UP === \\
-        [ObservableProperty]
-        public partial bool PostponeGridVis { get; set; }
-
-        [ObservableProperty]
-        public partial bool KeepIntervalOnPostpone { get; set; }
-
-        [ObservableProperty]
-        public partial int PostponeByDays { get; set; }
-
-        // === MOVE CARDS POP-UP === \\
-        [ObservableProperty]
-        public partial bool MoveCardsGridVis { get; set; }
-        
-        [ObservableProperty]
-        public partial DeckNode? MoveToSelectedDeck { get; set; }
-        // as for deck tree: reuse the cached one from the window-level tree on the left in filters
+        public partial PopupVMBase? CurrentPopup { get; set; }
         #endregion
         
         #region methods
@@ -71,13 +46,16 @@ namespace FlashMemo.ViewModel
                 throw new InvalidOperationException(
                 $"Cannot execute this context command since exactly one card has to be selected but you had {selectedCount}");
         }
-        private IReadOnlyCollection<CardItemVM> ValidSelectedVMs(bool throwIfNotSingle = false)
+        private void CaptureSelected(bool throwIfNotSingle = false)
         {
+            if (capturedCards is not null)
+                throw new InvalidOperationException("Cannot capture cards if there already are some captured. Clean those up first.");
+
             var cards = SelectedCardVMs;
 
             ThrowIfInvalidSelected(cards.Count, throwIfNotSingle);
 
-            return [..cards];
+            capturedCards = cards;
         }
         #endregion
         
@@ -88,6 +66,7 @@ namespace FlashMemo.ViewModel
         private readonly CardRepo cardRepo;
         private readonly FiltersVM filtersVM = null!;
         private EditCardVM? editVM;
+        private IReadOnlyCollection<CardItemVM>? capturedCards;
         #endregion
     
         #region ICommands
@@ -100,57 +79,56 @@ namespace FlashMemo.ViewModel
         [RelayCommand]
         public void MoveCardsCtx()
         {
-            var selected = ValidSelectedVMs();
+            CaptureSelected();
 
-            MoveCardsGridVis = true;
-
+            // CurrentPopup = new MoveCardsVM(confirm, cancel)
         }
 
         [RelayCommand]
         public void ShowRescheduleCtx() // this lets u choose datetime
         {
-            var selected = ValidSelectedVMs();
+            CaptureSelected();
 
-            RescheduleGridVis = true;
+            // CurrentPopup = new RescheduleVM(confirm, cancel)
         }
 
         [RelayCommand]
         public void ShowPostponeCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
         {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE 
-            var selected = ValidSelectedVMs();
+            CaptureSelected();
 
-            PostponeGridVis = true;
+            // CurrentPopup = new PostponeVM(confirm, cancel)
         }
 
         [RelayCommand]
         public async Task ForgetCardsCtx()
         {
-            var cardVMs = ValidSelectedVMs();
+            CaptureSelected();
 
-            foreach (var vm in cardVMs)
+            foreach (var vm in capturedCards!)
             {
                 vm.Card.Forget();
                 vm.NotifyUI();
             }
 
             await cardService.SaveEditedCards(
-                cardVMs.Select(vm => vm.Card),
+                capturedCards.Select(vm => vm.Card),
                 CardAction.Reschedule);
         }
 
         [RelayCommand]
         public async Task ToggleBuryCtx()
         {
-            var cardVMs = ValidSelectedVMs();
+            CaptureSelected();
             
-            foreach (var vm in cardVMs)
+            foreach (var vm in capturedCards!)
             {
                 vm.Card.FlipBuried();
                 vm.NotifyUI();
             }
 
             await cardService.SaveEditedCards(
-                cardVMs.Select(vm => vm.Card),
+                capturedCards.Select(vm => vm.Card),
                 CardAction.Bury
             );
         }
@@ -158,16 +136,16 @@ namespace FlashMemo.ViewModel
         [RelayCommand]
         public async Task ToggleSuspendedCtx()
         {
-            var cardVMs = ValidSelectedVMs();
+            CaptureSelected();
             
-            foreach (var vm in cardVMs)
+            foreach (var vm in capturedCards!)
             {
                 vm.Card.FlipSuspended();
                 vm.NotifyUI();
             }
 
             await cardService.SaveEditedCards(
-                cardVMs.Select(vm => vm.Card),
+                capturedCards.Select(vm => vm.Card),
                 CardAction.Suspend
             );
         }
@@ -175,25 +153,27 @@ namespace FlashMemo.ViewModel
         [RelayCommand]
         public async Task DeleteCardsCtx()
         {
-            var cardVMs = ValidSelectedVMs();
+            CaptureSelected();
             
-            foreach (var vm in cardVMs)
+            foreach (var vm in capturedCards!)
             {
                 vm.IsDeleted = true;
                 vm.NotifyUI();
             }
             
             await cardRepo.DeleteCards(
-                cardVMs.Select(vm => vm.Card));
+                capturedCards.Select(vm => vm.Card));
         }
 
         [RelayCommand]
         public async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
         {
-            var cardVMs = ValidSelectedVMs(throwIfNotSingle: true);
+            CaptureSelected(throwIfNotSingle: true);
+            long cardId = capturedCards!.First().Card.Id;
 
-            // Open ManageTagsWindow here?? idk yet
+            // CurrentPopup = new ManageTagsVM(cardId, confirm, cancel);
         }
+        
         #endregion
 
         

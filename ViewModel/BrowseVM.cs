@@ -1,6 +1,9 @@
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FlashMemo.Helpers;
+using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
@@ -9,8 +12,10 @@ namespace FlashMemo.ViewModel
 {
     public partial class BrowseVM: ObservableObject, IViewModel
     {
-        public BrowseVM(WindowService ws, CardRepo cr, CardQueryService cqs, CardService cs, FiltersVM fVM, EditCardVM eVM)
+        public BrowseVM(WindowService ws, CardRepo cr, TagRepo tr,
+        CardQueryService cqs, CardService cs, FiltersVM fVM, EditCardVM eVM)
         {
+            tagRepo = tr;
             cardService = cs;
             windowService = ws;
             cardQueryS = cqs;
@@ -21,7 +26,7 @@ namespace FlashMemo.ViewModel
             SearchBar = "";
         }
 
-        #region Public properties 
+        #region Public properties
         [ObservableProperty]
         public partial ObservableCollection<CardItemVM> Cards { get; set; }
 
@@ -106,6 +111,11 @@ namespace FlashMemo.ViewModel
 
             capturedCards = cards;
         }
+        private void PopupCancel()
+        {
+            capturedCards = null;
+            CurrentPopup = null;
+        }
         private async Task ModifyCardsHelper(Action<CardEntity> cardModifier, CardAction cardAction, [CallerMemberName] string? caller = null)
         {
             ThrowIfNoCardsCaptured(caller);
@@ -121,6 +131,36 @@ namespace FlashMemo.ViewModel
                 cardAction
             );
         }
+        private async Task RescheduleCards(DateTime dt, bool keepInterval)
+        {
+            await ModifyCardsHelper(
+                c => c.Reschedule(dt, keepInterval),
+                CardAction.Reschedule);
+        }
+        private async Task PostponeCards(int PostponeBy, bool keepInterval)
+        {
+            await ModifyCardsHelper(
+                c => c.Postpone(PostponeBy, keepInterval),
+                CardAction.Reschedule
+            );
+        }
+        private async Task MoveCards(Deck newDeck)
+        {
+            await ModifyCardsHelper(
+                c => c.MoveToDeck(newDeck),
+                CardAction.Relocate
+            );
+        }
+        private async Task ChangeTags(IEnumerable<Tag> newTags, bool globalTagsEdited)
+        {
+            await ModifyCardsHelper(
+                c => c.ReplaceTagsWith(newTags),
+                CardAction.Modify
+            );
+
+            if (globalTagsEdited)
+                await ReloadCards();
+        }
         #endregion
         
         #region private things
@@ -131,6 +171,9 @@ namespace FlashMemo.ViewModel
         private readonly FiltersVM filtersVM = null!;
         private EditCardVM? editVM;
         private IReadOnlyCollection<CardItemVM>? capturedCards;
+        private long? loadedUserId;
+        private readonly TagRepo tagRepo;
+        private Filters? cachedFilters;
         #endregion
     
         #region ICommands

@@ -106,6 +106,21 @@ namespace FlashMemo.ViewModel
 
             capturedCards = cards;
         }
+        private async Task ModifyCardsHelper(Action<CardEntity> cardModifier, CardAction cardAction, [CallerMemberName] string? caller = null)
+        {
+            ThrowIfNoCardsCaptured(caller);
+
+            foreach (var vm in capturedCards!)
+            {
+                cardModifier(vm.Card);
+                vm.NotifyUI();
+            }
+
+            await cardService.SaveEditedCards(
+                capturedCards.Select(vm => vm.Card),
+                cardAction
+            );
+        }
         #endregion
         
         #region private things
@@ -120,25 +135,24 @@ namespace FlashMemo.ViewModel
     
         #region ICommands
         #region context menu commands (Ctx suffix in members stands for context commands)
-        // IMPORTANT: commands that open a window -> dont get async, 
-        // but those that directly call async internal methods and use services -> should
+        /* IMPORTANT: commands that open a window -> dont get async,
+        but those that directly call async internal methods and use services -> should
 
-        // TO DO: Maybe encapsulate this later, since card review VM might be using this context menu as well.
+        TO DO: Maybe encapsulate this later, along with those private callback methods, 
+        since card review VM might be using this context menu as well. */
 
         [RelayCommand]
         public void MoveCardsCtx()
         {
             CaptureSelected();
-
-            // CurrentPopup = new MoveCardsVM(confirm, cancel)
+            CurrentPopup = new MoveCardsVM(MoveCards, PopupCancel);
         }
 
         [RelayCommand]
         public void ShowRescheduleCtx() // this lets u choose datetime
         {
             CaptureSelected();
-
-            // CurrentPopup = new RescheduleVM(confirm, cancel)
+            CurrentPopup = new RescheduleVM(RescheduleCards, PopupCancel);
         }
 
         [RelayCommand]
@@ -146,7 +160,7 @@ namespace FlashMemo.ViewModel
         {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE 
             CaptureSelected();
 
-            // CurrentPopup = new PostponeVM(confirm, cancel)
+            CurrentPopup = new PostponeVM(PostponeCards, PopupCancel);
         }
 
         [RelayCommand]
@@ -154,15 +168,10 @@ namespace FlashMemo.ViewModel
         {
             CaptureSelected();
 
-            foreach (var vm in capturedCards!)
-            {
-                vm.Card.Forget();
-                vm.NotifyUI();
-            }
-
-            await cardService.SaveEditedCards(
-                capturedCards.Select(vm => vm.Card),
-                CardAction.Reschedule);
+            await ModifyCardsHelper(
+                c => c.Forget(),
+                CardAction.Forget
+            );
         }
 
         [RelayCommand]
@@ -170,14 +179,8 @@ namespace FlashMemo.ViewModel
         {
             CaptureSelected();
             
-            foreach (var vm in capturedCards!)
-            {
-                vm.Card.FlipBuried();
-                vm.NotifyUI();
-            }
-
-            await cardService.SaveEditedCards(
-                capturedCards.Select(vm => vm.Card),
+            await ModifyCardsHelper(
+                c => c.FlipBuried(),
                 CardAction.Bury
             );
         }
@@ -187,14 +190,8 @@ namespace FlashMemo.ViewModel
         {
             CaptureSelected();
             
-            foreach (var vm in capturedCards!)
-            {
-                vm.Card.FlipSuspended();
-                vm.NotifyUI();
-            }
-
-            await cardService.SaveEditedCards(
-                capturedCards.Select(vm => vm.Card),
+            await ModifyCardsHelper(
+                c => c.FlipSuspended(),
                 CardAction.Suspend
             );
         }
@@ -217,10 +214,17 @@ namespace FlashMemo.ViewModel
         [RelayCommand]
         public async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
         {
+            ThrowIfUserNotLoaded();
             CaptureSelected(throwIfNotSingle: true);
+
             long cardId = capturedCards!.First().Card.Id;
 
-            // CurrentPopup = new ManageTagsVM(cardId, confirm, cancel);
+            CurrentPopup = new ManageTagsVM(
+                confirm: ChangeTags,
+                cancel: PopupCancel,
+                tagRepo, cardId,
+                (long)loadedUserId!
+            );
         }
         
         #endregion

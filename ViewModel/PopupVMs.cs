@@ -21,11 +21,11 @@ namespace FlashMemo.ViewModel
 
 
     public partial class PostponeVM 
-        (Func<int, Task> confirm, Action cancel)
+        (Func<int, bool, Task> confirm, Action cancel)
         : PopupVMBase(cancel)
     {
-        public override async Task Confirm() => await confirm(PostponeByDays);
-        private readonly Func<int, Task> confirm = confirm;
+        public override async Task Confirm() => await confirm(PostponeByDays, KeepInterval);
+        private readonly Func<int, bool, Task> confirm = confirm;
 
         [ObservableProperty]
         public partial bool KeepInterval { get; set; }
@@ -35,14 +35,17 @@ namespace FlashMemo.ViewModel
     }
 
     public partial class RescheduleVM 
-        (Func<DateTime, Task> confirm, Action cancel)
+        (Func<DateTime, bool, Task> confirm, Action cancel)
         : PopupVMBase(cancel)
     {
-        public override async Task Confirm() => await confirm(RescheduleToDate);
-        private readonly Func<DateTime, Task> confirm = confirm;
+        public override async Task Confirm() => await confirm(RescheduleToDate, KeepInterval);
+        private readonly Func<DateTime, bool, Task> confirm = confirm;
 
         [ObservableProperty]
         public partial DateTime RescheduleToDate { get; set; }
+        
+        [ObservableProperty]
+        public partial bool KeepInterval { get; set; }
     }
 
     public partial class ManageTagsVM
@@ -80,12 +83,12 @@ namespace FlashMemo.ViewModel
     }
 
     public partial class MoveCardsVM
-        (Func<DeckNode, Task> confirm, Action cancel)
+        (Func<Deck, Task> confirm, Action cancel)
         : PopupVMBase(cancel)
     {
-        public override async Task Confirm() => await confirm(ChosenDeck);
+        public override async Task Confirm() => await confirm(ChosenDeckNode.Deck);
 
         [ObservableProperty]
-        public partial DeckNode ChosenDeck { get; set; }
+        public partial DeckNode ChosenDeckNode { get; set; }
     }
 }

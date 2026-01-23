@@ -73,14 +73,27 @@ namespace FlashMemo.ViewModel
 
             await LoadCards(cachedFilters);
         }
+        private static void ThrowIfInvalidSelected(int selectedCount, bool throwIfNotSingle = false, [CallerMemberName] string? called = null)
         {
             if (selectedCount <= 0)
                 throw new InvalidOperationException(
-                "Cannot execute context command with no cards selected");
+                $"Cannot execute context command '{called}' with no cards selected");
 
             if (throwIfNotSingle && selectedCount != 1)
                 throw new InvalidOperationException(
-                $"Cannot execute this context command since exactly one card has to be selected but you had {selectedCount}");
+                $"Cannot execute context command '{called}' since exactly one card has to be selected but you had {selectedCount}");
+        }
+        private void ThrowIfNoCardsCaptured(string? calledMember)
+        {
+            if (capturedCards is null || capturedCards.Count == 0)
+                throw new InvalidOperationException(
+                $"Called {calledMember}, but there are no captured cards yet.");
+        }
+        private void ThrowIfUserNotLoaded([CallerMemberName] string? caller = null)
+        {
+            if (loadedUserId is null) 
+                throw new InvalidOperationException(
+                $"Called {caller} without loading the user first.");
         }
         private void CaptureSelected(bool throwIfNotSingle = false)
         {

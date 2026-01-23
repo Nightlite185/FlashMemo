@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel;
 
 namespace FlashMemo.Helpers
 {
@@ -25,6 +26,11 @@ namespace FlashMemo.Helpers
                 col.Add(item);
         }
 
+        public static IEnumerable<CardItemVM> TransformToVMs(this IEnumerable<CardEntity> cards)
+            => cards.Select(c => new CardItemVM(c));
+
+        public static IEnumerable<CardEntity> TransformToCards(this IEnumerable<CardItemVM> cardsVMs)
+            => cardsVMs.Select(vm => vm.Card);
         public static void GenerateNewId (this IEntity entity)
         {
             entity.Id = DateTimeOffset

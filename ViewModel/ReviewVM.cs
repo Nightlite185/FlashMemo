@@ -163,7 +163,7 @@ namespace FlashMemo.ViewModel
         #endregion
 
         [RelayCommand(CanExecute = nameof(CardLoaded))]
-        public void OpenEditWindow() => windowService.ShowWindow<EditWindow>();
+        public void OpenEditWindow() => windowService.ShowDialog<EditCardVM>();
         
         #endregion
     }

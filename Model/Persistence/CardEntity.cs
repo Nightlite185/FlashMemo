@@ -1,3 +1,4 @@
+using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Model.Persistence
@@ -48,14 +49,16 @@ namespace FlashMemo.Model.Persistence
             if (!keepInterval) 
                 Interval += timeFromNow;
         }
-        public void Postpone(TimeSpan putOffBy, bool keepInterval)
+        public void Postpone(int putOffByDays, bool keepInterval)
         {
-            Due = Due.Add(putOffBy);
+            var interval = TimeSpan.FromDays(putOffByDays);
+
+            Due = Due.Add(interval);
             LastModified = DateTime.Now;
             State = CardState.Review;
 
             if (!keepInterval) 
-                Interval += putOffBy;
+                Interval += interval;
         }
         public void Forget()
         {
@@ -64,6 +67,8 @@ namespace FlashMemo.Model.Persistence
             LastModified = DateTime.Now;
             Interval = TimeSpan.MinValue;
         }
+        public void MoveToDeck(Deck newDeck) => DeckId = newDeck.Id;
+        public void MoveToDeck(long newDeckId) => DeckId = newDeckId;
         public void SyncTagsFrom(CardEntity other)
         {
             // Current tracked tag IDs
@@ -89,6 +94,11 @@ namespace FlashMemo.Model.Persistence
                 if (!myTagIds.Contains(tag.Id))
                     Tags.Add(new Tag(tag.Id));
             }
+        }
+        public void ReplaceTagsWith(IEnumerable<Tag> newTags)
+        {
+            Tags.Clear();
+            Tags.AddRange(newTags);
         }
         #endregion
     }

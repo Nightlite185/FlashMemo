@@ -11,7 +11,7 @@ namespace FlashMemo.Services
         private readonly DeckRepo deckRepo = dr;
 
         #region Public methods
-        public async Task<IList<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
+        public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
         {
             var db = GetDb;
 

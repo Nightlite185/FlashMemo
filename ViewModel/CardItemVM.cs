@@ -4,18 +4,18 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel
 {
-    public partial class CardItemVM: ObservableObject, IViewModel
+    public partial class CardItemVM(CardEntity card): ObservableObject, IViewModel
     {
         public void NotifyUI() => CardVersion++;
 
         [ObservableProperty]
-        public partial bool IsSelected { get; set; }
+        public partial bool IsSelected { get; set; } = false;
         
         [ObservableProperty]
-        public partial bool IsDeleted { get; set; }
+        public partial bool IsDeleted { get; set; } = false;
         
         [ObservableProperty]
-        public partial CardEntity Card { get; set; }
+        public partial CardEntity Card { get; set; } = card;
 
         public string FrontContent => Card.FrontContent;
         public string BackContent => Card.BackContent ?? "";

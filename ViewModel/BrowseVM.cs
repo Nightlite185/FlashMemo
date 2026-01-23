@@ -33,10 +33,46 @@ namespace FlashMemo.ViewModel
         
         [ObservableProperty]
         public partial PopupVMBase? CurrentPopup { get; set; }
+
+        [ObservableProperty]
+        public partial CardsOrder SortOrder { get; set; }
+
+        [ObservableProperty]
+        public partial SortingDirection SortDir { get; set; }
         #endregion
         
         #region methods
-        private static void ThrowIfInvalidSelected(int selectedCount, bool throwIfNotSingle = false)
+        public void LoadUser(long userId)
+        {
+            if (loadedUserId is not null)
+                throw new InvalidOperationException(
+                "Cannot load the user second time through this VM's lifetime.");
+
+            loadedUserId = userId;
+        }
+        
+        ///<summary> FiltersVM should either fire event or call this as delegate whenever current filters change and user presses 'apply'.
+        /// Cached filters MUST be replaced with new ones as well.</summary>
+        private async Task LoadCards(Filters filters)
+        {
+            Cards.Clear();
+            
+            var newCards = await cardQueryS
+                .GetCardsWhere(filters, SortOrder, SortDir);
+
+            Cards.AddRange(newCards.TransformToVMs());
+        }
+
+        ///<summary>Call this only after loading cards from FiltersVM at least once before,
+        ///e.g. when you want to reload cards, but know that filters haven't changed.</summary>
+        private async Task ReloadCards()
+        {
+            if (cachedFilters is null)
+                throw new InvalidOperationException(
+                "Cannot reload cards since no filters were cached yet.");
+
+            await LoadCards(cachedFilters);
+        }
         {
             if (selectedCount <= 0)
                 throw new InvalidOperationException(

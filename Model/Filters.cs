@@ -5,8 +5,8 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.Model
 {
-    public class Filters // all those filter props should be in BrowseVM or even FiltersVM 
-    {                   // (on class-level bc nesting + INPC is hell).
+    public record Filters
+    {
         public Expression<Func<CardEntity, bool>> ToExpression()
         {
             Expression<Func<CardEntity, bool>> query = c => true;
@@ -26,7 +26,7 @@ namespace FlashMemo.Model
             #endregion
             
             #region collection filters
-            if (TagIds is not null && TagIds.Any())  
+            if (TagIds.Count > 0)
                 query = query.Combine(c => 
                     TagIds.Any(t => 
                         c.Tags.Select(t => t.Id)
@@ -67,12 +67,12 @@ namespace FlashMemo.Model
         public bool? IsBuried { get; init; }
         public bool? IsSuspended { get; init; }
         public bool? IsDue { get; init; }
-        public IEnumerable<long>? TagIds { get; init; } = [];
+        public IReadOnlyCollection<long> TagIds { get; init; } = [];
         public long? DeckId { get; init; }
-        public int? OverdueByDays { get; init; } // null => not chosen, 0 => due today, 1 => overdue by 1 day.
+        public int? OverdueByDays { get; init; }
         public IReadOnlySet<CardState>? States { get; init; }
         public TimeSpan? Interval { get; init; }
-        public DateTime? Created { get; init; } // everywhere with datetime I can do like int input box with 0 meaning today, -1 yesterday, and 1 meaning tmrw, Instead of some fancy-ass datetime picker.
+        public DateTime? Created { get; init; }
         public DateTime? Due { get; init; }
         public DateTime? LastReviewed { get; init; }
         public DateTime? LastModified { get; init; }

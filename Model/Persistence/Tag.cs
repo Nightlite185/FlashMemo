@@ -11,9 +11,9 @@ namespace FlashMemo.Model.Persistence
             Color = color;
             Name = name;
         }
-        public Tag(long id) => Id = id; // ctor for mapper only
+        public Tag(long id) => Id = id; // ctor for EF
         public long Id { get; set; }
-        public long? UserId { get; set; }
+        public long UserId { get; set; }
         public UserEntity User { get; set; } = null!;
         public ICollection<CardEntity> Cards { get; set; } = [];
         public string Name { get; set; } = null!;

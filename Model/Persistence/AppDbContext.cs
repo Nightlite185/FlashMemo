@@ -89,7 +89,7 @@ namespace FlashMemo.Model.Persistence
                 .HasOne(d => d.Options)
                 .WithMany(o => o.DecksUsingThis)
                 .HasForeignKey(d => d.OptionsId)
-                .OnDelete(DeleteBehavior.SetNull); // TO DO: Decide later on app behaviour when user deletes a scheduler preset
+                .OnDelete(DeleteBehavior.SetNull); // TODO: Decide later on app behaviour when user deletes a scheduler preset
                                                 // most likely set all decks that were using it to constant non-deletable default preset
             #endregion
         }

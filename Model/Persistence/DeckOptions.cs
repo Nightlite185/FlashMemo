@@ -112,7 +112,7 @@ namespace FlashMemo.Model.Persistence
             #endregion
 
             #region options
-            /* global option (not per preset). TO DO: Later figure out how to persist this bc EF ignores static 
+            /* global option (not per preset). // TODO: Later figure out how to persist this bc EF ignores static 
             and I dont wanna create a separate table just for this. Maybe belongs in UserOptions?? */
             public static bool NewIgnoreReviewLimit { get; set; } 
             public int DailyReviewsLimit { get; set; }
@@ -122,7 +122,7 @@ namespace FlashMemo.Model.Persistence
         public sealed class OrderingOpt: IDefaultable
         {
             #region defaults
-            public const LessonOrder DefLessonSortOrder = LessonOrder.Created; // TO DO: maybe also split sorting enum into review and lessons sorting.
+            public const LessonOrder DefLessonSortOrder = LessonOrder.Created;
             public const ReviewOrder DefReviewSortOrder = ReviewOrder.Due;
             public const SortingDirection DefLessonSortDir = SortingDirection.Descending;
             public const SortingDirection DefReviewSortDir = SortingDirection.Descending;

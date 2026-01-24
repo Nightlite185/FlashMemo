@@ -181,7 +181,7 @@ namespace FlashMemo.ViewModel
         /* IMPORTANT: commands that open a window -> dont get async,
         but those that directly call async internal methods and use services -> should
 
-        TO DO: Maybe encapsulate this later, along with those private callback methods, 
+        TODO: Maybe encapsulate this later, along with those private callback methods, 
         since card review VM might be using this context menu as well. */
 
         [RelayCommand]
@@ -262,7 +262,7 @@ namespace FlashMemo.ViewModel
 
             long cardId = capturedCards!.First().Card.Id;
 
-            CurrentPopup = new ManageTagsVM(
+            CurrentPopup = await ManageTagsVM.CreateAsync(
                 confirm: ChangeTags,
                 cancel: PopupCancel,
                 tagRepo, cardId,

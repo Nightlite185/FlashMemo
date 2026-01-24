@@ -29,7 +29,7 @@ namespace FlashMemo.Model.Domain
         public List<long> DeckOptionsIds { get; set; } = [];
         public List<long> TagIds { get; set; } = [];
         #endregion
-        public User Rehydrate(string username, byte[] hashedPassword, ICollection<long> deckIds, // TO DO: add settings object later
+        public User Rehydrate(string username, byte[] hashedPassword, ICollection<long> deckIds, // TODO: add settings object later
                               ICollection<long> deckOptionsIds, ICollection<long> tagIds, UserOptions options)
         {                                                                                                                                                                              
             Username = username;

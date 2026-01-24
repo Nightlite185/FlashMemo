@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
-using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 
@@ -65,7 +64,7 @@ namespace FlashMemo.ViewModel
         
         TODO: CardTags and AllTags should use a wrapper vm for notifying the UI
         bc the observable collection does not know about tag properties being changed,
-        unless the elements implement INPC, which Im gonna do here with ObservableObject attr*/
+        unless the elements implement INPC, which Im gonna do here with ObservableProperty attr*/
 
         private async Task InitializeAsync(long userId, long cardId)
         {

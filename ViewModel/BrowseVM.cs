@@ -13,17 +13,16 @@ namespace FlashMemo.ViewModel
     public partial class BrowseVM: ObservableObject, IViewModel
     {
         public BrowseVM(WindowService ws, CardRepo cr, TagRepo tr,
-        CardQueryService cqs, CardService cs, FiltersVM fVM, EditCardVM eVM)
+        CardQueryService cqs, CardService cs)
         {
             tagRepo = tr;
             cardService = cs;
             windowService = ws;
             cardQueryS = cqs;
             cardRepo = cr;
-            filtersVM = fVM;
             Cards = [];
-            editVM = eVM;
             SearchBar = "";
+            filtersVM = new(ApplyFiltersAsync);
         }
 
         #region Public properties
@@ -56,10 +55,10 @@ namespace FlashMemo.ViewModel
             loadedUserId = userId;
         }
         
-        ///<summary> FiltersVM should either fire event or call this as delegate whenever current filters change and user presses 'apply'.
-        /// Cached filters MUST be replaced with new ones as well.</summary>
-        private async Task LoadCards(Filters filters)
+        ///<summary> FiltersVM should either call this as delegate whenever current filters change and user presses 'apply'.</summary>
+        private async Task ApplyFiltersAsync(Filters filters)
         {
+            cachedFilters = filters;
             Cards.Clear();
             
             var newCards = await cardQueryS
@@ -70,13 +69,13 @@ namespace FlashMemo.ViewModel
 
         ///<summary>Call this only after loading cards from FiltersVM at least once before,
         ///e.g. when you want to reload cards, but know that filters haven't changed.</summary>
-        private async Task ReloadCards()
+        private async Task ReloadCardsAsync()
         {
             if (cachedFilters is null)
                 throw new InvalidOperationException(
                 "Cannot reload cards since no filters were cached yet.");
 
-            await LoadCards(cachedFilters);
+            await ApplyFiltersAsync(cachedFilters);
         }
         private static void ThrowIfInvalidSelected(int selectedCount, bool throwIfNotSingle = false, [CallerMemberName] string? called = null)
         {
@@ -159,7 +158,7 @@ namespace FlashMemo.ViewModel
             );
 
             if (globalTagsEdited)
-                await ReloadCards();
+                await ReloadCardsAsync();
         }
         #endregion
         
@@ -168,7 +167,7 @@ namespace FlashMemo.ViewModel
         private readonly CardQueryService cardQueryS;
         private readonly CardService cardService;
         private readonly CardRepo cardRepo;
-        private readonly FiltersVM filtersVM = null!;
+        private readonly FiltersVM filtersVM;
         private EditCardVM? editVM;
         private IReadOnlyCollection<CardItemVM>? capturedCards;
         private long? loadedUserId;

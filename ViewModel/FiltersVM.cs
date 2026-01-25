@@ -1,36 +1,53 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
+using FlashMemo.Repositories;
+using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel
 {
-    public partial class FiltersVM(Func<Filters, Task> applyFilters): ObservableObject, IViewModel
+    public sealed partial class FiltersVM(DeckTreeBuilder dtb, TagRepo tr): ObservableObject, IViewModel
     {
         #region Public binding properties
+
+        [NotifyCanExecuteChangedFor(nameof(ApplyFiltersCommand))]
+        [ObservableProperty] public partial bool IsChanged { get; private set; } //? maybe this can be priv?? idk
         public ObservableCollection<TagVM> Tags { get; set; } = [];
         public ObservableCollection<CardStateVM> States { get; set; } = [];
         [ObservableProperty] public partial bool? IsBuried { get; set; }
         [ObservableProperty] public partial bool? IsSuspended { get; set; }
         [ObservableProperty] public partial bool? IsDue { get; set; }
-        [ObservableProperty] public partial DeckNode DeckNode { get; set; }
+        [ObservableProperty] public partial ObservableCollection<DeckNode> DeckTree { get; set; }
+        [ObservableProperty] public partial DeckNode SelectedDeck { get; set; }
+        [ObservableProperty] public partial bool IncludeChildrenDecks { get; set; } //* whether to recursively include all children of the chosen deck
         [ObservableProperty] public partial TimeSpan? Interval { get; set; }
         [ObservableProperty] public partial DateTime? Due { get; set; }
         [ObservableProperty] public partial DateTime? LastReviewed { get; set; }
         [ObservableProperty] public partial DateTime? LastModified { get; set; }
-        [ObservableProperty] public partial DateTime? Created { get; set; } 
+        [ObservableProperty] public partial DateTime? Created { get; set; }
         //? everywhere with datetime I can do like int input box with 0 meaning today,
         //? -1 yesterday, and 1 meaning tmrw, Instead of some fancy datetime picker.
 
-        [ObservableProperty] public partial int? OverdueByDays { get; set; } 
+        [ObservableProperty] public partial int? OverdueByDays { get; set; }
         //* null => not chosen, 0 => due today, 1 => overdue by 1 day.
         #endregion
-
-        [RelayCommand]
+        
+        #region Icommands
+        [RelayCommand(CanExecute = nameof(IsChanged))]
         private async Task ApplyFilters()
-            => await applyFilters(TakeSnapshot());
-
+        {
+            if (applyFilters is null)
+                throw new InvalidOperationException("Tried to apply filters before calling init method on FiltersVM");
+            
+            IsChanged = false;
+            await applyFilters(TakeSnapshot());
+        }
+        #endregion
+        
+        #region Methods
         private Filters TakeSnapshot()
         {
             return new Filters()
@@ -43,11 +60,12 @@ namespace FlashMemo.ViewModel
                     .Where(vm => vm.IsSelected)
                     .Select(vm => vm.State),
 
+                IncludeChildrenDecks = IncludeChildrenDecks,
+                DeckId = SelectedDeck.Deck.Id,
                 OverdueByDays = OverdueByDays,
                 LastModified = LastModified,
                 LastReviewed = LastReviewed,
                 IsSuspended = IsSuspended,
-                DeckId = DeckNode.Deck.Id,
                 IsBuried = IsBuried,
                 Interval = Interval,
                 Created = Created,
@@ -55,7 +73,34 @@ namespace FlashMemo.ViewModel
                 Due = Due
             };
         }
+        public void Initialize(long userId, Func<Filters, Task> applyFilters)
+        {
+            if (IsInitialized)
+                throw new InvalidOperationException(
+                "Cannot initialize FiltersVM second time");
+            
+            this.applyFilters = applyFilters;
+            this.userId = userId;
+        }        
+        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
 
-        private readonly Func<Filters, Task> applyFilters = applyFilters;
+            if (e.PropertyName 
+                is not nameof(IsChanged)
+                and not nameof(Tags)
+                and not nameof(States)
+            ) 
+                IsChanged = true;
+        }
+        #endregion
+       
+        #region private things
+        private Func<Filters, Task>? applyFilters;
+        private readonly DeckTreeBuilder deckTB = dtb;
+        private readonly TagRepo tagRepo = tr;
+        private long? userId;
+        private bool IsInitialized => userId is not null && applyFilters is not null;
+        #endregion
     }
 }

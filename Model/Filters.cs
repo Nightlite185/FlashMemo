@@ -23,6 +23,10 @@ namespace FlashMemo.Model
             if (IsDue is not null)
                 query = query.Combine(c => 
                     c.Due <= DateTime.Now);
+
+            if (!IncludeChildrenDecks)
+                query = query.Combine(c => 
+                    c.DeckId == this.DeckId);
             #endregion
             
             #region collection filters
@@ -69,6 +73,7 @@ namespace FlashMemo.Model
         public bool? IsDue { get; init; }
         public IReadOnlyCollection<long> TagIds { get; init; } = [];
         public long? DeckId { get; init; }
+        public bool IncludeChildrenDecks { get; init; }
         public int? OverdueByDays { get; init; }
         public IReadOnlySet<CardState>? States { get; init; }
         public TimeSpan? Interval { get; init; }

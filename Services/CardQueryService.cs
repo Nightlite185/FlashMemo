@@ -14,11 +14,11 @@ namespace FlashMemo.Services
         public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
         {
             var db = GetDb;
-
-            var baseQuery = filters.DeckId is not null
-                ? await AllCardsInDeckQAsync((long)filters.DeckId, db)
-                : db.Cards;
+            IQueryable<CardEntity> baseQuery = db.Cards;
             
+            if (filters.IncludeChildrenDecks && filters.DeckId is not null)
+                baseQuery = await AllCardsInDeckQAsync((long)filters.DeckId, db);
+                
             var filtersQuery = filters.ToExpression();
 
             var cards = await baseQuery
@@ -168,12 +168,10 @@ namespace FlashMemo.Services
             List<long> deckIds = [];
             GetChildrenIds(deckId, deckTree, deckIds);
 
-            var query = db.Cards
-                .AsNoTracking();
-
             return db.Cards
                 .AsNoTracking()
-                .Where(c => deckIds.Contains(c.DeckId));
+                .Where(c => 
+                    deckIds.Contains(c.DeckId));
         }
         private static CardsByStateQ GroupByStateQ(IQueryable<CardEntity> baseQuery)
         {

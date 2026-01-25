@@ -10,7 +10,6 @@ namespace FlashMemo.ViewModel
         public DeckNode(Deck deck, IEnumerable<DeckNode> children, CardsCount? cc = null)
         {
             Deck = deck;
-            DeckId = deck.Id;
             Name = deck.Name;
 
             Children = [..children];
@@ -20,7 +19,7 @@ namespace FlashMemo.ViewModel
         }
         
         #region public properties
-        public long DeckId { get; init; }
+        public long DeckId => Deck.Id;
         public Deck Deck { get; init; }
         public ObservableCollection<DeckNode> Children { get; set; }
 

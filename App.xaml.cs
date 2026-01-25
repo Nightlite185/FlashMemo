@@ -45,13 +45,17 @@ namespace FlashMemo
             sc.AddTransient<ReviewVM>();
             sc.AddTransient<StatsVM>();
             sc.AddTransient<EditCardVM>();
+            sc.AddTransient<CreateCardVM>();
+            sc.AddTransient<DeckOptionsVM>();
             sc.AddTransient<DecksVM>();
             sc.AddTransient<OptionsVM>();
             sc.AddTransient<BrowseVM>();
+            sc.AddTransient<FiltersVM>();
 
             // ==== SERVICES ====
             sc.AddSingleton<WindowService>();
             sc.AddSingleton<NavigationService>();
+            sc.AddSingleton<DeckTreeBuilder>();
             sc.AddSingleton<CardService>();
             sc.AddSingleton<CardQueryService>();
             sc.AddSingleton<LearningPool>();

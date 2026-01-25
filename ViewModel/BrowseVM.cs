@@ -13,16 +13,16 @@ namespace FlashMemo.ViewModel
     public partial class BrowseVM: ObservableObject, IViewModel
     {
         public BrowseVM(WindowService ws, CardRepo cr, TagRepo tr,
-        CardQueryService cqs, CardService cs)
+        CardQueryService cqs, CardService cs, FiltersVM fvm)
         {
             tagRepo = tr;
             cardService = cs;
             windowService = ws;
             cardQueryS = cqs;
             cardRepo = cr;
+            filtersVM = fvm;
             Cards = [];
             SearchBar = "";
-            filtersVM = new(ApplyFiltersAsync);
         }
 
         #region Public properties
@@ -46,18 +46,21 @@ namespace FlashMemo.ViewModel
         #endregion
         
         #region methods
-        public void LoadUser(long userId)
+        public void Initialize(long userId)
         {
             if (loadedUserId is not null)
                 throw new InvalidOperationException(
                 "Cannot load the user second time through this VM's lifetime.");
 
+            filtersVM.Initialize(userId, ApplyFiltersAsync);
             loadedUserId = userId;
         }
         
         ///<summary> FiltersVM should either call this as delegate whenever current filters change and user presses 'apply'.</summary>
         private async Task ApplyFiltersAsync(Filters filters)
         {
+            ThrowIfNotInitialized();
+            
             cachedFilters = filters;
             Cards.Clear();
             
@@ -93,7 +96,7 @@ namespace FlashMemo.ViewModel
                 throw new InvalidOperationException(
                 $"Called {calledMember}, but there are no captured cards yet.");
         }
-        private void ThrowIfUserNotLoaded([CallerMemberName] string? caller = null)
+        private void ThrowIfNotInitialized([CallerMemberName] string? caller = null)
         {
             if (loadedUserId is null) 
                 throw new InvalidOperationException(
@@ -256,7 +259,7 @@ namespace FlashMemo.ViewModel
         [RelayCommand]
         public async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
         {
-            ThrowIfUserNotLoaded();
+            ThrowIfNotInitialized();
             CaptureSelected(throwIfNotSingle: true);
 
             long cardId = capturedCards!.First().Card.Id;

@@ -14,9 +14,10 @@ namespace FlashMemo.Model.Persistence
 
     public enum SortingDirection { Ascending, Descending }
     #endregion
-    public class DeckOptions: IDefaultable
+    public class DeckOptions: IDefaultable, IEquatable<DeckOptions>
     {
         public DeckOptions(){} // ctor for EF
+        public static DeckOptions Default { get; } = CreateDefault("Default");
         public static DeckOptions CreateDefault(string name) // Factory for default preset
         {
             DeckOptions o = new()
@@ -45,7 +46,7 @@ namespace FlashMemo.Model.Persistence
             DailyLimits.ToDefault();
             Sorting.ToDefault();   
         }
-        
+
         #region sub-options properties
         public SchedulingOpt Scheduling { get; set; } = null!;
         public DailyLimitsOpt DailyLimits { get; set; } = null!;
@@ -53,7 +54,7 @@ namespace FlashMemo.Model.Persistence
         #endregion
 
         #region options sub-classes
-        public sealed class SchedulingOpt: IDefaultable
+        public sealed class SchedulingOpt: IDefaultable, IEquatable<SchedulingOpt>
         {
             #region defaults
             public const float DefGoodMultiplier = 2.0f;
@@ -84,7 +85,7 @@ namespace FlashMemo.Model.Persistence
                 HardOnNewStage = DefHardOnNewStage;
             }
             #endregion
-            
+
             #region options
             public float GoodMultiplier { get; set; }
             public float EasyMultiplier { get; set; }
@@ -96,8 +97,44 @@ namespace FlashMemo.Model.Persistence
             public int EasyOnNewDayCount { get; set; }
             public int HardOnNewStage { get; set; }
             #endregion
+
+            public bool Equals(SchedulingOpt? other)
+            {
+                return other is not null
+                    && GoodMultiplier == other.GoodMultiplier
+                    && EasyMultiplier == other.EasyMultiplier
+                    && HardMultiplier == other.HardMultiplier
+                    && AgainDayCount == other.AgainDayCount
+                    && LearningStages.SequenceEqual(other.LearningStages)
+                    && AgainStageFallback == other.AgainStageFallback
+                    && GoodOnNewStage == other.GoodOnNewStage
+                    && EasyOnNewDayCount == other.EasyOnNewDayCount
+                    && HardOnNewStage == other.HardOnNewStage;
+            }
+
+            public override bool Equals(object? obj)
+                => Equals(obj as SchedulingOpt);
+
+            public override int GetHashCode()
+            {
+                HashCode hash = new();
+
+                foreach (var stage in LearningStages)
+                    hash.Add(stage);
+
+                hash.Add(GoodMultiplier);
+                hash.Add(EasyMultiplier);
+                hash.Add(HardMultiplier);
+                hash.Add(AgainDayCount);
+                hash.Add(AgainStageFallback);
+                hash.Add(GoodOnNewStage);
+                hash.Add(EasyOnNewDayCount);
+                hash.Add(HardOnNewStage);
+
+                return hash.ToHashCode();
+            }
         }
-        public sealed class DailyLimitsOpt: IDefaultable
+        public sealed class DailyLimitsOpt: IDefaultable, IEquatable<DailyLimitsOpt>
         {
             #region defaults
             public const bool DefNewIgnoreReviewLimit = true;
@@ -105,7 +142,7 @@ namespace FlashMemo.Model.Persistence
             public const int DefDailyLessonsLimit = 10;
             public void ToDefault()
             {
-                NewIgnoreReviewLimit = DefNewIgnoreReviewLimit;
+                // NewIgnoreReviewLimit = DefNewIgnoreReviewLimit;
                 DailyReviewsLimit = DefDailyReviewsLimit;
                 DailyLessonsLimit = DefDailyLessonsLimit;
             }
@@ -114,12 +151,26 @@ namespace FlashMemo.Model.Persistence
             #region options
             /* global option (not per preset). // TODO: Later figure out how to persist this bc EF ignores static 
             and I dont wanna create a separate table just for this. Maybe belongs in UserOptions?? */
-            public static bool NewIgnoreReviewLimit { get; set; } 
+            // public static bool NewIgnoreReviewLimit { get; set; }
             public int DailyReviewsLimit { get; set; }
             public int DailyLessonsLimit { get; set; }
             #endregion
+
+            public bool Equals(DailyLimitsOpt? other)
+            {
+                return other is not null
+                    && DailyReviewsLimit == other.DailyReviewsLimit
+                    && DailyLessonsLimit == other.DailyLessonsLimit;
+            }
+            public override bool Equals(object? obj)
+                => Equals(obj as DailyLimitsOpt);
+
+            public override int GetHashCode() => HashCode.Combine(
+                DailyReviewsLimit, 
+                DailyLessonsLimit
+            );
         }
-        public sealed class OrderingOpt: IDefaultable
+        public sealed class OrderingOpt: IDefaultable, IEquatable<OrderingOpt>
         {
             #region defaults
             public const LessonOrder DefLessonSortOrder = LessonOrder.Created;
@@ -145,8 +196,45 @@ namespace FlashMemo.Model.Persistence
             public SortingDirection ReviewsSortDir { get; set; }
             public SortingDirection LessonsSortDir { get; set; }
             public CardStateOrder CardStateOrder { get; set; }
+
             #endregion
+            public bool Equals(OrderingOpt? other)
+            {
+                return other is not null 
+                    && LessonsOrder == other.LessonsOrder
+                    && ReviewsOrder == other.ReviewsOrder
+                    && ReviewsSortDir == other.ReviewsSortDir
+                    && LessonsSortDir == other.LessonsSortDir
+                    && CardStateOrder == other.CardStateOrder;
+            }
+            public override bool Equals(object? obj)
+                => Equals(obj as OrderingOpt);
+
+            public override int GetHashCode() => HashCode.Combine(
+                LessonsOrder,
+                ReviewsOrder,
+                ReviewsSortDir,
+                LessonsSortDir,
+                CardStateOrder
+            );
         }
+        #endregion
+    
+        #region Equality
+        public bool Equals(DeckOptions? other)
+        {
+            if (other is null) return false;
+
+            return DailyLimits.Equals(other.DailyLimits)
+                && Scheduling.Equals(other.Scheduling)
+                && Sorting.Equals(other.Sorting);
+        }
+
+        public override bool Equals(object? obj)
+            => obj is DeckOptions o && this.Equals(o);
+        
+        public override int GetHashCode()
+            => HashCode.Combine(Scheduling, DailyLimits, Sorting);
         #endregion
     }
 }

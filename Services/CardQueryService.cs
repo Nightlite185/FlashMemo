@@ -6,9 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CardQueryService(IDbContextFactory<AppDbContext> factory, DeckRepo dr): DbDependentClass(factory)
+public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo dr)
+    : DbDependentClass(factory), ICardQueryService
 {
-    private readonly DeckRepo deckRepo = dr;
+    private readonly IDeckRepo deckRepo = dr;
 
     #region Public methods
     public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
@@ -95,8 +96,6 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, DeckRepo 
         return await cardsQuery.ToListAsync();
     }
     
-    ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
-    ///containing count of cards grouped by their state.</returns>
     public async Task<IDictionary<long, CardsCount>> CountCardsAsync(IEnumerable<long> deckIds, bool countOnlyStudyable)
     {
         var db = GetDb;

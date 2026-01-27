@@ -9,7 +9,7 @@ namespace FlashMemo.ViewModel.PopupVMs;
 public partial class ManageTagsVM: PopupVMBase
 {
     private ManageTagsVM(Func<IEnumerable<Tag>, bool, Task> confirm, 
-        Action cancel, TagRepo tr, long cardId, long userId): base(cancel)
+        Action cancel, ITagRepo tr, long cardId, long userId): base(cancel)
     {
         this.confirm = confirm;
         this.tagRepo = tr;
@@ -36,7 +36,7 @@ public partial class ManageTagsVM: PopupVMBase
     } 
     private readonly long cardId;
     private readonly long userId;
-    private readonly TagRepo tagRepo;
+    private readonly ITagRepo tagRepo;
     private readonly Func<IEnumerable<Tag>, bool, Task> confirm;
     public readonly ObservableCollection<Tag> CardTags = [];
     public readonly ObservableCollection<Tag> AllTags = [];
@@ -44,7 +44,7 @@ public partial class ManageTagsVM: PopupVMBase
 
     public override async Task Confirm() => await confirm(CardTags, globalTagsEdited);
     public async static Task<ManageTagsVM> CreateAsync(Func<IEnumerable<Tag>, bool, Task> confirm, 
-        Action cancel, TagRepo tr, long cardId, long userId)
+        Action cancel, ITagRepo tr, long cardId, long userId)
     {
         ManageTagsVM vm = new(
             confirm, cancel, tr,

@@ -15,8 +15,8 @@ namespace FlashMemo.ViewModel.WindowVMs;
 
 partial class BrowseVM: ObservableObject, IViewModel
 {
-    public BrowseVM(WindowService ws, CardRepo cr, TagRepo tr,
-    CardQueryService cqs, CardService cs, FiltersVM fvm)
+    public BrowseVM(IWindowService ws, ICardRepo cr, ITagRepo tr,
+    ICardQueryService cqs, ICardService cs, FiltersVM fvm)
     {
         tagRepo = tr;
         cardService = cs;
@@ -170,15 +170,15 @@ partial class BrowseVM: ObservableObject, IViewModel
     #endregion
     
     #region private things
-    private readonly WindowService windowService;
-    private readonly CardQueryService cardQueryS;
-    private readonly CardService cardService;
-    private readonly CardRepo cardRepo;
+    private readonly IWindowService windowService;
+    private readonly ICardQueryService cardQueryS;
+    private readonly ICardService cardService;
+    private readonly ICardRepo cardRepo;
     private readonly FiltersVM filtersVM;
     private EditCardVM? editVM;
     private IReadOnlyCollection<CardItemVM>? capturedCards;
     private long? loadedUserId;
-    private readonly TagRepo tagRepo;
+    private readonly ITagRepo tagRepo;
     private Filters? cachedFilters;
     #endregion
 

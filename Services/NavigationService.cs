@@ -3,7 +3,7 @@ using FlashMemo.ViewModel.WindowVMs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
-public class NavigationService(IServiceProvider isp, MainVM vm)
+public class NavigationService(IServiceProvider isp, MainVM vm): INavigationService
 {
     private readonly IServiceProvider sp = isp;
     private readonly MainVM mainVM = vm;

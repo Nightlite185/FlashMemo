@@ -6,7 +6,7 @@ using FlashMemo.ViewModel.BaseVMs;
 
 namespace FlashMemo.ViewModel.WindowVMs;
 
-public partial class EditCardVM(CardService cs, TagRepo tr): EditorVMBase(cs, tr), IViewModel
+public partial class EditCardVM(ICardService cs, ITagRepo tr): EditorVMBase(cs, tr), IViewModel
 {
     #region public properties
     #endregion

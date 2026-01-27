@@ -5,13 +5,12 @@ using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
-using FlashMemo.ViewModel.WindowVMs;
 
 namespace FlashMemo.ViewModel.BaseVMs;
 
 public abstract partial class EditorVMBase: ObservableObject, ICloseRequest
 {
-    public EditorVMBase(CardService cs, TagRepo tr)
+    public EditorVMBase(ICardService cs, ITagRepo tr)
     {
         cardService = cs;
         tagRepo = tr;
@@ -54,14 +53,14 @@ public abstract partial class EditorVMBase: ObservableObject, ICloseRequest
     #endregion
 
     #region protected things
-    protected readonly CardService cardService;
+    protected readonly ICardService cardService;
     
     [ObservableProperty]
     protected partial CardEntity? card { get; set; }
 
     protected bool Initialized 
         => card is not null && userId is not null;
-    protected readonly TagRepo tagRepo;
+    protected readonly ITagRepo tagRepo;
     protected long? userId;
     #endregion
     

@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
 
-public class WindowService(IServiceProvider sp)
+public class WindowService(IServiceProvider sp): IWindowService
 {
     private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
     {
@@ -40,7 +40,6 @@ public class WindowService(IServiceProvider sp)
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TViewModel).Name}>");
             
     }
-
     private static void WireEvents(IViewModel vm, Window win)
     {
         if (vm is ICloseRequest closable)

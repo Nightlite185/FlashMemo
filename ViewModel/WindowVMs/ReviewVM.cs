@@ -10,7 +10,7 @@ namespace FlashMemo.ViewModel.WindowVMs;
     
 public partial class ReviewVM: ObservableObject, IViewModel
 {
-    public ReviewVM(WindowService ws, CardService cs, CardQueryService cqs)
+    public ReviewVM(IWindowService ws, ICardService cs, ICardQueryService cqs)
     {
         windowService = ws;
         cardService = cs;
@@ -113,9 +113,9 @@ public partial class ReviewVM: ObservableObject, IViewModel
     #endregion
 
     #region private things
-    private readonly WindowService windowService;
-    private readonly CardService cardService;
-    private readonly CardQueryService cardQuery;
+    private readonly IWindowService windowService;
+    private readonly ICardService cardService;
+    private readonly ICardQueryService cardQuery;
     private readonly LearningPool learningPool;
     private Stack<CardEntity> cards = null!;
     private readonly DispatcherTimer timer = null!;

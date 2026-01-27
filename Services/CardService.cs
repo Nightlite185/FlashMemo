@@ -5,12 +5,10 @@ using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
-public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper): DbDependentClass(factory)
+public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper): DbDependentClass(factory), ICardService
 {
     private readonly IMapper mapper = mapper;
     
-    /// <summary>Deck needs to be included in cardEntity argument; otherwise this won't work</summary>
-    /// <returns>reviewed card's new state</returns>
     public async Task<CardState> ReviewCardAsync(long cardId, Answers answer, TimeSpan answerTime)
     {
         var db = GetDb;
@@ -40,8 +38,6 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         
         return domainCard.State;
     }
-    
-    ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
     public async Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null)
     {
         bool dbProvided = db is not null;

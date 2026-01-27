@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Repositories;
     
-public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
+public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory), IDeckRepo
 {
     ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
     public async Task SaveEditedDeckAsync(Deck updated)

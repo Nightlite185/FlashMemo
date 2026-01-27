@@ -1,11 +1,11 @@
-using System.Windows.Navigation;
 using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.WindowVMs;
 
-public partial class MainVM(NavigationService ns): ObservableObject, IViewModel
+public partial class MainVM(INavigationService ns): ObservableObject, IViewModel
 {
     [ObservableProperty]
     public partial IViewModel CurrentVM { get; set; }
-    private readonly NavigationService navService = ns;
+    private readonly INavigationService navService = ns;
 }

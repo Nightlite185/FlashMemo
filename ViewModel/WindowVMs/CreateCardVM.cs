@@ -4,7 +4,7 @@ using FlashMemo.ViewModel.BaseVMs;
 
 namespace FlashMemo.ViewModel.WindowVMs;
 
-public partial class CreateCardVM(CardService cs, TagRepo tr) : EditorVMBase(cs, tr), IViewModel
+public partial class CreateCardVM(ICardService cs, ITagRepo tr) : EditorVMBase(cs, tr), IViewModel
 {
     
 }

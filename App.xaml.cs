@@ -7,9 +7,9 @@ using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
 using FlashMemo.Services;
 using FlashMemo.Repositories;
+using FlashMemo.ViewModel.WindowVMs;
 
-namespace FlashMemo
-{
+namespace FlashMemo;
     public partial class App : Application
     {
         private static ServiceProvider SP { get; } = null!;
@@ -62,9 +62,11 @@ namespace FlashMemo
             sc.AddAutoMapper(typeof(App));
 
             // ==== REPOS ====
+            sc.AddSingleton<DeckOptionsRepo>();
             sc.AddSingleton<DeckRepo>();
             sc.AddSingleton<TagRepo>();
             sc.AddSingleton<CardRepo>();
+            sc.AddSingleton<UserRepo>();
 
             // ==== DB CONTEXT ====
             sc.AddDbContext<AppDbContext>(o => 
@@ -76,4 +78,4 @@ namespace FlashMemo
         }
     }
 
-}
+

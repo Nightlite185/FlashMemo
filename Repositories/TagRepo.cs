@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Repositories;
 
-public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory)
+public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ITagRepo
 {
     public async Task<IEnumerable<Tag>> GetFromUserAsync(long userId)
     {

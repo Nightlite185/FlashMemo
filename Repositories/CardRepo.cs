@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Repositories;
 
-public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory)
+public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory), ICardRepo
 {
     public async Task DeleteCards(IEnumerable<CardEntity> cards)
     {

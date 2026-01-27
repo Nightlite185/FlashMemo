@@ -6,10 +6,10 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.WrapperVMs;
 
-namespace FlashMemo.ViewModel
-{
-    public sealed partial class FiltersVM(DeckTreeBuilder dtb, TagRepo tr): ObservableObject, IViewModel
+namespace FlashMemo.ViewModel;
+    public sealed partial class FiltersVM(DeckTreeBuilder dtb, ITagRepo tr): ObservableObject, IViewModel
     {
         #region Public binding properties
 
@@ -98,9 +98,8 @@ namespace FlashMemo.ViewModel
         #region private things
         private Func<Filters, Task>? applyFilters;
         private readonly DeckTreeBuilder deckTB = dtb;
-        private readonly TagRepo tagRepo = tr;
+        private readonly ITagRepo tagRepo = tr;
         private long? userId;
         private bool IsInitialized => userId is not null && applyFilters is not null;
         #endregion
     }
-}

@@ -4,10 +4,10 @@ using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.Services;
 
-public class DeckTreeBuilder(DeckRepo dr, CardQueryService cqs)
+public class DeckTreeBuilder(IDeckRepo dr, ICardQueryService cqs)
 {
-    private readonly CardQueryService cardQueryS = cqs;
-    private readonly DeckRepo deckRepo = dr;
+    private readonly ICardQueryService cardQueryS = cqs;
+    private readonly IDeckRepo deckRepo = dr;
 
     public async Task<IEnumerable<DeckNode>> BuildAsync(long userId)
     {

@@ -35,5 +35,5 @@ public interface IUserRepo
 
 public interface IDeckOptionsRepo
 {
-    
+    public Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
 }

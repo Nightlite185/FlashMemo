@@ -13,7 +13,7 @@ public class WindowService(IServiceProvider sp): IWindowService
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
         [typeof(EditCardVM)] = typeof(EditWindow),
-        [typeof(OptionsVM)] = typeof(OptionsWindow),
+        [typeof(UserOptionsVM)] = typeof(OptionsWindow),
     }.AsReadOnly();
     private readonly IServiceProvider sp = sp;
 

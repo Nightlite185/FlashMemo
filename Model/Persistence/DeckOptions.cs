@@ -1,8 +1,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FlashMemo.Model.Persistence
-{   
+namespace FlashMemo.Model.Persistence;   
     #region enums
     public enum CardStateOrder { NewThenReviews, ReviewsThenNew, Mix }
 
@@ -237,4 +236,3 @@ namespace FlashMemo.Model.Persistence
             => HashCode.Combine(Scheduling, DailyLimits, Sorting);
         #endregion
     }
-}

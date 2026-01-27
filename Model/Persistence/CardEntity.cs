@@ -1,8 +1,7 @@
 using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 
-namespace FlashMemo.Model.Persistence
-{
+namespace FlashMemo.Model.Persistence;
     public interface IEntity { long Id { get; set; } }
     public class CardEntity(): IEntity
     {
@@ -102,4 +101,3 @@ namespace FlashMemo.Model.Persistence
         }
         #endregion
     }
-}

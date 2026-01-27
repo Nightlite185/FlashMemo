@@ -1,8 +1,7 @@
-namespace FlashMemo.Helpers
+namespace FlashMemo.Helpers;
+
+public static class IdGetter
 {
-    public static class IdGetter
-    {
-        public static long Next() 
-            => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-    }
+    public static long Next() 
+        => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 }

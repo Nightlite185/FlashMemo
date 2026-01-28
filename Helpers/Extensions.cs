@@ -28,11 +28,15 @@ public static class Extensions
             col.Add(item);
     }
 
-    public static IEnumerable<CardItemVM> TransformToVMs(this IEnumerable<CardEntity> cards)
+    public static IEnumerable<CardItemVM> ToVMs(this IEnumerable<CardEntity> cards)
         => cards.Select(c => new CardItemVM(c));
 
-    public static IEnumerable<CardEntity> TransformToCards(this IEnumerable<CardItemVM> cardsVMs)
+    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<CardItemVM> cardsVMs)
         => cardsVMs.Select(vm => vm.Card);
+
+    public static IEnumerable<TagVM> ToVMs(this IEnumerable<Tag> tags)
+        => tags.Select(t => new TagVM(t));
+    
     public static void GenerateNewId (this IEntity entity)
     {
         entity.Id = DateTimeOffset

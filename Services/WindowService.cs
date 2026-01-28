@@ -12,8 +12,11 @@ public class WindowService(IServiceProvider sp): IWindowService
     private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
+        [typeof(MainVM)] = typeof(MainWindow),
         [typeof(EditCardVM)] = typeof(EditWindow),
-        [typeof(UserOptionsVM)] = typeof(OptionsWindow),
+        [typeof(UserOptionsVM)] = typeof(OptionsWindow)
+        //[typeof(DeckOptionsVM)] = typeof(DeckOptionsWindow),
+        //[typeof(ChooseUserVM)] = typeof(ChooseUserWindow),
     }.AsReadOnly();
     private readonly IServiceProvider sp = sp;
 
@@ -45,7 +48,7 @@ public class WindowService(IServiceProvider sp): IWindowService
         if (vm is ICloseRequest closable)
             closable.OnCloseRequest += win.Close;
 
-        if (vm is IOnLoadedHandler loadHandlerVM)
+        if (vm is ILoadedHandlerAsync loadHandlerVM)
             win.Loaded += (_, _) => loadHandlerVM.LoadEventHandler();
     }
 }

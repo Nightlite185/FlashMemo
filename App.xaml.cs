@@ -35,7 +35,7 @@ namespace FlashMemo;
             ServiceCollection sc = new();
 
             // ==== WINDOWS ====
-            sc.AddSingleton<MainWindow>();
+            sc.AddSingleton<MainWindow>(); //TODO: decide if transient: bc you can change user mid-session, and app needs to reload main window accordingly OR singleton and win coexists with the user changing win.
             sc.AddTransient<BrowseWindow>();
             sc.AddTransient<OptionsWindow>();
             sc.AddTransient<EditWindow>();

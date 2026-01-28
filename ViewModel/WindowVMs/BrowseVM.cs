@@ -71,7 +71,7 @@ partial class BrowseVM: ObservableObject, IViewModel
             .GetCardsWhere(filters, SortOrder, SortDir);
 
         Cards.AddRange(
-            newCards.TransformToVMs());
+            newCards.ToVMs());
     }
 
     ///<summary>Call this only after loading cards from FiltersVM at least once before,

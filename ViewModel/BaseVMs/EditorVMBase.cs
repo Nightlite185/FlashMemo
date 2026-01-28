@@ -31,6 +31,7 @@ public abstract partial class EditorVMBase: ObservableObject, ICloseRequest
     #endregion
 
     #region methods
+    [Obsolete("to replace with a factory instead")]
     public virtual async Task Initialize(CardEntity card, long currentUserId)
     {
         this.card = card;

@@ -25,6 +25,8 @@ public sealed partial class DeckOptionsVM(IDeckOptionsRepo repo, IMapper mapper)
     #endregion
 
     #region methods
+    
+    [Obsolete("to replace with a factory instead")]
     public override async Task Initialize(long userId,
         [CallerMemberName] string? caller = null,
         [CallerFilePath] string? file = null)

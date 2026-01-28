@@ -33,7 +33,7 @@ namespace FlashMemo.Model.Persistence
                 }
         }
         
-        [Obsolete()]
+        [Obsolete]
         public Deck Duplicate(int? HighestCopyNum)
         {
             if (HighestCopyNum <= 0) throw new ArgumentOutOfRangeException(nameof(HighestCopyNum));

@@ -30,10 +30,16 @@ public interface ITagRepo
 
 public interface IUserRepo
 {
-    
+    public Task<ICollection<UserEntity>> GetAllAsync();
+    public Task<UserEntity> GetByIdAsync(long userId);
+    public Task Remove(long userId);
+    public Task SaveEdited(UserEntity edited);
 }
 
 public interface IDeckOptionsRepo
 {
     public Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
+    public Task Remove(long presetId);
+    public Task AddNew(DeckOptions options);
+    public Task SaveEditedPreset(DeckOptions edited);
 }

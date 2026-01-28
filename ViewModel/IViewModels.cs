@@ -4,9 +4,9 @@ public interface ICloseRequest
 {
     public event Action? OnCloseRequest;
 }
-public interface IOnLoadedHandler
+public interface ILoadedHandlerAsync
 {
-    public void LoadEventHandler();
+    public Task LoadEventHandler();
 }
 
 public interface IViewModel;

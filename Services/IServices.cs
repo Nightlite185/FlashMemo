@@ -2,6 +2,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
+using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.Services;
 
@@ -38,4 +39,10 @@ public interface INavigationService
 public interface IWindowService
 {
     public void ShowDialog<TViewModel>() where TViewModel: IViewModel;
+}
+
+public interface IUserVMBuilder
+{
+    public Task<IEnumerable<UserVM>> BuildAllAsync();
+    public Task<UserVM> BuildByIdAsync(long userId);
 }

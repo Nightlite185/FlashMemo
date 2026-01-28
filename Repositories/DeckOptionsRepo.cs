@@ -15,4 +15,19 @@ public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory)
             .Where(x => x.UserId == userId)
             .ToArrayAsync();
     }
+
+    public Task Remove(long presetId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddNew(DeckOptions options)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveEditedPreset(DeckOptions edited)
+    {
+        throw new NotImplementedException();
+    }
 }

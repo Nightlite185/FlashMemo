@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using FlashMemo.Services;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.WindowVMs;
+using FlashMemo.ViewModel.VMFactories;
 
 namespace FlashMemo;
     public partial class App : Application
@@ -52,6 +53,12 @@ namespace FlashMemo;
             sc.AddTransient<BrowseVM>();
             sc.AddTransient<FiltersVM>();
 
+            // ==== VM FACTORIES ====
+            sc.AddSingleton<DeckOptionsVMF>();
+            sc.AddSingleton<ManageTagsVMF>();
+            sc.AddSingleton<FiltersVMF>();
+            sc.AddSingleton<BrowseVMF>();
+
             // ==== SERVICES ====
             sc.AddSingleton<WindowService>();
             sc.AddSingleton<NavigationService>();
@@ -59,6 +66,7 @@ namespace FlashMemo;
             sc.AddSingleton<CardService>();
             sc.AddSingleton<CardQueryService>();
             sc.AddSingleton<LearningPool>();
+            sc.AddSingleton<UserVMBuilder>();
             sc.AddAutoMapper(typeof(App));
 
             // ==== REPOS ====

@@ -7,9 +7,9 @@ using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.ViewModel.PopupVMs;
 
-public partial class ManageTagsVM: PopupVMBase
+public sealed class ManageTagsVM: PopupVMBase
 {
-    private ManageTagsVM(Func<IEnumerable<Tag>, bool, Task> confirm, 
+    private ManageTagsVM(Func<IEnumerable<Tag>, bool, Task> confirm,
         Action cancel, ITagRepo tr, long cardId, long userId): base(cancel)
     {
         this.confirm = confirm;
@@ -37,9 +37,11 @@ public partial class ManageTagsVM: PopupVMBase
     private readonly Func<IEnumerable<Tag>, bool, Task> confirm;
     public readonly ObservableCollection<TagVM> CardTags = [];
     public readonly ObservableCollection<TagVM> AllTags = [];
-    private bool globalTagsEdited = false;
+    private bool globalTagsEdited;
 
     public override async Task Confirm() => await confirm(CardTags.Select(vm => vm.ToEntity()), globalTagsEdited);
+    
+    [Obsolete("to replace with a factory instead")]
     public async static Task<ManageTagsVM> CreateAsync(Func<IEnumerable<Tag>, bool, Task> confirm, 
         Action cancel, ITagRepo tr, long cardId, long userId)
     {
@@ -47,7 +49,7 @@ public partial class ManageTagsVM: PopupVMBase
             confirm, cancel, tr,
             cardId, userId
         );
-        
+
         await vm.InitializeAsync(userId, cardId);
         return vm;
     }

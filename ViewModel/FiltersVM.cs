@@ -73,6 +73,7 @@ namespace FlashMemo.ViewModel;
                 Due = Due
             };
         }
+        [Obsolete("to replace with a factory instead")]
         public void Initialize(long userId, Func<Filters, Task> applyFilters)
         {
             if (IsInitialized)

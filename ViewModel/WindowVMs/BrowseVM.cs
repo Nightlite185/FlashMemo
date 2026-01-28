@@ -49,6 +49,8 @@ partial class BrowseVM: ObservableObject, IViewModel
     #endregion
     
     #region methods
+
+    [Obsolete("to replace with a factory instead")]
     public void Initialize(long userId)
     {
         if (loadedUserId is not null)
@@ -100,6 +102,7 @@ partial class BrowseVM: ObservableObject, IViewModel
             throw new InvalidOperationException(
             $"Called {calledMember}, but there are no captured cards yet.");
     }
+    [Obsolete("to replace with a factory instead")]
     private void ThrowIfNotInitialized([CallerMemberName] string? caller = null)
     {
         if (loadedUserId is null) 

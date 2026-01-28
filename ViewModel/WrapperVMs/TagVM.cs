@@ -1,7 +1,7 @@
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.Helpers;
 
 namespace FlashMemo.ViewModel.WrapperVMs;
 
@@ -16,13 +16,13 @@ public partial class TagVM(Tag tag): ObservableObject, IViewModel
     private readonly Tag tag = tag;
 
     [ObservableProperty]
-    public partial Color Color { get; set; }
+    public partial Color Color { get; set; } = tag.IntColor.ToColor();
     
     [ObservableProperty]
-    public partial string Name { get; set; }
+    public partial string Name { get; set; } = tag.Name;
 
     [ObservableProperty]
-    public partial bool IsSelected { get; set; }
+    public partial bool IsSelected { get; set; } = false;
 
     public long Id => tag.Id;
     public long UserId => tag.UserId;
@@ -30,17 +30,8 @@ public partial class TagVM(Tag tag): ObservableObject, IViewModel
     public Tag ToEntity()
     {
         tag.Name = this.Name;
-        // TODO convert color to int here
+        tag.IntColor = this.Color.ToInt();
 
         return tag;
     }
-}
-
-public partial class CardStateVM: ObservableObject
-{
-    [ObservableProperty]
-    public partial CardState State { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsSelected { get; set; }
 }

@@ -8,7 +8,7 @@ namespace FlashMemo.Model.Persistence
         {
             Id = IdGetter.Next();
             
-            Color = color;
+            IntColor = color;
             Name = name;
         }
         public Tag(long id) => Id = id; // ctor for EF
@@ -17,7 +17,7 @@ namespace FlashMemo.Model.Persistence
         public UserEntity User { get; set; } = null!;
         public ICollection<CardEntity> Cards { get; set; } = [];
         public string Name { get; set; } = null!;
-        public int Color { get; set; }
+        public int IntColor { get; set; }
         
         #region equality
         public override bool Equals(object? obj)

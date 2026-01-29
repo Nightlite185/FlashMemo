@@ -32,10 +32,7 @@ where TOptions: IDefaultable, IEquatable<TOptions>
     {
         get
         {
-            ThrowIfNotInitialized();
-
-            return cachedPersisted!
-                .Equals(DefaultOptions);
+            return cachedPersisted!.Equals(DefaultOptions);
         }
     }
     public bool IsDraftDefault

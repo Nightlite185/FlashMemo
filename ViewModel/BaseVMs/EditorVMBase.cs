@@ -5,87 +5,65 @@ using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.ViewModel.BaseVMs;
 
 public abstract partial class EditorVMBase: ObservableObject, ICloseRequest
 {
-    public EditorVMBase(ICardService cs, ITagRepo tr)
+    internal EditorVMBase(ICardService cs, ITagRepo tr, ICardRepo cr, long cardId)
     {
+        this.cardId = cardId;
         cardService = cs;
         tagRepo = tr;
-
-        Tags = [];
-        AllTags = [];
+        cardRepo = cr;
     }
 
     #region public properties
-    [ObservableProperty]
-    public partial string FrontContent { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string BackContent { get; set; } = "";
-
-    public ObservableCollection<Tag> Tags { get; init; }
-    public ObservableCollection<Tag> AllTags { get; init; }
+    public CardItemVM CardVM { get; protected set; } = null!; // factory sets this by calling initialize()
+    public CardEntity LastSavedCard { get; protected set; } = null!;
+    public ObservableCollection<TagVM> Tags { get; init; } = [];
     #endregion
 
     #region methods
-    [Obsolete("to replace with a factory instead")]
-    public virtual async Task Initialize(CardEntity card, long currentUserId)
+    internal virtual async Task Initialize()
     {
-        this.card = card;
-        this.userId = currentUserId;
-        
-        Tags.Clear(); // clearing for safety, just in case.
-        Tags.AddRange(card.Tags);
+        LastSavedCard = await cardRepo.GetCard(cardId);
+        CardVM = new(LastSavedCard);
 
-        AllTags.Clear(); // here too
+        var tags = await tagRepo.GetFromCardAsync(cardId);
 
-        AllTags.AddRange(await tagRepo
-            .GetFromUserAsync(currentUserId));
+        if (Tags.Count > 0) throw new InvalidOperationException(
+            "Cannot initialize Tags collection because it already had elements in it.");
+
+        Tags.AddRange(tags.ToVMs());
     }
-    protected virtual void ThrowIfNotInitialized(string calledMember)
-    {
-        if (!Initialized) throw new InvalidOperationException(
-            $"Tried to call {nameof(calledMember)} without calling {nameof(Initialize)}() first"
-        );
-    }
+
     #endregion
 
     #region protected things
     protected readonly ICardService cardService;
-    
-    [ObservableProperty]
-    protected partial CardEntity? card { get; set; }
-
-    protected bool Initialized 
-        => card is not null && userId is not null;
+    protected long cardId;
     protected readonly ITagRepo tagRepo;
-    protected long? userId;
+    protected readonly ICardRepo cardRepo;
+    protected long userId;
     #endregion
     
     #region ICommands
     [RelayCommand]
     protected virtual async Task SaveChanges()
     {
-        ThrowIfNotInitialized(nameof(SaveChanges));
-
-        card!.Tags = [..Tags];
-        card!.FrontContent = FrontContent;
-        card!.BackContent = BackContent;
+        var card = CardVM.ToEntity();
+        card.ReplaceTagsWith(Tags.ToEntities());
 
         await cardService.SaveEditedCard(card, CardAction.Modify);
 
         OnCloseRequest?.Invoke();
     }
 
-    [RelayCommand]
-    protected virtual void CancelChanges() // cancels changes and closes the editor grid/window
-    {
-        ThrowIfNotInitialized(nameof(CancelChanges));
-        OnCloseRequest?.Invoke();
-    }
+    [RelayCommand] // cancels changes and closes the editor grid/window
+    protected virtual void CancelChanges() => OnCloseRequest?.Invoke();
+
     #endregion
     public event Action? OnCloseRequest;
 }

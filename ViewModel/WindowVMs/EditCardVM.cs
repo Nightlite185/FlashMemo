@@ -21,13 +21,12 @@ public partial class EditCardVM(ICardService cs, ITagRepo tr): EditorVMBase(cs, 
     [RelayCommand]
     private void RevertChanges() // only reverts the vm-made changes to what the card was.
     {
-        ThrowIfNotInitialized(nameof(RevertChanges));
+        CardVM.FrontContent = LastSavedCard.FrontContent;
+        CardVM.BackContent = LastSavedCard.BackContent ?? "";
 
-        FrontContent = card!.FrontContent;
-        BackContent = card!.BackContent ?? "";
-        
         Tags.Clear();
-        Tags.AddRange(card!.Tags);
-    }
-    #endregion
-}
+        Tags.AddRange(card.Tags); // TODO: figure this out, if user edited tags in ManageTagsVM,
+                                  //todo LastSavedCard.Tags is obsolete -> load new tags for old ids from tag repo.
+    }                             //! btw wtf am i even doing, this is supposed to be an abstraction of editor
+    #endregion                    //! but Im implementing features for both creator and editor, its abstracted cleanly.
+}                                 // TODO: refactor this to actually make sense. ^^^

@@ -9,24 +9,25 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.BaseVMs;
 using FlashMemo.ViewModel.PopupVMs;
+using FlashMemo.ViewModel.VMFactories;
 using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.ViewModel.WindowVMs; 
 
 public partial class BrowseVM: ObservableObject, IViewModel
 {
-    internal BrowseVM(IWindowService ws, ICardRepo cr, ITagRepo tr,
+    internal BrowseVM(IWindowService ws, ICardRepo cr, ManageTagsVMF mtVMF,
     ICardQueryService cqs, ICardService cs, FiltersVM fvm, long userId)
     {
-        tagRepo = tr;
+        manageTagsVMF = mtVMF;
         cardService = cs;
         windowService = ws;
         cardQueryS = cqs;
         cardRepo = cr;
         filtersVM = fvm;
+        loadedUserId = userId;
         Cards = [];
         SearchBar = "";
-        loadedUserId = userId;
     }
 
     #region Public properties
@@ -160,10 +161,10 @@ public partial class BrowseVM: ObservableObject, IViewModel
     private readonly ICardService cardService;
     private readonly ICardRepo cardRepo;
     private readonly FiltersVM filtersVM;
+    private readonly ManageTagsVMF manageTagsVMF;
     private EditCardVM? editVM;
     private IReadOnlyCollection<CardItemVM>? capturedCards;
     private long loadedUserId;
-    private readonly ITagRepo tagRepo;
     private Filters? cachedFilters;
     #endregion
 
@@ -252,11 +253,10 @@ public partial class BrowseVM: ObservableObject, IViewModel
 
         long cardId = capturedCards!.First().Card.Id;
 
-        CurrentPopup = await ManageTagsVM.CreateAsync(
+        CurrentPopup = await manageTagsVMF.CreateAsync(
             confirm: ChangeTags,
             cancel: PopupCancel,
-            tagRepo, cardId,
-            loadedUserId
+            cardId, loadedUserId
         );
     }
     

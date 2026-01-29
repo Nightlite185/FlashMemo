@@ -9,7 +9,7 @@ namespace FlashMemo.ViewModel.PopupVMs;
 
 public sealed class ManageTagsVM: PopupVMBase
 {
-    private ManageTagsVM(Func<IEnumerable<Tag>, bool, Task> confirm,
+    internal ManageTagsVM(Func<IEnumerable<Tag>, bool, Task> confirm,
         Action cancel, ITagRepo tr, long cardId, long userId): base(cancel)
     {
         this.confirm = confirm;
@@ -23,7 +23,7 @@ public sealed class ManageTagsVM: PopupVMBase
     //! when editing global tags, you MUST flip the globalTagsEdited bool to true
     //* so the BrowseVM reloads everything that used tags.
 
-    private async Task InitializeAsync(long userId, long cardId)
+    internal async Task InitializeAsync(long userId, long cardId)
     {
         var cardTags = await tagRepo.GetFromCardAsync(cardId);
         var allTags = await tagRepo.GetFromUserAsync(userId);
@@ -39,18 +39,7 @@ public sealed class ManageTagsVM: PopupVMBase
     public readonly ObservableCollection<TagVM> AllTags = [];
     private bool globalTagsEdited;
 
-    public override async Task Confirm() => await confirm(CardTags.Select(vm => vm.ToEntity()), globalTagsEdited);
-    
-    [Obsolete("to replace with a factory instead")]
-    public async static Task<ManageTagsVM> CreateAsync(Func<IEnumerable<Tag>, bool, Task> confirm, 
-        Action cancel, ITagRepo tr, long cardId, long userId)
-    {
-        ManageTagsVM vm = new(
-            confirm, cancel, tr,
-            cardId, userId
-        );
-
-        await vm.InitializeAsync(userId, cardId);
-        return vm;
-    }
+    public override async Task Confirm() 
+        => await confirm(CardTags.Select(vm => vm.ToEntity()), 
+        globalTagsEdited);
 }

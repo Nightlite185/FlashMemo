@@ -9,7 +9,9 @@ using FlashMemo.Services;
 using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.ViewModel;
-    public sealed partial class FiltersVM(DeckTreeBuilder dtb, ITagRepo tr): ObservableObject, IViewModel
+    public sealed partial class FiltersVM(
+        DeckTreeBuilder dtb, ITagRepo tr,
+        long userId): ObservableObject, IViewModel
     {
         #region Public binding properties
 
@@ -39,9 +41,6 @@ namespace FlashMemo.ViewModel;
         [RelayCommand(CanExecute = nameof(IsChanged))]
         private async Task ApplyFilters()
         {
-            if (applyFilters is null)
-                throw new InvalidOperationException("Tried to apply filters before calling init method on FiltersVM");
-            
             IsChanged = false;
             await applyFilters(TakeSnapshot());
         }
@@ -73,21 +72,17 @@ namespace FlashMemo.ViewModel;
                 Due = Due
             };
         }
-        [Obsolete("to replace with a factory instead")]
-        public void Initialize(long userId, Func<Filters, Task> applyFilters)
+        internal async Task Initialize(Func<Filters, Task> applyFilters)
         {
-            if (IsInitialized)
-                throw new InvalidOperationException(
-                "Cannot initialize FiltersVM second time");
-            
             this.applyFilters = applyFilters;
-            this.userId = userId;
-        }        
+
+            // TODO: load the initial deck tree, tags, etc. & others needed in UI async. 
+        }
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
 
-            if (e.PropertyName 
+            if (e.PropertyName // todo refactor this
                 is not nameof(IsChanged)
                 and not nameof(Tags)
                 and not nameof(States)
@@ -97,10 +92,9 @@ namespace FlashMemo.ViewModel;
         #endregion
        
         #region private things
-        private Func<Filters, Task>? applyFilters;
+        private Func<Filters, Task> applyFilters = null!;
         private readonly DeckTreeBuilder deckTB = dtb;
         private readonly ITagRepo tagRepo = tr;
-        private long? userId;
-        private bool IsInitialized => userId is not null && applyFilters is not null;
+        private long userId = userId;
         #endregion
     }

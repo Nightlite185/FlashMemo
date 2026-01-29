@@ -13,10 +13,10 @@ using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.ViewModel.WindowVMs; 
 
-partial class BrowseVM: ObservableObject, IViewModel
+public partial class BrowseVM: ObservableObject, IViewModel
 {
-    public BrowseVM(IWindowService ws, ICardRepo cr, ITagRepo tr,
-    ICardQueryService cqs, ICardService cs, FiltersVM fvm)
+    internal BrowseVM(IWindowService ws, ICardRepo cr, ITagRepo tr,
+    ICardQueryService cqs, ICardService cs, FiltersVM fvm, long userId)
     {
         tagRepo = tr;
         cardService = cs;
@@ -26,6 +26,7 @@ partial class BrowseVM: ObservableObject, IViewModel
         filtersVM = fvm;
         Cards = [];
         SearchBar = "";
+        loadedUserId = userId;
     }
 
     #region Public properties
@@ -49,23 +50,10 @@ partial class BrowseVM: ObservableObject, IViewModel
     #endregion
     
     #region methods
-
-    [Obsolete("to replace with a factory instead")]
-    public void Initialize(long userId)
-    {
-        if (loadedUserId is not null)
-            throw new InvalidOperationException(
-            "Cannot load the user second time through this VM's lifetime.");
-
-        filtersVM.Initialize(userId, ApplyFiltersAsync);
-        loadedUserId = userId;
-    }
     
     ///<summary> FiltersVM should either call this as delegate whenever current filters change and user presses 'apply'.</summary>
-    private async Task ApplyFiltersAsync(Filters filters)
+    internal async Task ApplyFiltersAsync(Filters filters)
     {
-        ThrowIfNotInitialized();
-        
         cachedFilters = filters;
         Cards.Clear();
         
@@ -102,13 +90,7 @@ partial class BrowseVM: ObservableObject, IViewModel
             throw new InvalidOperationException(
             $"Called {calledMember}, but there are no captured cards yet.");
     }
-    [Obsolete("to replace with a factory instead")]
-    private void ThrowIfNotInitialized([CallerMemberName] string? caller = null)
-    {
-        if (loadedUserId is null) 
-            throw new InvalidOperationException(
-            $"Called {caller} without loading the user first.");
-    }
+
     private void CaptureSelected(bool throwIfNotSingle = false)
     {
         if (capturedCards is not null)
@@ -180,7 +162,7 @@ partial class BrowseVM: ObservableObject, IViewModel
     private readonly FiltersVM filtersVM;
     private EditCardVM? editVM;
     private IReadOnlyCollection<CardItemVM>? capturedCards;
-    private long? loadedUserId;
+    private long loadedUserId;
     private readonly ITagRepo tagRepo;
     private Filters? cachedFilters;
     #endregion
@@ -266,7 +248,6 @@ partial class BrowseVM: ObservableObject, IViewModel
     [RelayCommand]
     public async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
     {
-        ThrowIfNotInitialized();
         CaptureSelected(throwIfNotSingle: true);
 
         long cardId = capturedCards!.First().Card.Id;
@@ -275,7 +256,7 @@ partial class BrowseVM: ObservableObject, IViewModel
             confirm: ChangeTags,
             cancel: PopupCancel,
             tagRepo, cardId,
-            (long)loadedUserId!
+            loadedUserId
         );
     }
     

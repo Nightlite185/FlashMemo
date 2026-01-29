@@ -114,12 +114,12 @@ public partial class BrowseVM: ObservableObject, IViewModel
 
         foreach (var vm in capturedCards!)
         {
-            cardModifier(vm.Card);
+            cardModifier(vm.ToEntity());
             vm.NotifyUI();
         }
 
         await cardService.SaveEditedCards(
-            capturedCards.Select(vm => vm.Card),
+            capturedCards.ToEntities(),
             cardAction
         );
     }
@@ -243,7 +243,7 @@ public partial class BrowseVM: ObservableObject, IViewModel
         }
         
         await cardRepo.DeleteCards(
-            capturedCards.Select(vm => vm.Card));
+            capturedCards.Select(vm => vm.ToEntity()));
     }
 
     [RelayCommand]
@@ -251,7 +251,9 @@ public partial class BrowseVM: ObservableObject, IViewModel
     {
         CaptureSelected(throwIfNotSingle: true);
 
-        long cardId = capturedCards!.First().Card.Id;
+        long cardId = capturedCards!
+            .First()
+            .ToEntity().Id;
 
         CurrentPopup = await manageTagsVMF.CreateAsync(
             confirm: ChangeTags,

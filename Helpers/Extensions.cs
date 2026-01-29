@@ -31,11 +31,14 @@ public static class Extensions
     public static IEnumerable<CardItemVM> ToVMs(this IEnumerable<CardEntity> cards)
         => cards.Select(c => new CardItemVM(c));
 
-    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<CardItemVM> cardsVMs)
-        => cardsVMs.Select(vm => vm.Card);
-
     public static IEnumerable<TagVM> ToVMs(this IEnumerable<Tag> tags)
         => tags.Select(t => new TagVM(t));
+
+    public static IEnumerable<Tag> ToEntities(this IEnumerable<TagVM> tags)
+        => tags.Select(t => t.ToEntity());
+
+    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<CardItemVM> cards)
+        => cards.Select(c => c.ToEntity());
     
     public static void GenerateNewId (this IEntity entity)
     {

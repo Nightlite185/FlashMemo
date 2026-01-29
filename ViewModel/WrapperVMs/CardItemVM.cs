@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel.WindowVMs;
 
 namespace FlashMemo.ViewModel.WrapperVMs;
 
@@ -15,14 +14,27 @@ public partial class CardItemVM(CardEntity card): ObservableObject, IViewModel
     [ObservableProperty]
     public partial bool IsDeleted { get; set; } = false;
     
-    [ObservableProperty]
-    public partial CardEntity Card { get; set; } = card;
+    private readonly CardEntity card = card;
 
-    public string FrontContent => Card.FrontContent;
-    public string BackContent => Card.BackContent ?? "";
-    public Deck Deck => Card.Deck;
-    public CardState CardState => Card.State;
-    public int DayInterval => (int)Card.Interval.TotalDays;
+    [ObservableProperty]
+    public partial string FrontContent { get; set; } = card.FrontContent;
+    
+    [ObservableProperty]
+    public partial string BackContent { get; set; } = card.BackContent ?? "";
+    public Deck Deck => card.Deck;
+    public CardState CardState => card.State;
+    public int DayInterval => (int)card.Interval.TotalDays;
+
+    public CardEntity ToEntity()
+    {
+        card.FrontContent = FrontContent;
+        
+        card.BackContent = BackContent.Length == 0
+            ? null
+            : BackContent;
+
+        return card;
+    }
 
     
     [ObservableProperty]

@@ -6,7 +6,7 @@ namespace FlashMemo.Repositories;
 public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory) 
     : DbDependentClass(dbFactory), IDeckOptionsRepo
 {
-    public async Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId)
+    public async Task<IEnumerable<DeckOptionsEntity>> GetAllFromUser(long userId)
     {
         var db = GetDb;
 
@@ -16,17 +16,30 @@ public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory)
             .ToArrayAsync();
     }
 
-    public Task Remove(long presetId)
+    public async Task Remove(long presetId)
+    {
+        // id -1 here means that its default preset
+        if (presetId == -1) throw new InvalidOperationException(
+            "Cannot delete default deck options preset.");
+
+        var db = GetDb;
+
+        await db.DeckOptions
+            .Where(x => x.Id == presetId)
+            .ExecuteDeleteAsync();
+
+        await db.Decks
+            .Where(d => d.OptionsId == presetId)
+            .ExecuteUpdateAsync(async s =>
+                s.SetProperty(d => d.OptionsId, -1));
+    }
+
+    public async Task AddNew(DeckOptionsEntity options)
     {
         throw new NotImplementedException();
     }
 
-    public Task AddNew(DeckOptions options)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task SaveEditedPreset(DeckOptions edited)
+    public async Task SaveEditedPreset(DeckOptionsEntity edited)
     {
         throw new NotImplementedException();
     }

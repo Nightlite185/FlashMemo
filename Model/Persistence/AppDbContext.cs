@@ -6,7 +6,7 @@ namespace FlashMemo.Model.Persistence
     {
         public DbSet<CardEntity> Cards { get; set; }
         public DbSet<Deck> Decks { get; set; }
-        public DbSet<DeckOptions> DeckOptions { get; set; }
+        public DbSet<DeckOptionsEntity> DeckOptions { get; set; }
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<CardLog> CardLogs { get; set; }
@@ -15,13 +15,20 @@ namespace FlashMemo.Model.Persistence
         {
             base.OnModelCreating(mb);
 
-            #region Tables naming and don't generate PK
+            DefineTables(mb);
+            ConfigureDeletion(mb);
+            DefineAutoIncludes(mb);
+            DefineDefaultEntries(mb);
+        }
+
+        private static void DefineTables(ModelBuilder mb)
+        {
             mb.Entity<CardEntity>()
                 .ToTable("Cards")
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
-            mb.Entity<DeckOptions>(mb =>
+            mb.Entity<DeckOptionsEntity>(mb =>
             {
                 mb.ToTable("DeckOptions")
                 .Property(c => c.Id)
@@ -56,19 +63,9 @@ namespace FlashMemo.Model.Persistence
                 .ToTable("CardLogs")
                 .Property(cl => cl.Id)
                 .ValueGeneratedNever();
-            #endregion
-
-            #region auto includes
-            // mb.Entity<DeckEntity>()
-            //     .Navigation(d => d.Cards)
-            //     .AutoInclude();
-
-            // mb.Entity<CardEntity>()
-            //     .Navigation(c => c.Tags)
-            //     .AutoInclude();
-            #endregion
-            
-            #region cascade deletion
+        }
+        private static void ConfigureDeletion(ModelBuilder mb)
+        {
             mb.Entity<CardEntity>()
                 .HasOne(c => c.Deck)
                 .WithMany(d => d.Cards)
@@ -91,7 +88,21 @@ namespace FlashMemo.Model.Persistence
                 .HasForeignKey(d => d.OptionsId)
                 .OnDelete(DeleteBehavior.SetNull); // TODO: Decide later on app behaviour when user deletes a scheduler preset
                                                 // most likely set all decks that were using it to constant non-deletable default preset
-            #endregion
+        }
+        private static void DefineAutoIncludes(ModelBuilder mb)
+        {
+            // mb.Entity<Deck>()
+            //     .Navigation(d => d.Cards)
+            //     .AutoInclude();
+
+            // mb.Entity<CardEntity>()
+            //     .Navigation(c => c.Tags)
+            //     .AutoInclude();
+        }
+        private static void DefineDefaultEntries(ModelBuilder mb)
+        {
+            mb.Entity<DeckOptionsEntity>()
+                .HasData(Persistence.DeckOptionsEntity.Default);
         }
     }
 }

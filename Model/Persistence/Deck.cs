@@ -10,7 +10,7 @@ namespace FlashMemo.Model.Persistence
         public DateTime Created { get; set; }
         public long UserId { get; set; }
         public long OptionsId { get; set; }
-        public DeckOptions Options { get; set; } = null!;
+        public DeckOptionsEntity Options { get; set; } = null!;
         public UserEntity User { get; set; } = null!;
         public ICollection<CardEntity> Cards { get; set; } = [];
         public ICollection<Deck> ChildrenDecks { get; set; } = [];

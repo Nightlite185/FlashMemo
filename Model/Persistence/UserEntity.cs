@@ -10,6 +10,6 @@ namespace FlashMemo.Model.Persistence
         public ICollection<Deck> Decks { get; set; } = [];
         public ICollection<Tag> Tags { get; set; } = [];
         public ICollection<CardLog> Logs { get; set; } = [];
-        public ICollection<DeckOptions> DeckOptions { get; set; } = [];
+        public ICollection<DeckOptionsEntity> DeckOptions { get; set; } = [];
     }
 }

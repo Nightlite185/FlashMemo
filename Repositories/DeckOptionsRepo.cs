@@ -35,12 +35,17 @@ public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     public async Task AddNew(DeckOptionsEntity options)
-    {
+    {        
         throw new NotImplementedException();
     }
 
     public async Task SaveEditedPreset(DeckOptionsEntity edited)
     {
+        //! IMPORTANT: REMEMBER TO DO THIS:
+        // tracked.Scheduling ??= new DeckOptionsEntity.Scheduling();
+        // tracked.DailyLimits ??= new DeckOptionsEntity.DailyLimits();
+        // tracked.Sorting ??= new DeckOptionsEntity.Ordering();
+
         throw new NotImplementedException();
     }
 }

@@ -38,8 +38,8 @@ public interface IUserRepo
 
 public interface IDeckOptionsRepo
 {
-    public Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
+    public Task<IEnumerable<DeckOptionsEntity>> GetAllFromUser(long userId);
     public Task Remove(long presetId);
-    public Task AddNew(DeckOptions options);
-    public Task SaveEditedPreset(DeckOptions edited);
+    public Task AddNew(DeckOptionsEntity options);
+    public Task SaveEditedPreset(DeckOptionsEntity edited);
 }

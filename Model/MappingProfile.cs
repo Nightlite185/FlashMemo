@@ -10,24 +10,44 @@ namespace FlashMemo.Model;
     {
         public MappingProfile()
         {
+            #region Misc mapping
             CreateMap<Card, CardEntity>();
             CreateMap<CardEntity, Card>();
 
             CreateMap<Filters, FiltersVM>();
             CreateMap<FiltersVM, Filters>();
 
+            CreateMap<UserOptions, UserOptionsVM>();
+            CreateMap<UserOptionsVM, UserOptions>();
+            #endregion
+
+            #region Deck options (VM <-> record)
             CreateMap<DeckOptionsVM, DeckOptions>();
             CreateMap<DeckOptions, DeckOptionsVM>();
 
-            CreateMap<OrderingOptVM, DeckOptions.OrderingOpt>();
-            CreateMap<SchedulingOptVM, DeckOptions.SchedulingOpt>();
-            CreateMap<DailyLimitsOptVM, DeckOptions.DailyLimitsOpt>();
+            CreateMap<OrderingOptVM, DeckOptions.Ordering>();
+            CreateMap<SchedulingOptVM, DeckOptions.Scheduling>();
+            CreateMap<DailyLimitsOptVM, DeckOptions.DailyLimits>();
 
-            CreateMap<DeckOptions.OrderingOpt, OrderingOptVM>();
-            CreateMap<DeckOptions.SchedulingOpt, SchedulingOptVM>();
-            CreateMap<DeckOptions.DailyLimitsOpt, DailyLimitsOptVM>();
+            CreateMap<DeckOptions.Ordering, OrderingOptVM>();
+            CreateMap<DeckOptions.Scheduling, SchedulingOptVM>();
+            CreateMap<DeckOptions.DailyLimits, DailyLimitsOptVM>();
+            #endregion
 
-            CreateMap<UserOptions, UserOptionsVM>();
-            CreateMap<UserOptionsVM, UserOptions>();
+            #region Deck options (entity <-> record)
+            CreateMap<DeckOptionsEntity, DeckOptions>();
+
+            CreateMap<DeckOptions, DeckOptionsEntity>()
+                .ForMember(x => x.DecksUsingThis, o => o.Ignore())
+                .ForMember(x => x.User, o => o.Ignore());
+
+            CreateMap<DeckOptions.Ordering, DeckOptionsEntity.Ordering>();
+            CreateMap<DeckOptions.Scheduling, DeckOptionsEntity.Scheduling>();
+            CreateMap<DeckOptions.DailyLimits, DeckOptionsEntity.DailyLimits>();
+
+            CreateMap<DeckOptionsEntity.Ordering, DeckOptions.Ordering>();
+            CreateMap<DeckOptionsEntity.Scheduling, DeckOptions.Scheduling>();
+            CreateMap<DeckOptionsEntity.DailyLimits, DeckOptions.DailyLimits>();
+            #endregion
         }
     }

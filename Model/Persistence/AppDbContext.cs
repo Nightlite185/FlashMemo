@@ -28,16 +28,16 @@ namespace FlashMemo.Model.Persistence
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
-            mb.Entity<DeckOptionsEntity>(mb =>
+            mb.Entity<DeckOptionsEntity>((Action<Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<DeckOptionsEntity>>)(mb =>
             {
                 mb.ToTable("DeckOptions")
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
                 mb.OwnsOne(d => d.Scheduling);
-                mb.OwnsOne(d => d.DailyLimits);
-                mb.OwnsOne(d => d.Sorting);
-            });
+                mb.OwnsOne((System.Linq.Expressions.Expression<Func<DeckOptionsEntity, DeckOptionsEntity.DailyLimits?>>)(d => d.DailyLimits));
+                mb.OwnsOne(d => d.Ordering_);
+            }));
 
             mb.Entity<Deck>()
                 .ToTable("Decks")

@@ -10,7 +10,7 @@ using AutoMapper;
 
 namespace FlashMemo.ViewModel.WindowVMs;
 
-public sealed partial class DeckOptionsVM(IDeckOptionsRepo repo, IMapper mapper): OptionsVMBase<DeckOptions>(mapper), IViewModel
+public sealed partial class DeckOptionsVM(IDeckOptionsRepo repo, IMapper mapper): OptionsVMBase<DeckOptionsEntity>(mapper), IViewModel
 {
     #region public properties
     [ObservableProperty] 
@@ -21,7 +21,7 @@ public sealed partial class DeckOptionsVM(IDeckOptionsRepo repo, IMapper mapper)
 
     [ObservableProperty] 
     public partial SchedulingOptVM SchedulingVM { get; set; }
-    public readonly ObservableCollection<DeckOptions> allPresets = [];
+    public readonly ObservableCollection<DeckOptionsEntity> allPresets = [];
     #endregion
 
     #region methods
@@ -45,7 +45,7 @@ public sealed partial class DeckOptionsVM(IDeckOptionsRepo repo, IMapper mapper)
 
     #region private things
     private readonly IDeckOptionsRepo deckOptRepo = repo;
-    protected override DeckOptions DefaultOptions => DeckOptions.Default;
+    protected override DeckOptionsEntity DefaultOptions => DeckOptionsEntity.Default;
     #endregion
 
     #region ICommands

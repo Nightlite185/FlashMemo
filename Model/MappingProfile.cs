@@ -38,7 +38,7 @@ namespace FlashMemo.Model;
             CreateMap<DeckOptionsEntity, DeckOptions>();
 
             CreateMap<DeckOptions, DeckOptionsEntity>()
-                .ForMember(x => x.DecksUsingThis, o => o.Ignore())
+                .ForMember(x => x.Decks, o => o.Ignore())
                 .ForMember(x => x.User, o => o.Ignore());
 
             CreateMap<DeckOptions.Ordering, DeckOptionsEntity.Ordering>();

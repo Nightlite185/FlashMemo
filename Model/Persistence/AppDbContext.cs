@@ -28,16 +28,16 @@ namespace FlashMemo.Model.Persistence
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
-            mb.Entity<DeckOptionsEntity>((Action<Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<DeckOptionsEntity>>)(mb =>
+            mb.Entity<DeckOptionsEntity>(mb =>
             {
                 mb.ToTable("DeckOptions")
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
-                mb.OwnsOne(d => d.Scheduling);
-                mb.OwnsOne((System.Linq.Expressions.Expression<Func<DeckOptionsEntity, DeckOptionsEntity.DailyLimits?>>)(d => d.DailyLimits));
+                mb.OwnsOne(d => d.Scheduling_);
+                mb.OwnsOne(d => d.DailyLimits_);
                 mb.OwnsOne(d => d.Ordering_);
-            }));
+            });
 
             mb.Entity<Deck>()
                 .ToTable("Decks")
@@ -84,7 +84,7 @@ namespace FlashMemo.Model.Persistence
 
             mb.Entity<Deck>()
                 .HasOne(d => d.Options)
-                .WithMany(o => o.DecksUsingThis)
+                .WithMany(o => o.Decks)
                 .HasForeignKey(d => d.OptionsId)
                 .OnDelete(DeleteBehavior.SetNull); // TODO: Decide later on app behaviour when user deletes a scheduler preset
                                                 // most likely set all decks that were using it to constant non-deletable default preset
@@ -102,7 +102,7 @@ namespace FlashMemo.Model.Persistence
         private static void DefineDefaultEntries(ModelBuilder mb)
         {
             mb.Entity<DeckOptionsEntity>()
-                .HasData(Persistence.DeckOptionsEntity.Default);
+                .HasData(Domain.DeckOptions.Default);
         }
     }
 }

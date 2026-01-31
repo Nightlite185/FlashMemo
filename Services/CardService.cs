@@ -20,7 +20,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         ArgumentNullException.ThrowIfNull(cardEntity.Deck, nameof(cardEntity.Deck));
 
         var domainCard = mapper.Map<Card>(cardEntity);
-        var options = cardEntity.Deck.Options.Scheduling;
+        var options = cardEntity.Deck.Options.Scheduling_;
 
         domainCard.Schedule(answer, options);
         
@@ -38,12 +38,14 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         
         return domainCard.State;
     }
+    ///<summary>Updates scalars, FKs, and syncs tags.<summary>
     public async Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null)
     {
         bool dbProvided = db is not null;
         db ??= GetDb;
         
         var tracked = await db.Cards
+            .Include(c => c.Tags)
             .SingleAsync(c => c.Id == updated.Id);
 
         db.Entry(tracked).CurrentValues
@@ -59,6 +61,8 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         if (!dbProvided) 
             await db.SaveChangesAsync();
     }
+    
+    ///<summary>Updates scalars, FKs, and syncs tags.<summary>
     public async Task SaveEditedCards(IEnumerable<CardEntity> updatedCards, CardAction action)
     {
         var db = GetDb;

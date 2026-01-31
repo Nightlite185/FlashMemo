@@ -1,3 +1,4 @@
+using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Repositories;
@@ -38,8 +39,9 @@ public interface IUserRepo
 
 public interface IDeckOptionsRepo
 {
-    public Task<IEnumerable<DeckOptionsEntity>> GetAllFromUser(long userId);
+    public Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
     public Task Remove(long presetId);
-    public Task AddNew(DeckOptionsEntity options);
-    public Task SaveEditedPreset(DeckOptionsEntity edited);
+    public Task CreateNew(DeckOptions newRecord);
+    public Task SaveEditedPreset(DeckOptions updatedRecord);
+    public Task AssignToDecks(IEnumerable<long> deckIds, long newPresetId = -1);
 }

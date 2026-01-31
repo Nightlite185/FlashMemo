@@ -22,6 +22,7 @@ public record class DeckOptions
     public long Id { get; init; }
     public string Name { get; init; } = null!;
     public long UserId { get; init; }
+    public ImmutableArray<long> Decks { get; init; }
     
     #region sub-options properties
     public Scheduling Scheduling_ { get; init; } = null!;

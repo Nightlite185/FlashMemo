@@ -8,7 +8,6 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     public async Task DeleteCards(IEnumerable<CardEntity> cards)
     {
         var db = GetDb;
-
         db.Cards.RemoveRange(cards);
 
         await db.SaveChangesAsync();
@@ -19,7 +18,6 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         var db = GetDb;
 
         await db.Cards.AddAsync(card);
-
         await db.SaveChangesAsync();
     }
 

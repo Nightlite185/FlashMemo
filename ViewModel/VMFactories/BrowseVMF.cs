@@ -1,3 +1,4 @@
+using FlashMemo.Helpers;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.WindowVMs;
@@ -27,7 +28,9 @@ public class BrowseVMF(
 
         await filtersVM.Initialize(bvm.ApplyFiltersAsync);
 
-        // TODO: load the initial cards in browse VM here
+        //* pre-filling cards in BrowseVM with all user's cards
+        var allCards = await cardQueryS.GetAllFromUser(userId);
+        bvm.Cards.AddRange(allCards.ToVMs());
 
         return bvm;
     }

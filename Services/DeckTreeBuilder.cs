@@ -22,7 +22,7 @@ public class DeckTreeBuilder(IDeckRepo dr, ICardQueryService cqs)
             .BuildDeckLookupAsync(userId);
 
         var cardsCount = await cardQueryS
-            .CountCardsAsync(
+            .CardsByState(
                 userId, 
                 countOnlyStudyable: true
             );

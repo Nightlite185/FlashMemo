@@ -6,6 +6,12 @@ using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.Services;
 
+public interface ICountingService
+{
+    public Task<int> AllCards(long userId);
+    public Task<int> AllDecks(long userId);
+    public Task<int> AllReviewableCards(long userId);
+}
 public interface ICardQueryService
 {
     public Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir);
@@ -15,8 +21,8 @@ public interface ICardQueryService
 
     ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
     ///containing count of cards grouped by their state.</returns>
-    public Task<IDictionary<long, CardsCount>> CountCardsAsync(IEnumerable<long> deckIds, bool countOnlyStudyable);
-    public Task<IDictionary<long, CardsCount>> CountCardsAsync(long userId, bool countOnlyStudyable);
+    public Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable);
+    public Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable);
 }
 
 public interface ICardService

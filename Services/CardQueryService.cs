@@ -96,7 +96,8 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
         return await cardsQuery.ToListAsync();
     }
     
-    public async Task<IDictionary<long, CardsCount>> CountCardsAsync(IEnumerable<long> deckIds, bool countOnlyStudyable)
+    [Obsolete("Use CardCounter's equivalent method instead")]
+    public async Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable)
     {
         var db = GetDb;
         Dictionary<long, CardsCount> result = [];
@@ -107,8 +108,8 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
 
             if (countOnlyStudyable)
                 allCardsQuery = allCardsQuery
-                    .Where(c => !c.IsSuspended && !c.IsBuried && c.IsDueNow); // IMPORTANT PLACE deciding if decks are loaded
-                                                                                // based on due NOW IN THIS SECOND or due TODAY
+                    .Where(c => !c.IsSuspended && !c.IsBuried && c.IsDueNow); //! IMPORTANT PLACE deciding if decks are loaded
+                                                                                //! based on due NOW IN THIS SECOND or due TODAY
             var grouped = GroupByStateQ(allCardsQuery);
             var counted = await CountByStateAsync(grouped);
 
@@ -121,7 +122,8 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
         
         return result;
     }
-    public async Task<IDictionary<long, CardsCount>> CountCardsAsync(long userId, bool countOnlyStudyable)
+    [Obsolete("Use CardCounter's equivalent method instead")]
+    public async Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable)
     {
         var db = GetDb;
 
@@ -130,12 +132,11 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
             .Select(d => d.Id)
             .ToArrayAsync();
 
-        return await CountCardsAsync(
+        return await CardsByState(
             deckIds,
             countOnlyStudyable
         );
     }
-    
     #endregion
     
     #region Private helpers || Q in member names stands for Query
@@ -198,7 +199,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
     private async static Task<CardsByState> SortAndLimitAsync(Deck rootDeck, CardsByStateQ grouped)
     {
         var sortOpt = rootDeck.Options.Ordering_;
-        var limitsOpt = rootDeck.Options.DailyLimits;
+        var limitsOpt = rootDeck.Options.DailyLimits_;
 
         var learning = await grouped.Learning
             .OrderBy(c => c.Due)

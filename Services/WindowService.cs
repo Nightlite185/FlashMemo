@@ -2,13 +2,15 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
+using FlashMemo.ViewModel.VMFactories;
 using FlashMemo.ViewModel.WindowVMs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
 
-public class WindowService(IServiceProvider sp): IWindowService
+public class WindowService(IServiceProvider sp, BrowseVMF browseVMF): IWindowService
 {
+    private readonly BrowseVMF browseVMF = browseVMF;
     private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
@@ -26,6 +28,19 @@ public class WindowService(IServiceProvider sp): IWindowService
         
         var win = (Window)sp.GetRequiredService(windowType);
         var vm = sp.GetRequiredService<TViewModel>();
+        
+        // TODO: get VMs from factories instead of sp for proper initialization 
+
+        SetDataCtx(vm, win);
+        WireEvents(vm, win);
+
+        win.ShowDialog();
+    }
+
+    public async Task ShowBrowseWindow(long userId)
+    {
+        var vm = await browseVMF.CreateAsync(userId);
+        var win = sp.GetRequiredService<BrowseWindow>();
 
         SetDataCtx(vm, win);
         WireEvents(vm, win);

@@ -10,9 +10,10 @@ public partial class UserVM: ObservableObject, IViewModel
         this.user = user;
         Name = user.Name;
 
+        ReadyForReview = stats.ReadyForReview;
         DeckCount = stats.DeckCount;
         CardCount = stats.CardCount;
-        ReadyForReview = stats.ReadyForReview;
+        Created = stats.Created;
     }
 
     private readonly UserEntity user;
@@ -31,6 +32,10 @@ public partial class UserVM: ObservableObject, IViewModel
     
     [ObservableProperty]
     public partial int ReadyForReview { get; private set; }
+
+    [ObservableProperty]
+    public partial DateTime Created { get; private set; }
+
     #endregion
 
     public UserEntity ToEntity()
@@ -45,4 +50,5 @@ public readonly struct UserVMStats
     public readonly int DeckCount { get; init; }
     public readonly int CardCount { get; init; }
     public readonly int ReadyForReview { get; init; }
+    public readonly DateTime Created { get; init; }
 }

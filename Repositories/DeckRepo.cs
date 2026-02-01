@@ -40,11 +40,9 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     {
         var db = GetDb;
 
-        var deckEntity = await db.Decks
+        return await db.Decks
             .AsNoTracking()
             .SingleAsync(d => d.Id == id);
-
-        return deckEntity;
     }
     public async Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null)
     {
@@ -57,5 +55,36 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
         return decks.ToLookup(
             d => d.ParentDeckId);
+    }
+    
+    // if any duplicates -> change IList to hashset. 99% sure there won't be any tho
+    private static void GetChildrenIds(long deckId, ILookup<long?, Deck> deckTree, IList<long> result)
+    {
+        result.Add(deckId);
+
+        var children = deckTree[deckId];
+        
+        if (!children.Any())
+            return;
+        
+        foreach (var deck in children)
+            GetChildrenIds(deck.Id, deckTree, result);
+    }
+    public async Task<IEnumerable<long>> GetChildrenIds(long deckId)
+    {
+        var db = GetDb;
+
+        var userId = await db.Decks
+            .Where(d => d.Id == deckId)
+            .Select(d => d.UserId)
+            .SingleAsync();
+
+        var deckTree = await
+            BuildDeckLookupAsync(userId, db);
+
+        List<long> childrenIds = [];
+
+        GetChildrenIds(deckId, deckTree, childrenIds);
+        return childrenIds;
     }
 }

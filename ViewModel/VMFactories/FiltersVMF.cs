@@ -3,9 +3,9 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.VMFactories;
 
-public class FiltersVMF (DeckTreeBuilder dtb, ITagRepo tr)
+public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr)
 {
-    private readonly DeckTreeBuilder deckTreeBuilder = dtb;
+    private readonly IDeckTreeBuilder deckTreeBuilder = dtb;
     private readonly ITagRepo tagRepo = tr;
     public FiltersVM Create(long userId)
     {

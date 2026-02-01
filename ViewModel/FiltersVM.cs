@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.ViewModel;
     public sealed partial class FiltersVM(
-        DeckTreeBuilder dtb, ITagRepo tr,
+        IDeckTreeBuilder dtb, ITagRepo tr,
         long userId): ObservableObject, IViewModel
     {
         #region Public binding properties
@@ -93,7 +93,7 @@ namespace FlashMemo.ViewModel;
        
         #region private things
         private Func<Filters, Task> applyFilters = null!;
-        private readonly DeckTreeBuilder deckTB = dtb;
+        private readonly IDeckTreeBuilder deckTB = dtb;
         private readonly ITagRepo tagRepo = tr;
         private long userId = userId;
         #endregion

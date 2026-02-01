@@ -4,9 +4,9 @@ using FlashMemo.ViewModel.WrapperVMs;
 
 namespace FlashMemo.Services;
 
-public class DeckTreeBuilder(IDeckRepo dr, ICardQueryService cqs)
+public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilder
 {
-    private readonly ICardQueryService cardQueryS = cqs;
+    private readonly ICountingService counter = cs;
     private readonly IDeckRepo deckRepo = dr;
 
     public async Task<IEnumerable<DeckNode>> BuildAsync(long userId)
@@ -14,22 +14,24 @@ public class DeckTreeBuilder(IDeckRepo dr, ICardQueryService cqs)
         var decksLookup = await deckRepo
             .BuildDeckLookupAsync(userId);
 
-        return BuildDeckLevel(parentId: null, decksLookup);
+        return BuildDeckLevel(
+            parentId: null, decksLookup);
     }
+
     public async Task<IEnumerable<DeckNode>> BuildCountedAsync(long userId)
     {
         var decksLookup = await deckRepo
             .BuildDeckLookupAsync(userId);
 
-        var cardsCount = await cardQueryS
+        var cardsCount = await counter
             .CardsByState(
-                userId, 
+                userId,
                 countOnlyStudyable: true
             );
 
-        return BuildDeckLevelWithCount(parentId: null, decksLookup, cardsCount);
+        return BuildDeckLevelWithCount(
+            parentId: null, decksLookup, cardsCount);
     }
-
     private static IEnumerable<DeckNode> BuildDeckLevelWithCount(long? parentId, ILookup<long?, Deck> decksLookup, 
                                                                 IDictionary<long, CardsCount> deckToCCMap)
     {
@@ -49,7 +51,6 @@ public class DeckTreeBuilder(IDeckRepo dr, ICardQueryService cqs)
             yield return new DeckNode(deck, children, cc);
         }
     }
-
     private static IEnumerable<DeckNode> BuildDeckLevel(long? parentId, ILookup<long?, Deck> decksLookup)
     {
         foreach (var deck in decksLookup[parentId])

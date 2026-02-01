@@ -5,43 +5,44 @@ namespace FlashMemo.Repositories;
 
 public interface ICardRepo
 {
-    public Task DeleteCards(IEnumerable<CardEntity> cards);
-    public Task AddCard(CardEntity card);
-    public Task<CardEntity> GetCard(long cardId);
+    Task DeleteCards(IEnumerable<CardEntity> cards);
+    Task AddCard(CardEntity card);
+    Task<CardEntity> GetCard(long cardId);
 }
 
 public interface IDeckRepo
 {
     ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
-    public Task SaveEditedDeckAsync(Deck updated);
-    public Task AddNewDeckAsync(Deck deck);
-    public Task DeleteDeckAsync(long deckId);
-    public Task<Deck> LoadDeckAsync(long id);
-    public Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null);
+    Task SaveEditedDeckAsync(Deck updated);
+    Task AddNewDeckAsync(Deck deck);
+    Task DeleteDeckAsync(long deckId);
+    Task<Deck> LoadDeckAsync(long id);
+    Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null);
+    Task<IEnumerable<long>> GetChildrenIds(long deckId);
 }
 
 public interface ITagRepo
 {
-    public Task<IEnumerable<Tag>> GetFromUserAsync(long userId);
-    public Task<IEnumerable<Tag>> GetFromCardAsync(long cardId);
-    public Task AddNewAsync(params IEnumerable<Tag> tags);
-    public Task RemoveAsync(params IEnumerable<Tag> tags);
-    public Task SaveEdited(Tag updated);
+    Task<IEnumerable<Tag>> GetFromUserAsync(long userId);
+    Task<IEnumerable<Tag>> GetFromCardAsync(long cardId);
+    Task AddNewAsync(params IEnumerable<Tag> tags);
+    Task RemoveAsync(params IEnumerable<Tag> tags);
+    Task SaveEdited(Tag updated);
 }
 
 public interface IUserRepo
 {
-    public Task<ICollection<UserEntity>> GetAllAsync();
-    public Task<UserEntity> GetByIdAsync(long userId);
-    public Task Remove(long userId);
-    public Task SaveEdited(UserEntity edited);
+    Task<ICollection<UserEntity>> GetAllAsync();
+    Task<UserEntity> GetByIdAsync(long userId);
+    Task Remove(long userId);
+    Task SaveEdited(UserEntity edited);
 }
 
 public interface IDeckOptionsRepo
 {
-    public Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
-    public Task Remove(long presetId);
-    public Task CreateNew(DeckOptions newRecord);
-    public Task SaveEditedPreset(DeckOptions updatedRecord);
-    public Task AssignToDecks(IEnumerable<long> deckIds, long newPresetId = -1);
+    Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
+    Task Remove(long presetId);
+    Task CreateNew(DeckOptions newRecord);
+    Task SaveEditedPreset(DeckOptions updatedRecord);
+    Task AssignToDecks(IEnumerable<long> deckIds, long newPresetId = -1);
 }

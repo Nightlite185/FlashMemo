@@ -9,7 +9,7 @@ namespace FlashMemo.ViewModel.WindowVMs;
 
 public partial class DecksVM: ObservableObject, IViewModel
 {
-    public DecksVM(IWindowService ws, ICardQueryService cqs, IDeckRepo dr, DeckTreeBuilder dtr)
+    public DecksVM(IWindowService ws, ICardQueryService cqs, IDeckRepo dr, IDeckTreeBuilder dtr)
     {
         deckTreeBuilder = dtr;
         windowService = ws;
@@ -51,7 +51,7 @@ public partial class DecksVM: ObservableObject, IViewModel
     private readonly IWindowService windowService;
     private readonly ICardQueryService cardQueryS;
     private readonly IDeckRepo deckRepo;
-    private readonly DeckTreeBuilder deckTreeBuilder;
+    private readonly IDeckTreeBuilder deckTreeBuilder;
     private long? userId;
     private bool UserLoaded => userId is not null;
     #endregion

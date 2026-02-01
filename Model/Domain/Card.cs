@@ -7,12 +7,12 @@ public enum CardState
     Review
 }
 public enum Answers
-    {
-        Again,
-        Hard,
-        Good,
-        Easy
-    }
+{
+    Again,
+    Hard,
+    Good,
+    Easy
+}
 
 public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStage)
 {
@@ -36,34 +36,18 @@ public class Card: IEquatable<Card>
     public DateTime Created { get; protected set; }
     public DateTime LastModified { get; protected set; }
     public DateTime Due { get; protected set; }
-    public DateTime LastReviewed { get; protected set; }
+    public DateTime? LastReviewed { get; protected set; }
     public int? LearningStage { get; protected set; }
     #endregion
 
     #region Public Methods
-    public Card Rehydrate(DateTime created, DateTime lastModified,
-                DateTime due, DateTime lastReviewed, TimeSpan interval, CardState state,
-                int? learningStage, long parentDeckId, bool isBuried, bool isSuspended) // for mapper use only
-    {
-        Created = created;
-        DeckId = parentDeckId;
-        LastModified = lastModified;
-        Due = due;
-        LastReviewed = lastReviewed;
-        Interval = interval;
-        State = state;
-        LearningStage = learningStage;
-        IsBuried = isBuried;
-        IsSuspended = isSuspended;
-
-        return this;
-    }
     public void Review(ScheduleInfo s)
     {
-        if (!IsDue) throw new InvalidOperationException("Cannot review a card that is not due atm.");
+        if (!IsDue) throw new InvalidOperationException(
+            "Cannot review a card that is not due atm.");
 
-        LastReviewed = DateTime.Now;
-        Due = LastReviewed.Add(Interval);
+        LastReviewed = DateTime.Now;        
+        Due = DateTime.Now.Add(s.Interval);
 
         Interval = s.Interval;
         State = s.State;

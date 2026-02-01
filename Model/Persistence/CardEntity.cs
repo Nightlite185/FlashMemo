@@ -2,6 +2,7 @@ using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Model.Persistence;
+
 public interface IEntity { long Id { get; set; } }
 public class CardEntity: IEntity
 {
@@ -25,79 +26,136 @@ public class CardEntity: IEntity
     public int? LearningStage { get; set; }
     #endregion
 
-        #region methods
-        public void FlipBuried() => IsBuried = !IsBuried;
-        public void FlipSuspended() => IsSuspended = !IsSuspended;
-        public void Reschedule(DateTime newReviewDate, bool keepInterval)
+    #region methods
+    private void RescheduleHelper(DateTime newDate, bool keepInterval)
+    {
+        var now = DateTime.Now;
+        var timeFromNow = newDate - now;
+
+        if (Due.HasValue)
         {
-            State = CardState.Review; // reschedule forces state to review, weird outcomes otherwise.
-            Due = newReviewDate;
-            LastModified = DateTime.Now;
+            Due = newDate;
 
             if (!keepInterval)
-                Interval += newReviewDate - DateTime.Now;
-        }
-        public void Reschedule(TimeSpan timeFromNow, bool keepInterval)
-        {
-            var now = DateTime.Now;
-
-            Due = now.Add(timeFromNow);
-            LastModified = now;
-            State = CardState.Review;
-
-            if (!keepInterval) 
                 Interval += timeFromNow;
         }
-        public void Postpone(int putOffByDays, bool keepInterval)
+        else
         {
-            var interval = TimeSpan.FromDays(putOffByDays);
-
-            Due = Due.Add(interval);
-            LastModified = DateTime.Now;
-            State = CardState.Review;
-
-            if (!keepInterval) 
-                Interval += interval;
+            //* when postponing a new card, we add interval regardless of user's choice
+            //* because it would introduce bugs when a card has a due date,
+            //* state is review but interval = null
+            Interval += timeFromNow;
         }
-        public void Forget()
-        {
-            State = CardState.New;
-            Due = DateTime.Now;
-            LastModified = DateTime.Now;
-            Interval = TimeSpan.MinValue;
-        }
-        public void MoveToDeck(Deck newDeck) => DeckId = newDeck.Id;
-        public void MoveToDeck(long newDeckId) => DeckId = newDeckId;
-        public void SyncTagsFrom(CardEntity other)
-        {
-            // Current tracked tag IDs
-            var myTagIds = Tags
-                .Select(t => t.Id)
-                .ToHashSet();
-
-            // Incoming tag IDs
-            var otherTagIds = other.Tags
-                .Select(t => t.Id)
-                .ToHashSet();
-
-            // Remove tags that no longer exist
-            var toRemove = Tags
-                .Where(t => !otherTagIds.Contains(t.Id))
-                .ToList();
-
-            toRemove.ForEach(t => Tags.Remove(t));
-
-            // Add new tags
-            foreach (var tag in other.Tags)
-            {
-                if (!myTagIds.Contains(tag.Id))
-                    Tags.Add(new Tag(tag.Id));
-            }
-        }
-        public void ReplaceTagsWith(IEnumerable<Tag> newTags)
-        {
-            Tags.Clear();
-            Tags.AddRange(newTags);
-        }
-        #endregion
     }
+    private void PostponeHelper(int moveBy, bool keepInterval)
+    {
+        var days = TimeSpan.FromDays(moveBy);
+
+        if (Due.HasValue)
+        {
+            Due = Due.Value.Add(days);
+
+            if (!keepInterval)
+                Interval += days;
+        }
+        else
+        {
+            Due = DateTime.Today.Add(days);
+            
+            //* when postponing a new card, we add interval regardless of user's choice
+            //* because it would introduce bugs when a card has a due date,
+            //* state is review but interval = null
+            Interval += days;
+        }
+    }
+    private void ModifyDateHelper()
+    {
+        State = CardState.Review; // reschedule forces state to review, weird outcomes otherwise.
+        LastModified = DateTime.Now;
+        LearningStage = null;
+    }
+    public void FlipBuried() => IsBuried = !IsBuried;
+    public void FlipSuspended() => IsSuspended = !IsSuspended;
+    public void Reschedule(DateTime newReviewDate, bool keepInterval)
+    {
+        ModifyDateHelper();
+        RescheduleHelper(newReviewDate, keepInterval);
+    }
+    public void Reschedule(int daysFromNow, bool keepInterval)
+    {
+        TimeSpan days = TimeSpan.FromDays(daysFromNow);
+
+        ModifyDateHelper();
+        RescheduleHelper(DateTime.Now + days, keepInterval);
+    }
+    public void Postpone(int putOffByDays, bool keepInterval)
+    {
+        ModifyDateHelper();
+        PostponeHelper(putOffByDays, keepInterval);
+    }
+    public void Forget()
+    {
+        State = CardState.New;
+        Due = DateTime.Now;
+        LastModified = DateTime.Now;
+        Interval = TimeSpan.MinValue;
+    }
+    public void MoveToDeck(Deck newDeck) => DeckId = newDeck.Id;
+    public void MoveToDeck(long newDeckId) => DeckId = newDeckId;
+    public void SyncTagsFrom(CardEntity other)
+    {
+        // Current tracked tag IDs
+        var myTagIds = Tags
+            .Select(t => t.Id)
+            .ToHashSet();
+
+        // Incoming tag IDs
+        var otherTagIds = other.Tags
+            .Select(t => t.Id)
+            .ToHashSet();
+
+        // Remove tags that no longer exist
+        var toRemove = Tags
+            .Where(t => !otherTagIds.Contains(t.Id))
+            .ToList();
+
+        toRemove.ForEach(t => Tags.Remove(t));
+
+        // Add new tags
+        foreach (var tag in other.Tags)
+        {
+            if (!myTagIds.Contains(tag.Id))
+                Tags.Add(new Tag(tag.Id));
+        }
+    }
+    public void ReplaceTagsWith(IEnumerable<Tag> newTags)
+    {
+        Tags.Clear();
+        Tags.AddRange(newTags);
+    }
+    #endregion
+    public static CardEntity CreateNew(string frontContent, string? backContent, long deckId, IEnumerable<Tag> tags)
+    {
+        return new()
+        {
+            Id = IdGetter.Next(),
+            DeckId = deckId,
+
+            Created = DateTime.Now,
+            Interval = TimeSpan.Zero,
+            State = CardState.New,
+
+            LastReviewed = null,
+            LastModified = null,
+            LearningStage = null,
+
+            IsBuried = false,
+            IsSuspended = false,
+
+            Tags = [..tags],
+            
+            FrontContent = frontContent,
+            BackContent = backContent
+        };
+    }
+}

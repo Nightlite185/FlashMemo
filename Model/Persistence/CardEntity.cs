@@ -2,28 +2,28 @@ using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Model.Persistence;
-    public interface IEntity { long Id { get; set; } }
-    public class CardEntity(): IEntity
-    {
-        #region Properties
-        public long Id { get; set; }
-        public string FrontContent { get; set; } = null!;
-        public string? BackContent { get; set; }
-        public long DeckId { get; set; }
-        public ICollection<Tag> Tags { get; set; } = [];
-        public ICollection<CardLog> CardLogs { get; set; } = [];
-        public Deck Deck { get; set; } = null!;
-        public bool IsBuried { get; set; }
-        public bool IsSuspended { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime LastModified { get; set; }
-        public DateTime Due { get; set; }
-        public bool IsDueNow => Due <= DateTime.Now;
-        public DateTime LastReviewed { get; set; }
-        public TimeSpan Interval { get; set; }
-        public CardState State { get; set; }
-        public int? LearningStage { get; set; }
-        #endregion
+public interface IEntity { long Id { get; set; } }
+public class CardEntity: IEntity
+{
+    #region Properties
+    public long Id { get; set; }
+    public string FrontContent { get; set; } = null!;
+    public string? BackContent { get; set; }
+    public long DeckId { get; set; }
+    public ICollection<Tag> Tags { get; set; } = [];
+    public ICollection<CardLog> CardLogs { get; set; } = [];
+    public Deck Deck { get; set; } = null!;
+    public bool IsBuried { get; set; }
+    public bool IsSuspended { get; set; }
+    public DateTime Created { get; set; }
+    public DateTime? LastModified { get; set; }
+    public DateTime? Due { get; set; }
+    public bool IsDueNow => Due?.Date == DateTime.Today;
+    public DateTime? LastReviewed { get; set; }
+    public TimeSpan Interval { get; set; }
+    public CardState State { get; set; }
+    public int? LearningStage { get; set; }
+    #endregion
 
         #region methods
         public void FlipBuried() => IsBuried = !IsBuried;

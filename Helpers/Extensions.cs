@@ -40,10 +40,13 @@ public static class Extensions
     public static IEnumerable<CardEntity> ToEntities(this IEnumerable<CardItemVM> cards)
         => cards.Select(c => c.ToEntity());
     
-    public static void GenerateNewId (this IEntity entity)
+    public static Expression<Func<CardEntity, bool>> OnSameDay(this Expression<Func<CardEntity, bool>> expr, Func<CardEntity, DateTime?> selector, DateTime when)
     {
-        entity.Id = DateTimeOffset
-            .UtcNow
-            .ToUnixTimeMilliseconds();
+        var dayStart = when.Date;
+        var dayEnd = dayStart.AddDays(1);
+
+        return expr.Combine(c =>
+            selector(c) >= dayStart &&
+            selector(c) < dayEnd);
     }
 }

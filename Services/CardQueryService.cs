@@ -1,15 +1,15 @@
 using FlashMemo.Model;
-using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo dr)
+public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo dr, ICardQueryBuilder cqb)
     : DbDependentClass(factory), ICardQueryService
 {
     private readonly IDeckRepo deckRepo = dr;
+    private readonly ICardQueryBuilder queryBuilder = cqb;
 
     #region Public methods
     public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
@@ -18,7 +18,10 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
         IQueryable<CardEntity> baseQuery = db.Cards;
         
         if (filters.IncludeChildrenDecks && filters.DeckId is not null)
-            baseQuery = await AllCardsInDeckQAsync((long)filters.DeckId, db);
+        {
+            baseQuery = await queryBuilder
+                .AllCardsInDeckQAsync((long)filters.DeckId, db);
+        }
             
         var filtersQuery = filters.ToExpression();
 
@@ -35,22 +38,25 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
     public async Task<IEnumerable<CardEntity>> GetForStudy(long deckId)
     {
         var db = GetDb;
+
         var baseQuery = await 
-            AllCardsInDeckQAsync(deckId, db);
+            queryBuilder.AllCardsInDeckQAsync(deckId, db);
         
         baseQuery = baseQuery.Where(c =>
             !c.IsSuspended
             && !c.IsBuried
             && c.IsDueNow);
 
-        var grouped = GroupByStateQ(baseQuery);
+        var grouped = CardQueryBuilder
+            .GroupByStateQ(baseQuery);
 
         var rootDeck = await db.Decks.FindAsync(deckId)
             ?? throw new ArgumentException(IdNotFoundMsg("Deck"), nameof(deckId));
 
         var sortOpt = rootDeck.Options.Ordering_;
 
-        var cards = await SortAndLimitAsync(rootDeck, grouped);
+        var cards = await SortAndLimitAsync(
+            rootDeck, grouped);
         
 
         return sortOpt.CardStateOrder switch
@@ -90,112 +96,14 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
     {
         var db = GetDb;
 
-        var cardsQuery = await 
-            AllCardsInDeckQAsync(deckId, db);
+        var cardsQuery = await queryBuilder
+            .AllCardsInDeckQAsync(deckId, db);
 
-        return await cardsQuery.ToListAsync();
-    }
-    
-    [Obsolete("Use CardCounter's equivalent method instead")]
-    public async Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable)
-    {
-        var db = GetDb;
-        Dictionary<long, CardsCount> result = [];
-
-        foreach(long id in deckIds)
-        {
-            var allCardsQuery = await AllCardsInDeckQAsync(id, db);
-
-            if (countOnlyStudyable)
-                allCardsQuery = allCardsQuery
-                    .Where(c => !c.IsSuspended && !c.IsBuried && c.IsDueNow); //! IMPORTANT PLACE deciding if decks are loaded
-                                                                                //! based on due NOW IN THIS SECOND or due TODAY
-            var grouped = GroupByStateQ(allCardsQuery);
-            var counted = await CountByStateAsync(grouped);
-
-            if (!result.TryAdd(id, counted))
-                throw new ArgumentException(
-                    $"provided IEnumerable contains duplicate deck ids", 
-                    nameof(deckIds)
-                );
-        }
-        
-        return result;
-    }
-    [Obsolete("Use CardCounter's equivalent method instead")]
-    public async Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable)
-    {
-        var db = GetDb;
-
-        var deckIds = await db.Decks
-            .Where(d => d.UserId == userId)
-            .Select(d => d.Id)
-            .ToArrayAsync();
-
-        return await CardsByState(
-            deckIds,
-            countOnlyStudyable
-        );
+        return await cardsQuery
+            .ToListAsync();
     }
     #endregion
     
-    #region Private helpers || Q in member names stands for Query
-    ///<summary> if any duplicates -> change IList to hashset. 99% sure there won't be any tho</summary>
-    private static void GetChildrenIds(long deckId, ILookup<long?, Deck> deckTree, IList<long> result)
-    {
-        result.Add(deckId);
-
-        var children = deckTree[deckId];
-        
-        if (!children.Any())
-            return;
-        
-        foreach (var deck in children)
-            GetChildrenIds(deck.Id, deckTree, result);
-    }
-    private async Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(long deckId, AppDbContext? db = null)
-    {
-        db ??= GetDb;
-
-        long userId = await db.Decks
-            .Where(d => d.Id == deckId)
-            .Select(d => d.UserId)
-            .SingleAsync();
-
-        var deckTree = await deckRepo
-            .BuildDeckLookupAsync(userId, db);
-
-        List<long> deckIds = [];
-        GetChildrenIds(deckId, deckTree, deckIds);
-
-        return db.Cards
-            .AsNoTracking()
-            .Where(c => 
-                deckIds.Contains(c.DeckId));
-    }
-    private static CardsByStateQ GroupByStateQ(IQueryable<CardEntity> baseQuery)
-    {
-        return new CardsByStateQ()
-        {
-            Lessons = baseQuery
-                .Where(c => c.State == CardState.New),
-
-            Learning = baseQuery
-                .Where(c => c.State == CardState.Learning),
-
-            Reviews = baseQuery
-                .Where(c => c.State == CardState.Review),
-        };
-    }
-    private async static Task<CardsCount> CountByStateAsync(CardsByStateQ grouped)
-    {
-        return new()
-        {
-            Lessons = await grouped.Lessons.CountAsync(),
-            Learning = await grouped.Learning.CountAsync(),
-            Reviews = await grouped.Reviews.CountAsync()
-        };
-    }
     private async static Task<CardsByState> SortAndLimitAsync(Deck rootDeck, CardsByStateQ grouped)
     {
         var sortOpt = rootDeck.Options.Ordering_;
@@ -225,7 +133,6 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
             Reviews = reviews.AsReadOnly()
         };
     }
-    #endregion
 }
 public readonly struct CardsCount
 {
@@ -233,7 +140,7 @@ public readonly struct CardsCount
     public readonly int Learning { get; init; }
     public readonly int Reviews { get; init; }
 }
-internal readonly struct CardsByStateQ
+public readonly struct CardsByStateQ
 {
     public IQueryable<CardEntity> Lessons { get; init; }
     public IQueryable<CardEntity> Learning { get; init; }

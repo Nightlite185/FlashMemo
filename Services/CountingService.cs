@@ -5,8 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CountingService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ICountingService
+public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQueryBuilder cqb)
+: DbDependentClass(factory), ICountingService
 {
+    private readonly ICardQueryBuilder queryBuilder = cqb;
+
     #region public methods
     public async Task<int> AllCards(long userId)
     {
@@ -61,13 +64,13 @@ public class CountingService(IDbContextFactory<AppDbContext> factory): DbDepende
 
         foreach(long id in deckIds)
         {
-            var allCardsQuery = await AllCardsInDeckQAsync(id, db); // TODO: encapsulate query building methods to a new service.
+            var allCardsQuery = await queryBuilder.AllCardsInDeckQAsync(id, db);
 
             if (countOnlyStudyable)
                 allCardsQuery = allCardsQuery
                     .Where(c => !c.IsSuspended && !c.IsBuried && c.IsDueNow);
                                                                             
-            var grouped = GroupByStateQ(allCardsQuery);
+            var grouped = CardQueryBuilder.GroupByStateQ(allCardsQuery);
             var counted = await CountByStateAsync(grouped);
 
             if (!result.TryAdd(id, counted))
@@ -89,20 +92,6 @@ public class CountingService(IDbContextFactory<AppDbContext> factory): DbDepende
             Lessons = await grouped.Lessons.CountAsync(),
             Learning = await grouped.Learning.CountAsync(),
             Reviews = await grouped.Reviews.CountAsync()
-        };
-    }
-    private static CardsByStateQ GroupByStateQ(IQueryable<CardEntity> baseQuery)
-    {
-        return new CardsByStateQ() // TODO: encapsulate this too into query builder service.
-        {
-            Lessons = baseQuery
-                .Where(c => c.State == CardState.New),
-
-            Learning = baseQuery
-                .Where(c => c.State == CardState.Learning),
-
-            Reviews = baseQuery
-                .Where(c => c.State == CardState.Review),
         };
     }
     #endregion

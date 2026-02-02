@@ -6,27 +6,28 @@ using FlashMemo.ViewModel.WindowVMs;
 namespace FlashMemo.ViewModel.VMFactories;
 
 public class BrowseVMF(
-    IWindowService ws, ICardRepo cr, ICardQueryService cqs,
-    ICardService cs, FiltersVMF fVMF, ManageTagsVMF mtVMF)
+    IWindowService ws, ICardQueryService cqs,
+    FiltersVMF fVMF, CardCtxMenuVMF ccmVMF)
 {
+
     private readonly FiltersVMF filtersVMF = fVMF;
-    private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IWindowService windowService = ws;
-    private readonly ICardRepo cardRepo = cr;
     private readonly ICardQueryService cardQueryS = cqs;
-    private readonly ICardService cardService = cs;
+    private readonly CardCtxMenuVMF cardCtxMenuVMF = ccmVMF;
 
     public async Task<BrowseVM> CreateAsync(long userId)
     {
         var filtersVM = filtersVMF.Create(userId);
 
         BrowseVM bvm = new(
-            windowService, cardRepo, manageTagsVMF,
-            cardQueryS, cardService, filtersVM,
-            userId
+            windowService, cardQueryS, 
+            filtersVM, userId
         );
 
-        await filtersVM.Initialize(bvm.ApplyFiltersAsync);
+        var ccm = cardCtxMenuVMF.Create(bvm, bvm, userId);
+
+        await filtersVM.InitializeAsync(bvm);
+        bvm.Initialize(ccm);
 
         //* pre-filling cards in BrowseVM with all user's cards
         var allCards = await cardQueryS.GetAllFromUser(userId);

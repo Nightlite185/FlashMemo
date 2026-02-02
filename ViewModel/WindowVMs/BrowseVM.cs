@@ -12,18 +12,14 @@ using FlashMemo.ViewModel.PopupVMs;
 using FlashMemo.ViewModel.VMFactories;
 using FlashMemo.ViewModel.WrapperVMs;
 
-namespace FlashMemo.ViewModel.WindowVMs; 
+namespace FlashMemo.ViewModel.WindowVMs;
 
-public partial class BrowseVM: ObservableObject, IViewModel
+public sealed partial class BrowseVM: ObservableObject, IViewModel, IPopupHost, IReloadHandler, IFiltrable
 {
-    internal BrowseVM(IWindowService ws, ICardRepo cr, ManageTagsVMF mtVMF,
-    ICardQueryService cqs, ICardService cs, FiltersVM fvm, long userId)
+    internal BrowseVM(IWindowService ws, ICardQueryService cqs, FiltersVM fvm, long userId)
     {
-        manageTagsVMF = mtVMF;
-        cardService = cs;
         windowService = ws;
         cardQueryS = cqs;
-        cardRepo = cr;
         filtersVM = fvm;
         loadedUserId = userId;
         Cards = [];
@@ -37,7 +33,7 @@ public partial class BrowseVM: ObservableObject, IViewModel
     [ObservableProperty]
     public partial string SearchBar { get; set; }
     
-    public IReadOnlyCollection<CardItemVM> SelectedCardVMs => [..Cards
+    public IReadOnlyCollection<CardItemVM> GetSelectedCards() => [..Cards
         .Where(vm => vm.IsSelected)];
     
     [ObservableProperty]
@@ -51,9 +47,12 @@ public partial class BrowseVM: ObservableObject, IViewModel
     #endregion
     
     #region methods
-    
+    internal void Initialize(CardCtxMenuVM ccm)
+    {
+        this.cardCtxMenu = ccm;
+    }
     ///<summary> FiltersVM should either call this as delegate whenever current filters change and user presses 'apply'.</summary>
-    internal async Task ApplyFiltersAsync(Filters filters)
+    public async Task ApplyFiltersAsync(Filters filters)
     {
         cachedFilters = filters;
         Cards.Clear();
@@ -67,7 +66,7 @@ public partial class BrowseVM: ObservableObject, IViewModel
 
     ///<summary>Call this only after loading cards from FiltersVM at least once before,
     ///e.g. when you want to reload cards, but know that filters haven't changed.</summary>
-    private async Task ReloadCardsAsync()
+    public async Task ReloadCardsAsync()
     {
         if (cachedFilters is null)
             throw new InvalidOperationException(
@@ -75,195 +74,39 @@ public partial class BrowseVM: ObservableObject, IViewModel
 
         await ApplyFiltersAsync(cachedFilters);
     }
-    private static void ThrowIfInvalidSelected(int selectedCount, bool throwIfNotSingle = false, [CallerMemberName] string? called = null)
+    public async Task ReloadAsync(ReloadTypes rt)
+    {
+        //TODO: for each of the flags in rt, gotta reload respectively
+
+        if (rt.HasFlag(ReloadTypes.Cards))
+            await ReloadCardsAsync();
+
+        throw new NotImplementedException();
+    }
+    private static void ThrowIfInvalidSelected(int selectedCount, [CallerMemberName] string? called = null)
     {
         if (selectedCount <= 0)
             throw new InvalidOperationException(
             $"Cannot execute context command '{called}' with no cards selected");
-
-        if (throwIfNotSingle && selectedCount != 1)
-            throw new InvalidOperationException(
-            $"Cannot execute context command '{called}' since exactly one card has to be selected but you had {selectedCount}");
     }
-    private void ThrowIfNoCardsCaptured(string? calledMember)
+    private void CaptureSelected()
     {
-        if (capturedCards is null || capturedCards.Count == 0)
-            throw new InvalidOperationException(
-            $"Called {calledMember}, but there are no captured cards yet.");
-    }
-
-    private void CaptureSelected(bool throwIfNotSingle = false)
-    {
-        if (capturedCards is not null)
-            throw new InvalidOperationException("Cannot capture cards if there already are some captured. Clean those up first.");
-
-        var cards = SelectedCardVMs;
-
-        ThrowIfInvalidSelected(cards.Count, throwIfNotSingle);
-
+        var cards = GetSelectedCards();
+        ThrowIfInvalidSelected(cards.Count);
+        
         capturedCards = cards;
-    }
-    private void PopupCancel()
-    {
-        capturedCards = null;
-        CurrentPopup = null;
-    }
-    private async Task ModifyCardsHelper(Action<CardEntity> cardModifier, CardAction cardAction, [CallerMemberName] string? caller = null)
-    {
-        ThrowIfNoCardsCaptured(caller);
-
-        foreach (var vm in capturedCards!)
-        {
-            cardModifier(vm.ToEntity());
-            vm.NotifyUI();
-        }
-
-        await cardService.SaveEditedCards(
-            capturedCards.ToEntities(),
-            cardAction
-        );
-    }
-    private async Task RescheduleCards(DateTime dt, bool keepInterval)
-    {
-        await ModifyCardsHelper(
-            c => c.Reschedule(dt, keepInterval),
-            CardAction.Reschedule);
-    }
-    private async Task PostponeCards(int PostponeBy, bool keepInterval)
-    {
-        await ModifyCardsHelper(
-            c => c.Postpone(PostponeBy, keepInterval),
-            CardAction.Reschedule
-        );
-    }
-    private async Task MoveCards(Deck newDeck)
-    {
-        await ModifyCardsHelper(
-            c => c.MoveToDeck(newDeck),
-            CardAction.Relocate
-        );
-    }
-    private async Task ChangeTags(IEnumerable<Tag> newTags, bool globalTagsEdited)
-    {
-        await ModifyCardsHelper(
-            c => c.ReplaceTagsWith(newTags),
-            CardAction.Modify
-        );
-
-        if (globalTagsEdited)
-            await ReloadCardsAsync();
+        cardCtxMenu.OpenMenu(cards);
     }
     #endregion
     
     #region private things
     private readonly IWindowService windowService;
+    private CardCtxMenuVM cardCtxMenu = null!;
     private readonly ICardQueryService cardQueryS;
-    private readonly ICardService cardService;
-    private readonly ICardRepo cardRepo;
     private readonly FiltersVM filtersVM;
-    private readonly ManageTagsVMF manageTagsVMF;
     private EditCardVM? editVM;
     private IReadOnlyCollection<CardItemVM>? capturedCards;
     private long loadedUserId;
     private Filters? cachedFilters;
-    #endregion
-
-    #region ICommands
-    #region context menu commands (Ctx suffix in members stands for context commands)
-    /* IMPORTANT: commands that open a window -> dont get async,
-    but those that directly call async internal methods and use services -> should
-
-    TODO: Maybe encapsulate this later, along with those private callback methods, 
-    since card review VM might be using this context menu as well. */
-
-    [RelayCommand]
-    public void MoveCardsCtx()
-    {
-        CaptureSelected();
-        CurrentPopup = new MoveCardsVM(MoveCards, PopupCancel);
-    }
-
-    [RelayCommand]
-    public void ShowRescheduleCtx() // this lets u choose datetime
-    {
-        CaptureSelected();
-        CurrentPopup = new RescheduleVM(RescheduleCards, PopupCancel);
-    }
-
-    [RelayCommand]
-    public void ShowPostponeCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
-    {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE 
-        CaptureSelected();
-
-        CurrentPopup = new PostponeVM(PostponeCards, PopupCancel);
-    }
-
-    [RelayCommand]
-    public async Task ForgetCardsCtx()
-    {
-        CaptureSelected();
-
-        await ModifyCardsHelper(
-            c => c.Forget(),
-            CardAction.Forget
-        );
-    }
-
-    [RelayCommand]
-    public async Task ToggleBuryCtx()
-    {
-        CaptureSelected();
-        
-        await ModifyCardsHelper(
-            c => c.FlipBuried(),
-            CardAction.Bury
-        );
-    }
-
-    [RelayCommand]
-    public async Task ToggleSuspendedCtx()
-    {
-        CaptureSelected();
-        
-        await ModifyCardsHelper(
-            c => c.FlipSuspended(),
-            CardAction.Suspend
-        );
-    }
-
-    [RelayCommand]
-    public async Task DeleteCardsCtx()
-    {
-        CaptureSelected();
-        
-        foreach (var vm in capturedCards!)
-        {
-            vm.IsDeleted = true;
-            vm.NotifyUI();
-        }
-        
-        await cardRepo.DeleteCards(
-            capturedCards.Select(vm => vm.ToEntity()));
-    }
-
-    [RelayCommand]
-    public async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
-    {
-        CaptureSelected(throwIfNotSingle: true);
-
-        long cardId = capturedCards!
-            .First()
-            .ToEntity().Id;
-
-        CurrentPopup = await manageTagsVMF.CreateAsync(
-            confirm: ChangeTags,
-            cancel: PopupCancel,
-            cardId, loadedUserId
-        );
-    }
-    
-    #endregion
-
-    
     #endregion
 }

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -42,7 +43,7 @@ namespace FlashMemo.ViewModel;
         private async Task ApplyFilters()
         {
             IsChanged = false;
-            await applyFilters(TakeSnapshot());
+            await filtrable.ApplyFiltersAsync(TakeSnapshot());
         }
         #endregion
         
@@ -51,11 +52,11 @@ namespace FlashMemo.ViewModel;
         {
             return new Filters()
             {
-                TagIds = (IReadOnlySet<long>) Tags
+                TagIds = (ImmutableArray<long>) Tags
                     .Where(t => t.IsSelected)
                     .Select(t => t.Id),
 
-                States = (IReadOnlySet<CardState>) States
+                States = (ImmutableArray<CardState>) States
                     .Where(vm => vm.IsSelected)
                     .Select(vm => vm.State),
 
@@ -72,9 +73,9 @@ namespace FlashMemo.ViewModel;
                 Due = Due
             };
         }
-        internal async Task Initialize(Func<Filters, Task> applyFilters)
+        internal async Task InitializeAsync(IFiltrable applyFilters)
         {
-            this.applyFilters = applyFilters;
+            this.filtrable = applyFilters;
 
             // TODO: load the initial deck tree, tags, etc. & others needed in UI async. 
         }
@@ -92,7 +93,7 @@ namespace FlashMemo.ViewModel;
         #endregion
        
         #region private things
-        private Func<Filters, Task> applyFilters = null!;
+        private IFiltrable filtrable = null!;
         private readonly IDeckTreeBuilder deckTB = dtb;
         private readonly ITagRepo tagRepo = tr;
         private long userId = userId;

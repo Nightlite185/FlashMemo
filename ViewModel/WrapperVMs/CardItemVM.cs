@@ -8,6 +8,8 @@ public partial class CardItemVM(CardEntity card): ObservableObject, IViewModel
 {
     public void NotifyUI() => CardVersion++;
 
+    public long Id => card.Id;
+
     [ObservableProperty]
     public partial bool IsSelected { get; set; } = false;
     

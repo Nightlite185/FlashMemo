@@ -8,9 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
 
-public class WindowService(IServiceProvider sp, BrowseVMF browseVMF): IWindowService
+public class WindowService(IServiceProvider sp, BrowseVMF browseVMF, EditCardVMF editCardVMF): IWindowService
 {
     private readonly BrowseVMF browseVMF = browseVMF;
+    private readonly EditCardVMF editCardVMF = editCardVMF;
     private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
@@ -41,6 +42,17 @@ public class WindowService(IServiceProvider sp, BrowseVMF browseVMF): IWindowSer
     {
         var vm = await browseVMF.CreateAsync(userId);
         var win = sp.GetRequiredService<BrowseWindow>();
+
+        SetDataCtx(vm, win);
+        WireEvents(vm, win);
+
+        win.ShowDialog();
+    }
+
+    public async Task ShowEditCardWindow(long cardId)
+    {
+        var vm = await editCardVMF.CreateAsync(cardId);
+        var win = sp.GetRequiredService<EditWindow>();
 
         SetDataCtx(vm, win);
         WireEvents(vm, win);

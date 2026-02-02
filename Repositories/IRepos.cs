@@ -23,11 +23,12 @@ public interface IDeckRepo
 
 public interface ITagRepo
 {
-    Task<IEnumerable<Tag>> GetFromUserAsync(long userId);
-    Task<IEnumerable<Tag>> GetFromCardAsync(long cardId);
-    Task AddNewAsync(params IEnumerable<Tag> tags);
-    Task RemoveAsync(params IEnumerable<Tag> tags);
+    Task<IEnumerable<Tag>> GetFromUser(long userId);
+    Task<IEnumerable<Tag>> GetFromCard(long cardId);
+    Task AddNew(params IEnumerable<Tag> tags);
+    Task Remove(params IEnumerable<Tag> tags);
     Task SaveEdited(Tag updated);
+    Task<IEnumerable<Tag>> GetByIds(IEnumerable<long> tagIds);
 }
 
 public interface IUserRepo

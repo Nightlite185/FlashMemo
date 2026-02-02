@@ -1,32 +1,53 @@
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
+using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.BaseVMs;
 
 namespace FlashMemo.ViewModel.WindowVMs;
 
-public partial class EditCardVM(ICardService cs, ITagRepo tr): EditorVMBase(cs, tr), IViewModel
+public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
+: EditorVMBase(cs, tr, cr), ICloseRequest
 {
-    #region public properties
-    #endregion
-
     #region methods
+    internal async Task Initialize(long cardId) // Factory must call this
+    {
+        lastSavedCard = await cardRepo.GetCard(cardId);
+
+        var tags = await tagRepo.GetFromCard(cardId);
+        lastSavedCard.Tags.AddRange(tags); // snapshotting old tags
+        
+        CardVM = new (lastSavedCard);
+        Tags.AddRange(tags.ToVMs());
+    }
+    protected override async Task SaveChanges()
+    {
+        await base.SaveChanges();
+        Close();
+    }
     #endregion
 
     #region private things
+    private CardEntity lastSavedCard = null!;
     #endregion
     
     #region ICommands
     [RelayCommand]
-    private void RevertChanges() // only reverts the vm-made changes to what the card was.
+    private async Task RevertChanges() // only reverts the vm-made changes to what the card was.
     {
-        CardVM.FrontContent = LastSavedCard.FrontContent;
-        CardVM.BackContent = LastSavedCard.BackContent ?? "";
+        CardVM.FrontContent = lastSavedCard.FrontContent;
+        CardVM.BackContent = lastSavedCard.BackContent ?? "";
 
         Tags.Clear();
-        Tags.AddRange(card.Tags); // TODO: figure this out, if user edited tags in ManageTagsVM,
-                                  //todo LastSavedCard.Tags is obsolete -> load new tags for old ids from tag repo.
-    }                             //! btw wtf am i even doing, this is supposed to be an abstraction of editor
-    #endregion                    //! but Im implementing features for both creator and editor, its abstracted cleanly.
-}                                 // TODO: refactor this to actually make sense. ^^^
+        var oldTagIds = lastSavedCard.Tags;
+
+        //* refreshing the tags cuz user might have edited them globally
+        //* after loading this VM, but before this command was called.
+        var oldTags = await tagRepo.GetByIds(
+            oldTagIds.Select(t => t.Id));
+            
+        Tags.AddRange(oldTags.ToVMs());
+    }
+    #endregion
+}

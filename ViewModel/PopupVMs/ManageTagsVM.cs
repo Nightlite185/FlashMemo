@@ -25,8 +25,8 @@ public sealed class ManageTagsVM: PopupVMBase
 
     internal async Task InitializeAsync(long userId, long cardId)
     {
-        var cardTags = await tagRepo.GetFromCardAsync(cardId);
-        var allTags = await tagRepo.GetFromUserAsync(userId);
+        var cardTags = await tagRepo.GetFromCard(cardId);
+        var allTags = await tagRepo.GetFromUser(userId);
 
         CardTags.AddRange(cardTags.ToVMs());
         AllTags.AddRange(allTags.ToVMs());

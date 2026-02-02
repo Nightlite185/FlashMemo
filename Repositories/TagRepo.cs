@@ -5,7 +5,7 @@ namespace FlashMemo.Repositories;
 
 public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ITagRepo
 {
-    public async Task<IEnumerable<Tag>> GetFromUserAsync(long userId)
+    public async Task<IEnumerable<Tag>> GetFromUser(long userId)
     {
         var db = GetDb;
 
@@ -14,10 +14,11 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
             .AsNoTracking()
             .ToListAsync();
     }
-    public async Task<IEnumerable<Tag>> GetFromCardAsync(long cardId)
+    public async Task<IEnumerable<Tag>> GetFromCard(long cardId)
     {
         var db = GetDb;
         
+        // TODO: this can be improved with a separate many<->many separate cardTags table
         var card = await db.Cards
             .AsNoTracking()
             .Include(c => c.Tags)
@@ -25,14 +26,14 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
             
         return card.Tags;
     }
-    public async Task AddNewAsync(params IEnumerable<Tag> tags)
+    public async Task AddNew(params IEnumerable<Tag> tags)
     {
         var db = GetDb;
 
         await db.Tags.AddRangeAsync(tags);
         await db.SaveChangesAsync();
     }
-    public async Task RemoveAsync(params IEnumerable<Tag> tags)
+    public async Task Remove(params IEnumerable<Tag> tags)
     {
         var db = GetDb;
 
@@ -51,5 +52,14 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
             .SetValues(updated);
     
         await db.SaveChangesAsync();
+    }
+    public async Task<IEnumerable<Tag>> GetByIds(IEnumerable<long> tagIds)
+    {
+        var db = GetDb;
+
+        return await db.Tags
+            .Where(t => tagIds.Contains(t.Id))
+            .AsNoTracking()
+            .ToArrayAsync();
     }
 }

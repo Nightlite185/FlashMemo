@@ -2,7 +2,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
-using FlashMemo.ViewModel.WrapperVMs;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
 

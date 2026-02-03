@@ -2,8 +2,8 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
-using FlashMemo.ViewModel.VMFactories;
-using FlashMemo.ViewModel.WindowVMs;
+using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;

@@ -7,8 +7,8 @@ using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
 using FlashMemo.Services;
 using FlashMemo.Repositories;
-using FlashMemo.ViewModel.WindowVMs;
-using FlashMemo.ViewModel.VMFactories;
+using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo;
     public partial class App : Application

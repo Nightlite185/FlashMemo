@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel.WrapperVMs;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Helpers;
 

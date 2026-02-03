@@ -1,6 +1,6 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
-using FlashMemo.ViewModel.WrapperVMs;
+using FlashMemo.ViewModel.Wrappers;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;

@@ -7,7 +7,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
-using FlashMemo.ViewModel.WrapperVMs;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
     public sealed partial class FiltersVM(

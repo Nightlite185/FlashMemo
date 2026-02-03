@@ -1,5 +1,5 @@
 using FlashMemo.Model;
-using FlashMemo.ViewModel.BaseVMs;
+using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel;
 
@@ -14,7 +14,7 @@ public interface ILoadedHandlerAsync
 
 public interface IReloadHandler
 {
-    public Task ReloadAsync(ReloadTypes rt);
+    public Task ReloadAsync(ReloadTargets rt);
 }
 
 public interface IFiltrable

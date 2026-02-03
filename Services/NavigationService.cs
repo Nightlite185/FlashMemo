@@ -1,5 +1,5 @@
 using FlashMemo.ViewModel;
-using FlashMemo.ViewModel.WindowVMs;
+using FlashMemo.ViewModel.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;

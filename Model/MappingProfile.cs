@@ -2,8 +2,8 @@ using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
-using FlashMemo.ViewModel.WindowVMs;
-using FlashMemo.ViewModel.WrapperVMs;
+using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Model;
     public sealed class MappingProfile: Profile

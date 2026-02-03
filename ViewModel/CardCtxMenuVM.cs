@@ -5,13 +5,13 @@ using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
-using FlashMemo.ViewModel.PopupVMs;
-using FlashMemo.ViewModel.VMFactories;
-using FlashMemo.ViewModel.WrapperVMs;
+using FlashMemo.ViewModel.Popups;
+using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
-[Flags] public enum ReloadTypes
+[Flags] public enum ReloadTargets
 {
     Tags, Cards, DeckTree
 }
@@ -162,7 +162,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         );
 
         if (globalTagsEdited)
-            await reloadHandler.ReloadAsync(ReloadTypes.Tags | ReloadTypes.Cards);
+            await reloadHandler.ReloadAsync(ReloadTargets.Tags | ReloadTargets.Cards);
 
         PopupCancel();
     }

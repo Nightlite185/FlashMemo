@@ -3,7 +3,7 @@ using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Windows;
-using FlashMemo.ViewModel.Wrappers;
+using static FlashMemo.ViewModel.Wrappers.DeckOptionsVM;
 
 namespace FlashMemo.Model;
     public sealed class MappingProfile: Profile
@@ -22,8 +22,8 @@ namespace FlashMemo.Model;
             #endregion
 
             #region Deck options (VM <-> record)
-            CreateMap<DeckOptionsVM, DeckOptions>();
-            CreateMap<DeckOptions, DeckOptionsVM>();
+            CreateMap<DeckOptionsMenuVM, DeckOptions>();
+            CreateMap<DeckOptions, DeckOptionsMenuVM>();
 
             CreateMap<OrderingOptVM, DeckOptions.Ordering>();
             CreateMap<SchedulingOptVM, DeckOptions.Scheduling>();

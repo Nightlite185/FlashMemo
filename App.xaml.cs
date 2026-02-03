@@ -47,7 +47,7 @@ namespace FlashMemo;
             sc.AddTransient<StatsVM>();
             sc.AddTransient<EditCardVM>();
             sc.AddTransient<CreateCardVM>();
-            sc.AddTransient<DeckOptionsVM>();
+            sc.AddTransient<DeckOptionsMenuVM>();
             sc.AddTransient<DecksVM>();
             sc.AddTransient<UserOptionsVM>();
             sc.AddTransient<BrowseVM>();

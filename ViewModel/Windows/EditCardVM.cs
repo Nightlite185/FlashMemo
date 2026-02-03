@@ -1,15 +1,19 @@
+
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
 : EditorVMBase(cs, tr, cr), ICloseRequest
 {
+    public CardItemVM CardVM { get; protected set; } = null!; // factory sets this by calling initialize()
+
     #region methods
     internal async Task Initialize(long cardId) // Factory must call this
     {
@@ -19,11 +23,13 @@ public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
         lastSavedCard.Tags.AddRange(tags); // snapshotting old tags
         
         CardVM = new (lastSavedCard);
-        Tags.AddRange(tags.ToVMs());
     }
-    protected override async Task SaveChanges()
+    protected async Task SaveChanges()
     {
-        await base.SaveChanges();
+        var card = CardVM.ToEntity();
+        card.ReplaceTagsWith(CardVM.Tags.ToEntities());
+
+        await cardService.SaveEditedCard(card, CardAction.Modify);
         Close();
     }
     #endregion
@@ -39,7 +45,7 @@ public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
         CardVM.FrontContent = lastSavedCard.FrontContent;
         CardVM.BackContent = lastSavedCard.BackContent ?? "";
 
-        Tags.Clear();
+        CardVM.Tags.Clear();
         var oldTagIds = lastSavedCard.Tags;
 
         //* refreshing the tags cuz user might have edited them globally
@@ -47,7 +53,7 @@ public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
         var oldTags = await tagRepo.GetByIds(
             oldTagIds.Select(t => t.Id));
             
-        Tags.AddRange(oldTags.ToVMs());
+        CardVM.Tags.AddRange(oldTags.ToVMs());
     }
     #endregion
 }

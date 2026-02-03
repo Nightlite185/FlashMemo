@@ -16,16 +16,18 @@ namespace FlashMemo.ViewModel;
     Tags, Cards, DeckTree
 }
 
-public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, IReloadHandler rh, long userId): ObservableObject
+public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, IReloadHandler rh, DeckSelectVMF dsVMF, long userId): ObservableObject
 {
+    private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     #region ICommands
     //* IMPORTANT: commands that open a window -> dont get async,
     //* but those that directly call async internal methods and use services -> should
 
     [RelayCommand]
-    public void MoveCardsCtx()
+    public async Task MoveCardsCtx()
     {
-        popupHost.CurrentPopup = new MoveCardsVM(MoveCards, PopupCancel);
+        popupHost.CurrentPopup = await deckSelectVMF
+            .CreateAsync(MoveCards, PopupCancel, userId);
     }
 
     [RelayCommand]
@@ -90,7 +92,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         popupHost.CurrentPopup = await manageTagsVMF.CreateAsync(
             confirm: ChangeTags,
             cancel: PopupCancel,
-            cardId, loadedUserId
+            cardId, userId
         );
     }
     
@@ -175,6 +177,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     private readonly IPopupHost popupHost = pph;
     private readonly IReloadHandler reloadHandler = rh;
     private IReadOnlyCollection<CardItemVM>? capturedCards;
-    private long loadedUserId = userId;
+    private long userId = userId;
     #endregion
 }

@@ -1,4 +1,6 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 
@@ -23,6 +25,9 @@ public partial class CardItemVM(CardEntity card): ObservableObject, IViewModel
     
     [ObservableProperty]
     public partial string BackContent { get; set; } = card.BackContent ?? "";
+
+    public ObservableCollection<TagVM> Tags { get; init; } = [..card.Tags.ToVMs()];
+
     public Deck Deck => card.Deck;
     public CardState CardState => card.State;
     public int DayInterval => (int)card.Interval.TotalDays;
@@ -35,10 +40,11 @@ public partial class CardItemVM(CardEntity card): ObservableObject, IViewModel
             ? null
             : BackContent;
 
+        card.ReplaceTagsWith(Tags.ToEntities());
+
         return card;
     }
 
-    
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(CardState))]
     private partial int CardVersion { get; set; }

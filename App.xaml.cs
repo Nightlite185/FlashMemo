@@ -55,8 +55,12 @@ namespace FlashMemo;
 
             // ==== VM FACTORIES ====
             sc.AddSingleton<DeckOptionsVMF>();
-            sc.AddSingleton<ManageTagsVMF>();
+            sc.AddSingleton<DeckSelectVMF>();
+            sc.AddSingleton<CardCtxMenuVMF>();
+            sc.AddSingleton<CreateCardVMF>();
+            sc.AddSingleton<EditCardVMF>();
             sc.AddSingleton<FiltersVMF>();
+            sc.AddSingleton<ManageTagsVMF>();
             sc.AddSingleton<BrowseVMF>();
 
             // ==== SERVICES ====

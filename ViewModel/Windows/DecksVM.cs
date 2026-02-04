@@ -9,39 +9,32 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM: ObservableObject, IViewModel
 {
-    public DecksVM(IWindowService ws, ICardQueryService cqs, IDeckRepo dr, IDeckTreeBuilder dtr)
+    public DecksVM(IWindowService ws, ICardQueryService cqs, IDeckRepo dr, IDeckTreeBuilder dtb, long userId)
     {
-        deckTreeBuilder = dtr;
+        deckTreeBuilder = dtb;
         windowService = ws;
         cardQueryS = cqs;
         deckRepo = dr;
+        this.userId = userId;
 
-        Decks = [];
+        DeckTree = [];
     }
 
     #region methods
-    public async Task LoadUser(long userId)
+    internal async Task SyncDeckTree()
     {
-        this.userId = userId;
-        await SyncDeckTree();
-    }
-    private async Task SyncDeckTree()
-    {
-        if (!UserLoaded) throw new InvalidOperationException(
-            "Cannot sync deck tree without loading the user first.");
-
-        Decks.Clear();
+        DeckTree.Clear();
 
         // build root-level decks without parents (ParentId == null)
-        IEnumerable<DeckNode> deckTree = await 
-            deckTreeBuilder.BuildCountedAsync((long)userId!);
+        IEnumerable<DeckNode> deckTree = await
+            deckTreeBuilder.BuildCountedAsync(userId);
 
-        Decks.AddRange(deckTree);
+        DeckTree.AddRange(deckTree);
     }
     #endregion
 
     #region public properties
-    public ObservableCollection<DeckNode> Decks { get; init; }
+    public ObservableCollection<DeckNode> DeckTree { get; init; }
     
     [ObservableProperty]
     public partial DeckNode? SelectedDeck { get; private set; }
@@ -52,7 +45,6 @@ public partial class DecksVM: ObservableObject, IViewModel
     private readonly ICardQueryService cardQueryS;
     private readonly IDeckRepo deckRepo;
     private readonly IDeckTreeBuilder deckTreeBuilder;
-    private long? userId;
-    private bool UserLoaded => userId is not null;
+    private long userId;
     #endregion
 }

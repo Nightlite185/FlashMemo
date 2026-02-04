@@ -1,4 +1,3 @@
-
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
@@ -10,13 +9,15 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
-: EditorVMBase(cs, tr, cr), ICloseRequest
+: EditorVMBase(cs, tr, cr), ICloseRequest, IPopupHost, IReloadHandler
 {
     public CardItemVM CardVM { get; protected set; } = null!; // factory sets this by calling initialize()
+    public PopupVMBase? CurrentPopup { get; set; }
 
     #region methods
-    internal async Task Initialize(long cardId) // Factory must call this
+    internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM) // Factory must call this
     {
+        cardCtxMenuVM = ccmVM;
         lastSavedCard = await cardRepo.GetCard(cardId);
 
         var tags = await tagRepo.GetFromCard(cardId);
@@ -36,6 +37,7 @@ public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
 
     #region private things
     private CardEntity lastSavedCard = null!;
+    private CardCtxMenuVM cardCtxMenuVM = null!;
     #endregion
     
     #region ICommands
@@ -55,5 +57,12 @@ public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
             
         CardVM.Tags.AddRange(oldTags.ToVMs());
     }
+
+    public Task ReloadAsync(ReloadTargets rt)
+    {
+        throw new NotImplementedException();
+    }
+
+    
     #endregion
 }

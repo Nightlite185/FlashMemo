@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, Deck targetDeck)
-: EditorVMBase(cs, tr, cr)
+: EditorVMBase(cs, tr, cr), ICloseRequest
 {
     [ObservableProperty]
     public partial NewCardVM WipCard { get; private set; } = new(targetDeck);

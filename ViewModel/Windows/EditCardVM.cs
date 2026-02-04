@@ -11,11 +11,11 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
 : EditorVMBase(cs, tr, cr), ICloseRequest, IPopupHost, IReloadHandler
 {
-    public CardItemVM CardVM { get; protected set; } = null!; // factory sets this by calling initialize()
+    public CardItemVM CardVM { get; protected set; } = null!; //* factory sets this
     public PopupVMBase? CurrentPopup { get; set; }
 
     #region methods
-    internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM) // Factory must call this
+    internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM) //* Factory calls this
     {
         cardCtxMenuVM = ccmVM;
         lastSavedCard = await cardRepo.GetCard(cardId);

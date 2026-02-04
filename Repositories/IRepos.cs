@@ -15,7 +15,7 @@ public interface IDeckRepo
     ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
     Task SaveEditedDeckAsync(Deck updated);
     Task AddNewDeckAsync(Deck deck);
-    Task DeleteDeckAsync(long deckId);
+    Task RemoveDeckAsync(long deckId);
     Task<Deck> LoadDeckAsync(long id);
     Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null);
     Task<IEnumerable<long>> GetChildrenIds(long deckId);

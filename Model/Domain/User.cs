@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using FlashMemo.Helpers;
 
 namespace FlashMemo.Model.Domain
 {
@@ -29,19 +28,6 @@ namespace FlashMemo.Model.Domain
         public List<long> DeckOptionsIds { get; set; } = [];
         public List<long> TagIds { get; set; } = [];
         #endregion
-        public User Rehydrate(string username, byte[] hashedPassword, ICollection<long> deckIds, // TODO: add settings object later
-                              ICollection<long> deckOptionsIds, ICollection<long> tagIds, UserOptions options)
-        {                                                                                                                                                                              
-            Username = username;
-            HashedPassword = hashedPassword;
-            Options = options;
-
-            DeckIds = [..deckIds];
-            DeckOptionsIds = [..deckOptionsIds];
-            TagIds = [..tagIds];
-            
-            return this;
-        }
 
         #region Hashcode and Equals
         public override bool Equals(object? obj)

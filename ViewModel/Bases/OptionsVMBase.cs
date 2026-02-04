@@ -1,6 +1,5 @@
 using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace FlashMemo.ViewModel.Bases;
 
@@ -16,34 +15,10 @@ where TOptions: IEquatable<TOptions>
     protected bool markChanged;
     protected readonly long userId;
 
-    public bool IsChanged => ToSnapshot().Equals(lastSaved);
-    public bool IsOGDefault => lastSaved.Equals(DefaultOptions);
-    public bool IsDraftDefault => ToSnapshot().Equals(DefaultOptions);
+    // public bool IsChanged => ToSnapshot().Equals(lastSaved);
+    // public bool IsOGDefault => lastSaved.Equals(DefaultOptions);
+    // public bool IsDraftDefault => ToSnapshot().Equals(DefaultOptions);
 
-    #region ICommands
-    [RelayCommand]
-    protected virtual async Task SaveChanges()
-    {
-        throw new NotImplementedException();
-    }
-
-    [RelayCommand]
-    protected virtual void ToDefault()
-    {
-        throw new NotImplementedException();
-    }
-
-    [RelayCommand]
-    protected virtual async Task RevertChanges()
-    {
-        throw new NotImplementedException();
-    }
-
-    protected virtual void LoadFrom(TOptions options)
-    {
-        throw new NotImplementedException();
-    }
-    #endregion
     protected virtual TOptions ToSnapshot()
-        => mapper.Map<TOptions>(this); // TODO FIX
+        => mapper.Map<TOptions>(this);
 }

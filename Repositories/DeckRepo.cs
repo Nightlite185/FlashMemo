@@ -26,23 +26,21 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         await db.Decks.AddAsync(deck);
         await db.SaveChangesAsync();
     }
-    public async Task DeleteDeckAsync(long deckId)
+    public async Task RemoveDeckAsync(long deckId)
     {
         var db = GetDb;
 
-        var deck = await db.Decks.FindAsync(deckId)
-            ?? throw new ArgumentException("deck with this id was not found in database.", nameof(deckId));
-
-        db.Decks.Remove(deck);
-        await db.SaveChangesAsync();
+        await db.Decks
+            .Where(d => d.Id == deckId)
+            .ExecuteDeleteAsync();
     }
-    public async Task<Deck> LoadDeckAsync(long id)
+    public async Task<Deck> LoadDeckAsync(long deckId)
     {
         var db = GetDb;
 
         return await db.Decks
             .AsNoTracking()
-            .SingleAsync(d => d.Id == id);
+            .SingleAsync(d => d.Id == deckId);
     }
     public async Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null)
     {

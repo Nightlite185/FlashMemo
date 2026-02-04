@@ -7,21 +7,43 @@ public class UserRepo(IDbContextFactory<AppDbContext> dbFactory): DbDependentCla
 {
     public async Task<ICollection<UserEntity>> GetAllAsync()
     {
-        throw new NotImplementedException();
-    }
+        var db = GetDb;
 
+        return await db.Users
+            .AsNoTracking()
+            .ToArrayAsync();
+    }
     public async Task<UserEntity> GetByIdAsync(long userId)
     {
-        throw new NotImplementedException();
-    }
+        var db = GetDb;
 
-    public Task Remove(long userId)
-    {
-        throw new NotImplementedException();
+        return await db.Users
+            .AsNoTracking()
+            .SingleAsync(u => u.Id == userId);
     }
-
-    public Task SaveEdited(UserEntity edited)
+    public async Task Remove(long userId)
     {
-        throw new NotImplementedException();
+        var db = GetDb;
+
+        await db.Users
+            .Where(u => u.Id == userId)
+            .ExecuteDeleteAsync();
+    }
+    public async Task Rename(long userId, string newName)
+    {
+        var db = GetDb;
+
+        await db.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(u => u.SetProperty(
+                u => u.Name, newName
+            ));
+    }
+    public async Task CreateNew(UserEntity toAdd)
+    {
+        var db = GetDb;
+
+        await db.Users.AddAsync(toAdd);
+        await db.SaveChangesAsync();
     }
 }

@@ -33,10 +33,11 @@ public interface ITagRepo
 
 public interface IUserRepo
 {
+    Task CreateNew(UserEntity toAdd);
     Task<ICollection<UserEntity>> GetAllAsync();
     Task<UserEntity> GetByIdAsync(long userId);
+    Task Rename(long userId, string newName);
     Task Remove(long userId);
-    Task SaveEdited(UserEntity edited);
 }
 
 public interface IDeckOptionsRepo

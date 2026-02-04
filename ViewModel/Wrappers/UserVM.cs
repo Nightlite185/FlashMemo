@@ -1,14 +1,20 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Persistence;
+using FlashMemo.Repositories;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class UserVM: ObservableObject, IViewModel
 {
-    public UserVM(UserEntity user, UserVMStats stats)
+    private readonly IUserRepo userRepo;
+    private readonly INotifyItemRemoved<UserVM> host;
+    public UserVM(UserEntity u, UserVMStats stats, IUserRepo ur, INotifyItemRemoved<UserVM> notifyHost)
     {
-        this.user = user;
-        Name = user.Name;
+        this.userRepo = ur;
+        this.user = u;
+        host = notifyHost;
+        Name = u.Name;
 
         ReadyForReview = stats.ReadyForReview;
         DeckCount = stats.DeckCount;
@@ -20,6 +26,9 @@ public partial class UserVM: ObservableObject, IViewModel
 
     #region Public properties
     public long Id => user.Id;
+    
+    [ObservableProperty] 
+    public partial bool IsEditing { get; set; }
 
     [ObservableProperty]
     public partial string Name { get; set; }
@@ -43,6 +52,29 @@ public partial class UserVM: ObservableObject, IViewModel
         user.Name = Name;
         return user;
     }
+
+    [RelayCommand]
+    public async Task BeginRename() => IsEditing = true;
+
+    [RelayCommand]
+    public void CancelRename() => IsEditing = false;
+
+    [RelayCommand]
+    public async Task CommitRename()
+    {
+        IsEditing = false;
+
+        await userRepo.Rename(Id, Name);
+    }
+
+    [RelayCommand]
+    public async Task RemoveMe()
+    {
+        // show "you sure?? it will cascade cards and decks!!" pop up here;
+
+        await userRepo.Remove(user.Id);
+        host.NotifyRemoved(this);
+    } 
 }
 
 public readonly struct UserVMStats

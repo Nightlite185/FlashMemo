@@ -1,14 +1,14 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FlashMemo.Helpers;
+using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class UserSelectVM: ObservableObject, IViewModel, ILoadedHandlerAsync
+public partial class UserSelectVM: ObservableObject, IViewModel, INotifyItemRemoved<UserVM>
 {
     public UserSelectVM(IUserRepo userRepo, IWindowService ws, IUserVMBuilder uvmb)
     {
@@ -18,7 +18,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ILoadedHandlerA
     }
 
     #region public properties
-    public ObservableCollection<UserVM> Users { get; private set; } = [];
+    public ObservableCollection<UserVM> Users { get; init; } = [];
     
     [ObservableProperty]
     public partial UserVM? SelectedUser { get; set; }
@@ -31,36 +31,24 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ILoadedHandlerA
     #endregion
     
     #region methods
-    public async Task LoadEventHandler() //? Idk if this is a good pattern. It makes it non-testable without the UI.
-    {                                    //TODO: maybe refactor this in the future into a small factory.
-        Users.AddRange(
-            await userVMBuilder.BuildAllAsync());
-    }
+    public void NotifyRemoved(UserVM user) => Users.Remove(user);
     #endregion
-    
+
     #region ICommands
-    [RelayCommand]
-    public void LoadUser()
-    {
-        throw new NotImplementedException();
-    }
 
     [RelayCommand]
-    public async Task RemoveUser()
+    public async Task CreateUser(string name)
     {
-        throw new NotImplementedException();
+        var user = UserEntity.Create(name);
+        await userRepo.CreateNew(user);
+
+        var stats = new UserVMStats()
+            { Created = user.Created };
+
+        Users.Add(new( user, stats, userRepo, this));
     }
 
-    [RelayCommand]
-    public async Task CreateUser()
-    {
-        throw new NotImplementedException();
-    }
+    
 
-    [RelayCommand]
-    public async Task ChangeUserName()
-    {
-        throw new NotImplementedException();
-    }
     #endregion
 }

@@ -1,14 +1,9 @@
-namespace FlashMemo.Model.Persistence
+namespace FlashMemo.Model.Persistence;
+
+public class UserOptions
 {
-    public interface IDefaultable
+    internal static UserOptions CreateDefault()
     {
-        void ToDefault();
-    }
-    public class UserOptions: IDefaultable
-    {
-        public void ToDefault()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
 }

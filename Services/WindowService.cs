@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using FlashMemo.Model.Persistence;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Factories;
@@ -8,10 +9,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
 
-public class WindowService(IServiceProvider sp, BrowseVMF browseVMF, EditCardVMF editCardVMF): IWindowService
+public class WindowService
+(IServiceProvider sp, BrowseVMF bVMF, EditCardVMF ecVMF, 
+CreateCardVMF ccVMF, UserSelectVMF usVMF)
+: IWindowService
 {
-    private readonly BrowseVMF browseVMF = browseVMF;
-    private readonly EditCardVMF editCardVMF = editCardVMF;
+    private readonly BrowseVMF browseVMF = bVMF;
+    private readonly EditCardVMF editCardVMF = ecVMF;
+    private readonly CreateCardVMF createCardVMF = ccVMF;
+    private readonly UserSelectVMF userSelectVMF = usVMF;
     private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
@@ -32,10 +38,7 @@ public class WindowService(IServiceProvider sp, BrowseVMF browseVMF, EditCardVMF
         
         // TODO: get VMs from factories instead of sp for proper initialization 
 
-        SetDataCtx(vm, win);
-        WireEvents(vm, win);
-
-        win.ShowDialog();
+        WireHelper(vm, win);
     }
 
     public async Task ShowBrowseWindow(long userId)
@@ -43,23 +46,40 @@ public class WindowService(IServiceProvider sp, BrowseVMF browseVMF, EditCardVMF
         var vm = await browseVMF.CreateAsync(userId);
         var win = sp.GetRequiredService<BrowseWindow>();
 
-        SetDataCtx(vm, win);
-        WireEvents(vm, win);
-
-        win.ShowDialog();
+        WireHelper(vm, win);
     }
 
-    public async Task ShowEditCardWindow(long cardId)
+    public async Task ShowEditCardWindow(long cardId, long userId)
     {
-        var vm = await editCardVMF.CreateAsync(cardId);
+        var vm = await editCardVMF.CreateAsync(cardId, userId);
         var win = sp.GetRequiredService<EditWindow>();
 
+        WireHelper(vm, win);
+    }
+
+    public void ShowCreateCardWindow(Deck targetDeck)
+    {
+        var vm = createCardVMF.Create(targetDeck);
+        var win = sp.GetRequiredService<CreateCardWindow>();
+
+        WireHelper(vm, win);
+    }
+
+    public async Task ShowUserSelectWindow()
+    {
+        var vm = await userSelectVMF.CreateAsync();
+        var win = sp.GetRequiredService<UserSelectWindow>();
+
+        WireHelper(vm, win);
+    }
+
+    private static void WireHelper(IViewModel vm, Window win)
+    {
         SetDataCtx(vm, win);
         WireEvents(vm, win);
 
         win.ShowDialog();
     }
-
     private static void SetDataCtx<TViewModel>(TViewModel vm, Window win) 
     where TViewModel: IViewModel
     {

@@ -1,3 +1,4 @@
+using System.Dynamic;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Model.Persistence
@@ -85,10 +86,9 @@ namespace FlashMemo.Model.Persistence
             mb.Entity<Deck>()
                 .HasOne(d => d.Options)
                 .WithMany(o => o.Decks)
-                .HasForeignKey(d => d.OptionsId)
-                .OnDelete(DeleteBehavior.SetNull); // TODO: Decide later on app behaviour when user deletes a scheduler preset
-                                                // most likely set all decks that were using it to constant non-deletable default preset
-        }
+                .HasForeignKey(d => d.OptionsId)    //* restrict on preset delete when there are still decks pointing to it.
+                .OnDelete(DeleteBehavior.Restrict); //* First manually set it to -1 for each deck, then remove preset :) 
+        }                                           
         private static void DefineAutoIncludes(ModelBuilder mb)
         {
             // mb.Entity<Deck>()

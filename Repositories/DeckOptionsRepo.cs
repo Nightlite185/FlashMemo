@@ -29,15 +29,17 @@ public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory, IMapper 
 
         var db = GetDb;
 
-        await db.DeckOptions
-            .Where(x => x.Id == presetId)
-            .ExecuteDeleteAsync();
-
         //* replacing all references to removed preset's id with -1 (default one).
         await db.Decks
             .Where(d => d.OptionsId == presetId)
             .ExecuteUpdateAsync(s =>
                 s.SetProperty(d => d.OptionsId, -1));
+        
+        //* then removing the preset, after there are no more decks pointing to it.
+        await db.DeckOptions
+            .Where(x => x.Id == presetId)
+            .ExecuteDeleteAsync();
+
     }
     public async Task AssignToDecks(IEnumerable<long> deckIds, long newPresetId = -1)
     {

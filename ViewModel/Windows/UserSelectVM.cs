@@ -8,7 +8,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class UserSelectVM: ObservableObject, IViewModel, INotifyItemRemoved<UserVM>
+public partial class UserSelectVM: ObservableObject, IViewModel
 {
     public UserSelectVM(IUserRepo userRepo, IWindowService ws, IUserVMBuilder uvmb)
     {
@@ -30,25 +30,25 @@ public partial class UserSelectVM: ObservableObject, IViewModel, INotifyItemRemo
     private readonly IWindowService windowService;
     #endregion
     
-    #region methods
-    public void NotifyRemoved(UserVM user) => Users.Remove(user);
-    #endregion
-
     #region ICommands
+    [RelayCommand]
+    public async Task RemoveUser(UserVM user)
+    {
+        // show "you sure?? it will cascade cards and decks!!" pop up here;
+
+        await userRepo.Remove(user.Id);
+        Users.Remove(user);
+    }
 
     [RelayCommand]
     public async Task CreateUser(string name)
     {
         var user = UserEntity.Create(name);
+        var vm = userVMBuilder.BuildUncounted(user);
+
         await userRepo.CreateNew(user);
-
-        var stats = new UserVMStats()
-            { Created = user.Created };
-
-        Users.Add(new( user, stats, userRepo, this));
+        
+        Users.Add(vm);
     }
-
-    
-
     #endregion
 }

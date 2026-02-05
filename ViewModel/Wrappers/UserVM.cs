@@ -8,12 +8,10 @@ namespace FlashMemo.ViewModel.Wrappers;
 public partial class UserVM: ObservableObject, IViewModel
 {
     private readonly IUserRepo userRepo;
-    private readonly INotifyItemRemoved<UserVM> host;
-    public UserVM(UserEntity u, UserVMStats stats, IUserRepo ur, INotifyItemRemoved<UserVM> notifyHost)
+    public UserVM(UserEntity u, UserVMStats stats, IUserRepo ur)
     {
         this.userRepo = ur;
         this.user = u;
-        host = notifyHost;
         Name = u.Name;
 
         ReadyForReview = stats.ReadyForReview;
@@ -27,7 +25,7 @@ public partial class UserVM: ObservableObject, IViewModel
     #region Public properties
     public long Id => user.Id;
     
-    [ObservableProperty] 
+    [ObservableProperty]
     public partial bool IsEditing { get; set; }
 
     [ObservableProperty]
@@ -66,15 +64,6 @@ public partial class UserVM: ObservableObject, IViewModel
 
         await userRepo.Rename(Id, Name);
     }
-
-    [RelayCommand]
-    public async Task RemoveMe()
-    {
-        // show "you sure?? it will cascade cards and decks!!" pop up here;
-
-        await userRepo.Remove(user.Id);
-        host.NotifyRemoved(this);
-    } 
 }
 
 public readonly struct UserVMStats

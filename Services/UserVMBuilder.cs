@@ -1,5 +1,6 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
+using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Wrappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,29 +10,28 @@ public class UserVMBuilder(IDbContextFactory<AppDbContext> factory, IUserRepo ur
 {
     private readonly IUserRepo userRepo = ur;
     private readonly ICountingService counter = cc;
-    public async Task<IEnumerable<UserVM>> BuildAllAsync()
+    
+    public async Task<IEnumerable<UserVM>> BuildAllCounted()
     {
         var users = await userRepo.GetAllAsync();
 
         List<UserVM> vms = [];
 
         foreach (var user in users)
-            vms.Add(await BuildAsync(user));
+            vms.Add(await BuildCounted(user));
         
         return vms;
     }
-
-    public async Task<UserVM> BuildByIdAsync(long userId)
+    public async Task<UserVM> BuildCounted(long userId)
     {
         var db = GetDb;
 
         var user = await db.Users
             .SingleAsync(u => u.Id == userId);
 
-        return await BuildAsync(user);
+        return await BuildCounted(user);
     }
-
-    public async Task<UserVM> BuildAsync(UserEntity user)
+    public async Task<UserVM> BuildCounted(UserEntity user)
     {
         int totalCards = await counter
             .AllCards(user.Id);
@@ -50,6 +50,13 @@ public class UserVMBuilder(IDbContextFactory<AppDbContext> factory, IUserRepo ur
             Created = user.Created
         };
 
-        return new(user, stats);
+        return new(user, stats, userRepo);
+    }
+    public UserVM BuildUncounted(UserEntity user)
+    {
+        var stats = new UserVMStats()
+            { Created = user.Created };
+
+        return new(user, stats, userRepo);
     }
 }

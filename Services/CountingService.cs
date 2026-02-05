@@ -1,4 +1,3 @@
-using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;

@@ -27,9 +27,4 @@ public interface IPopupHost
     public PopupVMBase? CurrentPopup { get; set; }
 }
 
-public interface INotifyItemRemoved<T>
-{
-    void NotifyRemoved(T item);
-}
-
 public interface IViewModel;

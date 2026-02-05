@@ -17,7 +17,7 @@ public class UserSelectVMF(IUserRepo ur, IWindowService ws, IUserVMBuilder uvmb)
             (userRepo, windowService, userVMBuilder);
     
         vm.Users.AddRange(
-            await userVMBuilder.BuildAllAsync());
+            await userVMBuilder.BuildAllCounted());
 
         return vm;
     }

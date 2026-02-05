@@ -60,9 +60,10 @@ public interface IWindowService
 
 public interface IUserVMBuilder
 {
-    Task<IEnumerable<UserVM>> BuildAllAsync(INotifyItemRemoved<UserVM> notifyHost);
-    Task<UserVM> BuildByIdAsync(long userId, INotifyItemRemoved<UserVM> notifyHost);
-    Task<UserVM> BuildAsync(UserEntity user, INotifyItemRemoved<UserVM> notifyHost);
+    Task<IEnumerable<UserVM>> BuildAllCounted();
+    Task<UserVM> BuildCounted(long userId);
+    Task<UserVM> BuildCounted(UserEntity user);
+    UserVM BuildUncounted(UserEntity user);
 }
 
 public interface IDeckOptVMBuilder

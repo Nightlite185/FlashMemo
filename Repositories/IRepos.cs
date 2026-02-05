@@ -45,6 +45,7 @@ public interface IDeckOptionsRepo
     Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
     Task Remove(long presetId);
     Task CreateNew(DeckOptions newRecord);
+    Task CreateNew(DeckOptionsEntity newEntity);
     Task SaveEditedPreset(DeckOptions updatedRecord);
     Task AssignToDecks(IEnumerable<long> deckIds, long newPresetId = -1);
 }

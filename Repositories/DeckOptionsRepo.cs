@@ -4,7 +4,7 @@ using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Repositories;
-
+//TODO: move this class to services layer since it enforces important invariants which repos shouldnt handle.
 public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory, IMapper mapper)
     : DbDependentClass(dbFactory), IDeckOptionsRepo
 {
@@ -56,12 +56,20 @@ public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory, IMapper 
             @"Cannot add new deck options preset with id -1,
             as it's reserved for the default preset only.");
 
-        var db = GetDb;
-
         var newEntity = new DeckOptionsEntity();
         newEntity.NewOwnedTypes();
 
         mapper.Map(newRecord, newEntity);
+
+        await CreateNew(newEntity);
+    }
+    public async Task CreateNew(DeckOptionsEntity newEntity)
+    {
+        if (newEntity.Id == -1) throw new InvalidOperationException(
+            @"Cannot add new deck options preset with id -1,
+            as it's reserved for the default preset only.");
+
+        var db = GetDb;
 
         await db.DeckOptions.AddAsync(newEntity);
         await db.SaveChangesAsync();

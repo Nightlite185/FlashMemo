@@ -5,9 +5,9 @@ namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class DeckOptionsVM: ObservableObject
 {
-    public long Id { get; init; }
-
-    //TODO: future idea: add int counter of how many decks use this preset.
+    public long Id { get; set; }
+    [ObservableProperty] public partial string Name { get; set; }
+    [ObservableProperty] public partial int DecksAssigned { get; set; }
 
     [ObservableProperty] public partial OrderingOptVM Ordering { get; set; }
     [ObservableProperty] public partial SchedulingOptVM Scheduling { get; set; }

@@ -54,7 +54,7 @@ namespace FlashMemo;
             sc.AddTransient<FiltersVM>();
 
             // ==== VM FACTORIES ====
-            sc.AddSingleton<DeckOptionsVMF>();
+            sc.AddSingleton<DeckOptionsMenuVMF>();
             sc.AddSingleton<DeckSelectVMF>();
             sc.AddSingleton<CardCtxMenuVMF>();
             sc.AddSingleton<CreateCardVMF>();

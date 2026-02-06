@@ -11,83 +11,110 @@ using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo;
-    public partial class App : Application
+public partial class App : Application
+{
+    private IServiceProvider sp = null!;
+    public static string DbPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "FlashMemo", "Data",
+        dbFileName
+    );
+    private const string dbFileName = "flashmemo.db";
+
+    protected override async void OnStartup(StartupEventArgs e)
     {
-        private static ServiceProvider SP { get; } = null!;
-        public static string DbPath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "FlashMemo", "Data",
-            dbFileName
-        );
-        private const string dbFileName = "flashmemo.db";
+        base.OnStartup(e);
 
-        protected override void OnStartup(StartupEventArgs e)
+        var services = ConfigureServices();
+        this.sp = services.BuildServiceProvider();
+
+        await InitUserSession();
+    }
+    
+    // TODO: maybe encapsulate this to some initialization service ??
+    private async Task InitUserSession()
+    {
+        var ss = sp.GetRequiredService<ISessionDataService>();
+        await ss.LoadAsync();
+
+        if (ss.Current.LastLoadedUserId is null)
         {
-            base.OnStartup(e);
-
-            var services = ConfigureServices();
-            services.BuildServiceProvider();
-
-            SP.GetRequiredService<MainWindow>().Show(); // resolving the MainWindow and setting off the "ctor chain reaction"
+            var ws = sp.GetRequiredService<IWindowService>();
+            await ws.ShowUserSelectWindow();
         }
 
-        private static ServiceCollection ConfigureServices()
+        else
         {
-            ServiceCollection sc = new();
+            var factory = sp.GetRequiredService<MainVMF>();
+            
+            var mainVM = factory
+                .Create((long)ss.Current.LastLoadedUserId);
 
-            // ==== WINDOWS ====
-            sc.AddSingleton<MainWindow>(); //TODO: decide if transient: bc you can change user mid-session, and app needs to reload main window accordingly OR singleton and win coexists with the user changing win.
-            sc.AddTransient<BrowseWindow>();
-            sc.AddTransient<OptionsWindow>();
-            sc.AddTransient<EditWindow>();
+            var win = new MainWindow(mainVM)
+                { DataContext = mainVM };
 
-            // ==== VIEWMODELS ====
-            sc.AddSingleton<MainVM>();
-            sc.AddTransient<ReviewVM>();
-            sc.AddTransient<StatsVM>();
-            sc.AddTransient<EditCardVM>();
-            sc.AddTransient<CreateCardVM>();
-            sc.AddTransient<DeckOptionsMenuVM>();
-            sc.AddTransient<DecksVM>();
-            sc.AddTransient<UserOptionsVM>();
-            sc.AddTransient<BrowseVM>();
-            sc.AddTransient<FiltersVM>();
+            //wire any needed lifetime events here.
 
-            // ==== VM FACTORIES ====
-            sc.AddSingleton<DeckOptionsMenuVMF>();
-            sc.AddSingleton<DeckSelectVMF>();
-            sc.AddSingleton<CardCtxMenuVMF>();
-            sc.AddSingleton<CreateCardVMF>();
-            sc.AddSingleton<EditCardVMF>();
-            sc.AddSingleton<FiltersVMF>();
-            sc.AddSingleton<ManageTagsVMF>();
-            sc.AddSingleton<BrowseVMF>();
-
-            // ==== SERVICES ====
-            sc.AddSingleton<WindowService>();
-            sc.AddSingleton<NavigationService>();
-            sc.AddSingleton<DeckTreeBuilder>();
-            sc.AddSingleton<CardService>();
-            sc.AddSingleton<CardQueryService>();
-            sc.AddSingleton<LearningPool>();
-            sc.AddSingleton<UserVMBuilder>();
-            sc.AddAutoMapper(typeof(App));
-
-            // ==== REPOS ====
-            sc.AddSingleton<DeckOptionsRepo>();
-            sc.AddSingleton<DeckRepo>();
-            sc.AddSingleton<TagRepo>();
-            sc.AddSingleton<CardRepo>();
-            sc.AddSingleton<UserRepo>();
-
-            // ==== DB CONTEXT ====
-            sc.AddDbContext<AppDbContext>(o => 
-                o.UseSqlite($"Data Source={DbPath}"));
-
-            sc.AddDbContextFactory<AppDbContext>();
-
-            return sc;
+            win.Show();
         }
     }
+    private static ServiceCollection ConfigureServices()
+    {
+        ServiceCollection sc = new();
 
+        // ==== WINDOWS ====
+        sc.AddSingleton<MainWindow>(); 
+        sc.AddTransient<BrowseWindow>();
+        sc.AddTransient<OptionsWindow>();
+        sc.AddTransient<EditWindow>();
 
+        // ==== VIEWMODELS ====
+        sc.AddTransient<MainVM>(); //* transient cuz u can change user mid-runtime -> mainVM reloads.
+        sc.AddTransient<ReviewVM>();
+        sc.AddTransient<StatsVM>();
+        sc.AddTransient<EditCardVM>();
+        sc.AddTransient<CreateCardVM>();
+        sc.AddTransient<DeckOptionsMenuVM>();
+        sc.AddTransient<DecksVM>();
+        sc.AddTransient<UserOptionsVM>();
+        sc.AddTransient<BrowseVM>();
+        sc.AddTransient<FiltersVM>();
+
+        // ==== VM FACTORIES ====
+        sc.AddSingleton<DeckOptionsMenuVMF>();
+        sc.AddSingleton<DeckSelectVMF>();
+        sc.AddSingleton<CardCtxMenuVMF>();
+        sc.AddSingleton<CreateCardVMF>();
+        sc.AddSingleton<UserSelectVMF>();
+        sc.AddSingleton<EditCardVMF>();
+        sc.AddSingleton<FiltersVMF>();
+        sc.AddSingleton<ManageTagsVMF>();
+        sc.AddSingleton<BrowseVMF>();
+        sc.AddSingleton<MainVMF>();
+
+        // ==== SERVICES ====
+        sc.AddSingleton<IWindowService, WindowService>();
+        sc.AddSingleton<INavigationService, NavigationService>();
+        sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();
+        sc.AddSingleton<ICardService, CardService>();
+        sc.AddSingleton<ICardQueryService, CardQueryService>();
+        sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
+        sc.AddSingleton<ISessionDataService, SessionDataService>();
+        sc.AddAutoMapper(typeof(App));
+
+        // ==== REPOS ====
+        sc.AddSingleton<IDeckOptionsRepo, DeckOptionsRepo>();
+        sc.AddSingleton<IDeckRepo, DeckRepo>();
+        sc.AddSingleton<ITagRepo, TagRepo>();
+        sc.AddSingleton<ICardRepo, CardRepo>();
+        sc.AddSingleton<IUserRepo, UserRepo>();
+
+        // ==== DB CONTEXT ====
+        sc.AddDbContext<AppDbContext>(o => 
+            o.UseSqlite($"Data Source={DbPath}"));
+
+        sc.AddDbContextFactory<AppDbContext>();
+
+        return sc;
+    }
+}

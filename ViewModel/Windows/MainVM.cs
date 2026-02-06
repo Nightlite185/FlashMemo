@@ -1,12 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class MainVM(INavigationService ns): ObservableObject, IViewModel
+public partial class MainVM(INavigationService ns, BrowseVMF bVMF, long userId): ObservableObject, IViewModel
 {
-    [ObservableProperty]
-    public partial IViewModel CurrentVM { get; set; }
     private readonly INavigationService navService = ns;
-    private long userId; // TODO: this somehow needs to be filled later, probably factory.
+    private readonly long userId = userId;
+    private readonly BrowseVMF browseVMF = bVMF;
 }

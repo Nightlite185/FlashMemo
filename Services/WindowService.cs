@@ -40,7 +40,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
 
         WireHelper(vm, win);
     }
-
+    
     public async Task ShowBrowseWindow(long userId)
     {
         var vm = await browseVMF.CreateAsync(userId);
@@ -48,7 +48,6 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
 
         WireHelper(vm, win);
     }
-
     public async Task ShowEditCardWindow(long cardId, long userId)
     {
         var vm = await editCardVMF.CreateAsync(cardId, userId);
@@ -56,7 +55,6 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
 
         WireHelper(vm, win);
     }
-
     public void ShowCreateCardWindow(Deck targetDeck)
     {
         var vm = createCardVMF.Create(targetDeck);
@@ -64,7 +62,6 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
 
         WireHelper(vm, win);
     }
-
     public async Task ShowUserSelectWindow()
     {
         var vm = await userSelectVMF.CreateAsync();
@@ -72,7 +69,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
 
         WireHelper(vm, win);
     }
-
+    
     private static void WireHelper(IViewModel vm, Window win)
     {
         SetDataCtx(vm, win);

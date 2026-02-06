@@ -1,4 +1,4 @@
-﻿using FlashMemo.ViewModel;
+﻿using FlashMemo.ViewModel.Windows;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -8,18 +8,13 @@ namespace FlashMemo.View
     {
         public void SetVM(TViewModel vm);
     }
-    public partial class MainWindow: Window, IViewFor<MainVM>
+    public partial class MainWindow: Window
     {
-        private MainVM vm = null!;
-        public MainWindow()
+        private MainVM mainVM;
+        internal MainWindow(MainVM vm)
         {
+            mainVM = vm;
             InitializeComponent();
-        }
-
-        public void SetVM(MainVM vm)
-        {
-            this.DataContext = vm;
-            this.vm = vm;
         }
 
         private void DeckOptions_Click(object sender, RoutedEventArgs e)

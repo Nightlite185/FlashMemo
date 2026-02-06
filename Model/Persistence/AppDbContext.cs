@@ -1,16 +1,17 @@
-using System.Dynamic;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Model.Persistence
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public DbSet<CardEntity> Cards { get; set; }
-        public DbSet<Deck> Decks { get; set; }
-        public DbSet<DeckOptionsEntity> DeckOptions { get; set; }
-        public DbSet<UserEntity> Users { get; set; }
-        public DbSet<Tag> Tags { get; set; }
-        public DbSet<CardLog> CardLogs { get; set; }
+        public DbSet<DeckOptionsEntity> DeckOptions => Set<DeckOptionsEntity>();
+        public DbSet<LastSessionData> SessionData => Set<LastSessionData>();
+        public DbSet<CardEntity> Cards => Set<CardEntity>();
+        public DbSet<UserEntity> Users => Set<UserEntity>();
+        public DbSet<CardLog> CardLogs => Set<CardLog>();
+        public DbSet<Deck> Decks => Set<Deck>();
+        public DbSet<Tag> Tags => Set<Tag>();
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -103,6 +104,9 @@ namespace FlashMemo.Model.Persistence
         {
             mb.Entity<DeckOptionsEntity>()
                 .HasData(Domain.DeckOptions.Default);
+
+            mb.Entity<LastSessionData>()
+                .HasData(new LastSessionData() { Id = 1 });
         }
     }
 }

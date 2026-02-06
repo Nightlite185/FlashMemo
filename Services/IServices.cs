@@ -55,6 +55,9 @@ public interface INavigationService
 public interface IWindowService
 {
     void ShowDialog<TViewModel>() where TViewModel: IViewModel;
+    Task ShowEditCardWindow(long cardId, long userId);
+    void ShowCreateCardWindow(Deck targetDeck);
+    Task ShowUserSelectWindow();
     Task ShowBrowseWindow(long userId);
 }
 
@@ -64,6 +67,14 @@ public interface IUserVMBuilder
     Task<UserVM> BuildCounted(long userId);
     Task<UserVM> BuildCounted(UserEntity user);
     UserVM BuildUncounted(UserEntity user);
+}
+
+public interface ISessionDataService
+{
+    LastSessionData Current { get; }
+    Task LoadAsync();
+    Task SaveStateAsync();
+
 }
 
 public interface IDeckOptVMBuilder

@@ -11,7 +11,7 @@ public class LearningPool()
         if (card.IsDueNow) throw new InvalidOperationException(
             "Cannot add a currently due card to the learning pool.");
 
-        learningPool.Enqueue(card, card.Due);
+        learningPool.Enqueue(card, card.Due); // TODO: FIX THIS
     }
     public void InjectDueInto(Stack<CardEntity> allCards)
     {

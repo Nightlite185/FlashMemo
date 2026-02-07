@@ -5,7 +5,7 @@ namespace FlashMemo.Services;
    
 public static class Scheduler
 {
-    public static void Schedule(this Card card, Answers answer, DeckOptionsEntity.Scheduling options)
+    public static void Schedule(this Card card, Answers answer, DeckOptionsEntity.SchedulingOpt options)
     {
         ScheduleInfo info = answer switch
         {
@@ -21,7 +21,7 @@ public static class Scheduler
     }
     
     #region Private answer handlers
-    private static ScheduleInfo ProcessHard(Card card, DeckOptionsEntity.Scheduling s)
+    private static ScheduleInfo ProcessHard(Card card, DeckOptionsEntity.SchedulingOpt s)
     {
         return card.State switch
         {
@@ -46,7 +46,7 @@ public static class Scheduler
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
         };
     }
-    private static ScheduleInfo ProcessEasy(Card card, DeckOptionsEntity.Scheduling s)
+    private static ScheduleInfo ProcessEasy(Card card, DeckOptionsEntity.SchedulingOpt s)
     {
         return new(
             state: CardState.Review,
@@ -59,7 +59,7 @@ public static class Scheduler
                 : card.Interval * s.EasyMultiplier
         );
     }
-    private static ScheduleInfo ProcessGood(Card card, DeckOptionsEntity.Scheduling s)
+    private static ScheduleInfo ProcessGood(Card card, DeckOptionsEntity.SchedulingOpt s)
     {
         return card.State switch
         {
@@ -80,7 +80,7 @@ public static class Scheduler
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
         };
     }
-    private static ScheduleInfo ProcessGoodIfLearningStage(Card card, DeckOptionsEntity.Scheduling s)
+    private static ScheduleInfo ProcessGoodIfLearningStage(Card card, DeckOptionsEntity.SchedulingOpt s)
     {
         /* this case has to be separate cuz next params depend on the previous variables set -> not to repeat the same ifs.
         calling a ctor in switch case can't dynamically depend on previous args since the struct doesnt even exist yet. */
@@ -104,7 +104,7 @@ public static class Scheduler
             interval: interval
         );
     }
-    private static ScheduleInfo ProcessAgain(Card card, DeckOptionsEntity.Scheduling s)
+    private static ScheduleInfo ProcessAgain(Card card, DeckOptionsEntity.SchedulingOpt s)
     {
         return card.State switch 
         {

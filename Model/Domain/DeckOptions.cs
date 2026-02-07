@@ -12,25 +12,26 @@ public record class DeckOptions
         {
             Name = "Default",
             Id = -1,
-
-            Scheduling_ = Scheduling.Default,
-            DailyLimits_ = DailyLimits.Default,
-            Sorting_ = Ordering.Default
+            UserId = null,
+            
+            Scheduling = SchedulingOpt.Default,
+            DailyLimits = DailyLimitsOpt.Default,
+            Sorting = SortingOpt.Default
         };
     }
     
     public long Id { get; init; }
     public string Name { get; init; } = null!;
-    public long UserId { get; init; }
+    public long? UserId { get; init; }
     public ImmutableArray<long> Decks { get; init; }
     
     #region sub-options properties
-    public Scheduling Scheduling_ { get; init; } = null!;
-    public DailyLimits DailyLimits_ { get; init; } = null!;
-    public Ordering Sorting_ { get; init; } = null!;
+    public SchedulingOpt Scheduling { get; init; } = null!;
+    public DailyLimitsOpt DailyLimits { get; init; } = null!;
+    public SortingOpt Sorting { get; init; } = null!;
     #endregion
 
-    public sealed record class Scheduling
+    public sealed record class SchedulingOpt
     {
         #region defaults
         public const float DefGoodMultiplier = 2.0f;
@@ -47,7 +48,7 @@ public record class DeckOptions
         public const int DefGoodOnNewStage = 2; // last one, bc there should be always 3 elements of the learning stages
         public const int DefHardOnNewStage = 1; // clicking hard on new card lands in the middle of learning stages.
 
-        public static readonly Scheduling Default = new()
+        public static readonly SchedulingOpt Default = new()
         {
             GoodMultiplier = DefGoodMultiplier,
             EasyMultiplier = DefEasyMultiplier,
@@ -73,10 +74,10 @@ public record class DeckOptions
         public int HardOnNewStage { get; init; }
         #endregion
     }
-    public sealed record class DailyLimits
+    public sealed record class DailyLimitsOpt
     {
         #region defaults
-        public static readonly DailyLimits Default = new()
+        public static readonly DailyLimitsOpt Default = new()
         {
             NewIgnoreReviewLimit = DefNewIgnoreReviewLimit,
             DailyReviewsLimit = DefDailyReviewsLimit,
@@ -93,7 +94,7 @@ public record class DeckOptions
         public int DailyLessonsLimit { get; init; }
         #endregion
     }
-    public record class Ordering
+    public record class SortingOpt
     {
         #region defaults
         public const LessonOrder DefLessonSortOrder = LessonOrder.Created;
@@ -102,7 +103,7 @@ public record class DeckOptions
         public const SortingDirection DefReviewSortDir = SortingDirection.Descending;
         public const CardStateOrder DefCardTypeOrder = CardStateOrder.ReviewsThenNew;
 
-        public static readonly Ordering Default = new()
+        public static readonly SortingOpt Default = new()
         {
             LessonSortOrder = DefLessonSortOrder,
             ReviewSortOrder = DefReviewSortOrder,

@@ -12,12 +12,25 @@ namespace FlashMemo.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "LastSessionData",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    LastLoadedUserId = table.Column<long>(type: "INTEGER", nullable: true),
+                    LastUsedDeckId = table.Column<long>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LastSessionData", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
-                    Username = table.Column<string>(type: "TEXT", nullable: false),
-                    HashedPassword = table.Column<byte[]>(type: "BLOB", nullable: false)
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Created = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,8 +42,8 @@ namespace FlashMemo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     Scheduling_GoodMultiplier = table.Column<float>(type: "REAL", nullable: false),
                     Scheduling_EasyMultiplier = table.Column<float>(type: "REAL", nullable: false),
                     Scheduling_HardMultiplier = table.Column<float>(type: "REAL", nullable: false),
@@ -42,9 +55,11 @@ namespace FlashMemo.Migrations
                     Scheduling_HardOnNewStage = table.Column<int>(type: "INTEGER", nullable: false),
                     DailyLimits_DailyReviewsLimit = table.Column<int>(type: "INTEGER", nullable: false),
                     DailyLimits_DailyLessonsLimit = table.Column<int>(type: "INTEGER", nullable: false),
-                    Sorting_NewCardSortOrder = table.Column<int>(type: "INTEGER", nullable: false),
-                    Sorting_ReviewSortOrder = table.Column<int>(type: "INTEGER", nullable: false),
-                    Sorting_CardTypeOrder = table.Column<int>(type: "INTEGER", nullable: false)
+                    Sorting_LessonsOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sorting_ReviewsOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sorting_ReviewsSortDir = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sorting_LessonsSortDir = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sorting_CardStateOrder = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -53,8 +68,7 @@ namespace FlashMemo.Migrations
                         name: "FK_DeckOptions_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -62,9 +76,9 @@ namespace FlashMemo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Color = table.Column<int>(type: "INTEGER", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: true)
+                    IntColor = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -73,7 +87,8 @@ namespace FlashMemo.Migrations
                         name: "FK_Tags_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -83,8 +98,8 @@ namespace FlashMemo.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    OptionsId = table.Column<long>(type: "INTEGER", nullable: true),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
+                    OptionsId = table.Column<long>(type: "INTEGER", nullable: false),
                     ParentDeckId = table.Column<long>(type: "INTEGER", nullable: true),
                     IsTemporary = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
@@ -96,7 +111,7 @@ namespace FlashMemo.Migrations
                         column: x => x.OptionsId,
                         principalTable: "DeckOptions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Decks_Decks_ParentDeckId",
                         column: x => x.ParentDeckId,
@@ -107,7 +122,8 @@ namespace FlashMemo.Migrations
                         name: "FK_Decks_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -121,9 +137,9 @@ namespace FlashMemo.Migrations
                     IsBuried = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsSuspended = table.Column<bool>(type: "INTEGER", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LastModified = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    NextReview = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LastReviewed = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    LastModified = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    Due = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastReviewed = table.Column<DateTime>(type: "TEXT", nullable: true),
                     Interval = table.Column<TimeSpan>(type: "TEXT", nullable: false),
                     State = table.Column<int>(type: "INTEGER", nullable: false),
                     LearningStage = table.Column<int>(type: "INTEGER", nullable: true)
@@ -140,7 +156,7 @@ namespace FlashMemo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CardEntityTagEntity",
+                name: "CardEntityTag",
                 columns: table => new
                 {
                     CardsId = table.Column<long>(type: "INTEGER", nullable: false),
@@ -148,15 +164,15 @@ namespace FlashMemo.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CardEntityTagEntity", x => new { x.CardsId, x.TagsId });
+                    table.PrimaryKey("PK_CardEntityTag", x => new { x.CardsId, x.TagsId });
                     table.ForeignKey(
-                        name: "FK_CardEntityTagEntity_Cards_CardsId",
+                        name: "FK_CardEntityTag_Cards_CardsId",
                         column: x => x.CardsId,
                         principalTable: "Cards",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CardEntityTagEntity_Tags_TagsId",
+                        name: "FK_CardEntityTag_Tags_TagsId",
                         column: x => x.TagsId,
                         principalTable: "Tags",
                         principalColumn: "Id",
@@ -193,8 +209,8 @@ namespace FlashMemo.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CardEntityTagEntity_TagsId",
-                table: "CardEntityTagEntity",
+                name: "IX_CardEntityTag_TagsId",
+                table: "CardEntityTag",
                 column: "TagsId");
 
             migrationBuilder.CreateIndex(
@@ -242,10 +258,13 @@ namespace FlashMemo.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CardEntityTagEntity");
+                name: "CardEntityTag");
 
             migrationBuilder.DropTable(
                 name: "CardLogs");
+
+            migrationBuilder.DropTable(
+                name: "LastSessionData");
 
             migrationBuilder.DropTable(
                 name: "Tags");

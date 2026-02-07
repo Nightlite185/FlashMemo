@@ -11,16 +11,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260108132552_InitialCreate")]
+    [Migration("20260207193713_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.1");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
 
-            modelBuilder.Entity("CardEntityTagEntity", b =>
+            modelBuilder.Entity("CardEntityTag", b =>
                 {
                     b.Property<long>("CardsId")
                         .HasColumnType("INTEGER");
@@ -32,26 +32,7 @@ namespace FlashMemo.Migrations
 
                     b.HasIndex("TagsId");
 
-                    b.ToTable("CardEntityTagEntity");
-                });
-
-            modelBuilder.Entity("FlashMemo.Model.DeckOptions", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("DeckOptions", (string)null);
+                    b.ToTable("CardEntityTag");
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
@@ -68,6 +49,9 @@ namespace FlashMemo.Migrations
                     b.Property<long>("DeckId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("Due")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("FrontContent")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -81,17 +65,14 @@ namespace FlashMemo.Migrations
                     b.Property<bool>("IsSuspended")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("LastModified")
+                    b.Property<DateTime?>("LastModified")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("LastReviewed")
+                    b.Property<DateTime?>("LastReviewed")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("LearningStage")
                         .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("NextReview")
-                        .HasColumnType("TEXT");
 
                     b.Property<int>("State")
                         .HasColumnType("INTEGER");
@@ -103,7 +84,7 @@ namespace FlashMemo.Migrations
                     b.ToTable("Cards", (string)null);
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.Persistence.CardLogEntity", b =>
+            modelBuilder.Entity("FlashMemo.Model.Persistence.CardLog", b =>
                 {
                     b.Property<long>("Id")
                         .HasColumnType("INTEGER");
@@ -138,7 +119,7 @@ namespace FlashMemo.Migrations
                     b.ToTable("CardLogs", (string)null);
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.Persistence.DeckEntity", b =>
+            modelBuilder.Entity("FlashMemo.Model.Persistence.Deck", b =>
                 {
                     b.Property<long>("Id")
                         .HasColumnType("INTEGER");
@@ -153,13 +134,13 @@ namespace FlashMemo.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("OptionsId")
+                    b.Property<long>("OptionsId")
                         .HasColumnType("INTEGER");
 
                     b.Property<long?>("ParentDeckId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("UserId")
+                    b.Property<long>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -173,12 +154,9 @@ namespace FlashMemo.Migrations
                     b.ToTable("Decks", (string)null);
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.Persistence.TagEntity", b =>
+            modelBuilder.Entity("FlashMemo.Model.Persistence.DeckOptionsEntity", b =>
                 {
                     b.Property<long>("Id")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Color")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -186,6 +164,44 @@ namespace FlashMemo.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<long?>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeckOptions", (string)null);
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.LastSessionData", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("LastLoadedUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("LastUsedDeckId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LastSessionData");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.Tag", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IntColor")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -200,11 +216,10 @@ namespace FlashMemo.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<byte[]>("HashedPassword")
-                        .IsRequired()
-                        .HasColumnType("BLOB");
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -213,7 +228,7 @@ namespace FlashMemo.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("CardEntityTagEntity", b =>
+            modelBuilder.Entity("CardEntityTag", b =>
                 {
                     b.HasOne("FlashMemo.Model.Persistence.CardEntity", null)
                         .WithMany()
@@ -221,24 +236,76 @@ namespace FlashMemo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FlashMemo.Model.Persistence.TagEntity", null)
+                    b.HasOne("FlashMemo.Model.Persistence.Tag", null)
                         .WithMany()
                         .HasForeignKey("TagsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.DeckOptions", b =>
+            modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
                 {
+                    b.HasOne("FlashMemo.Model.Persistence.Deck", "Deck")
+                        .WithMany("Cards")
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Deck");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.CardLog", b =>
+                {
+                    b.HasOne("FlashMemo.Model.Persistence.CardEntity", "Card")
+                        .WithMany("CardLogs")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("DeckOptions")
+                        .WithMany("Logs")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Card");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.Deck", b =>
+                {
+                    b.HasOne("FlashMemo.Model.Persistence.DeckOptionsEntity", "Options")
+                        .WithMany("Decks")
+                        .HasForeignKey("OptionsId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FlashMemo.Model.Persistence.Deck", "ParentDeck")
+                        .WithMany("ChildrenDecks")
+                        .HasForeignKey("ParentDeckId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
+                        .WithMany("Decks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("FlashMemo.Model.DeckOptions+DailyLimitsOpt", "DailyLimits", b1 =>
+                    b.Navigation("Options");
+
+                    b.Navigation("ParentDeck");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.DeckOptionsEntity", b =>
+                {
+                    b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
+                        .WithMany("DeckOptions")
+                        .HasForeignKey("UserId");
+
+                    b.OwnsOne("FlashMemo.Model.Persistence.DeckOptionsEntity+DailyLimitsOpt", "DailyLimits", b1 =>
                         {
-                            b1.Property<long>("DeckOptionsId")
+                            b1.Property<long>("DeckOptionsEntityId")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<int>("DailyLessonsLimit")
@@ -247,39 +314,17 @@ namespace FlashMemo.Migrations
                             b1.Property<int>("DailyReviewsLimit")
                                 .HasColumnType("INTEGER");
 
-                            b1.HasKey("DeckOptionsId");
+                            b1.HasKey("DeckOptionsEntityId");
 
                             b1.ToTable("DeckOptions");
 
                             b1.WithOwner()
-                                .HasForeignKey("DeckOptionsId");
+                                .HasForeignKey("DeckOptionsEntityId");
                         });
 
-                    b.OwnsOne("FlashMemo.Model.DeckOptions+OrderingOpt", "Sorting", b1 =>
+                    b.OwnsOne("FlashMemo.Model.Persistence.DeckOptionsEntity+SchedulingOpt", "Scheduling", b1 =>
                         {
-                            b1.Property<long>("DeckOptionsId")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("CardTypeOrder")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("NewCardSortOrder")
-                                .HasColumnType("INTEGER");
-
-                            b1.Property<int>("ReviewSortOrder")
-                                .HasColumnType("INTEGER");
-
-                            b1.HasKey("DeckOptionsId");
-
-                            b1.ToTable("DeckOptions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DeckOptionsId");
-                        });
-
-                    b.OwnsOne("FlashMemo.Model.DeckOptions+SchedulingOpt", "Scheduling", b1 =>
-                        {
-                            b1.Property<long>("DeckOptionsId")
+                            b1.Property<long>("DeckOptionsEntityId")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<int>("AgainDayCount")
@@ -310,12 +355,40 @@ namespace FlashMemo.Migrations
                                 .IsRequired()
                                 .HasColumnType("TEXT");
 
-                            b1.HasKey("DeckOptionsId");
+                            b1.HasKey("DeckOptionsEntityId");
 
                             b1.ToTable("DeckOptions");
 
                             b1.WithOwner()
-                                .HasForeignKey("DeckOptionsId");
+                                .HasForeignKey("DeckOptionsEntityId");
+                        });
+
+                    b.OwnsOne("FlashMemo.Model.Persistence.DeckOptionsEntity+SortingOpt", "Sorting", b1 =>
+                        {
+                            b1.Property<long>("DeckOptionsEntityId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("CardStateOrder")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("LessonsOrder")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("LessonsSortDir")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("ReviewsOrder")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("ReviewsSortDir")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("DeckOptionsEntityId");
+
+                            b1.ToTable("DeckOptions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DeckOptionsEntityId");
                         });
 
                     b.Navigation("DailyLimits")
@@ -330,69 +403,20 @@ namespace FlashMemo.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
-                {
-                    b.HasOne("FlashMemo.Model.Persistence.DeckEntity", "Deck")
-                        .WithMany("Cards")
-                        .HasForeignKey("DeckId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Deck");
-                });
-
-            modelBuilder.Entity("FlashMemo.Model.Persistence.CardLogEntity", b =>
-                {
-                    b.HasOne("FlashMemo.Model.Persistence.CardEntity", "Card")
-                        .WithMany("CardLogs")
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("Logs")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Card");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FlashMemo.Model.Persistence.DeckEntity", b =>
-                {
-                    b.HasOne("FlashMemo.Model.DeckOptions", "Options")
-                        .WithMany("DecksUsingThis")
-                        .HasForeignKey("OptionsId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("FlashMemo.Model.Persistence.DeckEntity", "ParentDeck")
-                        .WithMany("ChildrenDecks")
-                        .HasForeignKey("ParentDeckId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("Decks")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Options");
-
-                    b.Navigation("ParentDeck");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FlashMemo.Model.Persistence.TagEntity", b =>
+            modelBuilder.Entity("FlashMemo.Model.Persistence.Tag", b =>
                 {
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
                         .WithMany("Tags")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.UserEntity", b =>
                 {
-                    b.OwnsOne("FlashMemo.Model.UserOptions", "Options", b1 =>
+                    b.OwnsOne("FlashMemo.Model.Persistence.UserOptions", "Options", b1 =>
                         {
                             b1.Property<long>("UserEntityId")
                                 .HasColumnType("INTEGER");
@@ -409,21 +433,21 @@ namespace FlashMemo.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.DeckOptions", b =>
-                {
-                    b.Navigation("DecksUsingThis");
-                });
-
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
                 {
                     b.Navigation("CardLogs");
                 });
 
-            modelBuilder.Entity("FlashMemo.Model.Persistence.DeckEntity", b =>
+            modelBuilder.Entity("FlashMemo.Model.Persistence.Deck", b =>
                 {
                     b.Navigation("Cards");
 
                     b.Navigation("ChildrenDecks");
+                });
+
+            modelBuilder.Entity("FlashMemo.Model.Persistence.DeckOptionsEntity", b =>
+                {
+                    b.Navigation("Decks");
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.UserEntity", b =>

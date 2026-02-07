@@ -53,7 +53,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
         var rootDeck = await db.Decks.FindAsync(deckId)
             ?? throw new ArgumentException(IdNotFoundMsg("Deck"), nameof(deckId));
 
-        var sortOpt = rootDeck.Options.Ordering_;
+        var sortOpt = rootDeck.Options.Sorting;
 
         var cards = await SortAndLimitAsync(
             rootDeck, grouped);
@@ -106,8 +106,8 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
     
     private async static Task<CardsByState> SortAndLimitAsync(Deck rootDeck, CardsByStateQ grouped)
     {
-        var sortOpt = rootDeck.Options.Ordering_;
-        var limitsOpt = rootDeck.Options.DailyLimits_;
+        var sortOpt = rootDeck.Options.Sorting;
+        var limitsOpt = rootDeck.Options.DailyLimits;
 
         var learning = await grouped.Learning
             .OrderBy(c => c.Due)

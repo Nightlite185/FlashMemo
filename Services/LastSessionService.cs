@@ -9,13 +9,13 @@ public class SessionDataService(IDbContextFactory<AppDbContext> factory): DbDepe
     public LastSessionData Current { get; private set; } = new();
 
     public async Task LoadAsync()
-        => Current = await GetDb.SessionData.SingleAsync();
+        => Current = await GetDb.LastSessionData.SingleAsync();
 
     public async Task SaveStateAsync()
     {
         var db = GetDb;
 
-        db.SessionData.Update(Current);
+        db.LastSessionData.Update(Current);
         await db.SaveChangesAsync();
     }
 }

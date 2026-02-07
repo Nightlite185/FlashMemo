@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using FlashMemo.Helpers;
-
 namespace FlashMemo.Model.Persistence;   
     
 #region enums
@@ -18,26 +15,24 @@ public class DeckOptionsEntity
 {
     public void NewOwnedTypes()
     {
-        Scheduling_ ??= new();
-        DailyLimits_ ??= new();
-        Ordering_ ??= new();
+        Scheduling ??= new();
+        DailyLimits ??= new();
+        Sorting ??= new();
     }
-
-    [ForeignKey(nameof(UserId))]
     public long Id { get; set; }
-    public long UserId { get; set; }
+    public long? UserId { get; set; }
     public UserEntity User { get; set; } = null!;
     public List<Deck> Decks { get; set; } = [];
     public string Name { get; set; } = null!;
 
     #region sub-options properties
-    public Scheduling Scheduling_ { get; set; } = null!;
-    public DailyLimits DailyLimits_ { get; set; } = null!;
-    public Ordering Ordering_ { get; set; } = null!;
+    public SchedulingOpt Scheduling { get; set; } = null!;
+    public DailyLimitsOpt DailyLimits { get; set; } = null!;
+    public SortingOpt Sorting { get; set; } = null!;
     #endregion
 
     #region options sub-classes
-    public sealed class Scheduling
+    public sealed class SchedulingOpt
     {
         public float GoodMultiplier { get; set; }
         public float EasyMultiplier { get; set; }
@@ -49,7 +44,7 @@ public class DeckOptionsEntity
         public int EasyOnNewDayCount { get; set; }
         public int HardOnNewStage { get; set; }
     }
-    public sealed class DailyLimits
+    public sealed class DailyLimitsOpt
     {
         /* global option (not per preset). // TODO: Later figure out how to persist this bc EF ignores static 
         and I dont wanna create a separate table just for this. Maybe belongs in UserOptions?? */
@@ -57,7 +52,7 @@ public class DeckOptionsEntity
         public int DailyReviewsLimit { get; set; }
         public int DailyLessonsLimit { get; set; }
     }
-    public sealed class Ordering
+    public sealed class SortingOpt
     {
         public LessonOrder LessonsOrder { get; set; }
         public ReviewOrder ReviewsOrder { get; set; }

@@ -20,7 +20,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         ArgumentNullException.ThrowIfNull(cardEntity.Deck, nameof(cardEntity.Deck));
 
         var domainCard = mapper.Map<Card>(cardEntity);
-        var options = cardEntity.Deck.Options.Scheduling_;
+        var options = cardEntity.Deck.Options.Scheduling;
 
         domainCard.Schedule(answer, options);
         

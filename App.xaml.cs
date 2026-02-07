@@ -29,6 +29,9 @@ public partial class App : Application
         var services = ConfigureServices();
         this.sp = services.BuildServiceProvider();
 
+        await sp.GetRequiredService<DbSeeder>()
+            .MigrateAndSeedAsync();
+
         await InitUserSession();
     }
     
@@ -104,6 +107,8 @@ public partial class App : Application
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
         sc.AddSingleton<ISessionDataService, SessionDataService>();
         sc.AddAutoMapper(opt => opt.AddProfile<MappingProfile>());
+        sc.AddTransient<DbSeeder>();
+        sc.AddLogging();
 
         // ==== REPOS ====
         sc.AddSingleton<IDeckOptionsRepo, DeckOptionsRepo>();

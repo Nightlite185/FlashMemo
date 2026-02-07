@@ -4,7 +4,7 @@ namespace FlashMemo.Services;
 
 public static class Sorting
 {
-    public static IQueryable<CardEntity> SortLessons(this IQueryable<CardEntity> cards, DeckOptionsEntity.Ordering options)
+    public static IQueryable<CardEntity> SortLessons(this IQueryable<CardEntity> cards, DeckOptionsEntity.SortingOpt options)
     {
         var orderBy = options.LessonsOrder;
         var dir = options.LessonsSortDir;
@@ -19,7 +19,7 @@ public static class Sorting
             _ => throw new ArgumentOutOfRangeException(nameof(options.LessonsOrder), $"Wrong {nameof(LessonOrder)} enum value: {orderBy}")
         };
     }
-    public static IQueryable<CardEntity> SortReviews(this IQueryable<CardEntity> cards, DeckOptionsEntity.Ordering options)
+    public static IQueryable<CardEntity> SortReviews(this IQueryable<CardEntity> cards, DeckOptionsEntity.SortingOpt options)
     {
         var orderBy = options.ReviewsOrder;
         var dir = options.ReviewsSortDir;

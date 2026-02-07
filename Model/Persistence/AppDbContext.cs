@@ -1,4 +1,3 @@
-using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Model.Persistence
@@ -6,7 +5,7 @@ namespace FlashMemo.Model.Persistence
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<DeckOptionsEntity> DeckOptions => Set<DeckOptionsEntity>();
-        public DbSet<LastSessionData> SessionData => Set<LastSessionData>();
+        public DbSet<LastSessionData> LastSessionData => Set<LastSessionData>();
         public DbSet<CardEntity> Cards => Set<CardEntity>();
         public DbSet<UserEntity> Users => Set<UserEntity>();
         public DbSet<CardLog> CardLogs => Set<CardLog>();
@@ -20,7 +19,6 @@ namespace FlashMemo.Model.Persistence
             DefineTables(mb);
             ConfigureDeletion(mb);
             DefineAutoIncludes(mb);
-            DefineDefaultEntries(mb);
         }
 
         private static void DefineTables(ModelBuilder mb)
@@ -30,15 +28,21 @@ namespace FlashMemo.Model.Persistence
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
+            mb.Entity<LastSessionData>(mb =>
+            {
+                mb.Property(s => s.Id)
+                .ValueGeneratedNever();
+            });
+
             mb.Entity<DeckOptionsEntity>(mb =>
             {
                 mb.ToTable("DeckOptions")
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
-                mb.OwnsOne(d => d.Scheduling_);
-                mb.OwnsOne(d => d.DailyLimits_);
-                mb.OwnsOne(d => d.Ordering_);
+                mb.OwnsOne(d => d.Scheduling);
+                mb.OwnsOne(d => d.DailyLimits);
+                mb.OwnsOne(d => d.Sorting);
             });
 
             mb.Entity<Deck>()
@@ -88,7 +92,9 @@ namespace FlashMemo.Model.Persistence
                 .HasOne(d => d.Options)
                 .WithMany(o => o.Decks)
                 .HasForeignKey(d => d.OptionsId)    //* restrict on preset delete when there are still decks pointing to it.
-                .OnDelete(DeleteBehavior.Restrict); //* First manually set it to -1 for each deck, then remove preset :) 
+                .OnDelete(DeleteBehavior.Restrict); //* First manually set it to -1 for each deck, then remove preset :)
+
+            //TODO: define cascade on user deletion to set LastSessionData's userId to null;
         }                                           
         private static void DefineAutoIncludes(ModelBuilder mb)
         {
@@ -99,14 +105,6 @@ namespace FlashMemo.Model.Persistence
             // mb.Entity<CardEntity>()
             //     .Navigation(c => c.Tags)
             //     .AutoInclude();
-        }
-        private static void DefineDefaultEntries(ModelBuilder mb)
-        {
-            mb.Entity<DeckOptionsEntity>()
-                .HasData(Domain.DeckOptions.Default);
-
-            mb.Entity<LastSessionData>()
-                .HasData(new LastSessionData() { Id = 1 });
         }
     }
 }

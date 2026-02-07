@@ -101,7 +101,6 @@ public class CardEntity: IEntity
         LastModified = DateTime.Now;
         Interval = TimeSpan.MinValue;
     }
-    public void MoveToDeck(Deck newDeck) => DeckId = newDeck.Id;
     public void MoveToDeck(long newDeckId) => DeckId = newDeckId;
     public void SyncTagsFrom(CardEntity other)
     {

@@ -5,6 +5,7 @@ using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
@@ -55,7 +56,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
 
         WireHelper(vm, win);
     }
-    public void ShowCreateCard(Deck targetDeck)
+    public void ShowCreateCard(DeckNode targetDeck)
     {
         var vm = createCardVMF.Create(targetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();

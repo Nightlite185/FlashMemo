@@ -1,13 +1,12 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class NewCardVM(Deck deck): ObservableObject, IViewModel
+public partial class NewCardVM(DeckNode deck): ObservableObject, IViewModel
 {
     [ObservableProperty]
-    public partial Deck Deck { get; set; } = deck;
+    public partial DeckNode Deck { get; set; } = deck;
 
     [ObservableProperty]
     public partial string FrontContent { get; set; } = "";

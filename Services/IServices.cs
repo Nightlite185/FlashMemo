@@ -56,7 +56,7 @@ public interface IWindowService
 {
     void ShowDialog<TViewModel>() where TViewModel: IViewModel;
     Task ShowEditCard(long cardId, long userId);
-    void ShowCreateCard(Deck targetDeck);
+    void ShowCreateCard(DeckNode targetDeck);
     Task ShowBrowse(long userId);
     Task ShowUserSelect();
     Task ShowUserSettings(long userId);

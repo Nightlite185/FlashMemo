@@ -9,7 +9,7 @@ public partial class DeckNode : ObservableObject, IViewModel
 {
     public DeckNode(Deck deck, IEnumerable<DeckNode> children, CardsCount? cc = null)
     {
-        Deck = deck;
+        this.deck = deck;
         Name = deck.Name;
 
         Children = [..children];
@@ -19,8 +19,9 @@ public partial class DeckNode : ObservableObject, IViewModel
     }
     
     #region public properties
-    public long DeckId => Deck.Id;
-    public Deck Deck { get; init; }
+    public long Id => deck.Id;
+    public long UserId => deck.UserId;
+    private readonly Deck deck;
     public ObservableCollection<DeckNode> Children { get; set; }
 
     [ObservableProperty]
@@ -55,6 +56,11 @@ public partial class DeckNode : ObservableObject, IViewModel
             LearningCount = -1;
             ReviewsCount = -1;
         }
+    }
+    public Deck ToEntity()
+    {
+        deck.Name = Name;
+        return deck;
     }
     #endregion
 }

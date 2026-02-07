@@ -45,7 +45,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
         baseQuery = baseQuery.Where(c =>
             !c.IsSuspended
             && !c.IsBuried
-            && c.IsDueNow);
+            && c.IsDueToday);
 
         var grouped = CardQueryBuilder
             .GroupByStateQ(baseQuery);

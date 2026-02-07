@@ -67,7 +67,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
 
             if (countOnlyStudyable)
                 allCardsQuery = allCardsQuery
-                    .Where(c => !c.IsSuspended && !c.IsBuried && c.IsDueNow);
+                    .Where(c => !c.IsSuspended && !c.IsBuried && c.IsDueToday);
                                                                             
             var grouped = CardQueryBuilder.GroupByStateQ(allCardsQuery);
             var counted = await CountByStateAsync(grouped);

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using FlashMemo.Model.Persistence;
+using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Services;
 
@@ -8,10 +9,11 @@ public class LearningPool()
     private readonly PriorityQueue<CardEntity, DateTime> learningPool = new(initialCapacity: 8);
     public void Add(CardEntity card)
     {
-        if (card.IsDueNow) throw new InvalidOperationException(
-            "Cannot add a currently due card to the learning pool.");
+        if (card.IsDueNow || card.Due is null || card.State != CardState.Learning)
+            throw new InvalidOperationException(
+            "Cannot add a currently due card, or one with state other than CardState.Learning, to the learning pool.");
 
-        learningPool.Enqueue(card, card.Due); // TODO: FIX THIS
+        learningPool.Enqueue(card, (DateTime)card.Due);
     }
     public void InjectDueInto(Stack<CardEntity> allCards)
     {

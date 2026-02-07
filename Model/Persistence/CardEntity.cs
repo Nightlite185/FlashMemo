@@ -19,7 +19,8 @@ public class CardEntity: IEntity
     public DateTime Created { get; set; }
     public DateTime? LastModified { get; set; }
     public DateTime? Due { get; set; }
-    public bool IsDueNow => Due?.Date == DateTime.Today;
+    public bool IsDueToday => Due?.Date == DateTime.Today;
+    public bool IsDueNow => Due <= DateTime.Now;
     public DateTime? LastReviewed { get; set; }
     public TimeSpan Interval { get; set; }
     public CardState State { get; set; }

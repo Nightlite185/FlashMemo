@@ -61,7 +61,7 @@ namespace FlashMemo.ViewModel;
                     .Select(vm => vm.State),
 
                 IncludeChildrenDecks = IncludeChildrenDecks,
-                DeckId = SelectedDeck.Deck.Id,
+                DeckId = SelectedDeck.Id,
                 OverdueByDays = OverdueByDays,
                 LastModified = LastModified,
                 LastReviewed = LastReviewed,

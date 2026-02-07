@@ -3,8 +3,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="clr-namespace:FlashMemo.View"
-    mc:Ignorable="d"
+    xmlns:local="clr-namespace:FlashMemo.View" xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" d:DataContext="{d:DesignInstance Type=windows:MainVM}"
+        mc:Ignorable="d"
     Title="MainWindow" Height="450" Width="800">
     
     <Grid>
@@ -36,23 +36,23 @@
                 DockPanel.Dock="Right"
                 Content="Options"
                 Style="{StaticResource NavButtonStyle}"
-                Command="{Binding OpenOptionsCommand}" Width="85" />
+                Command="{Binding ShowOptionsCommand}" Width="85" />
 
                 <!-- Center navigation -->
                 <StackPanel
                 Orientation="Horizontal"
                 HorizontalAlignment="Center">
 
-                    <Button Content="Decks" Style="{StaticResource NavButtonStyle}" Width="73" />
+                    <Button Content="Decks" Command="{Binding NavToDecksCommand}" Style="{StaticResource NavButtonStyle}" Width="73" />
                     <Border Style="{StaticResource NavSeparatorStyle}" />
 
-                    <Button Content="Add" Style="{StaticResource NavButtonStyle}" Width="63" />
+                    <Button Content="Add" Command="{Binding ShowCreateCardCommand}" Style="{StaticResource NavButtonStyle}" Width="63" />
                     <Border Style="{StaticResource NavSeparatorStyle}" />
 
-                    <Button Content="Browse" Style="{StaticResource NavButtonStyle}" Width="81" />
+                    <Button Content="Browse" Command="{Binding ShowBrowseCommand}"  Style="{StaticResource NavButtonStyle}" Width="81" />
                     <Border Style="{StaticResource NavSeparatorStyle}" />
 
-                    <Button Content="Stats" Style="{StaticResource NavButtonStyle}" Width="65" />
+                    <Button Content="Stats" Command="{Binding NavToStatsCommand}" Style="{StaticResource NavButtonStyle}" Width="65" />
                 </StackPanel>
 
             </DockPanel>

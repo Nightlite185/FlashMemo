@@ -3,14 +3,14 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class MainVMF(INavigationService ns, BrowseVMF bVMF)
+public class MainVMF(INavigationService ns, IWindowService ws)
 {
     private readonly INavigationService navigationService = ns;
-    private readonly BrowseVMF browseVMF = bVMF;
+    private readonly IWindowService windowService = ws;
 
     public MainVM Create(long userId)
     {
         // any logic that runs to initialize mainVM goes here.
-        return new(navigationService, browseVMF, userId);
+        return new(navigationService, windowService, userId);
     }
 }

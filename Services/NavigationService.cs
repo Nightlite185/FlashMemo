@@ -10,7 +10,6 @@ public class NavigationService(IServiceProvider isp, MainVM vm): INavigationServ
 
     public void NavigateTo<TViewModel>() where TViewModel : IViewModel
     {
-        var vm = sp.GetRequiredService<TViewModel>();
-        mainVM.CurrentVM = vm;
+        mainVM.CurrentVM = sp.GetRequiredService<TViewModel>();
     }
 }

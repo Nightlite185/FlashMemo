@@ -55,10 +55,11 @@ public interface INavigationService
 public interface IWindowService
 {
     void ShowDialog<TViewModel>() where TViewModel: IViewModel;
-    Task ShowEditCardWindow(long cardId, long userId);
-    void ShowCreateCardWindow(Deck targetDeck);
-    Task ShowUserSelectWindow();
-    Task ShowBrowseWindow(long userId);
+    Task ShowEditCard(long cardId, long userId);
+    void ShowCreateCard(Deck targetDeck);
+    Task ShowBrowse(long userId);
+    Task ShowUserSelect();
+    Task ShowUserSettings(long userId);
 }
 
 public interface IUserVMBuilder

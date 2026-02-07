@@ -22,7 +22,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
         [typeof(MainVM)] = typeof(MainWindow),
-        [typeof(EditCardVM)] = typeof(EditWindow),
+        [typeof(EditCardVM)] = typeof(EditCardWindow),
         [typeof(UserOptionsVM)] = typeof(OptionsWindow)
         //[typeof(DeckOptionsVM)] = typeof(DeckOptionsWindow),
         //[typeof(ChooseUserVM)] = typeof(ChooseUserWindow),
@@ -41,35 +41,38 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
         WireHelper(vm, win);
     }
     
-    public async Task ShowBrowseWindow(long userId)
+    public async Task ShowBrowse(long userId)
     {
         var vm = await browseVMF.CreateAsync(userId);
         var win = sp.GetRequiredService<BrowseWindow>();
 
         WireHelper(vm, win);
     }
-    public async Task ShowEditCardWindow(long cardId, long userId)
+    public async Task ShowEditCard(long cardId, long userId)
     {
         var vm = await editCardVMF.CreateAsync(cardId, userId);
-        var win = sp.GetRequiredService<EditWindow>();
+        var win = sp.GetRequiredService<EditCardWindow>();
 
         WireHelper(vm, win);
     }
-    public void ShowCreateCardWindow(Deck targetDeck)
+    public void ShowCreateCard(Deck targetDeck)
     {
         var vm = createCardVMF.Create(targetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();
 
         WireHelper(vm, win);
     }
-    public async Task ShowUserSelectWindow()
+    public async Task ShowUserSelect()
     {
         var vm = await userSelectVMF.CreateAsync();
         var win = sp.GetRequiredService<UserSelectWindow>();
 
         WireHelper(vm, win);
     }
-    
+    public async Task ShowUserSettings(long userId)
+    {
+        throw new NotImplementedException();
+    }
     private static void WireHelper(IViewModel vm, Window win)
     {
         SetDataCtx(vm, win);

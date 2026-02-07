@@ -9,6 +9,7 @@ using FlashMemo.Services;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Factories;
+using FlashMemo.Model;
 
 namespace FlashMemo;
 public partial class App : Application
@@ -40,7 +41,7 @@ public partial class App : Application
         if (ss.Current.LastLoadedUserId is null)
         {
             var ws = sp.GetRequiredService<IWindowService>();
-            await ws.ShowUserSelectWindow();
+            await ws.ShowUserSelect();
         }
 
         else
@@ -66,8 +67,10 @@ public partial class App : Application
         sc.AddSingleton<MainWindow>(); 
         sc.AddTransient<BrowseWindow>();
         sc.AddTransient<OptionsWindow>();
-        sc.AddTransient<EditWindow>();
-
+        sc.AddTransient<EditCardWindow>();
+        sc.AddTransient<CreateCardWindow>();
+        sc.AddTransient<UserSelectWindow>();
+        
         // ==== VIEWMODELS ====
         sc.AddTransient<MainVM>(); //* transient cuz u can change user mid-runtime -> mainVM reloads.
         sc.AddTransient<ReviewVM>();
@@ -100,7 +103,7 @@ public partial class App : Application
         sc.AddSingleton<ICardQueryService, CardQueryService>();
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
         sc.AddSingleton<ISessionDataService, SessionDataService>();
-        sc.AddAutoMapper(typeof(App));
+        sc.AddAutoMapper(opt => opt.AddProfile<MappingProfile>());
 
         // ==== REPOS ====
         sc.AddSingleton<IDeckOptionsRepo, DeckOptionsRepo>();

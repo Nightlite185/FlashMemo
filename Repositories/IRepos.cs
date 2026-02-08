@@ -31,6 +31,11 @@ public interface ITagRepo
     Task<IEnumerable<Tag>> GetByIds(IEnumerable<long> tagIds);
 }
 
+public interface IUserOptionsRepo
+{
+    
+}
+
 public interface IUserRepo
 {
     Task CreateNew(UserEntity toAdd);

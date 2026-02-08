@@ -3,11 +3,11 @@
 namespace FlashMemo.View
 {
     /// <summary>
-    /// Interaction logic for OptionsWindow.xaml
+    /// Interaction logic for UserOptionsWindow.xaml
     /// </summary>
-    public partial class OptionsWindow : Window
+    public partial class UserOptionsWindow : Window
     {
-        public OptionsWindow()
+        public UserOptionsWindow()
         {
             InitializeComponent();
         }

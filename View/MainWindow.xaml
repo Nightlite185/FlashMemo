@@ -43,7 +43,7 @@
                 Orientation="Horizontal"
                 HorizontalAlignment="Center">
 
-                    <Button Content="Decks" Command="{Binding NavToDecksCommand}" Style="{StaticResource NavButtonStyle}" Width="73" />
+                    <Button Content="Decks" Command="{Binding DisplayDecksCommand}" Style="{StaticResource NavButtonStyle}" Width="73" />
                     <Border Style="{StaticResource NavSeparatorStyle}" />
 
                     <Button Content="Add" Command="{Binding ShowCreateCardCommand}" Style="{StaticResource NavButtonStyle}" Width="63" />
@@ -52,7 +52,7 @@
                     <Button Content="Browse" Command="{Binding ShowBrowseCommand}"  Style="{StaticResource NavButtonStyle}" Width="81" />
                     <Border Style="{StaticResource NavSeparatorStyle}" />
 
-                    <Button Content="Stats" Command="{Binding NavToStatsCommand}" Style="{StaticResource NavButtonStyle}" Width="65" />
+                    <Button Content="Stats" Command="{Binding DisplayStatsCommand}" Style="{StaticResource NavButtonStyle}" Width="65" />
                 </StackPanel>
 
             </DockPanel>

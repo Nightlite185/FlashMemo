@@ -10,10 +10,9 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class UserSelectVM: ObservableObject, IViewModel
 {
-    public UserSelectVM(IUserRepo userRepo, IWindowService ws, IUserVMBuilder uvmb)
+    public UserSelectVM(IUserRepo userRepo, IUserVMBuilder uvmb)
     {
         this.userRepo = userRepo;
-        windowService = ws;
         userVMBuilder = uvmb;
     }
 
@@ -27,7 +26,6 @@ public partial class UserSelectVM: ObservableObject, IViewModel
     #region private things
     private readonly IUserRepo userRepo;
     private readonly IUserVMBuilder userVMBuilder;
-    private readonly IWindowService windowService;
     #endregion
     
     #region ICommands

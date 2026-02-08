@@ -4,12 +4,10 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class BrowseVMF(
-    IWindowService ws, ICardQueryService cqs,
+public class BrowseVMF(ICardQueryService cqs,
     FiltersVMF fVMF, CardCtxMenuVMF ccmVMF)
 {
     private readonly FiltersVMF filtersVMF = fVMF;
-    private readonly IWindowService windowService = ws;
     private readonly ICardQueryService cardQueryS = cqs;
     private readonly CardCtxMenuVMF cardCtxMenuVMF = ccmVMF;
 
@@ -18,8 +16,8 @@ public class BrowseVMF(
         var filtersVM = filtersVMF.Create(userId);
 
         BrowseVM bvm = new(
-            windowService, cardQueryS, 
-            filtersVM, userId
+            cardQueryS, filtersVM,
+            userId
         );
 
         var ccm = cardCtxMenuVMF.Create(bvm, bvm, userId);

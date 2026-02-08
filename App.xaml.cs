@@ -43,7 +43,7 @@ public partial class App : Application
 
         if (ss.Current.LastLoadedUserId is null)
         {
-            var ws = sp.GetRequiredService<IWindowService>();
+            var ws = sp.GetRequiredService<WindowService>();
             await ws.ShowUserSelect();
         }
 
@@ -67,9 +67,9 @@ public partial class App : Application
         ServiceCollection sc = new();
 
         // ==== WINDOWS ====
-        sc.AddSingleton<MainWindow>(); 
+        sc.AddSingleton<MainWindow>(); //* only one MainWindow per runtime
         sc.AddTransient<BrowseWindow>();
-        sc.AddTransient<OptionsWindow>();
+        sc.AddTransient<UserOptionsWindow>();
         sc.AddTransient<EditCardWindow>();
         sc.AddTransient<CreateCardWindow>();
         sc.AddTransient<UserSelectWindow>();
@@ -97,10 +97,12 @@ public partial class App : Application
         sc.AddSingleton<ManageTagsVMF>();
         sc.AddSingleton<BrowseVMF>();
         sc.AddSingleton<MainVMF>();
+        sc.AddSingleton<UserOptionsVMF>();
+        sc.AddSingleton<ReviewVMF>();
 
         // ==== SERVICES ====
-        sc.AddSingleton<IWindowService, WindowService>();
-        sc.AddSingleton<INavigationService, NavigationService>();
+        sc.AddSingleton<WindowService>();
+        sc.AddSingleton<IDisplayControl, DisplayControl>();
         sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();
         sc.AddSingleton<ICardService, CardService>();
         sc.AddSingleton<ICardQueryService, CardQueryService>();
@@ -112,6 +114,7 @@ public partial class App : Application
 
         // ==== REPOS ====
         sc.AddSingleton<IDeckOptionsRepo, DeckOptionsRepo>();
+        sc.AddSingleton<IUserOptionsRepo, UserOptionsRepo>();
         sc.AddSingleton<IDeckRepo, DeckRepo>();
         sc.AddSingleton<ITagRepo, TagRepo>();
         sc.AddSingleton<ICardRepo, CardRepo>();

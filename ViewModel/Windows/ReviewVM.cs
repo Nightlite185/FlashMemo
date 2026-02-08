@@ -5,14 +5,17 @@ using FlashMemo.Services;
 using FlashMemo.Model.Domain;
 using System.Windows.Threading;
 using System.Diagnostics;
+using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Windows;
     
-public partial class ReviewVM: ObservableObject, IViewModel
+public partial class ReviewVM: BaseVM
 {
-    public ReviewVM(IWindowService ws, ICardService cs, ICardQueryService cqs)
+    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, long deckId)
     {
-        windowService = ws;
+        this.userId = userId;
+        this.deckId = deckId;
+
         cardService = cs;
         cardQuery = cqs;
         learningPool = new();
@@ -27,7 +30,7 @@ public partial class ReviewVM: ObservableObject, IViewModel
     [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(CardLoaded))]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
-    public partial CardEntity? CurrentCard { get; set; }
+    public partial CardEntity? CurrentCard { get; set; } // TODO: CHANGE TO CARDITEMVM
     
     public string FrontContent => CurrentCard?.FrontContent 
         ?? throw new InvalidOperationException($"tried to access {nameof(FrontContent)} property, but no card was loaded atm.");
@@ -47,7 +50,7 @@ public partial class ReviewVM: ObservableObject, IViewModel
     #endregion
 
     #region methods
-    public async Task LoadDeckAsync(long deckId)
+    internal async Task InitAsync() //* called in factory
     {
         cards = new (await cardQuery.GetForStudy(deckId));
         
@@ -113,14 +116,15 @@ public partial class ReviewVM: ObservableObject, IViewModel
     #endregion
 
     #region private things
-    private readonly IWindowService windowService;
+    private readonly long userId;
+    private readonly long deckId;
     private readonly ICardService cardService;
     private readonly ICardQueryService cardQuery;
     private readonly LearningPool learningPool;
     private Stack<CardEntity> cards = null!;
     private readonly DispatcherTimer timer = null!;
     private readonly Stopwatch stopWatch = null!;
-    private bool isSessionFinished = false; // TO DO: make this actually matter later, so the state derived properties actually depend on it.
+    private bool isSessionFinished = false; // TODO: make this actually matter later, so the state derived properties actually depend on it.
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanReview), nameof(CanRevealAnswer))]
@@ -134,7 +138,7 @@ public partial class ReviewVM: ObservableObject, IViewModel
     #region ICommands
     
     [RelayCommand(CanExecute = nameof(CanRevealAnswer))]
-    public void RevealAnswer()
+    private void RevealAnswer()
     {
         // show answer layer here
         AnswerRevealed = true;
@@ -142,27 +146,35 @@ public partial class ReviewVM: ObservableObject, IViewModel
     
     #region answer commands
     [RelayCommand(CanExecute = nameof(CanReview))]
-    public async Task AgainAnswer()
+    private async Task AgainAnswer()
         => await ReviewHelperAsync(Answers.Again);
 
     
     [RelayCommand(CanExecute = nameof(CanReview))]
-    public async Task HardAnswer() 
+    private async Task HardAnswer() 
         => await ReviewHelperAsync(Answers.Hard);
 
     
     [RelayCommand(CanExecute = nameof(CanReview))]
-    public async Task GoodAnswer() 
+    private async Task GoodAnswer() 
         => await ReviewHelperAsync(Answers.Good);
 
 
     [RelayCommand(CanExecute = nameof(CanReview))]
-    public async Task EasyAnswer() 
+    private async Task EasyAnswer() 
         => await ReviewHelperAsync(Answers.Easy);
     #endregion
 
     [RelayCommand(CanExecute = nameof(CardLoaded))]
-    public void OpenEditWindow() => windowService.ShowDialog<EditCardVM>();
+    private async Task ShowCardEdit()
+    {
+        if (!CardLoaded) throw new InvalidOperationException(
+        "tried to open card editor, but no card was loaded.");
+
+        await NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId));
+
+        //TODO: when coming back from the editor to this VM, gotta reload the card and pull any possible changed from db;
+    }
     
     #endregion
 }

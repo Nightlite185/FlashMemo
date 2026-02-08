@@ -1,8 +1,8 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using FlashMemo.Model.Persistence;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
@@ -12,69 +12,91 @@ namespace FlashMemo.Services;
 
 public class WindowService
 (IServiceProvider sp, BrowseVMF bVMF, EditCardVMF ecVMF, 
-CreateCardVMF ccVMF, UserSelectVMF usVMF)
-: IWindowService
+CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
 {
+    #region private fields
     private readonly BrowseVMF browseVMF = bVMF;
     private readonly EditCardVMF editCardVMF = ecVMF;
     private readonly CreateCardVMF createCardVMF = ccVMF;
     private readonly UserSelectVMF userSelectVMF = usVMF;
+    private readonly UserOptionsVMF userOptionsVMF = uoVMF;
     private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
         [typeof(MainVM)] = typeof(MainWindow),
         [typeof(EditCardVM)] = typeof(EditCardWindow),
-        [typeof(UserOptionsVM)] = typeof(OptionsWindow)
-        //[typeof(DeckOptionsVM)] = typeof(DeckOptionsWindow),
-        //[typeof(ChooseUserVM)] = typeof(ChooseUserWindow),
+        [typeof(UserOptionsVM)] = typeof(UserOptionsWindow)
     }.AsReadOnly();
     private readonly IServiceProvider sp = sp;
+    #endregion
 
-    public void ShowDialog<TViewModel>() where TViewModel: IViewModel
+    private async Task NavRequestHandler(NavigationRequest req)
     {
-        Type windowType = VMToWindowMap[typeof(TViewModel)];
-        
-        var win = (Window)sp.GetRequiredService(windowType);
-        var vm = sp.GetRequiredService<TViewModel>();
-        
-        // TODO: get VMs from factories instead of sp for proper initialization 
+        switch (req)
+        {
+            case BrowseNavRequest b:
+                await ShowBrowse(b.UserId);
+                break;
 
-        WireHelper(vm, win);
+            case CreateCardNavRequest cc:
+                ShowCreateCard(cc.Deck);
+                await Task.CompletedTask;
+                break;
+
+            case EditCardNavRequest ec:
+                await ShowEditCard(ec.CardId, ec.UserId);
+                break;
+
+            case UserSelectNavRequest:
+                await ShowUserSelect();
+                break;
+
+            case UserOptionsNavRequest uo:
+                await ShowUserOptions(uo.UserId);
+                break;
+        }
     }
-    
-    public async Task ShowBrowse(long userId)
+
+    #region window showing dispatchers
+    private async Task ShowBrowse(long userId)
     {
         var vm = await browseVMF.CreateAsync(userId);
         var win = sp.GetRequiredService<BrowseWindow>();
 
         WireHelper(vm, win);
     }
-    public async Task ShowEditCard(long cardId, long userId)
+    private async Task ShowEditCard(long cardId, long userId)
     {
         var vm = await editCardVMF.CreateAsync(cardId, userId);
         var win = sp.GetRequiredService<EditCardWindow>();
 
         WireHelper(vm, win);
     }
-    public void ShowCreateCard(DeckNode targetDeck)
+    private void ShowCreateCard(DeckNode targetDeck)
     {
         var vm = createCardVMF.Create(targetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();
 
         WireHelper(vm, win);
     }
-    public async Task ShowUserSelect()
+    internal async Task ShowUserSelect()
     {
         var vm = await userSelectVMF.CreateAsync();
         var win = sp.GetRequiredService<UserSelectWindow>();
 
         WireHelper(vm, win);
     }
-    public async Task ShowUserSettings(long userId)
+    private async Task ShowUserOptions(long userId)
     {
-        throw new NotImplementedException();
+        var vm = await userOptionsVMF.CreateAsync(userId);
+        var win = sp.GetRequiredService<UserOptionsWindow>();
+
+        WireHelper(vm, win);
     }
-    private static void WireHelper(IViewModel vm, Window win)
+    #endregion
+    
+    #region private helpers
+    private void WireHelper(IViewModel vm, Window win)
     {
         SetDataCtx(vm, win);
         WireEvents(vm, win);
@@ -91,12 +113,13 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF)
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TViewModel).Name}>");
             
     }
-    private static void WireEvents(IViewModel vm, Window win)
+    private void WireEvents(IViewModel vm, Window win)
     {
+        if (vm is INavRequestSender reqSender)
+            reqSender.NavRequested += NavRequestHandler;
+
         if (vm is ICloseRequest closable)
             closable.OnCloseRequest += win.Close;
-
-        if (vm is ILoadedHandlerAsync loadHandlerVM)
-            win.Loaded += (_, _) => loadHandlerVM.LoadEventHandler();
     }
+    #endregion
 }

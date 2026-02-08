@@ -5,16 +5,15 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class UserSelectVMF(IUserRepo ur, IWindowService ws, IUserVMBuilder uvmb)
+public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb)
 {
     private readonly IUserRepo userRepo = ur;
-    private readonly IWindowService windowService = ws;
     private readonly IUserVMBuilder userVMBuilder = uvmb;
 
     public async Task<UserSelectVM> CreateAsync()
     {
-        var vm = new UserSelectVM
-            (userRepo, windowService, userVMBuilder);
+        var vm = new UserSelectVM(
+            userRepo, userVMBuilder);
     
         vm.Users.AddRange(
             await userVMBuilder.BuildAllCounted());

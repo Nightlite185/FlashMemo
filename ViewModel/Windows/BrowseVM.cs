@@ -10,11 +10,10 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class BrowseVM: ObservableObject, IViewModel, IPopupHost, IReloadHandler, IFiltrable
+public sealed partial class BrowseVM: BaseVM, IPopupHost, IReloadHandler, IFiltrable
 {
-    internal BrowseVM(IWindowService ws, ICardQueryService cqs, FiltersVM fvm, long userId)
+    internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId)
     {
-        windowService = ws;
         cardQueryS = cqs;
         filtersVM = fvm;
         loadedUserId = userId;
@@ -29,8 +28,8 @@ public sealed partial class BrowseVM: ObservableObject, IViewModel, IPopupHost, 
     [ObservableProperty]
     public partial string SearchBar { get; set; }
     
-    public IReadOnlyCollection<CardItemVM> GetSelectedCards() => [..Cards
-        .Where(vm => vm.IsSelected)];
+    public IReadOnlyCollection<CardItemVM> GetSelectedCards()
+        => [..Cards.Where(vm => vm.IsSelected)];
     
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
@@ -96,7 +95,6 @@ public sealed partial class BrowseVM: ObservableObject, IViewModel, IPopupHost, 
     #endregion
     
     #region private things
-    private readonly IWindowService windowService;
     private CardCtxMenuVM cardCtxMenu = null!;
     private readonly ICardQueryService cardQueryS;
     private readonly FiltersVM filtersVM;

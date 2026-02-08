@@ -3,13 +3,31 @@ using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel;
 
+public interface IAsyncVMFactory<TVM> where TVM: IViewModel
+{
+    Task<TVM> CreateAsync();
+}
+
+public interface IVMFactory<TVM> where TVM: IViewModel
+{
+    TVM Create();
+}
+
 public interface ICloseRequest
 {
     public event Action? OnCloseRequest;
 }
+
+[Obsolete("Dont use since it creates coupling between vm and window.")]
 public interface ILoadedHandlerAsync
 {
+    [Obsolete("Dont use since it creates coupling between vm and window.")]
     public Task LoadEventHandler();
+}
+
+public interface INavRequestSender
+{
+    public event Func<NavigationRequest, Task>? NavRequested;
 }
 
 public interface IReloadHandler
@@ -25,6 +43,11 @@ public interface IFiltrable
 public interface IPopupHost
 {
     public PopupVMBase? CurrentPopup { get; set; }
+}
+
+public interface IDisplayHost
+{
+    IViewModel CurrentDisplay { get; set; }
 }
 
 public interface IViewModel;

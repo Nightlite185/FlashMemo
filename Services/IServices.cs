@@ -47,19 +47,21 @@ public interface ICardService
     Task SaveEditedCards(IEnumerable<CardEntity> updatedCards, CardAction action);
 }
 
-public interface INavigationService
+public interface IDisplayControl
 {
-    void NavigateTo<TViewModel>() where TViewModel : IViewModel;
+    //void Switch<TViewModel>() where TViewModel : IViewModel;
+    Task SwitchToDecks(long userId);
 }
 
+[Obsolete("ws is now based on event communication, not direct method calling.")]
 public interface IWindowService
 {
-    void ShowDialog<TViewModel>() where TViewModel: IViewModel;
-    Task ShowEditCard(long cardId, long userId);
-    void ShowCreateCard(DeckNode targetDeck);
-    Task ShowBrowse(long userId);
-    Task ShowUserSelect();
-    Task ShowUserSettings(long userId);
+    // void ShowDialog<TViewModel>() where TViewModel: IViewModel;
+    // Task ShowEditCard(long cardId, long userId);
+    // void ShowCreateCard(DeckNode targetDeck);
+    // Task ShowBrowse(long userId);
+    // Task ShowUserSelect();
+    // Task ShowUserSettings(long userId);
 }
 
 public interface IUserVMBuilder

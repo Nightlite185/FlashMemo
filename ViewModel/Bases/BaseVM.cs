@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using FlashMemo.ViewModel.Wrappers;
+using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Bases;
 
@@ -8,7 +8,7 @@ public record UserSelectNavRequest: NavigationRequest;
 public record BrowseNavRequest(long UserId): NavigationRequest;
 public record UserOptionsNavRequest(long UserId): NavigationRequest;
 public record EditCardNavRequest(long CardId, long UserId): NavigationRequest;
-public record CreateCardNavRequest(DeckNode Deck): NavigationRequest;
+public record CreateCardNavRequest(IDeckMeta TargetDeck): NavigationRequest;
 
 public abstract class BaseVM: ObservableObject, IViewModel, INavRequestSender
 {

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class SessionDataService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ISessionDataService
+public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ILastSessionService
 {
     public LastSessionData Current { get; private set; } = new();
 

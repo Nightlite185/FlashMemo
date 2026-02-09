@@ -5,16 +5,16 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class DeckNode : ObservableObject, IViewModel
+public partial class DeckNode : ObservableObject, IViewModel, IDeckMeta
 {
-    public DeckNode(Deck deck, IEnumerable<DeckNode> children, CardsCount? cc = null)
+    public DeckNode(Deck deck, ICollection<DeckNode> children, CardsCount? countByState = null)
     {
         this.deck = deck;
         Name = deck.Name;
 
         Children = [..children];
 
-        if (cc is CardsCount validCC)
+        if (countByState is CardsCount validCC)
             SetCardCount(validCC);
     }
     

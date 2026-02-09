@@ -3,11 +3,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class NewCardVM(DeckNode deck): ObservableObject, IViewModel
+public partial class NewCardVM(): ObservableObject, IViewModel
 {
-    [ObservableProperty]
-    public partial DeckNode Deck { get; set; } = deck;
-
     [ObservableProperty]
     public partial string FrontContent { get; set; } = "";
 

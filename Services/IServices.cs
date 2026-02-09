@@ -72,12 +72,11 @@ public interface IUserVMBuilder
     UserVM BuildUncounted(UserEntity user);
 }
 
-public interface ISessionDataService
+public interface ILastSessionService
 {
     LastSessionData Current { get; }
     Task LoadAsync();
     Task SaveStateAsync();
-
 }
 
 public interface IDeckOptVMBuilder

@@ -5,7 +5,27 @@ namespace FlashMemo.Repositories;
     
 public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory), IDeckRepo
 {
-    ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
+    public async Task<IDeckMeta> GetFirstDeckMeta(long userId)
+    {
+        var db = GetDb;
+
+        return await db.Decks
+            .AsNoTracking()
+            .Where(d => d.UserId == userId)
+            .Cast<IDeckMeta>()
+            .FirstAsync();
+    }
+    
+    public async Task<IDeckMeta> GetDeckMetaById (long deckId)
+    {
+        var db = GetDb;
+
+        return await db.Decks
+            .AsNoTracking()
+            .Cast<IDeckMeta>()
+            .SingleAsync(d => d.Id == deckId);
+    }
+
     public async Task SaveEditedDeckAsync(Deck updated)
     {
         var db = GetDb;

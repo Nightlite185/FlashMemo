@@ -19,6 +19,8 @@ public interface IDeckRepo
     Task<Deck> LoadDeckAsync(long id);
     Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null);
     Task<IEnumerable<long>> GetChildrenIds(long deckId);
+    Task<IDeckMeta> GetFirstDeckMeta(long userId);
+    Task<IDeckMeta> GetDeckMetaById(long deckId);
 }
 
 public interface ITagRepo

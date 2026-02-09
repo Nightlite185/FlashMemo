@@ -38,7 +38,7 @@ public partial class App : Application
     // TODO: maybe encapsulate this to some initialization service ??
     private async Task InitUserSession()
     {
-        var ss = sp.GetRequiredService<ISessionDataService>();
+        var ss = sp.GetRequiredService<ILastSessionService>();
         await ss.LoadAsync();
 
         if (ss.Current.LastLoadedUserId is null)
@@ -107,7 +107,7 @@ public partial class App : Application
         sc.AddSingleton<ICardService, CardService>();
         sc.AddSingleton<ICardQueryService, CardQueryService>();
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
-        sc.AddSingleton<ISessionDataService, SessionDataService>();
+        sc.AddSingleton<ILastSessionService, LastSessionService>();
         sc.AddAutoMapper(opt => opt.AddProfile<MappingProfile>());
         sc.AddTransient<DbSeeder>();
         sc.AddLogging();

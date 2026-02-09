@@ -10,24 +10,24 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, DeckNode targetDeck, DeckSelectVMF dsVMF)
-: EditorVMBase(cs, tr, cr), ICloseRequest
+public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, IDeckMeta targetDeck, DeckSelectVMF dsVMF)
+: EditorVMBase(cs, tr, cr), ICloseRequest, IPopupHost
 {
     #region public properties
     [ObservableProperty]
-    public partial NewCardVM WipCard { get; private set; } = new(targetDeck);
+    public partial NewCardVM WipCard { get; private set; } = new();
     
     [ObservableProperty]
-    public partial DeckNode CurrentDeck { get; set; }
+    public partial IDeckMeta CurrentDeck { get; set; } = targetDeck;
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
     #endregion
 
     #region methods
-    private async Task ChangeDeck(DeckNode newDeck)
+    private async Task ChangeDeck(IDeckMeta newDeck)
     {
-        if (CurrentDeck.Id == newDeck.Id) 
+        if (CurrentDeck.Id == newDeck.Id)
             return;
 
         CurrentDeck = newDeck;
@@ -45,19 +45,19 @@ public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, De
         var card = CardEntity.CreateNew(
             WipCard.FrontContent,
             WipCard.BackContent,
-            WipCard.Deck.Id,
+            CurrentDeck.Id,
             WipCard.Tags.ToEntities());
 
         await cardRepo.AddCard(card);
 
-        WipCard = new(CurrentDeck);
+        WipCard = new();
     }
     
     [RelayCommand]
     private async Task ShowDeckSelect()
     {
         CurrentPopup = await deckSelectVMF.CreateAsync(
-            ChangeDeck, ClosePopup, 
+            ChangeDeck, ClosePopup,
             CurrentDeck.UserId);
     }
     #endregion

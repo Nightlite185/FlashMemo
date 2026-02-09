@@ -1,7 +1,7 @@
+using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Windows;
-using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Factories;
 
@@ -12,8 +12,12 @@ public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelec
     private readonly ICardRepo cardRepo = cr;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
 
-    public CreateCardVM Create(DeckNode targetDeck)
-        => new(cardService, tagRepo, cardRepo, targetDeck, deckSelectVMF);
-    
+    public CreateCardVM Create(IDeckMeta targetDeck)
+    {
+        return new(cardService, tagRepo,
+            cardRepo, targetDeck,
+            deckSelectVMF);
+    }
+
     // TODO: merge this with EditCardVMF if they still have same dependencies in the end.
 }

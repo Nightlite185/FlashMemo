@@ -1,11 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using FlashMemo.Model.Persistence;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
-using FlashMemo.ViewModel.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
@@ -39,7 +39,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
                 break;
 
             case CreateCardNavRequest cc:
-                ShowCreateCard(cc.Deck);
+                ShowCreateCard(cc.TargetDeck);
                 await Task.CompletedTask;
                 break;
 
@@ -72,7 +72,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
 
         WireHelper(vm, win);
     }
-    private void ShowCreateCard(DeckNode targetDeck)
+    private void ShowCreateCard(IDeckMeta targetDeck)
     {
         var vm = createCardVMF.Create(targetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();

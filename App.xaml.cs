@@ -101,14 +101,16 @@ public partial class App : Application
         sc.AddSingleton<ReviewVMF>();
 
         // ==== SERVICES ====
-        sc.AddSingleton<WindowService>();
         sc.AddSingleton<IDisplayControl, DisplayControl>();
+        sc.AddSingleton<ICountingService, CountingService>();
         sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();
         sc.AddSingleton<ICardService, CardService>();
         sc.AddSingleton<ICardQueryService, CardQueryService>();
+        sc.AddSingleton<ICardQueryBuilder, CardQueryBuilder>();
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
         sc.AddSingleton<ILastSessionService, LastSessionService>();
         sc.AddAutoMapper(opt => opt.AddProfile<MappingProfile>());
+        sc.AddSingleton<WindowService>();
         sc.AddTransient<DbSeeder>();
         sc.AddLogging();
 

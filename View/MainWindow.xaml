@@ -36,7 +36,7 @@
                 DockPanel.Dock="Right"
                 Content="Options"
                 Style="{StaticResource NavButtonStyle}"
-                Command="{Binding ShowOptionsCommand}" Width="85" />
+                Command="{Binding ShowUserOptionsCommand}" Width="85" />
 
                 <!-- Center navigation -->
                 <StackPanel

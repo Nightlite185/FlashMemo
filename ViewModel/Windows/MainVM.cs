@@ -6,7 +6,6 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.View;
 using FlashMemo.ViewModel.Bases;
-using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
@@ -15,24 +14,19 @@ public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRe
     [ObservableProperty]
     //* current User Control being displayed in the main window, bound to this VM
     public partial IViewModel CurrentDisplay { get; set; }
+    public long UserId { get; private set; } = userId;
 
     #region ICommands
     [RelayCommand]
     public async Task DisplayDecks()
     {
-        await display.SwitchToDecks(userId);
+        await display.SwitchToDecks(UserId);
     }
 
     [RelayCommand]
     private async Task ShowBrowse()
     {
-        await NavigateTo(new BrowseNavRequest(userId));
-    }
-
-    [RelayCommand]
-    private async Task ShowUserSettings(long userId)
-    {
-        await NavigateTo(new UserOptionsNavRequest(userId));
+        await NavigateTo(new BrowseNavRequest(UserId));
     }
 
     [RelayCommand]
@@ -62,21 +56,21 @@ public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRe
             deck = await deckRepo.GetDeckMetaById(id);
 
         // finally, just get first (oldest) deck from db with current user's id
-        else deck = await deckRepo.GetFirstDeckMeta(userId);
+        else deck = await deckRepo.GetFirstDeckMeta(UserId);
         
         await NavigateTo(new CreateCardNavRequest(deck));
     }
 
     [RelayCommand]
-    private async Task ShowOptions()
+    private async Task ShowUserOptions()
     {
-        await NavigateTo(new UserOptionsNavRequest(userId));
+        await NavigateTo(new UserOptionsNavRequest(UserId));
     }
 
     [RelayCommand]
     private async Task DisplayStats()
     {
-        
+        await display.SwitchToStats(UserId);
     }
     #endregion
 
@@ -84,6 +78,5 @@ public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRe
     private readonly IDisplayControl display = ds;
     private readonly IDeckRepo deckRepo = dr;
     private readonly ILastSessionService lastSession = lss;
-    private readonly long userId = userId;
     #endregion
 }

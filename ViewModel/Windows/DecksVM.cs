@@ -62,6 +62,16 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
         //* show create deck popup, in which you give it a name.
         CurrentPopup = new EnterNameVM(CreateDeck, PopupCancel);
     }
+    
+    [RelayCommand]
+    private async Task ShowReview()
+    {
+        if (SelectedDeck == null)
+            throw new InvalidOperationException(
+            "Cannot enter review since no deck was selected.");
+
+        OnReviewShowRequest?.Invoke(SelectedDeck.Id);
+    }
     #endregion
 
     #region public properties
@@ -72,6 +82,8 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
+
+    public event Func<long, Task>? OnReviewShowRequest;
     #endregion
 
     #region private things

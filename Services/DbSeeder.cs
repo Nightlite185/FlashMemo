@@ -39,4 +39,9 @@ public class DbSeeder(AppDbContext db, IMapper m)
 
         await db.SaveChangesAsync();
     }
+
+    private async Task SeedUserOptions()
+    {
+        throw new NotImplementedException();
+    }
 }

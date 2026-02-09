@@ -1,7 +1,6 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
@@ -49,19 +48,9 @@ public interface ICardService
 
 public interface IDisplayControl
 {
-    //void Switch<TViewModel>() where TViewModel : IViewModel;
     Task SwitchToDecks(long userId);
-}
-
-[Obsolete("ws is now based on event communication, not direct method calling.")]
-public interface IWindowService
-{
-    // void ShowDialog<TViewModel>() where TViewModel: IViewModel;
-    // Task ShowEditCard(long cardId, long userId);
-    // void ShowCreateCard(DeckNode targetDeck);
-    // Task ShowBrowse(long userId);
-    // Task ShowUserSelect();
-    // Task ShowUserSettings(long userId);
+    Task SwitchToStats(long userId);
+    Task SwitchToReview(long userId, long deckId);
 }
 
 public interface IUserVMBuilder

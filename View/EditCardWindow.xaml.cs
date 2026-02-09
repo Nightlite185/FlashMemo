@@ -1,12 +1,11 @@
 ﻿using System.Windows;
+using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.View
 {
-    /// <summary>
-    /// Interaction logic for EditCardWindow.xaml
-    /// </summary>
-    public partial class EditCardWindow : Window
+    public partial class EditCardWindow : Window, IViewFor<EditCardVM>
     {
+        public EditCardVM VM { get; set; } = null!;
         public EditCardWindow()
         {
             InitializeComponent();

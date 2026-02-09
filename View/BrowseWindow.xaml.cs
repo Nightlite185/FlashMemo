@@ -1,12 +1,11 @@
 ﻿using System.Windows;
+using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.View
 {
-    /// <summary>
-    /// Interaction logic for BrowseWindow.xaml
-    /// </summary>
-    public partial class BrowseWindow : Window
+    public partial class BrowseWindow : Window, IViewFor<BrowseVM>
     {
+        public BrowseVM VM { get; set; } = null!;
         public BrowseWindow()
         {
             InitializeComponent();

@@ -2,9 +2,6 @@
 
 namespace FlashMemo.View
 {
-    /// <summary>
-    /// Interaction logic for StatsUC.xaml
-    /// </summary>
     public partial class StatsUC : UserControl
     {
         public StatsUC()

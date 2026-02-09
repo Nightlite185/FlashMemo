@@ -16,7 +16,7 @@
         
         <TreeView
             Grid.Row="1"
-            ItemsSource="{Binding Decks}"
+            ItemsSource="{Binding DeckTree}"
             Background="Transparent"
             BorderThickness="0"
             ItemContainerStyle="{StaticResource DeckTreeItemStyle}">

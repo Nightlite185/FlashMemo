@@ -48,7 +48,7 @@ public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilde
             }
 
             // create the VM
-            yield return new DeckNode(deck, children, cc);
+            yield return new DeckNode(deck, [..children], cc);
         }
     }
     private static IEnumerable<DeckNode> BuildDeckLevel(long? parentId, ILookup<long?, Deck> decksLookup)
@@ -59,7 +59,7 @@ public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilde
             var children = BuildDeckLevel(deck.Id, decksLookup);
 
             // create the VM
-            yield return new DeckNode(deck, children);
+            yield return new DeckNode(deck, [..children]);
         }
     }
 }

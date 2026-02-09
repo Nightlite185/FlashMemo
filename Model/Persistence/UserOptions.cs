@@ -2,7 +2,7 @@ namespace FlashMemo.Model.Persistence;
 
 public record class UserOptions
 {
-    public long UserId { get; init; }
+    // public long UserId { get; init; }
 
     // review timer on/off globally?
 
@@ -10,6 +10,9 @@ public record class UserOptions
 
     internal static UserOptions CreateDefault()
     {
-        throw new NotImplementedException();
+        return new()
+        {
+            //UserId = userId
+        };
     }
 }

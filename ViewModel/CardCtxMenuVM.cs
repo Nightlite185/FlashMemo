@@ -149,7 +149,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             CardAction.Reschedule
         );
     }
-    private async Task MoveCards(DeckNode newDeck)
+    private async Task MoveCards(IDeckMeta newDeck)
     {
         await ModifyCardsHelper(
             c => c.MoveToDeck(newDeck.Id),

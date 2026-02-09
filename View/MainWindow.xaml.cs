@@ -4,16 +4,15 @@ using System.Windows.Controls;
 
 namespace FlashMemo.View
 {
-    interface IViewFor<TViewModel>
+    public interface IViewFor<TViewModel>
     {
-        public void SetVM(TViewModel vm);
+        TViewModel VM { get; set; }
     }
-    public partial class MainWindow: Window
+    public partial class MainWindow: Window, IViewFor<MainVM>
     {
-        private MainVM mainVM;
-        internal MainWindow(MainVM vm)
+        public MainVM VM { get; set; } = null!;
+        internal MainWindow()
         {
-            mainVM = vm;
             InitializeComponent();
         }
 

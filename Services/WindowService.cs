@@ -20,6 +20,8 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
     private readonly CreateCardVMF createCardVMF = ccVMF;
     private readonly UserSelectVMF userSelectVMF = usVMF;
     private readonly UserOptionsVMF userOptionsVMF = uoVMF;
+    
+    [Obsolete]
     private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
     {
         [typeof(BrowseVM)] = typeof(BrowseWindow),
@@ -107,11 +109,10 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
     where TViewModel: IViewModel
     {
         if (win is IViewFor<TViewModel> valid)
-            valid.SetVM(vm);
+            valid.VM = vm;
 
         else throw new InvalidOperationException(
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TViewModel).Name}>");
-            
     }
     private void WireEvents(IViewModel vm, Window win)
     {

@@ -1,12 +1,11 @@
 ﻿using System.Windows;
+using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.View
 {
-    /// <summary>
-    /// Interaction logic for UserOptionsWindow.xaml
-    /// </summary>
-    public partial class UserOptionsWindow : Window
+    public partial class UserOptionsWindow : Window, IViewFor<UserOptionsVM>
     {
+        public UserOptionsVM VM { get; set; } = null!;
         public UserOptionsWindow()
         {
             InitializeComponent();

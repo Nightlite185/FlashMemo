@@ -1,9 +1,10 @@
 using System.Collections;
+using FlashMemo.Helpers;
 using Force.DeepCloner;
 
 namespace FlashMemo.Model.Persistence
 {
-    public class Deck(): IEntity, IEnumerable<CardEntity>, IEquatable<Deck>
+    public class Deck(): IEntity, IEnumerable<CardEntity>, IEquatable<Deck>, IDeckMeta
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;
@@ -14,25 +15,26 @@ namespace FlashMemo.Model.Persistence
         public UserEntity User { get; set; } = null!;
         public ICollection<CardEntity> Cards { get; set; } = [];
         public ICollection<Deck> ChildrenDecks { get; set; } = [];
-        public Deck ParentDeck { get; set; } = null!;
+        public Deck? ParentDeck { get; set; }
         public long? ParentDeckId { get; set; }
-        public bool IsTemporary { get; set; } // idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
-        public int Count => Cards.Count;
+        public bool IsTemporary { get; set; } //? idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
         
-        #region Methods
-        [Obsolete]
-        public void AddCards(params CardEntity[] newCards)
+        #region methods
+                
+        public static Deck CreateNew(string name, long userId)
         {
-            if (!this.IsTemporary)
-                foreach (var c in newCards)
-                {
-                    if (c.Deck.Equals(this))
-                        throw new InvalidOperationException($"Card with id {c.Id} already belongs to this deck.");
-                    
-                    c.Deck = this;
-                }
+            return new()
+            {
+                Id = IdGetter.Next(),
+                Name = name,
+                Created = DateTime.Now,
+                UserId = userId,
+                OptionsId = -1, // default preset
+                ParentDeckId = null,
+                IsTemporary = false,
+            };
         }
-        
+
         [Obsolete]
         public Deck Duplicate(int? HighestCopyNum)
         {

@@ -76,18 +76,6 @@ public partial class App : Application
         sc.AddTransient<CreateCardWindow>();
         sc.AddTransient<UserSelectWindow>();
         
-        // ==== VIEWMODELS ====
-        sc.AddTransient<MainVM>(); //* transient cuz u can change user mid-runtime -> mainVM reloads.
-        sc.AddTransient<ReviewVM>();
-        sc.AddTransient<StatsVM>();
-        sc.AddTransient<EditCardVM>();
-        sc.AddTransient<CreateCardVM>();
-        sc.AddTransient<DeckOptionsMenuVM>();
-        sc.AddTransient<DecksVM>();
-        sc.AddTransient<UserOptionsVM>();
-        sc.AddTransient<BrowseVM>();
-        sc.AddTransient<FiltersVM>();
-
         // ==== VM FACTORIES ====
         sc.AddSingleton<DeckOptionsMenuVMF>();
         sc.AddSingleton<DeckSelectVMF>();
@@ -101,9 +89,11 @@ public partial class App : Application
         sc.AddSingleton<MainVMF>();
         sc.AddSingleton<UserOptionsVMF>();
         sc.AddSingleton<ReviewVMF>();
+        sc.AddSingleton<DecksVMF>();
 
         // ==== SERVICES ====
-        sc.AddSingleton<IDisplayControl, DisplayControl>();
+        sc.AddTransient<DisplayControlFactory>();
+        sc.AddSingleton<ILoginService, LoginService>();
         sc.AddSingleton<ICountingService, CountingService>();
         sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();
         sc.AddSingleton<ICardService, CardService>();

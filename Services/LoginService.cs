@@ -4,7 +4,7 @@ using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.Services;
 
-public class LoginService(MainVMF mVMF)
+public class LoginService(MainVMF mVMF): ILoginService
 {
     private readonly MainVMF mainVMF = mVMF;
 

@@ -9,9 +9,12 @@ using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRepo dr, long userId)
+public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
 : NavBaseVM, IViewModel, IDisplayHost
 {
+    // called by factory only. Need this two-step creation cuz circular dependency
+    internal void Initialize(IDisplayControl dsControl) => display = dsControl;
+
     [ObservableProperty]
     //* current User Control being displayed in the main window, bound to this VM
     public partial IViewModel CurrentDisplay { get; set; }
@@ -76,7 +79,7 @@ public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRe
     #endregion
 
     #region private things
-    private readonly IDisplayControl display = ds;
+    private IDisplayControl display = null!;
     private readonly IDeckRepo deckRepo = dr;
     private readonly ILastSessionService lastSession = lss;
     #endregion

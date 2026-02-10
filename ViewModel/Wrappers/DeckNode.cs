@@ -28,6 +28,9 @@ public partial class DeckNode : ObservableObject, IViewModel, IDeckMeta
     public partial string Name { get; set; }
 
     [ObservableProperty]
+    public partial bool IsExpanded { get; set; }
+
+    [ObservableProperty]
     public partial bool IsSelected { get; set; }
     
     [ObservableProperty]

@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:FlashMemo.View"
+             xmlns:local="clr-namespace:FlashMemo.View" 
+             xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" 
+             xmlns:helpers="clr-namespace:FlashMemo.Helpers"
+             d:DataContext="{d:DesignInstance Type=windows:DecksVM}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -14,8 +17,38 @@
             </LinearGradientBrush>
         </Grid.Background>
         
+        <!-- Empty message -->
+        <TextBlock
+            Text="You dont have any decks. Time to create one!"
+            FontSize="26"
+            FontWeight="SemiBold"
+            Foreground="White"
+            Opacity="0.7"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+
+                    <Style.Triggers>
+
+                        <!-- Show when DeckTree.Count == 0 -->
+                        <DataTrigger
+                            Binding="{Binding DeckTree.Count}"
+                            Value="0">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+
+        </TextBlock>
+
+
+        <!-- Deck list -->
         <TreeView
-            Grid.Row="1"
             ItemsSource="{Binding DeckTree}"
             Background="Transparent"
             BorderThickness="0"
@@ -32,39 +65,34 @@
                             <ColumnDefinition Width="32" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Deck name -->
                         <TextBlock
-                    Text="{Binding Name}"
-                    Foreground="{StaticResource DeckTextBrush}"
-                    VerticalAlignment="Center"/>
+                            Text="{Binding Name}"
+                            Foreground="{StaticResource DeckTextBrush}"
+                            VerticalAlignment="Center"/>
 
-                        <!-- New -->
                         <TextBlock
-                    Grid.Column="1"
-                    Text="{Binding NewCount}"
-                    Foreground="{StaticResource DeckNewBrush}"
-                    HorizontalAlignment="Center"/>
+                            Grid.Column="1"
+                            Text="{Binding NewCount}"
+                            Foreground="{StaticResource DeckNewBrush}"
+                            HorizontalAlignment="Center"/>
 
-                        <!-- Learn -->
                         <TextBlock
-                    Grid.Column="2"
-                    Text="{Binding LearnCount}"
-                    Foreground="{StaticResource DeckLearnBrush}"
-                    HorizontalAlignment="Center"/>
+                            Grid.Column="2"
+                            Text="{Binding LearnCount}"
+                            Foreground="{StaticResource DeckLearnBrush}"
+                            HorizontalAlignment="Center"/>
 
-                        <!-- Due -->
                         <TextBlock
-                    Grid.Column="3"
-                    Text="{Binding DueCount}"
-                    Foreground="{StaticResource DeckDueBrush}"
-                    HorizontalAlignment="Center"/>
+                            Grid.Column="3"
+                            Text="{Binding DueCount}"
+                            Foreground="{StaticResource DeckDueBrush}"
+                            HorizontalAlignment="Center"/>
 
-                        <!-- Options button -->
                         <Button
-                    Grid.Column="4"
-                    Content="⚙"
-                    Style="{StaticResource DeckOptionsButtonStyle}">
-                     <!-- Click="DeckOptions_Click"> -->
+                            Grid.Column="4"
+                            Content="⚙"
+                            Style="{StaticResource DeckOptionsButtonStyle}">
+
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Rename"/>
@@ -74,10 +102,37 @@
                                     <MenuItem Header="Delete"/>
                                 </ContextMenu>
                             </Button.ContextMenu>
+
                         </Button>
                     </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
+
+        <!-- Create Deck Button -->
+        <Button
+            Content="Create Deck"
+            Command="{Binding ShowCreateDeckCommand}"
+            Style="{StaticResource NavButtonStyle}"
+            Width="120"
+            Height="45"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Margin="0,0,0,20"/>
+
+        <!-- Popup Overlay -->
+        <Grid
+            Background="#80000000"
+            Visibility="{Binding CurrentPopup,
+                Converter={StaticResource NullToVisConverter}}">
+
+            <!-- Popup content -->
+            <ContentControl
+            Content="{Binding CurrentPopup}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"/>
+        </Grid>
+
+
     </Grid>
 </UserControl>

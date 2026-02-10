@@ -35,7 +35,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     
     #region ICommands
     [RelayCommand]
-    public async Task RemoveUser(UserVM toRemove)
+    private async Task RemoveUser(UserVM toRemove)
     {   
         //TODO: this button only visible when its not current user thats selected
         //TODO: show "you sure?? it will cascade cards and decks!!" pop up here;
@@ -49,7 +49,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     }
 
     [RelayCommand]
-    public async Task CreateUser(string name)
+    private async Task CreateUser(string name)
     {
         var user = UserEntity.Create(name);
         var vm = userVMBuilder.BuildUncounted(user);
@@ -69,7 +69,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
             "Cannot log in with user that you're already logged in with.");
 
         loginService.ChangeUser(toLogin.Id);
-        // OnCloseRequest?.Invoke(); //? prolly unneeded since LoginService closes everything already.
+        OnCloseRequest?.Invoke();
     }
 
     #endregion

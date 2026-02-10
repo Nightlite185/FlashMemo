@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:FlashMemo.View" xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" d:DataContext="{d:DesignInstance Type=windows:MainVM}"
         mc:Ignorable="d"
     Title="MainWindow" Height="450" Width="800">
-    
+
     <Grid>
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -60,8 +60,7 @@
         <!-- ===== MAIN CONTENT AREA ===== -->
         <ContentControl
             Grid.Row="1"
-            Content="{Binding CurrentDisplay}" />
-
+            Content="{Binding CurrentDisplay}"/>
 
     </Grid>
 </Window>

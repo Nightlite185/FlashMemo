@@ -4,9 +4,151 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FlashMemo.View"
+        xmlns:vm="clr-namespace:FlashMemo.ViewModel.Windows"
+        xmlns:wrapperVMs="clr-namespace:FlashMemo.ViewModel.Wrappers" d:DataContext="{d:DesignInstance Type=vm:UserSelectVM}"
         mc:Ignorable="d"
-        Title="UserSelectWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="UserSelectWindow"
+        Width="700"
+        Height="450"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FF3E009C"/>
+            <GradientStop Color="#FFFF6E6E" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <TextBlock
+            Text="Choose a user"
+            FontSize="30"
+            FontWeight="SemiBold"
+            Margin="0,0,0,12" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" Foreground="#FFFFA400"/>
+
+        <!-- USER LIST -->
+        <ListBox
+            Grid.Row="1"
+            ItemsSource="{Binding Users}"
+            SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
+            Background="Transparent"
+            BorderThickness="0"
+            HorizontalContentAlignment="Stretch" d:ItemsSource="{d:SampleData ItemCount=5}">
+
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type wrapperVMs:UserVM}">
+                    <Border
+                        Padding="12"
+                        Margin="0,0,0,8"
+                        CornerRadius="10"
+                        Background="{StaticResource NavBgBrush}">
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- USER INFO -->
+                            <StackPanel>
+                                <TextBlock
+                            Text="{Binding Name}"
+                            FontSize="18"
+                            Foreground="{StaticResource NavTextBrush}"/>
+
+                                <TextBlock
+                            Text="{Binding DeckCount, StringFormat='Decks: {0}'}"
+                            Foreground="{StaticResource DeckDimBrush}"/>
+
+                                <TextBlock
+                            Text="{Binding CardCount, StringFormat='Cards: {0}'}"
+                            Foreground="{StaticResource DeckDimBrush}"/>
+                            </StackPanel>
+
+                            <!-- ACTIONS -->
+                            <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+
+                                <Button
+                            Content="Login"
+                            Command="{Binding DataContext.LoginCommand,
+                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                            CommandParameter="{Binding}"
+                            Style="{StaticResource NavButtonStyle}"
+                            Width="80"/>
+
+                                <Button
+                            Content="Delete"
+                            Command="{Binding DataContext.RemoveUserCommand,
+                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                            CommandParameter="{Binding}"
+                            Style="{StaticResource NavButtonStyle}"
+                            Width="80"
+                            Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+
+        <!-- FOOTER -->
+        <StackPanel
+            Grid.Row="2"
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            Margin="0,12,0,0"
+            VerticalAlignment="Center">
+
+            <!-- New user name -->
+            <TextBox
+                x:Name="NewUserNameBox"
+                Width="200"
+                Height="36"
+                Margin="0,0,10,0"
+                VerticalContentAlignment="Center"
+                FontSize="16"
+                ToolTip="Enter new user name"
+                Background="#22FFFFFF"
+                Foreground="White"
+                BorderBrush="{StaticResource NavBorderBrush}"
+                BorderThickness="1"/>
+
+            <!-- Create -->
+            <Button
+                Content="Create User"
+                Command="{Binding CreateUserCommand}"
+                CommandParameter="{Binding Text, ElementName=NewUserNameBox}">
+
+                <Button.Style>
+                    <Style
+                        TargetType="Button"
+                        BasedOn="{StaticResource NavButtonStyle}">
+
+                        <Style.Triggers>
+                            <DataTrigger
+                                Binding="{Binding Text, ElementName=NewUserNameBox}"
+                                Value="">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+
+                    </Style>
+                </Button.Style>
+
+            </Button>
+
+
+        </StackPanel>
     </Grid>
 </Window>

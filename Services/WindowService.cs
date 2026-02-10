@@ -49,8 +49,8 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
                 await ShowEditCard(ec.CardId, ec.UserId);
                 break;
 
-            case UserSelectNavRequest:
-                await ShowUserSelect();
+            case UserSelectNavRequest us:
+                await ShowUserSelect(us.CurrentUserId);
                 break;
 
             case UserOptionsNavRequest uo:
@@ -81,9 +81,15 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
 
         WireHelper(vm, win);
     }
-    internal async Task ShowUserSelect()
+
+    ///<param name="currentUserId">
+        /// This CANNOT be null if MainWindow exists,
+        /// and there is a current user logged in. 
+        /// Only allowed to be null at app initialization
+    /// </param>
+    internal async Task ShowUserSelect(long? currentUserId)
     {
-        var vm = await userSelectVMF.CreateAsync();
+        var vm = await userSelectVMF.CreateAsync(currentUserId);
         var win = sp.GetRequiredService<UserSelectWindow>();
 
         WireHelper(vm, win);

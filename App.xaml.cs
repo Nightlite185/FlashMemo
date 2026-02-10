@@ -40,23 +40,24 @@ public partial class App : Application
     {
         var ss = sp.GetRequiredService<ILastSessionService>();
         await ss.LoadAsync();
-
-        if (ss.Current.LastLoadedUserId is null)
+        long? lastUser = ss.Current.LastLoadedUserId;
+        
+        if (lastUser is null)
         {
             var ws = sp.GetRequiredService<WindowService>();
-            await ws.ShowUserSelect();
+            await ws.ShowUserSelect(currentUserId: null);
         }
 
         else
         {
             var factory = sp.GetRequiredService<MainVMF>();
             
-            var mainVM = factory
-                .Create((long)ss.Current.LastLoadedUserId);
+            var mainVM = factory.Create((long)lastUser);
 
-            var win = new MainWindow()
-                { DataContext = mainVM,
-                  VM = mainVM };
+            var win = new MainWindow(){
+                DataContext = mainVM,
+                VM = mainVM 
+            };
 
             //wire any needed lifetime events here.
 

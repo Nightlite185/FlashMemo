@@ -4,7 +4,7 @@ using FlashMemo.Model.Persistence;
 namespace FlashMemo.ViewModel.Bases;
 
 public record NavigationRequest; // base request type
-public record UserSelectNavRequest: NavigationRequest;
+public record UserSelectNavRequest(long CurrentUserId): NavigationRequest;
 public record BrowseNavRequest(long UserId): NavigationRequest;
 public record UserOptionsNavRequest(long UserId): NavigationRequest;
 public record EditCardNavRequest(long CardId, long UserId): NavigationRequest;

@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
+using System.Windows;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Wrappers;
+using Expression = System.Linq.Expressions.Expression;
 
 namespace FlashMemo.Helpers;
 
@@ -26,6 +28,14 @@ public static class Extensions
         
         foreach (var item in toAdd)
             col.Add(item);
+    }
+
+    public static bool Any(this WindowCollection windows, Func<object, bool> predicate)
+    {
+        foreach (var win in windows)
+            if (predicate(win)) return true;
+
+        return false;
     }
 
     public static IEnumerable<CardItemVM> ToVMs(this IEnumerable<CardEntity> cards)

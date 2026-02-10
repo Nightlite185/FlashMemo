@@ -40,7 +40,7 @@ public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRe
             if (view is Window win and not MainWindow)
                 win.Close();
 
-        await NavigateTo(new UserSelectNavRequest());
+        await NavigateTo(new UserSelectNavRequest(UserId));
     }
 
     [RelayCommand]

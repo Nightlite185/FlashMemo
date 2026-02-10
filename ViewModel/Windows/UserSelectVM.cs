@@ -10,11 +10,12 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
 {
-    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls)
+    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls, long? currentUserId = null)
     {
         userRepo = ur;
         loginService = ls;
         userVMBuilder = uvmb;
+        this.currentUserId = currentUserId;
     }
 
     #region public properties
@@ -29,16 +30,22 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     private readonly IUserRepo userRepo;
     private readonly IUserVMBuilder userVMBuilder;
     private readonly ILoginService loginService;
+    private readonly long? currentUserId;
     #endregion
     
     #region ICommands
     [RelayCommand]
-    public async Task RemoveUser(UserVM user)
-    {
-        // show "you sure?? it will cascade cards and decks!!" pop up here;
+    public async Task RemoveUser(UserVM toRemove)
+    {   
+        //TODO: this button only visible when its not current user thats selected
+        //TODO: show "you sure?? it will cascade cards and decks!!" pop up here;
 
-        await userRepo.Remove(user.Id);
-        Users.Remove(user);
+        if (currentUserId == toRemove.Id)
+            throw new InvalidOperationException(
+            "Cannot remove user that you're currently logged in with.");
+
+        await userRepo.Remove(toRemove.Id);
+        Users.Remove(toRemove);
     }
 
     [RelayCommand]
@@ -53,9 +60,15 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     }
 
     [RelayCommand]
-    private async Task Login(UserVM user) // bind this as CommandParam in xaml.
+    private async Task Login(UserVM toLogin) // bind this as CommandParam in xaml.
     {
-        loginService.ChangeUser(user.Id);
+        //TODO: button hidden when the selected user is current one.
+
+        if (currentUserId == toLogin.Id)
+            throw new InvalidOperationException(
+            "Cannot log in with user that you're already logged in with.");
+
+        loginService.ChangeUser(toLogin.Id);
         // OnCloseRequest?.Invoke(); //? prolly unneeded since LoginService closes everything already.
     }
 

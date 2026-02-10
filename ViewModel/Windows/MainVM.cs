@@ -13,11 +13,15 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
 : NavBaseVM, IViewModel, IDisplayHost
 {
     // called by factory only. Need this two-step creation cuz circular dependency
-    internal void Initialize(IDisplayControl dsControl) => display = dsControl;
+    internal void Initialize(IDisplayControl dsControl)
+    {
+        display = dsControl;
+        display.SwitchToDecks(UserId);
+    }
 
     [ObservableProperty]
     //* current User Control being displayed in the main window, bound to this VM
-    public partial IViewModel CurrentDisplay { get; set; }
+    public partial object CurrentDisplay { get; set; }
     public long UserId { get; private set; } = userId;
     
     #region ICommands

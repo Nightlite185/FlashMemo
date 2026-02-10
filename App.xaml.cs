@@ -53,14 +53,9 @@ public partial class App : Application
             var factory = sp.GetRequiredService<MainVMF>();
             
             var mainVM = factory.Create((long)lastUser);
-
-            var win = new MainWindow(){
-                DataContext = mainVM,
-                VM = mainVM 
-            };
-
-            //wire any needed lifetime events here.
-
+            var win = sp.GetRequiredService<MainWindow>();
+            
+            win.ChangeDataCtx(mainVM);
             win.Show();
         }
     }

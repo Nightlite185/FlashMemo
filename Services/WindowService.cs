@@ -104,21 +104,23 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
     #endregion
     
     #region private helpers
-    private void WireHelper(IViewModel vm, Window win)
+    private void WireHelper<TVM>(TVM vm, Window win) where TVM: class, IViewModel
     {
         SetDataCtx(vm, win);
         WireEvents(vm, win);
 
         win.ShowDialog();
     }
-    private static void SetDataCtx<TViewModel>(TViewModel vm, Window win) 
-    where TViewModel: IViewModel
+    private static void SetDataCtx<TVM>(TVM vm, Window win) where TVM: class, IViewModel
     {
-        if (win is IViewFor<TViewModel> valid)
+        if (win is IViewFor<TVM> valid)
+        {
             valid.VM = vm;
+            win.DataContext = vm;
+        }
 
         else throw new InvalidOperationException(
-            $"{win.GetType().Name} does not implement IViewFor<{typeof(TViewModel).Name}>");
+            $"{win.GetType().Name} does not implement IViewFor<{typeof(TVM).Name}>");
     }
     private void WireEvents(IViewModel vm, Window win)
     {

@@ -47,7 +47,7 @@ public interface IPopupHost
 
 public interface IDisplayHost
 {
-    IViewModel CurrentDisplay { get; set; }
+    object CurrentDisplay { get; set; }
     long UserId { get; }
 }
 

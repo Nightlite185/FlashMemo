@@ -39,7 +39,12 @@ public sealed class ManageTagsVM: PopupVMBase
     public readonly ObservableCollection<TagVM> AllTags = [];
     private bool globalTagsEdited;
 
-    public override async Task Confirm() 
-        => await confirm(CardTags.Select(vm => vm.ToEntity()), 
-        globalTagsEdited);
+    public override async Task Confirm()
+    {
+        await confirm(
+            CardTags.Select(vm => vm.ToEntity()), 
+            globalTagsEdited);
+
+        Close();
+    }
 }

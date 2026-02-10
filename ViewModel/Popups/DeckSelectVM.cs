@@ -13,6 +13,7 @@ public partial class DeckSelectVM
     public override async Task Confirm()
     {
         await confirm(SelectedDeck);
+        Close();
     }
 
     public ObservableCollection<DeckNode> DeckTree { get; init; } = [..deckTree];

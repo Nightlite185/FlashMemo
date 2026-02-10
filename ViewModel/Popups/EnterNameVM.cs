@@ -13,5 +13,6 @@ public partial class EnterNameVM(Func<string, Task> confirmAction, Action cancel
     public override async Task Confirm()
     {
         await confirm(NameField);
+        Close();
     }
 }

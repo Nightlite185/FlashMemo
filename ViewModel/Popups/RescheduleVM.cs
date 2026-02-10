@@ -7,7 +7,11 @@ public partial class RescheduleVM
     (Func<DateTime, bool, Task> confirm, Action cancel)
     : PopupVMBase(cancel)
 {
-    public override async Task Confirm() => await confirm(RescheduleToDate, KeepInterval);
+    public override async Task Confirm()
+    {
+        await confirm(RescheduleToDate, KeepInterval);
+        Close();
+    }
     private readonly Func<DateTime, bool, Task> confirm = confirm;
 
     [ObservableProperty]

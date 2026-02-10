@@ -5,6 +5,10 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
 
+public interface ILoginService
+{
+    void ChangeUser(long userId);
+}
 public interface IDeckTreeBuilder
 {
     Task<IEnumerable<DeckNode>> BuildAsync(long userId);

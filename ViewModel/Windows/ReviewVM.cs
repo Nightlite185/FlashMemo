@@ -9,7 +9,7 @@ using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Windows;
     
-public partial class ReviewVM: BaseVM
+public partial class ReviewVM: NavBaseVM
 {
     public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, long deckId)
     {

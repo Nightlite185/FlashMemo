@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class BrowseVM: BaseVM, IPopupHost, IReloadHandler, IFiltrable
+public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IReloadHandler, IFiltrable
 {
     internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId)
     {

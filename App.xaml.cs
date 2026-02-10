@@ -54,8 +54,9 @@ public partial class App : Application
             var mainVM = factory
                 .Create((long)ss.Current.LastLoadedUserId);
 
-            var win = new MainWindow(mainVM)
-                { DataContext = mainVM };
+            var win = new MainWindow()
+                { DataContext = mainVM,
+                  VM = mainVM };
 
             //wire any needed lifetime events here.
 

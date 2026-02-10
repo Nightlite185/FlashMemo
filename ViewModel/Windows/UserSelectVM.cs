@@ -8,11 +8,12 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class UserSelectVM: ObservableObject, IViewModel
+public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
 {
-    public UserSelectVM(IUserRepo userRepo, IUserVMBuilder uvmb)
+    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls)
     {
-        this.userRepo = userRepo;
+        userRepo = ur;
+        loginService = ls;
         userVMBuilder = uvmb;
     }
 
@@ -21,11 +22,13 @@ public partial class UserSelectVM: ObservableObject, IViewModel
     
     [ObservableProperty]
     public partial UserVM? SelectedUser { get; set; }
+    public event Action? OnCloseRequest;
     #endregion
 
     #region private things
     private readonly IUserRepo userRepo;
     private readonly IUserVMBuilder userVMBuilder;
+    private readonly ILoginService loginService;
     #endregion
     
     #region ICommands
@@ -48,5 +51,13 @@ public partial class UserSelectVM: ObservableObject, IViewModel
         
         Users.Add(vm);
     }
+
+    [RelayCommand]
+    private async Task Login(UserVM user) // bind this as CommandParam in xaml.
+    {
+        loginService.ChangeUser(user.Id);
+        // OnCloseRequest?.Invoke(); //? prolly unneeded since LoginService closes everything already.
+    }
+
     #endregion
 }

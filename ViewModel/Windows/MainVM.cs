@@ -9,13 +9,14 @@ using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRepo dr, long userId): BaseVM, IViewModel, IDisplayHost
+public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRepo dr, long userId)
+: NavBaseVM, IViewModel, IDisplayHost
 {
     [ObservableProperty]
     //* current User Control being displayed in the main window, bound to this VM
     public partial IViewModel CurrentDisplay { get; set; }
     public long UserId { get; private set; } = userId;
-
+    
     #region ICommands
     [RelayCommand]
     public async Task DisplayDecks()
@@ -30,7 +31,7 @@ public partial class MainVM(IDisplayControl ds, ILastSessionService lss, IDeckRe
     }
 
     [RelayCommand]
-    private async Task ChangeUser()
+    private async Task ShowChangeUser()
     {
         //* closing all windows despite Main (singleton),
         //* to avoid stale state and restart based on new user

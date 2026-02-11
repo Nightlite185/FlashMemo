@@ -1,13 +1,11 @@
 ﻿using System.Windows;
 using FlashMemo.View;
-using FlashMemo.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
 using FlashMemo.Services;
 using FlashMemo.Repositories;
-using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.Model;
 
@@ -35,7 +33,6 @@ public partial class App : Application
         await InitUserSession();
     }
     
-    // TODO: maybe encapsulate this to some initialization service ??
     private async Task InitUserSession()
     {
         var lss = sp.GetRequiredService<ILastSessionService>();
@@ -51,14 +48,11 @@ public partial class App : Application
 
         else
         {
-            var factory = sp.GetRequiredService<MainVMF>();
+            var mainVM = sp.GetRequiredService<MainVMF>()
+                .Create((long)lastUser);
             
-            var mainVM = factory.Create((long)lastUser);
-            var win = sp.GetRequiredService<MainWindow>();
-
-            win.Closing += (_, _) => lss.SaveStateAsync();
-            win.ChangeDataCtx(mainVM);
-            win.Show();
+            sp.GetRequiredService<MainWindowFactory>()
+                .Resolve(mainVM);
         }
     }
     private static ServiceCollection ConfigureServices()
@@ -89,6 +83,7 @@ public partial class App : Application
         sc.AddSingleton<DecksVMF>();
 
         // ==== SERVICES ====
+        sc.AddTransient<MainWindowFactory>();
         sc.AddTransient<DisplayControlFactory>();
         sc.AddSingleton<ILoginService, LoginService>();
         sc.AddSingleton<ICountingService, CountingService>();

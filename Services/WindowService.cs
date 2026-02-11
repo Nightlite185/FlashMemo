@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.Windows;
 using FlashMemo.Model.Persistence;
 using FlashMemo.View;
@@ -15,21 +14,12 @@ public class WindowService
 CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
 {
     #region private fields
+    private readonly IServiceProvider sp = sp;
     private readonly BrowseVMF browseVMF = bVMF;
     private readonly EditCardVMF editCardVMF = ecVMF;
     private readonly CreateCardVMF createCardVMF = ccVMF;
     private readonly UserSelectVMF userSelectVMF = usVMF;
     private readonly UserOptionsVMF userOptionsVMF = uoVMF;
-    
-    [Obsolete]
-    private static readonly ReadOnlyDictionary<Type, Type> VMToWindowMap = new Dictionary<Type, Type> ()
-    {
-        [typeof(BrowseVM)] = typeof(BrowseWindow),
-        [typeof(MainVM)] = typeof(MainWindow),
-        [typeof(EditCardVM)] = typeof(EditCardWindow),
-        [typeof(UserOptionsVM)] = typeof(UserOptionsWindow)
-    }.AsReadOnly();
-    private readonly IServiceProvider sp = sp;
     #endregion
 
     private async Task NavRequestHandler(NavigationRequest req)
@@ -122,7 +112,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
         else throw new InvalidOperationException(
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TVM).Name}>");
     }
-    private void WireEvents(IViewModel vm, Window win)
+    internal void WireEvents(IViewModel vm, Window win)
     {
         if (vm is INavRequestSender reqSender)
             reqSender.NavRequested += NavRequestHandler;

@@ -1,13 +1,12 @@
 using System.Windows;
 using FlashMemo.View;
 using FlashMemo.ViewModel.Factories;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
 
-public class LoginService(MainVMF mVMF, IServiceProvider sp): ILoginService
+public class LoginService(MainVMF mVMF, MainWindowFactory mwf): ILoginService
 {
-    private readonly IServiceProvider sp = sp;
+    private readonly MainWindowFactory winFactory = mwf;
     private readonly MainVMF mainVMF = mVMF;
 
     public void ChangeUser(long userId)
@@ -25,21 +24,12 @@ public class LoginService(MainVMF mVMF, IServiceProvider sp): ILoginService
 
             else if (view is MainWindow main)
             {
-                //TODO: unify main window creation into one place, so 
-                // you can sub LSS to mainWindow.Closing ONCE and not everywhere u make it.
-                
                 main.ChangeDataCtx(newMainVM);
                 replacedMainVM = true;
             }
         }
 
-        if (replacedMainVM) return;
-
-        //* MainWindow needs to be created from DI, since its singleton.
-        //* DI has reference to that window -> prevents GC from eating it.
-        var window = sp.GetRequiredService<MainWindow>();
-        
-        window.ChangeDataCtx(newMainVM);
-        window.Show();
+        if (!replacedMainVM)
+            winFactory.Resolve(newMainVM);
     }
 }

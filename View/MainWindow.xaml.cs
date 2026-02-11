@@ -9,9 +9,9 @@ namespace FlashMemo.View
     {
         TViewModel VM { get; set; }
     }
-    public partial class MainWindow: Window
+    public partial class MainWindow: Window, IViewFor<MainVM>
     {
-        private MainVM VM { get; set; } = null!;
+        public MainVM VM { get; set; } = null!;
         
         public MainWindow()
         {

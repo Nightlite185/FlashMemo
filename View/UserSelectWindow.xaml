@@ -19,7 +19,7 @@
         </LinearGradientBrush>
     </Window.Background>
 
-    <Grid Margin="20">
+    <Grid Margin="20" MouseDown="ClearFocus">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -40,7 +40,16 @@
             SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
             Background="Transparent"
             BorderThickness="0"
-            HorizontalContentAlignment="Stretch" d:ItemsSource="{d:SampleData ItemCount=5}">
+            HorizontalContentAlignment="Stretch" 
+            d:ItemsSource="{d:SampleData ItemCount=3}">
+
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter
+                        Event="MouseDoubleClick"
+                        Handler="User_DoubleClick"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
 
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type wrapperVMs:UserVM}">
@@ -58,42 +67,67 @@
 
                             <!-- USER INFO -->
                             <StackPanel>
-                                <TextBlock
-                            Text="{Binding Name}"
-                            FontSize="18"
-                            Foreground="{StaticResource NavTextBrush}"/>
+                                <Grid>
+
+                                    <!-- Display mode -->
+                                    <TextBlock
+                                        Text="{Binding Name}"
+                                        FontSize="18"
+                                        Foreground="#FF00ECC6"
+                                        Visibility="{Binding IsRenaming,
+                                                    Converter={StaticResource InverseBoolToVisConverter}}"/>
+
+                                    <!-- Edit mode -->
+                                    <TextBox
+                                        Text="{Binding TempName, UpdateSourceTrigger=PropertyChanged}"
+                                        MaxLength="15"
+                                        FontSize="18"
+                                        Height="28"
+                                        VerticalContentAlignment="Center"
+                                        HorizontalContentAlignment="Left"
+                                        Visibility="{Binding IsRenaming,
+                                            Converter={StaticResource BoolToVisConverter}}"
+
+                                        KeyDown="RenameBox_KeyDown"
+                                        LostFocus="RenameBox_LostFocus"
+                                        LostKeyboardFocus="RenameBox_LostFocus"
+                                        Background="#330162FD"
+                                        Foreground="#FF00ECC6"
+                                        Margin="0,0,246,0"/>
+                                </Grid>
+
 
                                 <TextBlock
-                            Text="{Binding DeckCount, StringFormat='Decks: {0}'}"
-                            Foreground="{StaticResource DeckDimBrush}"/>
+                                    Text="{Binding DeckCount, StringFormat='Decks: {0}'}"
+                                    Foreground="{StaticResource DeckDimBrush}"/>
 
                                 <TextBlock
-                            Text="{Binding CardCount, StringFormat='Cards: {0}'}"
-                            Foreground="{StaticResource DeckDimBrush}"/>
+                                    Text="{Binding CardCount, StringFormat='Cards: {0}'}"
+                                    Foreground="{StaticResource DeckDimBrush}"/>
                             </StackPanel>
 
                             <!-- ACTIONS -->
                             <StackPanel
-                        Grid.Column="1"
-                        Orientation="Horizontal"
-                        VerticalAlignment="Center">
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
 
                                 <Button
-                            Content="Login"
-                            Command="{Binding DataContext.LoginCommand,
-                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
-                            CommandParameter="{Binding}"
-                            Style="{StaticResource NavButtonStyle}"
-                            Width="80"/>
+                                    Content="Rename"
+                                    Command="{Binding BeginRenameCommand}"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Width="80"
+                                    IsEnabled="{Binding IsRenaming, Converter={StaticResource InverseBoolConverter}}"
+                                    Visibility="{Binding IsRenaming, Converter={StaticResource InverseBoolToVisConverter}}"/>
 
                                 <Button
-                            Content="Delete"
-                            Command="{Binding DataContext.RemoveUserCommand,
-                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
-                            CommandParameter="{Binding}"
-                            Style="{StaticResource NavButtonStyle}"
-                            Width="80"
-                            Margin="6,0,0,0"/>
+                                    Content="Delete"
+                                    Command="{Binding DataContext.RemoveUserCommand,
+                                                      RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Width="80"
+                                    Margin="6,0,0,0"/>
                             </StackPanel>
                         </Grid>
                     </Border>

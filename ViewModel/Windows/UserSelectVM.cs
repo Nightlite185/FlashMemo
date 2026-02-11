@@ -62,7 +62,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     }
 
     [RelayCommand]
-    private async Task Login(UserVM toLogin) // bind this as CommandParam in xaml.
+    private async Task Login(UserVM toLogin)
     {
         //TODO: button hidden when the selected user is current one.
 

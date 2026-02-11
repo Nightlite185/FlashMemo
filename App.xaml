@@ -13,6 +13,15 @@
         <helpers:NullToVisConverter
             x:Key="NullToVisConverter"/>
 
+        <helpers:BoolToVisConverter
+            x:Key="BoolToVisConverter"/>
+
+        <helpers:InverseBoolConverter
+            x:Key="InverseBoolConverter"/>
+
+        <helpers:InverseBoolToVisConverter
+            x:Key="InverseBoolToVisConverter"/>
+
         <!-- ===== ViewModel → View Mapping ===== -->
 
         <DataTemplate DataType="{x:Type vm:DecksVM}">

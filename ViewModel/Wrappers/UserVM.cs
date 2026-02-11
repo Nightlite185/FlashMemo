@@ -26,10 +26,13 @@ public partial class UserVM: ObservableObject, IViewModel
     public long Id => user.Id;
     
     [ObservableProperty]
-    public partial bool IsEditing { get; set; }
+    public partial bool IsRenaming { get; set; }
 
     [ObservableProperty]
     public partial string Name { get; set; }
+
+    [ObservableProperty]
+    public partial string? TempName { get; set; }
     
     [ObservableProperty]
     public partial int DeckCount { get; private set; }
@@ -52,15 +55,27 @@ public partial class UserVM: ObservableObject, IViewModel
     }
 
     [RelayCommand]
-    public async Task BeginRename() => IsEditing = true;
-
-    [RelayCommand]
-    public void CancelRename() => IsEditing = false;
-
-    [RelayCommand]
-    public async Task CommitRename()
+    private async Task BeginRename()
     {
-        IsEditing = false;
+        IsRenaming = true;
+        TempName = Name;
+    }
+
+    [RelayCommand]
+    private void CancelRename()
+    {
+        TempName = null;
+        IsRenaming = false;
+    }
+
+    [RelayCommand]
+    private async Task CommitRename()
+    {
+        if (string.IsNullOrEmpty(TempName))
+            throw new InvalidOperationException();
+
+        Name = TempName;
+        IsRenaming = false;
 
         await userRepo.Rename(Id, Name);
     }

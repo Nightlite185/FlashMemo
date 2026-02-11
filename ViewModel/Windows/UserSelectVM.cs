@@ -10,10 +10,11 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
 {
-    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls, long? currentUserId = null)
+    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls, ILastSessionService lss, long? currentUserId = null)
     {
         userRepo = ur;
         loginService = ls;
+        lastSession = lss;
         userVMBuilder = uvmb;
         this.currentUserId = currentUserId;
     }
@@ -27,6 +28,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     #endregion
 
     #region private things
+    private readonly ILastSessionService lastSession;
     private readonly IUserRepo userRepo;
     private readonly IUserVMBuilder userVMBuilder;
     private readonly ILoginService loginService;
@@ -69,6 +71,8 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
             "Cannot log in with user that you're already logged in with.");
 
         loginService.ChangeUser(toLogin.Id);
+        lastSession.Current.LastLoadedUserId = toLogin.Id;
+
         OnCloseRequest?.Invoke();
     }
 

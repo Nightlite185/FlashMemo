@@ -38,9 +38,10 @@ public partial class App : Application
     // TODO: maybe encapsulate this to some initialization service ??
     private async Task InitUserSession()
     {
-        var ss = sp.GetRequiredService<ILastSessionService>();
-        await ss.LoadAsync();
-        long? lastUser = ss.Current.LastLoadedUserId;
+        var lss = sp.GetRequiredService<ILastSessionService>();
+        await lss.LoadAsync();
+
+        long? lastUser = lss.Current.LastLoadedUserId;
         
         if (lastUser is null)
         {
@@ -54,7 +55,8 @@ public partial class App : Application
             
             var mainVM = factory.Create((long)lastUser);
             var win = sp.GetRequiredService<MainWindow>();
-            
+
+            win.Closing += (_, _) => lss.SaveStateAsync();
             win.ChangeDataCtx(mainVM);
             win.Show();
         }

@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.ViewModel.Windows;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 

@@ -6,9 +6,10 @@ using FlashMemo.View;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls)
+public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls, ILastSessionService lss)
 {
     private readonly IUserRepo userRepo = ur;
+    private readonly ILastSessionService lastSession = lss;
     private readonly IUserVMBuilder userVMBuilder = uvmb;
     private readonly ILoginService loginService = ls;
 
@@ -33,7 +34,7 @@ public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls)
         
         var vm = new UserSelectVM(
             userRepo, userVMBuilder, 
-            loginService, currentUserId);
+            loginService, lastSession, currentUserId);
     
         vm.Users.AddRange(
             await userVMBuilder.BuildAllCounted());

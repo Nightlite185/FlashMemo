@@ -71,13 +71,14 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="10">
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                            
                             <ContentPresenter
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
                         </Border>
 
                         <ControlTemplate.Triggers>
@@ -121,31 +122,55 @@
         <!-- TREEVIEW ITEM STYLE -->
 
         <Style x:Key="DeckTreeItemStyle" TargetType="TreeViewItem">
+
+            <!-- Force normal row height -->
+            <Setter Property="MinHeight" Value="36"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+
             <Setter Property="IsExpanded"
             Value="{Binding IsExpanded, Mode=TwoWay}" />
+
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Padding" Value="0"/>
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TreeViewItem">
                         <StackPanel>
-                            <Border x:Name="Row"
-                            Padding="6"
-                            CornerRadius="8"
-                            Background="Transparent">
 
-                                <ContentPresenter/>
+                            <!-- Row -->
+                            <Border
+                                x:Name="Row"
+                                Padding="8"
+                                CornerRadius="8"
+                                Background="Transparent"
+                                MinHeight="36">
+
+                                <ContentPresenter
+                                    ContentSource="Header"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Stretch"/>
                             </Border>
 
-                            <ItemsPresenter Margin="20,2,0,2"/>
-                        </StackPanel>
+                            <!-- Children -->
+                            <ItemsPresenter
+                                Margin="20,2,0,2"/>
 
+                        </StackPanel>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Row"
-                                Property="Background"
-                                Value="{StaticResource DeckRowHoverBrush}"/>
+                                <Setter
+                                    TargetName="Row"
+                                    Property="Background"
+                                    Value="{StaticResource DeckRowHoverBrush}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter
+                                    TargetName="Row"
+                                    Property="Background"
+                                    Value="#402A82DA"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

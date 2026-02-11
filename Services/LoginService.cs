@@ -25,6 +25,9 @@ public class LoginService(MainVMF mVMF, IServiceProvider sp): ILoginService
 
             else if (view is MainWindow main)
             {
+                //TODO: unify main window creation into one place, so 
+                // you can sub LSS to mainWindow.Closing ONCE and not everywhere u make it.
+                
                 main.ChangeDataCtx(newMainVM);
                 replacedMainVM = true;
             }

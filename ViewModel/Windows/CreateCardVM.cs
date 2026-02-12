@@ -6,13 +6,21 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, IDeckMeta targetDeck, DeckSelectVMF dsVMF)
-: EditorVMBase(cs, tr, cr), ICloseRequest, IPopupHost
+: ObservableObject, ICloseRequest, IPopupHost, IViewModel
 {
+    #region private things
+    private readonly DeckSelectVMF deckSelectVMF = dsVMF;
+    private readonly ICardService cardService = cs;
+    private readonly ITagRepo tagRepo = tr;
+    private readonly ICardRepo cardRepo = cr;
+    #endregion
+    
     #region public properties
     [ObservableProperty]
     public partial NewCardVM WipCard { get; private set; } = new();
@@ -40,11 +48,14 @@ public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
 
     #region ICommands
     [RelayCommand]
+    private void Close() => OnCloseRequest?.Invoke();
+
+    [RelayCommand]
     protected async Task AddCard()
     {
         var card = CardEntity.CreateNew(
-            WipCard.FrontContent,
-            WipCard.BackContent,
+            WipCard.FrontContentXAML,
+            WipCard.BackContentXAML,
             CurrentDeck.Id,
             WipCard.Tags.ToEntities());
 
@@ -60,7 +71,7 @@ public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
             ChangeDeck, ClosePopup,
             CurrentDeck.UserId);
     }
-    #endregion
 
-    private readonly DeckSelectVMF deckSelectVMF = dsVMF;
+    public event Action? OnCloseRequest;
+    #endregion
 }

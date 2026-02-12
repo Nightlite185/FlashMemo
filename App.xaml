@@ -64,6 +64,10 @@
 
         <!--#endregion -->
 
+        <!-- ===== Create Editor colors ===== -->
+        <Color x:Key="EditorFieldColor">#CC2A2E34</Color>
+        <SolidColorBrush x:Key="EditorFieldBrush" Color="{StaticResource DeckRowHoverColor}"/>
+
         <!-- ===== Navigation Buttons Style ===== -->
         <Style x:Key="NavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="{StaticResource NavBgBrush}" />

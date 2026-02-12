@@ -32,7 +32,7 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
         DeckTree.Clear();
 
         // build root-level decks without parents (ParentId == null)
-        IEnumerable<DeckNode> deckTree = await
+        var deckTree = await
             deckTreeBuilder.BuildCountedAsync(userId);
 
         DeckTree.AddRange(deckTree);
@@ -62,16 +62,13 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
         //* show create deck popup, in which you give it a name.
         CurrentPopup = new EnterNameVM(CreateDeck, PopupCancel);
     }
+
+    [RelayCommand]
+    private async Task SyncDecks() => await SyncDeckTree();
     
     [RelayCommand]
-    private async Task ShowReview()
-    {
-        if (SelectedDeck == null)
-            throw new InvalidOperationException(
-            "Cannot enter review since no deck was selected.");
-
-        OnReviewShowRequest?.Invoke(SelectedDeck.Id);
-    }
+    private void ShowReview(DeckNode deck) 
+        => OnReviewShowRequest?.Invoke(deck.Id);
     #endregion
 
     #region public properties

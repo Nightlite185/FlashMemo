@@ -58,9 +58,22 @@
         <TreeView
             Grid.Row="0"
             ItemsSource="{Binding DeckTree}"
+            SelectedItemChanged="DeckTree_SelectedChanged"
             Background="Transparent"
-            BorderThickness="0"
-            ItemContainerStyle="{StaticResource DeckTreeItemStyle}">
+            BorderThickness="0">
+
+            <TreeView.ItemContainerStyle>
+                <Style
+                    TargetType="TreeViewItem"
+                    BasedOn="{StaticResource DeckTreeItemStyle}">
+
+                    <EventSetter
+                        Event="MouseDoubleClick"
+                        Handler="TreeViewItem_DoubleClick"/>
+
+                </Style>
+            </TreeView.ItemContainerStyle>
+
 
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
@@ -122,6 +135,17 @@
             </TreeView.ItemTemplate>
         </TreeView>
 
+        <!-- Sync Decks Button -->
+        <Button
+            Grid.Row="1"
+            Content="Sync decks"
+            Command="{Binding SyncDecksCommand}"
+            Style="{StaticResource NavButtonStyle}"
+            Width="110"
+            Height="45"
+            HorizontalAlignment="Center"
+            Margin="0,0,150,20"/>
+        
         <!-- Create Deck Button -->
         <Button
             Grid.Row="1"
@@ -131,7 +155,7 @@
             Width="120"
             Height="45"
             HorizontalAlignment="Center"
-            Margin="0,0,0,20"/>
+            Margin="150,0,0,20"/>
 
         <!-- Popup Overlay -->
         <Grid

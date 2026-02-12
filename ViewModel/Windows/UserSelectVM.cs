@@ -64,12 +64,8 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     [RelayCommand]
     private async Task Login(UserVM toLogin)
     {
-        //TODO: button hidden when the selected user is current one.
-
-        if (currentUserId == toLogin.Id)
-            throw new InvalidOperationException(
-            "Cannot log in with user that you're already logged in with.");
-
+        //TODO: in code-behind check if its the same user you are already logged in with: true -> show messagebox informing ab it,
+        // else -> call this command.
         loginService.ChangeUser(toLogin.Id);
         lastSession.Current.LastLoadedUserId = toLogin.Id;
 

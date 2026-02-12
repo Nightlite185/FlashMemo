@@ -30,17 +30,24 @@
 
             <DockPanel LastChildFill="True">
 
+                <!-- Left side: Switch user -->
+                <Button
+                    DockPanel.Dock="Left"
+                    Content="Switch user"
+                    Style="{StaticResource NavButtonStyle}"
+                    Command="{Binding ShowChangeUserCommand}" Width="86" />
+                
                 <!-- Right side: Options -->
                 <Button
-                DockPanel.Dock="Right"
-                Content="Options"
-                Style="{StaticResource NavButtonStyle}"
-                Command="{Binding ShowUserOptionsCommand}" Width="85" />
+                    DockPanel.Dock="Right"
+                    Content="Options"
+                    Style="{StaticResource NavButtonStyle}"
+                    Command="{Binding ShowUserOptionsCommand}" Width="80" />
 
                 <!-- Center navigation -->
                 <StackPanel
-                Orientation="Horizontal"
-                HorizontalAlignment="Center">
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
 
                     <Button Content="Decks" Command="{Binding DisplayDecksCommand}" Style="{StaticResource NavButtonStyle}" Width="73" />
                     <Border Style="{StaticResource NavSeparatorStyle}" />

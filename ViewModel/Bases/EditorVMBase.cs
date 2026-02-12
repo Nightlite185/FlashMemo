@@ -5,6 +5,7 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Bases;
 
+[Obsolete("useless")]
 public abstract partial class EditorVMBase: ObservableObject, IViewModel
 {
     internal EditorVMBase(ICardService cs, ITagRepo tr, ICardRepo cr)

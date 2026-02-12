@@ -22,10 +22,5 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     }
 
     public async Task<CardEntity> GetCard(long cardId)
-    {
-        var db = GetDb;
-
-        return await db.Cards.FindAsync(cardId)
-            ?? throw new ArgumentException(IdNotFoundMsg("Card"), nameof(cardId));
-    }
+        => await GetDb.Cards.SingleAsync(c => c.Id == cardId);
 }

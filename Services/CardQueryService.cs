@@ -44,14 +44,15 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
         
         baseQuery = baseQuery.Where(c =>
             !c.IsSuspended
-            && !c.IsBuried
-            && c.IsDueToday);
+            && !c.IsBuried);
 
         var grouped = CardQueryBuilder
             .GroupByStateQ(baseQuery);
 
-        var rootDeck = await db.Decks.FindAsync(deckId)
-            ?? throw new ArgumentException(IdNotFoundMsg("Deck"), nameof(deckId));
+        var rootDeck = await db.Decks
+            .AsNoTracking()
+            .Include(d => d.Options)
+            .SingleAsync(d => d.Id == deckId);
 
         var sortOpt = rootDeck.Options.Sorting;
 

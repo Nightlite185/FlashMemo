@@ -24,8 +24,8 @@ public interface ICountingService
 {
     ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
     ///containing count of cards grouped by their state.</returns>
-    public Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable);
-    public Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable);
+    public Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable = false);
+    public Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable = false);
     Task<int> AllCards(long userId);
     Task<int> AllDecks(long userId);
     Task<int> AllReviewableCards(long userId);

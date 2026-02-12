@@ -24,15 +24,12 @@ public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilde
             .BuildDeckLookupAsync(userId);
 
         var cardsCount = await counter
-            .CardsByState(
-                userId,
-                countOnlyStudyable: true
-            );
+            .CardsByState(userId);
 
         return BuildDeckLevelWithCount(
             parentId: null, decksLookup, cardsCount);
     }
-    private static IEnumerable<DeckNode> BuildDeckLevelWithCount(long? parentId, ILookup<long?, Deck> decksLookup, 
+    private static IEnumerable<DeckNode> BuildDeckLevelWithCount(long? parentId, ILookup<long?, Deck> decksLookup,
                                                                 IDictionary<long, CardsCount> deckToCCMap)
     {
         foreach (var deck in decksLookup[parentId])

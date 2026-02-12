@@ -42,7 +42,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
             .CountAsync();
     }
     
-    public async Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable)
+    public async Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable = false)//TODO: remove this useless bool
     {
         var db = GetDb;
 

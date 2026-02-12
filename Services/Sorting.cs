@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Services;
@@ -54,20 +55,18 @@ public static class Sorting
             _ => throw new ArgumentOutOfRangeException(nameof(orderBy), $"Wrong {nameof(CardsOrder)} enum value: {orderBy}")
         };
     }
-    private static IQueryable<CardEntity> SortHelper<TOut>(this IQueryable<CardEntity> cards, Func<CardEntity, TOut> keySelector, SortingDirection dir)
+    private static IQueryable<CardEntity> SortHelper<TOut>(this IQueryable<CardEntity> cards, Expression<Func<CardEntity, TOut>> keySelector, SortingDirection dir)
     {
         return dir switch
         {
             SortingDirection.Ascending 
-                => cards.OrderBy(keySelector)
-                .AsQueryable(),
+                => cards.OrderBy(keySelector),
 
             SortingDirection.Descending
-                => cards.OrderByDescending(keySelector)
-                .AsQueryable(),
+                => cards.OrderByDescending(keySelector),
 
             _ => throw new ArgumentOutOfRangeException(
-                nameof(dir), $"SortingDirection wasnt either asc or desc, but {dir}"),
+                nameof(dir), $"SortingDirection wasnt neither ASC nor DESC, but {dir}"),
         };
     }
     public static void ShuffleIf(this List<CardEntity> cards, bool wantRandom)

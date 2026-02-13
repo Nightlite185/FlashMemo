@@ -6,16 +6,17 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
-using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, IDeckMeta targetDeck, DeckSelectVMF dsVMF)
+public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, 
+IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss)
 : ObservableObject, ICloseRequest, IPopupHost, IViewModel
 {
     #region private things
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
+    private readonly ILastSessionService lastSession = lss;
     private readonly ICardService cardService = cs;
     private readonly ITagRepo tagRepo = tr;
     private readonly ICardRepo cardRepo = cr;
@@ -39,11 +40,9 @@ public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
             return;
 
         CurrentDeck = newDeck;
+        lastSession.UpdateDeck(newDeck.Id);
     }
-    private void ClosePopup()
-    {
-        CurrentPopup = null;
-    }
+    private void ClosePopup() => CurrentPopup = null;
     #endregion
 
     #region ICommands

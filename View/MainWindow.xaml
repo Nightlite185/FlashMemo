@@ -35,7 +35,7 @@
                     DockPanel.Dock="Left"
                     Content="Switch user"
                     Style="{StaticResource NavButtonStyle}"
-                    Command="{Binding ShowChangeUserCommand}" Width="86" />
+                    Command="{Binding ShowChangeUserCommand}" Width="107" />
                 
                 <!-- Right side: Options -->
                 <Button

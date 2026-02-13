@@ -18,4 +18,10 @@ public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDepe
         db.LastSessionData.Update(Current);
         await db.SaveChangesAsync();
     }
+
+    public void UpdateDeck(long deckId)
+        => Current.LastUsedDeckId = deckId;
+
+    public void UpdateUser(long userId)
+        => Current.LastLoadedUserId = userId;
 }

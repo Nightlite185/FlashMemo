@@ -19,6 +19,9 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
         this.currentUserId = currentUserId;
     }
 
+    public bool IsNameAvailable(string name)
+        => !Users.Any(u => u.Name == name);
+
     #region public properties
     public ObservableCollection<UserVM> Users { get; init; } = [];
     
@@ -38,7 +41,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     #region ICommands
     [RelayCommand]
     private async Task RemoveUser(UserVM toRemove)
-    {   
+    {
         //TODO: this button only visible when its not current user thats selected
         //TODO: show "you sure?? it will cascade cards and decks!!" pop up here;
 
@@ -64,10 +67,11 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     [RelayCommand]
     private async Task Login(UserVM toLogin)
     {
-        //TODO: in code-behind check if its the same user you are already logged in with: true -> show messagebox informing ab it,
-        // else -> call this command.
-        loginService.ChangeUser(toLogin.Id);
-        lastSession.Current.LastLoadedUserId = toLogin.Id;
+        if (currentUserId != toLogin.Id)
+        {
+            loginService.ChangeUser(toLogin.Id);
+            lastSession.UpdateUser(toLogin.Id);
+        }
 
         OnCloseRequest?.Invoke();
     }

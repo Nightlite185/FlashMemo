@@ -35,6 +35,7 @@
 
         <!-- USER LIST -->
         <ListBox
+            Name="UsersList"
             Grid.Row="1"
             ItemsSource="{Binding Users}"
             SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
@@ -122,8 +123,7 @@
 
                                 <Button
                                     Content="Delete"
-                                    Command="{Binding DataContext.RemoveUserCommand,
-                                                      RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    Click="RemoveButton_Click"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource NavButtonStyle}"
                                     Width="80"
@@ -147,6 +147,7 @@
             <!-- New user name -->
             <TextBox
                 x:Name="NewUserNameBox"
+                KeyDown="NewUserNameBox_KeyDown"
                 Width="200"
                 Height="36"
                 Margin="0,0,10,0"
@@ -161,8 +162,7 @@
             <!-- Create -->
             <Button
                 Content="Create User"
-                Command="{Binding CreateUserCommand}"
-                CommandParameter="{Binding Text, ElementName=NewUserNameBox}">
+                Click="CreateButton_Click">
 
                 <Button.Style>
                     <Style

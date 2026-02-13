@@ -9,7 +9,7 @@ public abstract partial class PopupVMBase
     private readonly Action cancel = cancel;
 
     [RelayCommand]
-    public void Close() => cancel();
+    protected void Close() => cancel();
 
     [RelayCommand(CanExecute = nameof(CanConfirm))]
     protected abstract Task Confirm();

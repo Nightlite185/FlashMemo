@@ -28,6 +28,11 @@
             <view:DecksUC />
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type popups:DeckSelectVM}">
+            <view:DeckSelectUC/>
+        </DataTemplate>
+
+
 
         <!-- ===== Colors ===== -->
         <!--#region Navigation bar colors -->

@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Windows;
-using System.Windows.Documents;
 using FlashMemo.Helpers;
 using FlashMemo.ViewModel.Windows;
 
@@ -9,7 +8,6 @@ namespace FlashMemo.View
     public partial class CreateCardWindow : Window, IViewFor<CreateCardVM>
     {
         public CreateCardVM VM { get; set; } = null!;
-        private FlowDocument DefaultFlowDoc = null!;
         public CreateCardWindow()
         {
             InitializeComponent();
@@ -41,14 +39,12 @@ namespace FlashMemo.View
             await VM.AddCardCommand.ExecuteAsync(null);
 
             // clearing the editor
-            FrontBox = new(); //TODO: Clean this properly, this won't work.
-            BackBox = new();
+            FrontBox.Document = new();
+            BackBox.Document = new();
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            DefaultFlowDoc = FrontBox.Document; // TODO: MAKE THIS WORK, DEEP COPY IT SOMEHOWWW OR SERIALIZE
-
             // Load Front
             FrontBox.Document = XamlSerializer
                 .FromXaml(VM.WipCard.FrontContentXAML);
@@ -79,11 +75,11 @@ namespace FlashMemo.View
 
         private bool IsEditorEmpty()
         {
-            var front =
-                XamlSerializer.GetPlainText(FrontBox.Document);
+            var front = XamlSerializer
+                .GetPlainText(FrontBox.Document);
 
-            var back =
-                XamlSerializer.GetPlainText(BackBox.Document);
+            var back = XamlSerializer
+                .GetPlainText(BackBox.Document);
 
             return string.IsNullOrWhiteSpace(front)
                 && string.IsNullOrWhiteSpace(back);

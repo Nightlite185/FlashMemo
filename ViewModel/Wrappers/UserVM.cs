@@ -25,7 +25,7 @@ public partial class UserVM: ObservableObject, IViewModel
     #region Public properties
     public long Id => user.Id;
     
-    [ObservableProperty]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BeginRenameCommand))]
     public partial bool IsRenaming { get; set; }
 
     [ObservableProperty]
@@ -54,7 +54,7 @@ public partial class UserVM: ObservableObject, IViewModel
         return user;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRename))]
     private async Task BeginRename()
     {
         IsRenaming = true;
@@ -79,6 +79,8 @@ public partial class UserVM: ObservableObject, IViewModel
 
         await userRepo.Rename(Id, Name);
     }
+
+    private bool CanRename => !IsRenaming;
 }
 
 public readonly struct UserVMStats

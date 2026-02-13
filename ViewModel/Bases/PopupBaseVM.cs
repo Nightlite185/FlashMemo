@@ -11,6 +11,8 @@ public abstract partial class PopupVMBase
     [RelayCommand]
     public void Close() => cancel();
 
-    [RelayCommand]
-    public abstract Task Confirm();
+    [RelayCommand(CanExecute = nameof(CanConfirm))]
+    protected abstract Task Confirm();
+
+    protected virtual bool CanConfirm => true;
 }

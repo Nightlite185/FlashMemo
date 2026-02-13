@@ -17,6 +17,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
         lastSession = lss;
         userVMBuilder = uvmb;
         this.currentUserId = currentUserId;
+        NewUsernameField = "";
     }
 
     public bool IsNameAvailable(string name)
@@ -24,6 +25,9 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
 
     #region public properties
     public ObservableCollection<UserVM> Users { get; init; } = [];
+
+    [ObservableProperty]
+    public partial string NewUsernameField { get; set; }
     
     [ObservableProperty]
     public partial UserVM? SelectedUser { get; set; }

@@ -8,7 +8,8 @@ public partial class PostponeVM
     : PopupVMBase(cancel)
 {
     private readonly Func<int, bool, Task> confirm = confirm;
-    public override async Task Confirm()
+    
+    protected override async Task Confirm()
     {
         await confirm(PostponeByDays, KeepInterval);
         Close();

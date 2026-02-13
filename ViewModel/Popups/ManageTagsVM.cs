@@ -7,7 +7,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public sealed class ManageTagsVM: PopupVMBase
+public sealed partial class ManageTagsVM: PopupVMBase
 {
     internal ManageTagsVM(Func<IEnumerable<Tag>, bool, Task> confirm,
         Action cancel, ITagRepo tr, long cardId, long userId): base(cancel)
@@ -39,7 +39,7 @@ public sealed class ManageTagsVM: PopupVMBase
     public readonly ObservableCollection<TagVM> AllTags = [];
     private bool globalTagsEdited;
 
-    public override async Task Confirm()
+    protected override async Task Confirm()
     {
         await confirm(
             CardTags.Select(vm => vm.ToEntity()), 

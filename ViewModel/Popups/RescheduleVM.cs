@@ -7,7 +7,7 @@ public partial class RescheduleVM
     (Func<DateTime, bool, Task> confirm, Action cancel)
     : PopupVMBase(cancel)
 {
-    public override async Task Confirm()
+    protected override async Task Confirm()
     {
         await confirm(RescheduleToDate, KeepInterval);
         Close();

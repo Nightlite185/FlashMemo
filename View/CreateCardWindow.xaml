@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:FlashMemo.ViewModel.Windows"
+        xmlns:helpers="clr-namespace:FlashMemo.Helpers"
         d:DataContext="{d:DesignInstance Type=vm:CreateCardVM}"
         mc:Ignorable="d"
         Title="Add Card"
@@ -16,125 +17,140 @@
             <GradientStop Color="#FF9B7DF3" Offset="1"/>
         </LinearGradientBrush>
     </Window.Background>
+    
+    <Grid>
+        <Grid Margin="20">
 
-    <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+            <!-- ===== Header ===== -->
 
-        <!-- ===== Header ===== -->
+            <StackPanel Orientation="Horizontal" Background="#66000000">
 
-        <StackPanel Orientation="Horizontal" Background="#66000000">
+                <TextBlock
+                    Text="Deck:"
+                    Foreground="White"
+                    FontSize="18"
+                    Margin="10, 10, 10, 10"
+                    VerticalAlignment="Center"/>
 
-            <TextBlock
-                Text="Deck:"
-                Foreground="White"
-                FontSize="18"
-                Margin="10, 10, 10, 10"
-                VerticalAlignment="Center"/>
+                <Button
+                    Content="{Binding CurrentDeck.Name}"
+                    Command="{Binding ShowDeckSelectCommand}"
+                    Style="{StaticResource NavButtonStyle}"
+                    Margin="5,0,0,0" Width="230" BorderBrush="#FFDEDEDE" Height="34"/>
+            </StackPanel>
 
-            <Button
-                Content="{Binding CurrentDeck.Name}"
-                Command="{Binding ShowDeckSelectCommand}"
-                Style="{StaticResource NavButtonStyle}"
-                Margin="5,0,0,0" Width="230" BorderBrush="#FFDEDEDE" Height="34"/>
-        </StackPanel>
+            <!-- ===== Front ===== -->
 
-        <!-- ===== Front ===== -->
+            <Border Grid.Row="1"
+                    Margin="0,16,0,8"
+                    Padding="12"
+                    CornerRadius="12"
+                    BorderBrush="{StaticResource NavBorderBrush}"
+                    BorderThickness="2">
+                <Border.Background>
+                    <SolidColorBrush Color="#CC2A2E34"/>
+                </Border.Background>
 
-        <Border Grid.Row="1"
-                Margin="0,16,0,8"
-                Padding="12"
-                CornerRadius="12"
-                BorderBrush="{StaticResource NavBorderBrush}"
-                BorderThickness="2">
-            <Border.Background>
-                <SolidColorBrush Color="#CC2A2E34"/>
-            </Border.Background>
+                <Grid>
+                    <TextBlock Text="Front:"
+                            Foreground="White"
+                            FontSize="18"
+                            Margin="0,0,0,8"/>
 
-            <Grid>
-                <TextBlock Text="Front:"
-                           Foreground="White"
-                           FontSize="18"
-                           Margin="0,0,0,8"/>
+                    <RichTextBox x:Name="FrontBox"
+                                Margin="0,28,0,0"
+                                Background="#22000000"
+                                Foreground="White"
+                                BorderThickness="0"/>
+                </Grid>
 
-                <RichTextBox x:Name="FrontBox"
-                             Margin="0,28,0,0"
-                             Background="#22000000"
-                             Foreground="White"
-                             BorderThickness="0"/>
+            </Border>
+
+            <!-- ===== Back ===== -->
+
+            <Border Grid.Row="2"
+                    Margin="0,8,0,16"
+                    Padding="12"
+                    CornerRadius="12"
+                    BorderThickness="2"
+                    BorderBrush="{StaticResource NavBorderBrush}" Background="#CC2A2E34">
+
+                <Grid>
+                    <TextBlock Text="Back:"
+                            Foreground="White"
+                            FontSize="18"
+                            Margin="0,0,0,8"/>
+
+                    <RichTextBox x:Name="BackBox"
+                                Margin="0,28,0,0"
+                                Background="#22000000"
+                                Foreground="White"
+                                BorderThickness="0"/>
+                </Grid>
+
+            </Border>
+
+            <!-- ===== Footer ===== -->
+
+            <Grid Grid.Row="3">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Cancel button -->
+                <Button
+                    Grid.Column="0"
+                    Content="Cancel"
+                    Command="{Binding CloseCommand}"
+                    Style="{StaticResource NavButtonStyle}"
+                    Width="76"
+                    Height="39"/>
+
+                <!-- History button -->
+                <Button
+                    Grid.Column="2"
+                    Content="History"
+                    Click="HistoryButtonClicked"
+                    Style="{StaticResource NavButtonStyle}"
+                    Width="76"
+                    Height="39"
+                    Margin="0, 0, 0, 0"/>
+
+                <!-- Add button -->
+                <Button
+                    Grid.Column="2"
+                    Content="Add"
+                    Click="AddButtonClicked"
+                    Style="{StaticResource NavButtonStyle}"
+                    Width="76"
+                    Margin="180, 0, 0, 0"
+                    Height="39"/>
+
             </Grid>
-
-        </Border>
-
-        <!-- ===== Back ===== -->
-
-        <Border Grid.Row="2"
-                Margin="0,8,0,16"
-                Padding="12"
-                CornerRadius="12"
-                BorderThickness="2"
-                BorderBrush="{StaticResource NavBorderBrush}" Background="#CC2A2E34">
-
-            <Grid>
-                <TextBlock Text="Back:"
-                           Foreground="White"
-                           FontSize="18"
-                           Margin="0,0,0,8"/>
-
-                <RichTextBox x:Name="BackBox"
-                             Margin="0,28,0,0"
-                             Background="#22000000"
-                             Foreground="White"
-                             BorderThickness="0"/>
-            </Grid>
-
-        </Border>
-
-        <!-- ===== Footer ===== -->
-
-        <Grid Grid.Row="3">
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Cancel button -->
-            <Button
-                Grid.Column="0"
-                Content="Cancel"
-                Command="{Binding CloseCommand}"
-                Style="{StaticResource NavButtonStyle}"
-                Width="76"
-                Height="39"/>
-
-            <!-- History button -->
-            <Button
-                Grid.Column="2"
-                Content="History"
-                Click="HistoryButtonClicked"
-                Style="{StaticResource NavButtonStyle}"
-                Width="76"
-                Height="39"
-                Margin="0, 0, 0, 0"/>
-
-            <!-- Add button -->
-            <Button
-                Grid.Column="2"
-                Content="Add"
-                Click="AddButtonClicked"
-                Style="{StaticResource NavButtonStyle}"
-                Width="76"
-                Margin="180, 0, 0, 0"
-                Height="39"/>
-
         </Grid>
 
+        <!-- Popup Overlay -->
+        <Grid
+            Background="#80000000"
+            Visibility="{Binding CurrentPopup,
+            Converter={StaticResource NullToVisConverter}}">
+
+            <!-- Popup content -->
+            <ContentControl
+                Content="{Binding CurrentPopup}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/>
+        </Grid>
+        
     </Grid>
 </Window>

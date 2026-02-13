@@ -12,6 +12,7 @@ namespace FlashMemo.View
         public UserSelectWindow()
         {
             InitializeComponent();
+            CreateButton.IsEnabled = false;
         }
 
         private async void User_DoubleClick(object sender, MouseButtonEventArgs e)
@@ -28,11 +29,15 @@ namespace FlashMemo.View
             if (sender is TextBox tb &&
                 tb.DataContext is UserVM user)
             {
-                if (e.Key == Key.Enter)
-                    await user.CommitRenameCommand.ExecuteAsync(null);
-
-                else if (e.Key == Key.Escape)
+                if (e.Key == Key.Escape || string.IsNullOrWhiteSpace(user.TempName))
+                {
                     user.CancelRenameCommand.Execute(null);
+                }
+
+                else if (e.Key == Key.Enter && !IsNameConflicting(user.TempName))
+                {
+                    await user.CommitRenameCommand.ExecuteAsync(null);
+                }
             }
         }
 
@@ -91,13 +96,14 @@ namespace FlashMemo.View
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (IsNameConflicting())
+            string name = VM.NewUsernameField;
+
+            if (IsNameConflicting(name))
                 return;
 
-            VM.CreateUserCommand.ExecuteAsync(
-                NewUserNameBox.Text);
+            VM.CreateUserCommand.ExecuteAsync(name);
 
-            NewUserNameBox.Text = "";
+            VM.NewUsernameField = "";
             Keyboard.ClearFocus();
         }
 
@@ -105,13 +111,16 @@ namespace FlashMemo.View
         {
             if (e.Key == Key.Enter)
             {
-                CreateButton_Click(sender, (RoutedEventArgs)EventArgs.Empty);
+                CreateButton_Click(sender, new());
             }
+
+            else if (e.Key == Key.Escape)
+                Keyboard.ClearFocus();
         }
 
-        private bool IsNameConflicting()
+        private bool IsNameConflicting(string name)
         {
-            if (!VM.IsNameAvailable(NewUserNameBox.Text))
+            if (!VM.IsNameAvailable(name))
             {
                 MessageBox.Show("A user with this name already exists, try picking another one.",
                 "Name conflict",
@@ -122,6 +131,12 @@ namespace FlashMemo.View
             }
 
             return false;
+        }
+
+        private void NewUserNameBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CreateButton.IsEnabled = !string
+                .IsNullOrWhiteSpace(NewUserNameBox.Text);
         }
     }
 }

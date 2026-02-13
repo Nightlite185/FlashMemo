@@ -148,6 +148,8 @@
             <TextBox
                 x:Name="NewUserNameBox"
                 KeyDown="NewUserNameBox_KeyDown"
+                Text="{Binding NewUsernameField, UpdateSourceTrigger=PropertyChanged}"
+                TextChanged="NewUserNameBox_TextChanged"
                 Width="200"
                 Height="36"
                 Margin="0,0,10,0"
@@ -159,29 +161,12 @@
                 BorderBrush="{StaticResource NavBorderBrush}"
                 BorderThickness="1"/>
 
-            <!-- Create -->
+            <!-- Create button -->
             <Button
+                Style="{StaticResource NavButtonStyle}"
                 Content="Create User"
-                Click="CreateButton_Click">
-
-                <Button.Style>
-                    <Style
-                        TargetType="Button"
-                        BasedOn="{StaticResource NavButtonStyle}">
-
-                        <Style.Triggers>
-                            <DataTrigger
-                                Binding="{Binding Text, ElementName=NewUserNameBox}"
-                                Value="">
-                                <Setter Property="IsEnabled" Value="False"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-
-                    </Style>
-                </Button.Style>
-
-            </Button>
-
+                Name="CreateButton"
+                Click="CreateButton_Click"/>
 
         </StackPanel>
     </Grid>

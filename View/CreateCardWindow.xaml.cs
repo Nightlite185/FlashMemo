@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using FlashMemo.Helpers;
+using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.View
 {

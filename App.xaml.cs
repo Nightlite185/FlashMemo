@@ -42,8 +42,8 @@ public partial class App : Application
         
         if (lastUser is null)
         {
-            var ws = sp.GetRequiredService<WindowService>();
-            await ws.ShowUserSelect(currentUserId: null);
+            await sp.GetRequiredService<WindowService>()
+                .ShowUserSelect(currentUserId: null);
         }
 
         else
@@ -51,8 +51,8 @@ public partial class App : Application
             var mainVM = sp.GetRequiredService<MainVMF>()
                 .Create((long)lastUser);
             
-            sp.GetRequiredService<MainWindowFactory>()
-                .Resolve(mainVM);
+            sp.GetRequiredService<MainWindowBootstrapper>()
+                .SetupMainWindow(mainVM);
         }
     }
     private static ServiceCollection ConfigureServices()
@@ -83,7 +83,7 @@ public partial class App : Application
         sc.AddSingleton<DecksVMF>();
 
         // ==== SERVICES ====
-        sc.AddTransient<MainWindowFactory>();
+        sc.AddTransient<MainWindowBootstrapper>();
         sc.AddTransient<DisplayControlFactory>();
         sc.AddSingleton<ILoginService, LoginService>();
         sc.AddSingleton<ICountingService, CountingService>();

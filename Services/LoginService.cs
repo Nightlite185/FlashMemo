@@ -4,9 +4,9 @@ using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.Services;
 
-public class LoginService(MainVMF mVMF, MainWindowFactory mwf): ILoginService
+public class LoginService(MainVMF mVMF, MainWindowBootstrapper mwb): ILoginService
 {
-    private readonly MainWindowFactory winFactory = mwf;
+    private readonly MainWindowBootstrapper bootstrapper = mwb;
     private readonly MainVMF mainVMF = mVMF;
 
     public void ChangeUser(long userId)
@@ -19,17 +19,19 @@ public class LoginService(MainVMF mVMF, MainWindowFactory mwf): ILoginService
 
         foreach (var view in App.Current.Windows)
         {
-            if (view is Window win and not MainWindow and not UserSelectWindow)
+            if (view is Window win
+            and not MainWindow
+            and not UserSelectWindow)
                 win.Close();
 
-            else if (view is MainWindow main)
+            else if (view is MainWindow mainWin)
             {
-                main.ChangeDataCtx(newMainVM);
+                bootstrapper.SetupMainVM(mainWin, newMainVM);
                 replacedMainVM = true;
             }
         }
 
         if (!replacedMainVM)
-            winFactory.Resolve(newMainVM);
+            bootstrapper.SetupMainWindow(newMainVM);
     }
 }

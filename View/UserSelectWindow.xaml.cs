@@ -138,5 +138,33 @@ namespace FlashMemo.View
             CreateButton.IsEnabled = !string
                 .IsNullOrWhiteSpace(NewUserNameBox.Text);
         }
+
+        private async void UserList_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (UsersList.SelectedItem is not UserVM user
+            || user.IsRenaming) return;
+
+            int idx = UsersList.SelectedIndex;
+
+            switch (e.Key)
+            {
+                case Key.Up:
+                    UsersList.SelectedIndex = (idx == 0)
+                        ? idx
+                        : idx--;
+                    break;
+
+                case Key.Down:
+                    UsersList.SelectedIndex = (idx == UsersList.Items.Count-1)
+                        ? idx
+                        : idx++;
+                    break;
+
+                case Key.Enter:
+                    await VM.LoginCommand
+                        .ExecuteAsync(user);
+                    break;
+            };
+        }
     }
 }

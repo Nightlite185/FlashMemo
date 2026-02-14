@@ -38,6 +38,7 @@
             Name="UsersList"
             Grid.Row="1"
             ItemsSource="{Binding Users}"
+            KeyDown="UserList_KeyDown"
             SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
             Background="Transparent"
             BorderThickness="0"

@@ -21,7 +21,7 @@ public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStag
     public int? LearningStage { get; set; } = learningStage;
 }
 
-public class Card: IEquatable<Card>
+public class Card: IEquatable<Card>, ICard
 {
     public Card(long id) => this.Id = id; // for mapper use only
     #region Properties
@@ -31,11 +31,10 @@ public class Card: IEquatable<Card>
     public bool IsSuspended { get; protected set; }
     public CardState State { get; protected set; }
     public bool IsDue => Due <= DateTime.Now;
-    public TimeSpan TimeTillNextReview => Due - DateTime.Now;
     public TimeSpan Interval { get; protected set; }
     public DateTime Created { get; protected set; }
-    public DateTime LastModified { get; protected set; }
-    public DateTime Due { get; protected set; }
+    public DateTime? LastModified { get; protected set; }
+    public DateTime? Due { get; protected set; }
     public DateTime? LastReviewed { get; protected set; }
     public int? LearningStage { get; protected set; }
     #endregion

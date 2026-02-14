@@ -40,9 +40,7 @@ public interface ICardQueryService
 
 public interface ICardService
 {
-    /// <summary>Deck needs to be included in cardEntity argument; otherwise this won't work</summary>
-    /// <returns>reviewed card's new state</returns>
-    Task<CardState> ReviewCardAsync(long cardId, Answers answer, TimeSpan answerTime);
+    Task ReviewCardAsync(long cardId, ScheduleInfo scheduleInfo, Answers answer, TimeSpan answerTime);
     
     ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
     Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null);

@@ -4,7 +4,7 @@ using FlashMemo.Model.Domain;
 namespace FlashMemo.Model.Persistence;
 
 public interface IEntity { long Id { get; set; } }
-public class CardEntity: IEntity
+public class CardEntity: IEntity, ICard
 {
     #region Properties
     public long Id { get; set; }

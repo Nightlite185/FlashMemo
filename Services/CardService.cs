@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
@@ -9,7 +10,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
 {
     private readonly IMapper mapper = mapper;
     
-    public async Task<CardState> ReviewCardAsync(long cardId, Answers answer, TimeSpan answerTime)
+    public async Task ReviewCardAsync(long cardId, ScheduleInfo scheduleInfo, Answers answer, TimeSpan answerTime)
     {
         var db = GetDb;
 
@@ -17,27 +18,25 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
             .Include(c => c.Deck)
             .SingleAsync(c => c.Id == cardId);
 
-        ArgumentNullException.ThrowIfNull(cardEntity.Deck, nameof(cardEntity.Deck));
-
         var domainCard = mapper.Map<Card>(cardEntity);
-        var options = cardEntity.Deck.Options.Scheduling;
 
-        domainCard.Schedule(answer, options);
-        
-        var updatedCard = mapper.Map<CardEntity>(domainCard);
-        
-        db.Entry(cardEntity)
-            .CurrentValues
-            .SetValues(updatedCard);
+        var options = await db.DeckOptions
+            .Where(o => o.Id == cardEntity.Deck.OptionsId)
+            .Select(o => o.Scheduling)
+            .ProjectTo<DeckOptions.SchedulingOpt>(mapper.ConfigurationProvider)
+            .SingleAsync();
 
+        domainCard.Review(scheduleInfo);
+        
+        mapper.Map(domainCard, cardEntity);
+        
         var log = CardLog.CreateReviewLog(
             cardEntity, answer, answerTime);
         
         await db.CardLogs.AddAsync(log);
         await db.SaveChangesAsync();
-        
-        return domainCard.State;
     }
+    
     ///<summary>Updates scalars, FKs, and syncs tags.<summary>
     public async Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null)
     {

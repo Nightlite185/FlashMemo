@@ -9,12 +9,13 @@ using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Windows;
     
-public partial class ReviewVM: NavBaseVM
+public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
 {
-    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, long deckId)
+    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, long deckId, DeckOptions deckOpt)
     {
         this.userId = userId;
         this.deckId = deckId;
+        deckOptions = deckOpt;
 
         cardService = cs;
         cardQuery = cqs;
@@ -25,15 +26,16 @@ public partial class ReviewVM: NavBaseVM
         timer.Tick += (_, _) => UpdateTime();
     }
     
-    #region public binding properties
+    #region public properties
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(CardLoaded))]
+    [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(IsCardLoaded))]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
-    public partial CardEntity? CurrentCard { get; set; } // TODO: CHANGE TO CARDITEMVM
+    public partial CardEntity? CurrentCard { get; set; } // TODO: change type later to ICard
     
-    public string FrontContent => CurrentCard?.FrontContent 
-        ?? throw new InvalidOperationException($"tried to access {nameof(FrontContent)} property, but no card was loaded atm.");
+    public string FrontContent => CurrentCard?.FrontContent
+        ?? throw new InvalidOperationException(
+        $"tried to access {nameof(FrontContent)} property, but no card was loaded atm.");
     public string BackContent
     {
         get
@@ -47,19 +49,46 @@ public partial class ReviewVM: NavBaseVM
     
     [ObservableProperty]
     public partial string ElapsedTime { get; set; } = "00:00";
+
+    [ObservableProperty] // TODO: should work but must humanize this (e.g. turn TimeSpan readable string in a good format)
+    public partial SchedulePermutations? SchedulePerms { get; set; }
+
+    public PopupVMBase? CurrentPopup { get; set; }
     #endregion
 
     #region methods
-    internal async Task InitAsync() //* called in factory
+    internal async Task InitAsync(CardCtxMenuVM ctxMenu) //* called in factory
     {
-        cards = new (await cardQuery.GetForStudy(deckId));
-        
-        if (cards.Count == 0) throw new ArgumentException(
-            "Deck with this id does not contain any cards for study atm.",
-            nameof(deckId));
+        cardCtxMenu = ctxMenu;
 
-        CurrentCard = cards.Pop();
+        cards = new (await cardQuery.GetForStudy(deckId));
+
+        ShowNextCard();
     }
+
+    private ScheduleInfo GetScheduleInfo(Answers answer)
+    {
+        if (SchedulePerms is null) 
+            throw new NullReferenceException();
+
+        return answer switch
+        {
+            Answers.Easy => SchedulePerms.Value.Easy,
+            Answers.Good => SchedulePerms.Value.Good,
+            Answers.Hard => SchedulePerms.Value.Hard,
+            Answers.Again => SchedulePerms.Value.Again,
+
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(answer), 
+                $"Invalid Answers enum value: {answer}")
+        };
+    }
+
+    public Task ReloadAsync(ReloadTargets rt)
+    {
+        throw new NotImplementedException();
+    }
+
     private void ShowNextCard()
     {
         if (cards.TryPop(out var popped))
@@ -84,22 +113,28 @@ public partial class ReviewVM: NavBaseVM
     }
     private void UpdateTime()
         => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes: 00}:{stopWatch.Elapsed.Seconds: 00}";
-    private async Task ReviewHelperAsync(Answers ans)
+    private async Task ReviewHelperAsync(Answers answer)
     {
         StopTimer();
 
-        if (!CardLoaded)
-            throw new InvalidOperationException("Review called without an active card.");
+        if (!IsCardLoaded)
+            throw new InvalidOperationException(
+            "Review called without an active card.");
 
         AnswerRevealed = false;
 
-        var newState = await cardService
-            .ReviewCardAsync(CurrentCard!.Id, ans, stopWatch.Elapsed);
+        var scheduleInfo = GetScheduleInfo(answer);
 
-        if (newState == CardState.Learning)
+        await cardService.ReviewCardAsync(
+            CurrentCard!.Id, 
+            scheduleInfo, answer, 
+            stopWatch.Elapsed);
+
+        if (scheduleInfo.State == CardState.Learning)
             learningPool.Add(CurrentCard);
 
         learningPool.InjectDueInto(cards);
+        SchedulePerms = null;
 
         ShowNextCard();
         StartTimer();
@@ -107,9 +142,9 @@ public partial class ReviewVM: NavBaseVM
     
     #region CanExecute
     private bool CanReview
-        => CardLoaded && AnswerRevealed;
+        => IsCardLoaded && AnswerRevealed;
     private bool CanRevealAnswer
-        => CardLoaded && !AnswerRevealed;
+        => IsCardLoaded && !AnswerRevealed;
 
     #endregion
     
@@ -118,13 +153,15 @@ public partial class ReviewVM: NavBaseVM
     #region private things
     private readonly long userId;
     private readonly long deckId;
+    private readonly DeckOptions deckOptions;
     private readonly ICardService cardService;
+    private CardCtxMenuVM cardCtxMenu = null!;
     private readonly ICardQueryService cardQuery;
     private readonly LearningPool learningPool;
     private Stack<CardEntity> cards = null!;
     private readonly DispatcherTimer timer = null!;
     private readonly Stopwatch stopWatch = null!;
-    private bool isSessionFinished = false; // TODO: make this actually matter later, so the state derived properties actually depend on it.
+    private bool isSessionFinished; // TODO: make this actually matter later, so the state derived properties actually depend on it.
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanReview), nameof(CanRevealAnswer))]
@@ -132,7 +169,7 @@ public partial class ReviewVM: NavBaseVM
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
     private partial bool AnswerRevealed { get; set; } = false;
 
-    private bool CardLoaded => CurrentCard is not null;
+    private bool IsCardLoaded => CurrentCard is not null;
     #endregion
 
     #region ICommands
@@ -142,6 +179,10 @@ public partial class ReviewVM: NavBaseVM
     {
         // show answer layer here
         AnswerRevealed = true;
+
+        SchedulePerms = Scheduler.GetForecast(
+            CurrentCard ?? throw new NullReferenceException(),
+            deckOptions.Scheduling);
     }
     
     #region answer commands
@@ -156,7 +197,7 @@ public partial class ReviewVM: NavBaseVM
 
     
     [RelayCommand(CanExecute = nameof(CanReview))]
-    private async Task GoodAnswer() 
+    private async Task GoodAnswer()
         => await ReviewHelperAsync(Answers.Good);
 
 
@@ -165,16 +206,15 @@ public partial class ReviewVM: NavBaseVM
         => await ReviewHelperAsync(Answers.Easy);
     #endregion
 
-    [RelayCommand(CanExecute = nameof(CardLoaded))]
+    [RelayCommand(CanExecute = nameof(IsCardLoaded))]
     private async Task ShowCardEdit()
     {
-        if (!CardLoaded) throw new InvalidOperationException(
+        if (!IsCardLoaded) throw new InvalidOperationException(
         "tried to open card editor, but no card was loaded.");
 
         await NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId));
 
         //TODO: when coming back from the editor to this VM, gotta reload the card and pull any possible changed from db;
     }
-    
     #endregion
 }

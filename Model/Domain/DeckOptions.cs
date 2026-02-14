@@ -67,10 +67,10 @@ public record class DeckOptions
         public float EasyMultiplier { get; init; }
         public float HardMultiplier { get; init; }
         public int AgainDayCount { get; init; }
-        public int EasyOnNewDayCount { get; init; }
-        public int AgainOnReviewStage { get; init; }
         public required ImmutableArray<TimeSpan> LearningStages { get; init; }
+        public int EasyOnNewDayCount { get; init; }
         public int GoodOnNewStage { get; init; }
+        public int AgainOnReviewStage { get; init; }
         public int HardOnNewStage { get; init; }
         #endregion
     }

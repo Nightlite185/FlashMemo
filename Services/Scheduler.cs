@@ -1,11 +1,12 @@
+using FlashMemo.Model;
 using FlashMemo.Model.Domain;
-using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Services;
    
 public static class Scheduler
 {
-    public static void Schedule(this Card card, Answers answer, DeckOptionsEntity.SchedulingOpt options)
+    [Obsolete]
+    public static void Schedule(this Card card, Answers answer, DeckOptions.SchedulingOpt options)
     {
         ScheduleInfo info = answer switch
         {
@@ -19,9 +20,18 @@ public static class Scheduler
 
         card.Review(info);
     }
+    public static SchedulePermutations GetForecast(ICard card, DeckOptions.SchedulingOpt options)
+    {
+        return new(
+            Easy: ProcessEasy(card, options),
+            Good: ProcessGood(card, options),
+            Hard: ProcessHard(card, options),
+            Again: ProcessAgain(card, options)
+        );
+    }
     
     #region Private answer handlers
-    private static ScheduleInfo ProcessHard(Card card, DeckOptionsEntity.SchedulingOpt s)
+    private static ScheduleInfo ProcessHard(ICard card, DeckOptions.SchedulingOpt s)
     {
         return card.State switch
         {
@@ -46,7 +56,7 @@ public static class Scheduler
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
         };
     }
-    private static ScheduleInfo ProcessEasy(Card card, DeckOptionsEntity.SchedulingOpt s)
+    private static ScheduleInfo ProcessEasy(ICard card, DeckOptions.SchedulingOpt s)
     {
         return new(
             state: CardState.Review,
@@ -59,7 +69,7 @@ public static class Scheduler
                 : card.Interval * s.EasyMultiplier
         );
     }
-    private static ScheduleInfo ProcessGood(Card card, DeckOptionsEntity.SchedulingOpt s)
+    private static ScheduleInfo ProcessGood(ICard card, DeckOptions.SchedulingOpt s)
     {
         return card.State switch
         {
@@ -80,7 +90,7 @@ public static class Scheduler
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
         };
     }
-    private static ScheduleInfo ProcessGoodIfLearningStage(Card card, DeckOptionsEntity.SchedulingOpt s)
+    private static ScheduleInfo ProcessGoodIfLearningStage(ICard card, DeckOptions.SchedulingOpt s)
     {
         /* this case has to be separate cuz next params depend on the previous variables set -> not to repeat the same ifs.
         calling a ctor in switch case can't dynamically depend on previous args since the struct doesnt even exist yet. */
@@ -104,14 +114,14 @@ public static class Scheduler
             interval: interval
         );
     }
-    private static ScheduleInfo ProcessAgain(Card card, DeckOptionsEntity.SchedulingOpt s)
+    private static ScheduleInfo ProcessAgain(ICard card, DeckOptions.SchedulingOpt s)
     {
         return card.State switch 
         {
             CardState.Review => new(
                 state: CardState.Learning,
-                interval: s.LearningStages[s.AgainStageFallback],
-                learningStage: s.AgainStageFallback
+                interval: s.LearningStages[s.AgainOnReviewStage],
+                learningStage: s.AgainOnReviewStage
             ),
         
             CardState.New or CardState.Learning => new(
@@ -124,6 +134,13 @@ public static class Scheduler
         };
     }
     #endregion
-    private static string InvalidStateExMessage(Card c)
+    private static string InvalidStateExMessage(ICard c)
         => $"card has invalid state enum value ({c.State}), card's id = {c.Id}";
 }
+
+public readonly record struct SchedulePermutations(
+    ScheduleInfo Easy,
+    ScheduleInfo Good, 
+    ScheduleInfo Hard, 
+    ScheduleInfo Again
+);

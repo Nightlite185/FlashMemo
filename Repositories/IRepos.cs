@@ -49,6 +49,7 @@ public interface IUserRepo
 
 public interface IDeckOptionsRepo
 {
+    Task<DeckOptions> GetFromDeck(long deckId);
     Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
     Task Remove(long presetId);
     Task CreateNew(DeckOptions newRecord);

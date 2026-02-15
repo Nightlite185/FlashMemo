@@ -1,3 +1,4 @@
+using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Factories;
 
@@ -13,14 +14,14 @@ public class DisplayControl(IDisplayHost hostVM, DecksVMF dVMF, ReviewVMF rVMF):
         var vm = await decksVMF
             .CreateAsync(userId);
 
-        vm.OnReviewShowRequest += deckId => SwitchToReview(host.UserId, deckId);
+        vm.OnReviewShowRequest += deck => SwitchToReview(host.UserId, deck);
         host.CurrentDisplay = vm;
     }
 
-    public async Task SwitchToReview(long userId, long deckId)
+    public async Task SwitchToReview(long userId, IDeckMeta deck)
     {
         host.CurrentDisplay = await 
-            reviewVMF.CreateAsync(userId, deckId);
+            reviewVMF.CreateAsync(userId, deck);
     }
 
     public Task SwitchToStats(long userId)

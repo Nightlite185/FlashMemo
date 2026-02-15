@@ -1,3 +1,4 @@
+using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Windows;
@@ -11,13 +12,13 @@ public class ReviewVMF(ICardService cs, ICardQueryService cqs, CardCtxMenuVMF ct
     private readonly CardCtxMenuVMF ctxMenuVMF = ctx;
     private readonly IDeckOptionsRepo deckOptRepo = dor;
 
-    public async Task<ReviewVM> CreateAsync(long userId, long deckId)
+    public async Task<ReviewVM> CreateAsync(long userId, IDeckMeta deck)
     {
-        var deckOpt = await deckOptRepo.GetFromDeck(deckId);
+        var deckOpt = await deckOptRepo.GetFromDeck(deck.Id);
 
         var vm = new ReviewVM(
             cardService, cardQuery, 
-            userId, deckId, deckOpt);
+            userId, deck, deckOpt);
 
         var ctxMenu = ctxMenuVMF
             .Create(vm, vm, userId);

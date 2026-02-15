@@ -68,7 +68,7 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
     
     [RelayCommand]
     private void ShowReview(DeckNode deck) 
-        => OnReviewShowRequest?.Invoke(deck.Id);
+        => OnReviewShowRequest?.Invoke(deck);
     #endregion
 
     #region public properties
@@ -80,7 +80,7 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
 
-    public event Func<long, Task>? OnReviewShowRequest;
+    public event Func<IDeckMeta, Task>? OnReviewShowRequest;
     #endregion
 
     #region private things

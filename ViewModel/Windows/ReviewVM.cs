@@ -11,10 +11,11 @@ namespace FlashMemo.ViewModel.Windows;
     
 public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
 {
-    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, long deckId, DeckOptions deckOpt)
+    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck, DeckOptions deckOpt)
     {
         this.userId = userId;
-        this.deckId = deckId;
+        this.Deck = deck;
+
         deckOptions = deckOpt;
 
         cardService = cs;
@@ -32,7 +33,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
     public partial CardEntity? CurrentCard { get; set; } // TODO: change type later to ICard
-    
+    public IDeckMeta Deck { get; init; }
     public string FrontContent => CurrentCard?.FrontContent
         ?? throw new InvalidOperationException(
         $"tried to access {nameof(FrontContent)} property, but no card was loaded atm.");
@@ -50,10 +51,17 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     [ObservableProperty]
     public partial string ElapsedTime { get; set; } = "00:00";
 
-    [ObservableProperty] // TODO: should work but must humanize this (e.g. turn TimeSpan readable string in a good format)
+    [ObservableProperty] // TODO: should work but must humanize this (e.g. turn TimeSpan into a readable string in a good format)
     public partial SchedulePermutations? SchedulePerms { get; set; }
 
     public PopupVMBase? CurrentPopup { get; set; }
+    
+    public CardsCountVM CardsCount { get; private set; } = null!;
+    
+    private bool CanReview
+        => IsCardLoaded && AnswerRevealed;
+    private bool CanRevealAnswer
+        => IsCardLoaded && !AnswerRevealed;
     #endregion
 
     #region methods
@@ -61,11 +69,14 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     {
         cardCtxMenu = ctxMenu;
 
-        cards = new (await cardQuery.GetForStudy(deckId));
+        (var freshCards, var count) = await cardQuery
+            .GetForStudy(Deck.Id);
+
+        this.cards      = new(freshCards);
+        this.CardsCount = (CardsCountVM)count;
 
         ShowNextCard();
     }
-
     private ScheduleInfo GetScheduleInfo(Answers answer)
     {
         if (SchedulePerms is null) 
@@ -83,12 +94,10 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
                 $"Invalid Answers enum value: {answer}")
         };
     }
-
     public Task ReloadAsync(ReloadTargets rt)
     {
         throw new NotImplementedException();
     }
-
     private void ShowNextCard()
     {
         if (cards.TryPop(out var popped))
@@ -113,7 +122,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     }
     private void UpdateTime()
         => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes: 00}:{stopWatch.Elapsed.Seconds: 00}";
-    private async Task ReviewHelperAsync(Answers answer)
+    private async Task ReviewAsync(Answers answer)
     {
         StopTimer();
 
@@ -123,36 +132,29 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
 
         AnswerRevealed = false;
 
-        var scheduleInfo = GetScheduleInfo(answer);
-
+        var updatedSchedule = GetScheduleInfo(answer);
+        SchedulePerms = null;
+        
         await cardService.ReviewCardAsync(
-            CurrentCard!.Id, 
-            scheduleInfo, answer, 
+            CurrentCard!.Id,
+            updatedSchedule, answer,
             stopWatch.Elapsed);
 
-        if (scheduleInfo.State == CardState.Learning)
+        learningPool.InjectDueInto(cards);
+
+        if (updatedSchedule.State == CardState.Learning)
             learningPool.Add(CurrentCard);
 
-        learningPool.InjectDueInto(cards);
-        SchedulePerms = null;
+        CardsCount.UpdateCount(cards);
 
         ShowNextCard();
         StartTimer();
     }
     
-    #region CanExecute
-    private bool CanReview
-        => IsCardLoaded && AnswerRevealed;
-    private bool CanRevealAnswer
-        => IsCardLoaded && !AnswerRevealed;
-
-    #endregion
-    
     #endregion
 
     #region private things
     private readonly long userId;
-    private readonly long deckId;
     private readonly DeckOptions deckOptions;
     private readonly ICardService cardService;
     private CardCtxMenuVM cardCtxMenu = null!;
@@ -188,22 +190,22 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     #region answer commands
     [RelayCommand(CanExecute = nameof(CanReview))]
     private async Task AgainAnswer()
-        => await ReviewHelperAsync(Answers.Again);
+        => await ReviewAsync(Answers.Again);
 
     
     [RelayCommand(CanExecute = nameof(CanReview))]
     private async Task HardAnswer() 
-        => await ReviewHelperAsync(Answers.Hard);
+        => await ReviewAsync(Answers.Hard);
 
     
     [RelayCommand(CanExecute = nameof(CanReview))]
     private async Task GoodAnswer()
-        => await ReviewHelperAsync(Answers.Good);
+        => await ReviewAsync(Answers.Good);
 
 
     [RelayCommand(CanExecute = nameof(CanReview))]
     private async Task EasyAnswer() 
-        => await ReviewHelperAsync(Answers.Easy);
+        => await ReviewAsync(Answers.Easy);
     #endregion
 
     [RelayCommand(CanExecute = nameof(IsCardLoaded))]

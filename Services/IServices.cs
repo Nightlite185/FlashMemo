@@ -24,18 +24,18 @@ public interface ICountingService
 {
     ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
     ///containing count of cards grouped by their state.</returns>
-    public Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable = false);
-    public Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable = false);
+    Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable = false);
+    Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable = false);
     Task<int> AllCards(long userId);
     Task<int> AllDecks(long userId);
     Task<int> AllReviewableCards(long userId);
 }
 public interface ICardQueryService
 {
-    public Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir);
-    public Task<IEnumerable<CardEntity>> GetForStudy(long deckId);
-    public Task<IList<CardEntity>> GetAllFromUser(long userId);
-    public Task<IList<CardEntity>> GetAllFromDeck(long deckId);
+    Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir);
+    Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId);
+    Task<IList<CardEntity>> GetAllFromUser(long userId);
+    Task<IList<CardEntity>> GetAllFromDeck(long deckId);
 }
 
 public interface ICardService
@@ -52,7 +52,7 @@ public interface IDisplayControl
 {
     Task SwitchToDecks(long userId);
     Task SwitchToStats(long userId);
-    Task SwitchToReview(long userId, long deckId);
+    Task SwitchToReview(long userId, IDeckMeta deck);
 }
 
 public interface IUserVMBuilder
@@ -66,8 +66,8 @@ public interface IUserVMBuilder
 public interface ILastSessionService
 {
     LastSessionData Current { get; }
-    public void UpdateDeck(long deckId);
-    public void UpdateUser(long userId);
+    void UpdateDeck(long deckId);
+    void UpdateUser(long userId);
 
     Task LoadAsync();
     Task SaveStateAsync();

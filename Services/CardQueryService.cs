@@ -35,12 +35,12 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
 
         return cards;
     }
-    public async Task<IEnumerable<CardEntity>> GetForStudy(long deckId)
+    public async Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId)
     {
         var db = GetDb;
 
-        var baseQuery = await 
-            queryBuilder.AllCardsInDeckQAsync(deckId, db);
+        var baseQuery = await queryBuilder
+            .AllCardsInDeckQAsync(deckId, db);
         
         baseQuery = baseQuery.Where(c =>
             !c.IsSuspended
@@ -59,26 +59,10 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
         var cards = await SortAndLimitAsync(
             rootDeck, grouped);
         
+        var finalCollection = MergeByState(
+            cards, sortOpt.CardStateOrder);
 
-        return sortOpt.CardStateOrder switch
-        {
-            CardStateOrder.NewThenReviews
-                => cards.Learning
-                    .Concat(cards.Lessons)
-                    .Concat(cards.Reviews),
-
-            CardStateOrder.ReviewsThenNew
-                => cards.Learning
-                    .Concat(cards.Reviews)
-                    .Concat(cards.Lessons),
-
-            CardStateOrder.Mix
-                => cards.Learning.Concat(
-                        cards.Reviews.Concat(cards.Lessons).Shuffle()),
-
-            _ => throw new ArgumentException(
-                $"Invalid {nameof(CardStateOrder)} enum value: {sortOpt.CardStateOrder}")
-        };
+        return (finalCollection, (CardsCount)cards);
     }
     public async Task<IList<CardEntity>> GetAllFromUser(long userId)
     {
@@ -134,9 +118,43 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
             Reviews = reviews.AsReadOnly()
         };
     }
+    private static ICollection<CardEntity> MergeByState(CardsByState cards, CardStateOrder order)
+    {
+        return order switch
+        {
+            CardStateOrder.NewThenReviews
+                => [..cards.Learning
+                    .Concat(cards.Lessons)
+                    .Concat(cards.Reviews)],
+
+            CardStateOrder.ReviewsThenNew
+                => [..cards.Learning
+                    .Concat(cards.Reviews)
+                    .Concat(cards.Lessons)],
+
+            CardStateOrder.Mix
+                => [..cards.Learning
+                    .Concat(cards.Reviews
+                        .Concat(cards.Lessons)
+                        .Shuffle())],
+
+            _ => throw new ArgumentException(
+                $"Invalid {nameof(CardStateOrder)} enum value: {order}")
+        };
+    }
 }
 public readonly struct CardsCount
 {
+    public static explicit operator CardsCount(CardsByState cbs)
+    {
+        return new()
+        {
+            Lessons = cbs.Lessons.Count,
+            Learning = cbs.Learning.Count,
+            Reviews = cbs.Reviews.Count
+        };
+    }
+
     public readonly int Lessons { get; init; }
     public readonly int Learning { get; init; }
     public readonly int Reviews { get; init; }

@@ -327,7 +327,7 @@ namespace FlashMemo.Migrations
                             b1.Property<int>("AgainDayCount")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("AgainStageFallback")
+                            b1.Property<int>("AgainOnReviewStage")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<float>("EasyMultiplier")

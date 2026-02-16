@@ -41,7 +41,7 @@ public class DeckOptionsEntity
         public List<TimeSpan> LearningStages { get; set; } = null!; // in minutes
         public int EasyOnNewDayCount { get; set; }
         public int GoodOnNewStage { get; set; }
-        public int AgainOnReviewStage { get; set; } // TODO: MIGRATE - name changed
+        public int AgainOnReviewStage { get; set; }
         public int HardOnNewStage { get; set; }
     }
     public sealed class DailyLimitsOpt

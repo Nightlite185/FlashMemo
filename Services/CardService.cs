@@ -1,5 +1,4 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
@@ -15,16 +14,9 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         var db = GetDb;
 
         var cardEntity = await db.Cards
-            .Include(c => c.Deck)
             .SingleAsync(c => c.Id == cardId);
 
         var domainCard = mapper.Map<Card>(cardEntity);
-
-        var options = await db.DeckOptions
-            .Where(o => o.Id == cardEntity.Deck.OptionsId)
-            .Select(o => o.Scheduling)
-            .ProjectTo<DeckOptions.SchedulingOpt>(mapper.ConfigurationProvider)
-            .SingleAsync();
 
         domainCard.Review(scheduleInfo);
         

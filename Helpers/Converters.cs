@@ -1,7 +1,10 @@
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using AutoMapper;
 using FlashMemo.Model.Domain;
+using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Helpers;
 
@@ -66,5 +69,25 @@ public class TimeSpanHumanizer : IValueConverter
     {
         throw new NotImplementedException();
     }
+}
+#endregion
+
+#region AutoMapper converters
+public class DeckListToIds: IValueConverter<List<Deck>, ImmutableArray<long>>
+{
+    public ImmutableArray<long> Convert(List<Deck> sourceMember, ResolutionContext context)
+        => [..sourceMember.Select(d => d.Id)];
+}
+
+public class ListToImmutableArr<T> : IValueConverter<List<T>, ImmutableArray<T>>
+{
+    public ImmutableArray<T> Convert(List<T> sourceMember, ResolutionContext context)
+        => [..sourceMember];
+}
+
+public class ImmutableArrToList<T> : IValueConverter<ImmutableArray<T>, List<T>>
+{
+    public List<T> Convert(ImmutableArray<T> sourceMember, ResolutionContext context)
+        => [..sourceMember];
 }
 #endregion

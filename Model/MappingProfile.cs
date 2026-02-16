@@ -1,4 +1,5 @@
 using AutoMapper;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
@@ -35,19 +36,26 @@ public sealed class MappingProfile: Profile
         #endregion
 
         #region Deck options (entity <-> record)
-        CreateMap<DeckOptionsEntity, DeckOptions>();
+        CreateMap<DeckOptionsEntity, DeckOptions>()
+            .ForMember(x => x.Decks, opt =>
+                opt.ConvertUsing(new DeckListToIds()));
 
         CreateMap<DeckOptions, DeckOptionsEntity>()
             .ForMember(x => x.Decks, o => o.Ignore())
             .ForMember(x => x.User, o => o.Ignore());
 
         CreateMap<DeckOptions.SortingOpt, DeckOptionsEntity.SortingOpt>();
-        CreateMap<DeckOptions.SchedulingOpt, DeckOptionsEntity.SchedulingOpt>();
         CreateMap<DeckOptions.DailyLimitsOpt, DeckOptionsEntity.DailyLimitsOpt>();
+        CreateMap<DeckOptions.SchedulingOpt, DeckOptionsEntity.SchedulingOpt>()
+            .ForMember(x => x.LearningStages, opt => 
+                opt.ConvertUsing(new ImmutableArrToList<TimeSpan>()));
 
         CreateMap<DeckOptionsEntity.SortingOpt, DeckOptions.SortingOpt>();
-        CreateMap<DeckOptionsEntity.SchedulingOpt, DeckOptions.SchedulingOpt>();
         CreateMap<DeckOptionsEntity.DailyLimitsOpt, DeckOptions.DailyLimitsOpt>();
+        CreateMap<DeckOptionsEntity.SchedulingOpt, DeckOptions.SchedulingOpt>()
+            .ForMember(x => x.LearningStages, opt => 
+                opt.ConvertUsing(new ListToImmutableArr<TimeSpan>()));
+
         #endregion
     }
 }

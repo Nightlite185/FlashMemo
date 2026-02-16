@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260209225706_InitialCreate")]
+    [Migration("20260216180233_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -330,7 +330,7 @@ namespace FlashMemo.Migrations
                             b1.Property<int>("AgainDayCount")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("AgainStageFallback")
+                            b1.Property<int>("AgainOnReviewStage")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<float>("EasyMultiplier")

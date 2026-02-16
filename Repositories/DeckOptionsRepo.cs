@@ -1,5 +1,5 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +15,14 @@ public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory, IMapper 
     {
         var db = GetDb;
 
-        return await db.Decks
+        var entity = await db.Decks
             .AsNoTracking()
             .Where(d => d.Id == deckId)
+            .Include(d => d.Options)
             .Select(d => d.Options)
-            .ProjectTo<DeckOptions>(mapper.ConfigurationProvider)
             .SingleAsync();
+
+        return mapper.Map<DeckOptionsEntity, DeckOptions>(entity);
     }
     public async Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId)
     {

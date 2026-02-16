@@ -21,49 +21,61 @@ public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStag
     public int? LearningStage { get; set; } = learningStage;
 }
 
-public class Card: IEquatable<Card>, ICard
+public class Card: ICard
 {
-    public Card(long id) => this.Id = id; // for mapper use only
     #region Properties
     public long Id { get; private init; }
     public long DeckId { get; set; }
     public bool IsBuried { get; protected set; }
     public bool IsSuspended { get; protected set; }
+    private bool IsDueNow => Due <= DateTime.Now;
+    private bool IsDueToday => Due.HasValue 
+        && Due.Value.Date == DateTime.Today;
     public CardState State { get; protected set; }
-    public bool IsDue => Due <= DateTime.Now;
     public TimeSpan Interval { get; protected set; }
     public DateTime Created { get; protected set; }
     public DateTime? LastModified { get; protected set; }
     public DateTime? Due { get; protected set; }
     public DateTime? LastReviewed { get; protected set; }
-    public int? LearningStage { get; protected set; }
+    public int? LearningStage { get; protected set; } // TODO: consider changing this into enum; its safer than int.
     #endregion
 
-    #region Public Methods
+    #region Methods
     public void Review(ScheduleInfo s)
     {
-        if (!IsDue) throw new InvalidOperationException(
-            "Cannot review a card that is not due atm.");
+        Validate();
 
-        LastReviewed = DateTime.Now;        
+        LastReviewed = DateTime.Now;
         Due = DateTime.Now.Add(s.Interval);
 
         Interval = s.Interval;
         State = s.State;
         LearningStage = s.LearningStage;
+
+        Validate();
     }
-    #endregion
 
-    #region Hashcode and Equals
+    public void Validate()
+    {
+        if (Due is null && State != CardState.New)
+            throw new InvalidOperationException(
+            $"card's Due property is null, when state wasn't New, but {State}");
 
-    public override bool Equals(object? obj)
-        => obj is Card c && this.Id == c.Id;
+        if (State == CardState.Learning && LearningStage is null)
+            throw new InvalidOperationException(
+            "Card cannot be in learning state when stage is null");
 
-    public bool Equals(Card? other) 
-        => other is not null && this.Id == other.Id;
+        if (LearningStage is < 0 or > 2)
+            throw new InvalidOperationException(
+            $"Card's learning stage has to be either 0, 1 or 2. Current stage: {LearningStage}");
 
-    public override int GetHashCode()
-        => HashCode.Combine(Id);
-    
+        if (State != CardState.Learning && LearningStage is not null)
+            throw new InvalidOperationException(
+            $"Card cannot have LearningStage value and be in a state other than Learning. State: {State}, stage: {LearningStage}");
+
+        if (Due is not null && (!IsDueNow && !IsDueToday))
+            throw new InvalidOperationException(
+            "Cannot review a card that is neither due, nor a new card.");
+    }
     #endregion
 }

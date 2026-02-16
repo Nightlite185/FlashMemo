@@ -138,7 +138,7 @@ public static class Scheduler
         => $"card has invalid state enum value ({c.State}), card's id = {c.Id}";
 }
 
-public readonly record struct SchedulePermutations(
+public record SchedulePermutations(
     ScheduleInfo Easy,
     ScheduleInfo Good, 
     ScheduleInfo Hard, 

@@ -21,8 +21,11 @@
 
         <helpers:InverseBoolToVisConverter
             x:Key="InverseBoolToVisConverter"/>
+            
+        <helpers:TimeSpanHumanizer
+            x:Key="TimeSpanHumanizer"/>
 
-        <!-- ===== ViewModel → View Mapping ===== -->
+            <!-- ===== ViewModel → View Mapping ===== -->
 
         <DataTemplate DataType="{x:Type vm:DecksVM}">
             <view:DecksUC />
@@ -32,7 +35,9 @@
             <view:DeckSelectUC/>
         </DataTemplate>
 
-
+        <DataTemplate DataType="{x:Type vm:ReviewVM}">
+            <view:ReviewUC/>
+        </DataTemplate>
 
         <!-- ===== Colors ===== -->
         <!--#region Navigation bar colors -->
@@ -255,6 +260,19 @@
             </Border>
 
         </DataTemplate>
+
+        <Style x:Key="ReviewAnswerButtonStyle"
+            TargetType="Button"
+            BasedOn="{StaticResource NavButtonStyle}">
+
+            <Setter Property="Margin" Value="6,0"/>
+            <Setter Property="Width" Value="100"/>
+            
+            <Setter Property="Visibility" Value="{Binding IsEnabled,
+                RelativeSource={RelativeSource Self}, 
+                Converter={StaticResource BoolToVisConverter}}"/>
+        </Style>
+
 
     </Application.Resources>
 </Application>

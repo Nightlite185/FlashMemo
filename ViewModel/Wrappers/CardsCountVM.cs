@@ -3,6 +3,8 @@ using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 
+namespace FlashMemo.ViewModel.Wrappers;
+
 public partial class CardsCountVM: ObservableObject
 {
     public static explicit operator CardsCountVM(CardsCount cc)

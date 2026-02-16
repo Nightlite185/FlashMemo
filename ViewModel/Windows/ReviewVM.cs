@@ -6,6 +6,7 @@ using FlashMemo.Model.Domain;
 using System.Windows.Threading;
 using System.Diagnostics;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
     
@@ -29,10 +30,17 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     
     #region public properties
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(IsCardLoaded))]
+    [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(IsCardLoaded), nameof(ReviewedCount))]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
     public partial CardEntity? CurrentCard { get; set; } // TODO: change type later to ICard
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanReview), nameof(CanRevealAnswer))]
+    [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
+    nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
+    public partial bool AnswerRevealed { get; set; } = false;
+
     public IDeckMeta Deck { get; init; }
     public string FrontContent => CurrentCard?.FrontContent
         ?? throw new InvalidOperationException(
@@ -48,6 +56,9 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         }
     }
     
+    public int InitialCount { get; private set; }
+    public int ReviewedCount => InitialCount - cards.Count;
+
     [ObservableProperty]
     public partial string ElapsedTime { get; set; } = "00:00";
 
@@ -72,22 +83,23 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         (var freshCards, var count) = await cardQuery
             .GetForStudy(Deck.Id);
 
-        this.cards      = new(freshCards);
+        this.cards = new(freshCards);
         this.CardsCount = (CardsCountVM)count;
+        this.InitialCount = cards.Count;
 
         ShowNextCard();
     }
     private ScheduleInfo GetScheduleInfo(Answers answer)
     {
-        if (SchedulePerms is null) 
+        if (SchedulePerms is null)
             throw new NullReferenceException();
 
         return answer switch
         {
-            Answers.Easy => SchedulePerms.Value.Easy,
-            Answers.Good => SchedulePerms.Value.Good,
-            Answers.Hard => SchedulePerms.Value.Hard,
-            Answers.Again => SchedulePerms.Value.Again,
+            Answers.Easy => SchedulePerms.Easy,
+            Answers.Good => SchedulePerms.Good,
+            Answers.Hard => SchedulePerms.Hard,
+            Answers.Again => SchedulePerms.Again,
 
             _ => throw new ArgumentOutOfRangeException(
                 nameof(answer), 
@@ -164,12 +176,6 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     private readonly DispatcherTimer timer = null!;
     private readonly Stopwatch stopWatch = null!;
     private bool isSessionFinished; // TODO: make this actually matter later, so the state derived properties actually depend on it.
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanReview), nameof(CanRevealAnswer))]
-    [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
-    nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
-    private partial bool AnswerRevealed { get; set; } = false;
 
     private bool IsCardLoaded => CurrentCard is not null;
     #endregion

@@ -14,6 +14,9 @@ public abstract class NavBaseVM: ObservableObject, IViewModel, INavRequestSender
 {
     public event Func<NavigationRequest, Task>? NavRequested;
 
+    public void RegisterBubbling(NavBaseVM vm) 
+        => vm.NavRequested += NavRequested;
+
     protected async Task NavigateTo(NavigationRequest where)
     {
         if (NavRequested is not null)

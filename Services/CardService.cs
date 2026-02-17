@@ -9,11 +9,12 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
 {
     private readonly IMapper mapper = mapper;
     
-    public async Task ReviewCardAsync(long cardId, ScheduleInfo scheduleInfo, Answers answer, TimeSpan answerTime)
+    public async Task<CardEntity> ReviewCardAsync(long cardId, ScheduleInfo scheduleInfo, Answers answer, TimeSpan answerTime)
     {
         var db = GetDb;
 
         var cardEntity = await db.Cards
+            .Include(c => c.Deck)
             .SingleAsync(c => c.Id == cardId);
 
         var domainCard = mapper.Map<Card>(cardEntity);
@@ -27,6 +28,8 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         
         await db.CardLogs.AddAsync(log);
         await db.SaveChangesAsync();
+
+        return cardEntity;
     }
     
     ///<summary>Updates scalars, FKs, and syncs tags.<summary>

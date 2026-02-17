@@ -24,8 +24,8 @@ public interface ICountingService
 {
     ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
     ///containing count of cards grouped by their state.</returns>
-    Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable = false);
-    Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable = false);
+    Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool onlyForStudy);
+    Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool onlyForStudy);
     Task<int> AllCards(long userId);
     Task<int> AllDecks(long userId);
     Task<int> AllReviewableCards(long userId);
@@ -40,7 +40,8 @@ public interface ICardQueryService
 
 public interface ICardService
 {
-    Task ReviewCardAsync(long cardId, ScheduleInfo scheduleInfo, Answers answer, TimeSpan answerTime);
+    ///<returns>the updated card after review</returns>
+    Task<CardEntity> ReviewCardAsync(long cardId, ScheduleInfo scheduleInfo, Answers answer, TimeSpan answerTime);
     
     ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
     Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null);

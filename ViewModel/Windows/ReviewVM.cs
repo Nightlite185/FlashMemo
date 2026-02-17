@@ -57,7 +57,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     }
     
     public int InitialCount { get; private set; }
-    public int ReviewedCount => InitialCount - cards.Count;
+    public int ReviewedCount => InitialCount - cards.Count - 1;
 
     [ObservableProperty]
     public partial string ElapsedTime { get; set; } = "00:00";
@@ -147,7 +147,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         var updatedSchedule = GetScheduleInfo(answer);
         SchedulePerms = null;
         
-        await cardService.ReviewCardAsync(
+        var reviewed = await cardService.ReviewCardAsync(
             CurrentCard!.Id,
             updatedSchedule, answer,
             stopWatch.Elapsed);
@@ -155,7 +155,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         learningPool.InjectDueInto(cards);
 
         if (updatedSchedule.State == CardState.Learning)
-            learningPool.Add(CurrentCard);
+            learningPool.Add(reviewed);
 
         CardsCount.UpdateCount(cards);
 

@@ -42,7 +42,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
             .CountAsync();
     }
     
-    public async Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool countOnlyStudyable = false)//TODO: remove this useless bool
+    public async Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool onlyForStudy)
     {
         var db = GetDb;
 
@@ -53,10 +53,10 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
 
         return await CardsByState(
             deckIds,
-            countOnlyStudyable
+            onlyForStudy
         );
     }
-    public async Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool countOnlyStudyable)
+    public async Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool onlyForStudy)
     {
         var db = GetDb;
         Dictionary<long, CardsCount> result = [];
@@ -65,7 +65,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
         {
             var allCardsQuery = await queryBuilder.AllCardsInDeckQAsync(id, db);
 
-            if (countOnlyStudyable)
+            if (onlyForStudy)
             {
                 allCardsQuery = allCardsQuery.Where(c => 
                     !c.IsSuspended
@@ -79,7 +79,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
 
             if (!result.TryAdd(id, counted))
                 throw new ArgumentException(
-                    $"provided IEnumerable contains duplicate deck ids", 
+                    "provided IEnumerable contains duplicate deck ids", 
                     nameof(deckIds)
                 );
         }

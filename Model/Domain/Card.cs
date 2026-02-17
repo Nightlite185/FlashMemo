@@ -51,8 +51,6 @@ public class Card: ICard
         Interval = s.Interval;
         State = s.State;
         LearningStage = s.LearningStage;
-
-        Validate();
     }
 
     public void Validate()

@@ -24,7 +24,7 @@ public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilde
             .BuildDeckLookupAsync(userId);
 
         var cardsCount = await counter
-            .CardsByState(userId);
+            .CardsByState(userId, onlyForStudy: true);
 
         return BuildDeckLevelWithCount(
             parentId: null, decksLookup, cardsCount);

@@ -41,10 +41,14 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
 
         var baseQuery = await queryBuilder
             .AllCardsInDeckQAsync(deckId, db);
+
+        var today = DateTime.Today;
         
         baseQuery = baseQuery.Where(c =>
             !c.IsSuspended
-            && !c.IsBuried);
+            && !c.IsBuried
+            && c.Due.HasValue
+            && c.Due.Value.Date == today);
 
         var grouped = CardQueryBuilder
             .GroupByStateQ(baseQuery);

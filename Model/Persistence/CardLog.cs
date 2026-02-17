@@ -20,6 +20,9 @@ namespace FlashMemo.Model.Persistence
         /// <summary>Deck needs to be included with card; otherwise this won't work</summary>
         public static CardLog CreateReviewLog(CardEntity card, Answers ans, TimeSpan ansTime)
         {
+            if (card.Deck is null) throw new ArgumentException(
+                "Deck wasn't included with the card", nameof(card));
+
             return new()
             {
                 Id = IdGetter.Next(),

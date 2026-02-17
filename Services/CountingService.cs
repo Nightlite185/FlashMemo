@@ -67,11 +67,10 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
 
             if (onlyForStudy)
             {
-                allCardsQuery = allCardsQuery.Where(c => 
-                    !c.IsSuspended
-                 && !c.IsBuried 
-                 &&  c.Due.HasValue 
-                 &&  c.Due.Value.Date == DateTime.Today);
+                var today = DateTime.Today;
+
+                allCardsQuery = CardQueryBuilder
+                    .ForStudy(allCardsQuery);
             }
                                                                             
             var grouped = CardQueryBuilder.GroupByStateQ(allCardsQuery);

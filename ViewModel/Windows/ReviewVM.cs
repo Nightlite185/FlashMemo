@@ -115,6 +115,9 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         if (cards.TryPop(out var popped))
             CurrentCard = popped;
 
+        else if (learningPool.TryPopEarly() is CardEntity card)
+            CurrentCard = card;
+
         else
         {
             CurrentCard = null;
@@ -157,7 +160,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         if (updatedSchedule.State == CardState.Learning)
             learningPool.Add(reviewed);
 
-        CardsCount.UpdateCount(cards);
+        CardsCount.UpdateCount(cards, learningPool.Count);
 
         ShowNextCard();
         StartTimer();

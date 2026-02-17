@@ -22,6 +22,16 @@ public class CardQueryBuilder(IDeckRepo dr): ICardQueryBuilder
                 .Where(c => c.State == CardState.Review),
         };
     }
+
+    public static IQueryable<CardEntity> ForStudy(IQueryable<CardEntity> baseQuery)
+    {
+        var today = DateTime.Today;
+
+        return baseQuery.Where(c =>
+            !c.IsSuspended && !c.IsBuried
+            && (!c.Due.HasValue || c.Due.Value.Date == today));
+    }
+    
     public async Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(long deckId, AppDbContext db)
     {
         var deckIds = await deckRepo.GetChildrenIds(deckId);

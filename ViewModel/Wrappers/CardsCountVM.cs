@@ -30,7 +30,7 @@ public partial class CardsCountVM: ObservableObject
     [ObservableProperty] public partial int Learning { get; set; }
     [ObservableProperty] public partial int Reviews { get; set; }
 
-    public void UpdateCount(IEnumerable<CardEntity> cards)
+    public void UpdateCount(IEnumerable<CardEntity> cards, int learningCount)
     {
         foreach (var kvp in cards.CountBy(c => c.State))
         {
@@ -49,5 +49,7 @@ public partial class CardsCountVM: ObservableObject
                     break;
             }
         }
+
+        Learning += learningCount;
     }
 }

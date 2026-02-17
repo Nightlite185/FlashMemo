@@ -5,10 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo dr, ICardQueryBuilder cqb)
+public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQueryBuilder cqb)
     : DbDependentClass(factory), ICardQueryService
 {
-    private readonly IDeckRepo deckRepo = dr;
     private readonly ICardQueryBuilder queryBuilder = cqb;
 
     #region Public methods
@@ -44,11 +43,8 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IDeckRepo
 
         var today = DateTime.Today;
         
-        baseQuery = baseQuery.Where(c =>
-            !c.IsSuspended
-            && !c.IsBuried
-            && c.Due.HasValue
-            && c.Due.Value.Date == today);
+        baseQuery = CardQueryBuilder
+            .ForStudy(baseQuery);
 
         var grouped = CardQueryBuilder
             .GroupByStateQ(baseQuery);

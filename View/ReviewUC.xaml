@@ -8,258 +8,331 @@
     <Grid Background="#FF2A2A2A"
           KeyDown="Root_KeyDown"
           MouseWheel="Root_MouseWheel">
-
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <!-- ================= HEADER ================= -->
-
-        <TextBlock
-            Grid.Row="0"
-            Text="{Binding Deck.Name}"
-            Foreground="White"
-            FontSize="20"
-            Margin="0,10"
-            HorizontalAlignment="Center"/>
-
-
-        <!-- ================= CONTENT ================= -->
-
-        <Grid Grid.Row="1" Margin="40,20">
-
+        
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="2"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- FRONT -->
+        <!-- ===== MAIN REVIEW PANEL ===== -->
+        <Grid Grid.RowSpan="3"
+              Visibility="{Binding IsSessionFinished,
+              Converter={StaticResource InverseBoolToVisConverter}}">
 
-            <Border
-                Background="#FF1E1E1E"
-                CornerRadius="12"
-                Padding="20"
-                Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- Header -->
+                <RowDefinition Height="*"/>
+                <!-- Content -->
+                <RowDefinition Height="Auto"/>
+                <!-- Buttons -->
+            </Grid.RowDefinitions>
 
-                <RichTextBox
-                    x:Name="FrontBox"
-                    IsReadOnly="True"
-                    BorderThickness="0"
-                    Background="Transparent"
+            <!-- ================= HEADER ================= -->
+
+            <Grid Grid.Row="0" Margin="20,10">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Timer -->
+                <TextBlock
+                    Grid.Column="0"
+                    Text="{Binding ElapsedTime}"
+                    Foreground="#88FFFFFF"
+                    FontSize="16"
+                    VerticalAlignment="Center"/>
+
+                <!-- Deck name -->
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{Binding Deck.Name}"
                     Foreground="White"
-                    FontSize="22"/>
-            </Border>
+                    FontSize="20"
+                    HorizontalAlignment="Center"/>
+
+            </Grid>
 
 
-            <!-- Separator -->
-            <Border
-                Grid.Row="1"
-                Background="#444"
-                Height="2"
-                Margin="0,8"/>
+
+            <!-- ================= CONTENT ================= -->
+
+            <Grid Grid.Row="1" Margin="40,20">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="2"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- FRONT -->
+
+                <Border
+                    Background="#FF1E1E1E"
+                    CornerRadius="12"
+                    Padding="20"
+                    Margin="0,0,0,10">
+
+                    <RichTextBox
+                        x:Name="FrontBox"
+                        IsReadOnly="True"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        Foreground="White"
+                        FontSize="22"/>
+                </Border>
 
 
-            <!-- BACK -->
-
-            <Border
-                Grid.Row="2"
-                Background="#FF1E1E1E"
-                CornerRadius="12"
-                Padding="20"
-                Margin="0,10,0,0"
-                Visibility="{Binding AnswerRevealed,
-                    Converter={StaticResource BoolToVisConverter}}">
-
-                <RichTextBox
-                    x:Name="BackBox"
-                    IsReadOnly="True"
-                    BorderThickness="0"
-                    Background="Transparent"
-                    Foreground="White"
-                    FontSize="22"/>
-            </Border>
-
-        </Grid>
+                <!-- Separator -->
+                <Border
+                    Grid.Row="1"
+                    Background="#444"
+                    Height="2"
+                    Margin="0,8"/>
 
 
-        <!-- ================= BUTTON BAR ================= -->
+                <!-- BACK -->
 
-        <Grid Grid.Row="2" Margin="20">
+                <Border
+                    Grid.Row="2"
+                    Background="#FF1E1E1E"
+                    CornerRadius="12"
+                    Padding="20"
+                    Margin="0,10,0,0"
+                    Visibility="{Binding AnswerRevealed,
+                        Converter={StaticResource BoolToVisConverter}}">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+                    <RichTextBox
+                        x:Name="BackBox"
+                        IsReadOnly="True"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        Foreground="White"
+                        FontSize="22"/>
+                </Border>
 
-            <!-- Edit -->
-            <Button
-                Grid.Column="0"
-                Content="Edit"
-                Command="{Binding ShowCardEditCommand}"
-                Style="{StaticResource NavButtonStyle}"
-                Width="78"/>
+            </Grid>
 
-            <!-- Center -->
-            <StackPanel
-                Grid.Column="1"
-                Orientation="Horizontal"
-                HorizontalAlignment="Center">
 
-                <!-- Reveal -->
+            <!-- ================= BUTTON BAR ================= -->
+
+            <Grid Grid.Row="2" Margin="20">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Edit -->
                 <Button
-                    Content="Reveal"
-                    Command="{Binding RevealAnswerCommand}"
+                    Grid.Column="0"
+                    Content="Edit"
+                    Command="{Binding ShowCardEditCommand}"
+                    Style="{StaticResource NavButtonStyle}"
+                    Width="78"/>
+
+                <!-- Center -->
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+
+                    <!-- Reveal -->
+                    <Button
+                        Content="Reveal"
+                        Command="{Binding RevealAnswerCommand}"
+                        Style="{StaticResource NavButtonStyle}"
+                        Width="78"
+                        Margin="6,0"
+                        Visibility="{Binding IsEnabled,
+                            RelativeSource={RelativeSource Self},
+                            Converter={StaticResource BoolToVisConverter}}"/>
+
+
+                    <!-- AGAIN -->
+                    <Grid Margin="6,0">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Text="{Binding SchedulePerms.Again,
+                                Converter={StaticResource TimeSpanHumanizer}}"
+                            Foreground="#CCFFFFFF"
+                            FontSize="12"
+                            HorizontalAlignment="Center"/>
+
+                        <Button
+                            Grid.Row="1"
+                            Content="Again"
+                            Command="{Binding AgainAnswerCommand}"
+                            Style="{StaticResource ReviewAnswerButtonStyle}"
+                            Background="#FFFF733F"
+                            Width="100"
+                            Foreground="Black"/>
+
+                    </Grid>
+
+
+                    <!-- HARD -->
+                    <Grid Margin="6,0">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Text="{Binding SchedulePerms.Hard,
+                                Converter={StaticResource TimeSpanHumanizer}}"
+                            Foreground="#CCFFFFFF"
+                            FontSize="12"
+                            HorizontalAlignment="Center"/>
+
+                        <Button
+                            Grid.Row="1"
+                            Content="Hard"
+                            Command="{Binding HardAnswerCommand}"
+                            Style="{StaticResource ReviewAnswerButtonStyle}"
+                            Background="#E5FFF500"
+                            Width="100"
+                            Foreground="Black"/>
+
+                    </Grid>
+
+
+                    <!-- GOOD -->
+                    <Grid Margin="6,0">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Text="{Binding SchedulePerms.Good,
+                                Converter={StaticResource TimeSpanHumanizer}}"
+                            Foreground="#CCFFFFFF"
+                            FontSize="12"
+                            HorizontalAlignment="Center"/>
+
+                        <Button
+                            Grid.Row="1"
+                            Content="Good"
+                            Command="{Binding GoodAnswerCommand}"
+                            Style="{StaticResource ReviewAnswerButtonStyle}"
+                            Background="#E500F95D"
+                            Width="100"
+                            Foreground="Black"/>
+
+                    </Grid>
+
+
+                    <!-- EASY -->
+                    <Grid Margin="6,0">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Text="{Binding SchedulePerms.Easy,
+                                Converter={StaticResource TimeSpanHumanizer}}"
+                            Foreground="#CCFFFFFF"
+                            FontSize="12"
+                            HorizontalAlignment="Center"/>
+
+                        <Button
+                            Grid.Row="1"
+                            Content="Easy"
+                            Command="{Binding EasyAnswerCommand}"
+                            Style="{StaticResource ReviewAnswerButtonStyle}"
+                            Background="#E534D5FF"
+                            Width="100"
+                            Foreground="Black"/>
+
+                    </Grid>
+
+                </StackPanel>
+
+
+                <!-- More -->
+                <Button
+                    Grid.Column="2"
+                    Content="More"
                     Style="{StaticResource NavButtonStyle}"
                     Width="78"
-                    Margin="6,0"
-                    Visibility="{Binding IsEnabled,
-                        RelativeSource={RelativeSource Self},
-                        Converter={StaticResource BoolToVisConverter}}"/>
+                    Click="MoreButton_Click">
 
 
-                <!-- AGAIN -->
-                <Grid Margin="6,0">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Suspend"/>
+                            <MenuItem Header="Forget"/>
+                            <MenuItem Header="Bury"/>
+                            <MenuItem Header="Reschedule"/>
+                            <MenuItem Header="Postpone"/>
+                            <MenuItem Header="Delete"/>
+                            <MenuItem Header="Card details"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
 
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                </Button>
 
-                    <TextBlock
-                        Grid.Row="0"
-                        Text="{Binding SchedulePerms.Again,
-                            Converter={StaticResource TimeSpanHumanizer}}"
-                        Foreground="#CCFFFFFF"
-                        FontSize="12"
-                        HorizontalAlignment="Center"/>
-
-                    <Button
-                        Grid.Row="1"
-                        Content="Again"
-                        Command="{Binding AgainAnswerCommand}"
-                        Style="{StaticResource ReviewAnswerButtonStyle}"
-                        Background="#FFFF733F"
-                        Width="100"
-                        Foreground="Black"/>
-
-                </Grid>
-
-
-                <!-- HARD -->
-                <Grid Margin="6,0">
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock
-                        Grid.Row="0"
-                        Text="{Binding SchedulePerms.Hard,
-                            Converter={StaticResource TimeSpanHumanizer}}"
-                        Foreground="#CCFFFFFF"
-                        FontSize="12"
-                        HorizontalAlignment="Center"/>
-
-                    <Button
-                        Grid.Row="1"
-                        Content="Hard"
-                        Command="{Binding HardAnswerCommand}"
-                        Style="{StaticResource ReviewAnswerButtonStyle}"
-                        Background="#E5FFF500"
-                        Width="100"
-                        Foreground="Black"/>
-
-                </Grid>
-
-
-                <!-- GOOD -->
-                <Grid Margin="6,0">
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock
-                        Grid.Row="0"
-                        Text="{Binding SchedulePerms.Good,
-                            Converter={StaticResource TimeSpanHumanizer}}"
-                        Foreground="#CCFFFFFF"
-                        FontSize="12"
-                        HorizontalAlignment="Center"/>
-
-                    <Button
-                        Grid.Row="1"
-                        Content="Good"
-                        Command="{Binding GoodAnswerCommand}"
-                        Style="{StaticResource ReviewAnswerButtonStyle}"
-                        Background="#E500F95D"
-                        Width="100"
-                        Foreground="Black"/>
-
-                </Grid>
-
-
-                <!-- EASY -->
-                <Grid Margin="6,0">
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock
-                        Grid.Row="0"
-                        Text="{Binding SchedulePerms.Easy,
-                            Converter={StaticResource TimeSpanHumanizer}}"
-                        Foreground="#CCFFFFFF"
-                        FontSize="12"
-                        HorizontalAlignment="Center"/>
-
-                    <Button
-                        Grid.Row="1"
-                        Content="Easy"
-                        Command="{Binding EasyAnswerCommand}"
-                        Style="{StaticResource ReviewAnswerButtonStyle}"
-                        Background="#E534D5FF"
-                        Width="100"
-                        Foreground="Black"/>
-
-                </Grid>
-
-            </StackPanel>
-
-
-            <!-- More -->
-            <Button
-                Grid.Column="2"
-                Content="More"
-                Style="{StaticResource NavButtonStyle}"
-                Width="78">
-
-                <Button.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Suspend"/>
-                        <MenuItem Header="Forget"/>
-                        <MenuItem Header="Bury"/>
-                        <MenuItem Header="Reschedule"/>
-                        <MenuItem Header="Postpone"/>
-                        <MenuItem Header="Delete"/>
-                        <MenuItem Header="Card details"/>
-                    </ContextMenu>
-                </Button.ContextMenu>
-
-            </Button>
-
+            </Grid>
         </Grid>
 
+        <!-- ================= FINISH SCREEN ================= -->
 
+        <Border
+            Grid.RowSpan="3"
+            Background="#FF1E1E1E"
+            CornerRadius="20"
+            Margin="80"
+            Visibility="{Binding IsSessionFinished,
+                Converter={StaticResource BoolToVisConverter}}">
+
+            <StackPanel
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+
+                <TextBlock
+                    Text="Congrats!! You finished all your reviews!! 🎉🎉🎉"
+                    FontSize="36"
+                    Foreground="White"
+                    Margin="0,0,0,16"
+                    HorizontalAlignment="Center"/>
+
+                <TextBlock
+                    Text="Session Complete"
+                    FontSize="20"
+                    Foreground="#AAFFFFFF"
+                    Margin="0,0,0,24"
+                    HorizontalAlignment="Center"/>
+
+                <Button
+                    Margin="0,0,0,0"
+                    Content="Go back"
+                    Command="{Binding ShowDecksCommand}"
+                    Style="{StaticResource NavButtonStyle}"
+                    Width="180"/>
+            </StackPanel>
+        </Border>
+
+        
         <!-- ================= PROGRESS ================= -->
 
         <ProgressBar

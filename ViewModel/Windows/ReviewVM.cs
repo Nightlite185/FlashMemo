@@ -57,22 +57,29 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     }
     
     public int InitialCount { get; private set; }
-    public int ReviewedCount => InitialCount - cards.Count - 1;
+    public int ReviewedCount
+    {
+        get
+        {
+            if (cards.Count == 0 && learningPool.Count == 0)
+                return InitialCount;
+
+            return InitialCount - cards.Count - learningPool.Count - 1;
+        }
+    }
 
     [ObservableProperty]
     public partial string ElapsedTime { get; set; } = "00:00";
 
-    [ObservableProperty] // TODO: should work but must humanize this (e.g. turn TimeSpan into a readable string in a good format)
+    [ObservableProperty]
     public partial SchedulePermutations? SchedulePerms { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsSessionFinished { get; private set; }
+
     public PopupVMBase? CurrentPopup { get; set; }
-    
     public CardsCountVM CardsCount { get; private set; } = null!;
-    
-    private bool CanReview
-        => IsCardLoaded && AnswerRevealed;
-    private bool CanRevealAnswer
-        => IsCardLoaded && !AnswerRevealed;
+    public event Func<Task>? OnDecksNavRequest;
     #endregion
 
     #region methods
@@ -88,6 +95,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         this.InitialCount = cards.Count;
 
         ShowNextCard();
+        StartTimer();
     }
     private ScheduleInfo GetScheduleInfo(Answers answer)
     {
@@ -121,14 +129,15 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         else
         {
             CurrentCard = null;
-            isSessionFinished = true;
-            // Show congrats screen here or sth, like お疲れ様です with some fireworks or confetti lol
+            IsSessionFinished = true;
         }
     }
     private void StopTimer()
     {
-        stopWatch.Stop();
+        stopWatch.Reset();
         timer.Stop();
+
+        UpdateTime();
     }
     private void StartTimer()
     {
@@ -136,7 +145,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         timer.Start();
     }
     private void UpdateTime()
-        => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes: 00}:{stopWatch.Elapsed.Seconds: 00}";
+        => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
     private async Task ReviewAsync(Answers answer)
     {
         StopTimer();
@@ -178,9 +187,12 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     private Stack<CardEntity> cards = null!;
     private readonly DispatcherTimer timer = null!;
     private readonly Stopwatch stopWatch = null!;
-    private bool isSessionFinished; // TODO: make this actually matter later, so the state derived properties actually depend on it.
 
     private bool IsCardLoaded => CurrentCard is not null;
+    private bool CanReview
+        => IsCardLoaded && AnswerRevealed;
+    private bool CanRevealAnswer
+        => IsCardLoaded && !AnswerRevealed;
     #endregion
 
     #region ICommands
@@ -227,5 +239,8 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
 
         //TODO: when coming back from the editor to this VM, gotta reload the card and pull any possible changed from db;
     }
+
+    [RelayCommand]
+    private async Task ShowDecks() => OnDecksNavRequest?.Invoke();
     #endregion
 }

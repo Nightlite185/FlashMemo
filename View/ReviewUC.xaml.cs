@@ -1,5 +1,6 @@
 ﻿using FlashMemo.Helpers;
 using FlashMemo.ViewModel.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -17,7 +18,7 @@ public partial class ReviewUC : UserControl
         Loaded += OnLoaded;
     }
 
-    private void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (DataContext is not ReviewVM vm)
             return;
@@ -40,11 +41,11 @@ public partial class ReviewUC : UserControl
         if (vm.CurrentCard is null)
             return;
 
-        FrontBox.Document =
-            XamlSerializer.FromXaml(vm.FrontContent);
+        FrontBox.Document = XamlSerializer
+            .FromXaml(vm.FrontContent);
 
-        BackBox.Document =
-            XamlSerializer.FromXaml(vm.BackContent);
+        BackBox.Document = XamlSerializer
+            .FromXaml(vm.BackContent);
 
         ApplyZoom();
     }
@@ -77,15 +78,58 @@ public partial class ReviewUC : UserControl
 
     private void Root_KeyDown(object sender, KeyEventArgs e)
     {
-        if (DataContext is not ReviewVM vm)
-            return;
+        if (DataContext is not ReviewVM vm) return;
 
         if (e.Key is Key.Space or Key.Enter)
         {
-            if (vm.RevealAnswerCommand.CanExecute(null))
+            if (!vm.AnswerRevealed && 
+            vm.RevealAnswerCommand.CanExecute(null))
+            {
                 vm.RevealAnswerCommand.Execute(null);
+            }
+
+            else if (vm.GoodAnswerCommand.CanExecute(null))
+            {
+                vm.GoodAnswerCommand.Execute(null);
+            }
 
             e.Handled = true;
+            return;
+        }
+
+        if (!vm.AnswerRevealed) return;
+
+        switch (e.Key)
+        {
+            case Key.D1 or Key.NumPad1:
+                vm.AgainAnswerCommand.Execute(null);
+                break;
+
+            case Key.D2 or Key.NumPad2:
+                vm.HardAnswerCommand.Execute(null);
+                break;
+
+            case Key.D3 or Key.NumPad3:
+                vm.GoodAnswerCommand.Execute(null);
+                break;
+
+            case Key.D4 or Key.NumPad4:
+                vm.EasyAnswerCommand.Execute(null);
+                break;
+
+            default:
+                return;
+        }
+
+        e.Handled = true;
+    }
+
+    private void MoreButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.ContextMenu is not null)
+        {
+            btn.ContextMenu.PlacementTarget = btn;
+            btn.ContextMenu.IsOpen = true;
         }
     }
 }

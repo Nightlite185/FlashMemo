@@ -18,12 +18,6 @@ public interface ICloseRequest
     public event Action? OnCloseRequest;
 }
 
-[Obsolete("Dont use since it creates coupling between vm and window.")]
-public interface ILoadedHandlerAsync
-{
-    [Obsolete("Dont use since it creates coupling between vm and window.")]
-    public Task LoadEventHandler();
-}
 
 public interface INavRequestSender
 {
@@ -48,7 +42,6 @@ public interface IPopupHost
 public interface IDisplayHost
 {
     object CurrentDisplay { get; set; }
-    long UserId { get; }
 }
 
 public interface IViewModel;

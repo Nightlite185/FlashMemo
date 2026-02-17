@@ -32,6 +32,10 @@ public partial class CardsCountVM: ObservableObject
 
     public void UpdateCount(IEnumerable<CardEntity> cards, int learningCount)
     {
+        Lessons = 0;
+        Learning = 0;
+        Reviews = 0;
+
         foreach (var kvp in cards.CountBy(c => c.State))
         {
             switch (kvp.Key)
@@ -42,6 +46,7 @@ public partial class CardsCountVM: ObservableObject
 
                 case CardState.Learning:
                     Learning = kvp.Value;
+                    Learning += learningCount;
                     break;
 
                 case CardState.Review:
@@ -49,7 +54,7 @@ public partial class CardsCountVM: ObservableObject
                     break;
             }
         }
-
-        Learning += learningCount;
+        if (Learning == 0)
+            Learning = learningCount;
     }
 }

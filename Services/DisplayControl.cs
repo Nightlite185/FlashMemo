@@ -15,8 +15,7 @@ public class DisplayControl(IDisplayHost hostVM, DecksVMF dVMF, ReviewVMF rVMF):
         var vm = await decksVMF
             .CreateAsync(userId);
 
-        vm.OnReviewShowRequest += deck 
-            => SwitchToReview(host.UserId, deck);
+        vm.OnReviewShowRequest += deck => SwitchToReview(userId, deck);
         
         WireEvents(vm);
         host.CurrentDisplay = vm;
@@ -26,6 +25,8 @@ public class DisplayControl(IDisplayHost hostVM, DecksVMF dVMF, ReviewVMF rVMF):
     {
         var vm = await reviewVMF
             .CreateAsync(userId, deck);
+
+        vm.OnDecksNavRequest += () => SwitchToDecks(userId);
 
         WireEvents(vm);
         host.CurrentDisplay = vm;

@@ -1,13 +1,13 @@
 using System.Collections.ObjectModel;
-using FlashMemo.Model.Persistence;
 using FlashMemo.Model.Domain;
+using FlashMemo.Model;
 
 namespace FlashMemo.Services;
 
-public class LearningPool()
+public class LearningPool<TCard> where TCard: class, ICard
 {
-    private readonly PriorityQueue<CardEntity, DateTime> cardPool = new(initialCapacity: 8);
-    public void Add(CardEntity card)
+    private readonly PriorityQueue<TCard, DateTime> cardPool = new(initialCapacity: 8);
+    public void Add(TCard card)
     {
         if (card.IsDueNow || card.Due is null || card.State != CardState.Learning)
             throw new InvalidOperationException(
@@ -15,14 +15,14 @@ public class LearningPool()
 
         cardPool.Enqueue(card, (DateTime)card.Due);
     }
-    public CardEntity? TryPopEarly()
+    public TCard? TryPopEarly()
     {
         if (cardPool.TryDequeue(out var card, out _))
             return card;
 
         return null;
     }
-    public void InjectDueInto(Stack<CardEntity> allCards)
+    public void InjectDueInto(Stack<TCard> allCards)
     {
         var dueCards = GetDue();
 
@@ -31,9 +31,9 @@ public class LearningPool()
     }
     public int Count => cardPool.Count;
 
-    private ReadOnlyCollection<CardEntity> GetDue()
+    private ReadOnlyCollection<TCard> GetDue()
     {
-        List<CardEntity> dueLearning = [];
+        List<TCard> dueLearning = [];
 
         while (cardPool.TryPeek(out var card, out _) && card.IsDueNow)
         {

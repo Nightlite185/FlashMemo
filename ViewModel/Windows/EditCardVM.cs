@@ -11,7 +11,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
 : EditorVMBase(cs, tr, cr), ICloseRequest, IPopupHost, IReloadHandler
 {
-    public CardItemVM CardVM { get; protected set; } = null!; //* factory sets this
+    public CardVM CardVM { get; protected set; } = null!; //* factory sets this
     public PopupVMBase? CurrentPopup { get; set; }
 
     #region methods

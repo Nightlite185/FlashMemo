@@ -23,12 +23,12 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IReloadHandler, IFi
 
     #region Public properties
     [ObservableProperty]
-    public partial ObservableCollection<CardItemVM> Cards { get; set; }
+    public partial ObservableCollection<CardVM> Cards { get; set; }
 
     [ObservableProperty]
     public partial string SearchBar { get; set; }
     
-    public IReadOnlyCollection<CardItemVM> GetSelectedCards()
+    public IReadOnlyCollection<CardVM> GetSelectedCards()
         => [..Cards.Where(vm => vm.IsSelected)];
     
     [ObservableProperty]
@@ -99,7 +99,7 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IReloadHandler, IFi
     private readonly ICardQueryService cardQueryS;
     private readonly FiltersVM filtersVM;
     private EditCardVM? editVM;
-    private IReadOnlyCollection<CardItemVM>? capturedCards;
+    private IReadOnlyCollection<CardVM>? capturedCards;
     private long loadedUserId;
     private Filters? cachedFilters;
     #endregion

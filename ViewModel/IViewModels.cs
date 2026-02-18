@@ -24,8 +24,10 @@ public interface INavRequestSender
     public event Func<NavigationRequest, Task>? NavRequested;
 }
 
+[Obsolete("Replace with event-based communication.")]
 public interface IReloadHandler
 {
+    [Obsolete("Replace with event-based communication.")]
     public Task ReloadAsync(ReloadTargets rt);
 }
 

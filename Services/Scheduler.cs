@@ -5,21 +5,6 @@ namespace FlashMemo.Services;
    
 public static class Scheduler
 {
-    [Obsolete]
-    public static void Schedule(this Card card, Answers answer, DeckOptions.SchedulingOpt options)
-    {
-        ScheduleInfo info = answer switch
-        {
-            Answers.Easy => ProcessEasy(card, options),
-            Answers.Good => ProcessGood(card, options),
-            Answers.Hard => ProcessHard(card, options),
-            Answers.Again => ProcessAgain(card, options),
-
-            _ => throw new ArgumentException($"Invalid value of Answer enum - {answer}", nameof(answer))
-        };
-
-        card.Review(info);
-    }
     public static SchedulePermutations GetForecast(ICard card, DeckOptions.SchedulingOpt options)
     {
         return new(

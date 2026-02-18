@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.Model.Domain;
-using System.Windows.Threading;
 using System.Diagnostics;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
@@ -24,22 +23,19 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         learningPool = new();
 
         stopWatch = new();
-        // timer = new() { Interval = TimeSpan.FromSeconds(0.5) };
-        // timer.Tick += (_, _) => UpdateTime();
     }
     
     #region public properties
-    [ObservableProperty]
+    
     [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(IsCardLoaded), nameof(ReviewedCount))]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
-    public partial CardEntity? CurrentCard { get; set; } // TODO: change type later to ICard
+    [ObservableProperty] public partial CardVM? CurrentCard { get; set; }
 
-    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanReview), nameof(CanRevealAnswer))]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
-    public partial bool AnswerRevealed { get; set; } = false;
+    [ObservableProperty] public partial bool AnswerRevealed { get; set; } = false;
 
     public IDeckMeta Deck { get; init; }
     public string FrontContent => CurrentCard?.FrontContent
@@ -74,17 +70,18 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     public PopupVMBase? CurrentPopup { get; set; }
     public CardsCountVM CardsCount { get; private set; } = null!;
     public event Func<Task>? OnDecksNavRequest;
+    public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     #endregion
 
     #region methods
     internal async Task InitAsync(CardCtxMenuVM ctxMenu) //* called in factory
     {
-        cardCtxMenu = ctxMenu;
+        this.CtxMenuVM = ctxMenu;
 
         (var freshCards, var count) = await cardQuery
             .GetForStudy(Deck.Id);
 
-        this.cards = new(freshCards);
+        this.cards = new (freshCards.Select(c => new CardVM(c)));
         this.CardsCount = (CardsCountVM)count;
         this.InitialCount = cards.Count;
 
@@ -117,7 +114,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         if (cards.TryPop(out var popped))
             CurrentCard = popped;
 
-        else if (learningPool.TryPopEarly() is CardEntity card)
+        else if (learningPool.TryPopEarly() is CardVM card)
             CurrentCard = card;
 
         else
@@ -151,7 +148,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         learningPool.InjectDueInto(cards);
 
         if (updatedSchedule.State == CardState.Learning)
-            learningPool.Add(reviewed);
+            learningPool.Add(new(reviewed));
 
         CardsCount.UpdateCount(cards, learningPool.Count);
 
@@ -165,11 +162,9 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     private readonly long userId;
     private readonly DeckOptions deckOptions;
     private readonly ICardService cardService;
-    private CardCtxMenuVM cardCtxMenu = null!;
     private readonly ICardQueryService cardQuery;
-    private readonly LearningPool learningPool;
-    private Stack<CardEntity> cards = null!;
-    // private readonly DispatcherTimer timer = null!;
+    private readonly LearningPool<CardVM> learningPool;
+    private Stack<CardVM> cards = null!;
     private readonly Stopwatch stopWatch = null!;
 
     private bool IsCardLoaded => CurrentCard is not null;
@@ -184,7 +179,6 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     [RelayCommand(CanExecute = nameof(CanRevealAnswer))]
     private void RevealAnswer()
     {
-        // show answer layer here
         AnswerRevealed = true;
 
         SchedulePerms = Scheduler.GetForecast(
@@ -221,7 +215,17 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
 
         await NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId));
 
-        //TODO: when coming back from the editor to this VM, gotta reload the card and pull any possible changed from db;
+        //TODO: when coming back from the editor to this VM, gotta update the card;
+    }
+
+    [RelayCommand]
+    private void ShowCtxMenu()
+    {
+        if (CurrentCard is null) 
+            throw new InvalidOperationException(
+            "Tried opening ctx menu with no currently loaded card.");
+
+        CtxMenuVM.OpenMenu([CurrentCard]);
     }
 
     [RelayCommand]

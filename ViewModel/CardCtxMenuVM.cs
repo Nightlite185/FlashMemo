@@ -20,7 +20,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 {
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     #region ICommands
-    //* IMPORTANT: commands that open a window -> dont get async,
+    //* commands that open a window -> dont get async,
     //* but those that directly call async internal methods and use services -> should
 
     [RelayCommand]
@@ -75,7 +75,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         foreach (var vm in capturedCards!)
         {
             vm.IsDeleted = true;
-            vm.NotifyUI();
+            vm.NotifyChanged();
         }
         
         await cardRepo.DeleteCards(
@@ -99,7 +99,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     #endregion
     
     #region methods
-    public void OpenMenu(IReadOnlyCollection<CardItemVM> selected)
+    public void OpenMenu(IReadOnlyCollection<CardVM> selected)
     {
         if (capturedCards is not null)
             throw new InvalidOperationException(
@@ -108,7 +108,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         capturedCards = [..selected];
     }
 
-    ///<summary> Called this when user closed ctx menu without clicking on any option </summary>
+    ///<summary> Called when user closed ctx menu without clicking on any option </summary>
     public void CloseMenu() => capturedCards = null;
     private void ThrowIfNoCardsCaptured(string? calledMember)
     {
@@ -128,7 +128,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         foreach (var vm in capturedCards!)
         {
             cardModifier(vm.ToEntity());
-            vm.NotifyUI();
+            vm.NotifyChanged();
         }
 
         await cardService.SaveEditedCards(
@@ -176,7 +176,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IPopupHost popupHost = pph;
     private readonly IReloadHandler reloadHandler = rh;
-    private IReadOnlyCollection<CardItemVM>? capturedCards;
+    private IReadOnlyCollection<CardVM>? capturedCards;
     private long userId = userId;
     #endregion
 }

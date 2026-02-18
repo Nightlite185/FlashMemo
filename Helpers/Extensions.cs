@@ -38,8 +38,8 @@ public static class Extensions
         return false;
     }
 
-    public static IEnumerable<CardItemVM> ToVMs(this IEnumerable<CardEntity> cards)
-        => cards.Select(c => new CardItemVM(c));
+    public static IEnumerable<CardVM> ToVMs(this IEnumerable<CardEntity> cards)
+        => cards.Select(c => new CardVM(c));
 
     public static IEnumerable<TagVM> ToVMs(this IEnumerable<Tag> tags)
         => tags.Select(t => new TagVM(t));
@@ -47,7 +47,7 @@ public static class Extensions
     public static IEnumerable<Tag> ToEntities(this IEnumerable<TagVM> tags)
         => tags.Select(t => t.ToEntity());
 
-    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<CardItemVM> cards)
+    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<CardVM> cards)
         => cards.Select(c => c.ToEntity());
     
     public static Expression<Func<CardEntity, bool>> OnSameDay(this Expression<Func<CardEntity, bool>> expr, Func<CardEntity, DateTime?> selector, DateTime when)

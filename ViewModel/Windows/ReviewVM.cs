@@ -24,8 +24,8 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         learningPool = new();
 
         stopWatch = new();
-        timer = new() { Interval = TimeSpan.FromSeconds(1) };
-        timer.Tick += (_, _) => UpdateTime();
+        // timer = new() { Interval = TimeSpan.FromSeconds(0.5) };
+        // timer.Tick += (_, _) => UpdateTime();
     }
     
     #region public properties
@@ -57,16 +57,10 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     }
     
     public int InitialCount { get; private set; }
-    public int ReviewedCount
-    {
-        get
-        {
-            if (cards.Count == 0 && learningPool.Count == 0)
-                return InitialCount;
-
-            return InitialCount - cards.Count - learningPool.Count - 1;
-        }
-    }
+    public int ReviewedCount => InitialCount
+        - cards.Count
+        - learningPool.Count
+        - (CurrentCard is null ? 0 : 1);
 
     [ObservableProperty]
     public partial string ElapsedTime { get; set; } = "00:00";
@@ -95,7 +89,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         this.InitialCount = cards.Count;
 
         ShowNextCard();
-        StartTimer();
+        stopWatch.Start();
     }
     private ScheduleInfo GetScheduleInfo(Answers answer)
     {
@@ -132,23 +126,13 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
             IsSessionFinished = true;
         }
     }
-    private void StopTimer()
-    {
-        stopWatch.Reset();
-        timer.Stop();
 
-        UpdateTime();
-    }
-    private void StartTimer()
-    {
-        stopWatch.Start();
-        timer.Start();
-    }
-    private void UpdateTime()
+    internal void UpdateTime()
         => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
+
     private async Task ReviewAsync(Answers answer)
     {
-        StopTimer();
+        stopWatch.Reset();
 
         if (!IsCardLoaded)
             throw new InvalidOperationException(
@@ -172,7 +156,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         CardsCount.UpdateCount(cards, learningPool.Count);
 
         ShowNextCard();
-        StartTimer();
+        stopWatch.Start();
     }
     
     #endregion
@@ -185,7 +169,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     private readonly ICardQueryService cardQuery;
     private readonly LearningPool learningPool;
     private Stack<CardEntity> cards = null!;
-    private readonly DispatcherTimer timer = null!;
+    // private readonly DispatcherTimer timer = null!;
     private readonly Stopwatch stopWatch = null!;
 
     private bool IsCardLoaded => CurrentCard is not null;

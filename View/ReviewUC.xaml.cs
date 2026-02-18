@@ -23,9 +23,11 @@ public partial class ReviewUC : UserControl
         if (DataContext is not ReviewVM vm)
             return;
 
-        vm.PropertyChanged += (_, args) =>
+        CompositionTarget.Rendering += (_, _) => vm.UpdateTime();
+
+        vm.PropertyChanged += (_, e) =>
         {
-            if (args.PropertyName == nameof(vm.CurrentCard))
+            if (e.PropertyName == nameof(vm.CurrentCard))
             {
                 LoadCard(vm);
             }

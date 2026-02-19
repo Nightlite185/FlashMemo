@@ -5,10 +5,11 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class ReviewVMF(ICardService cs, ICardQueryService cqs, CardCtxMenuVMF ctx, IDeckOptionsRepo dor)
+public class ReviewVMF(ICardService cs, ICardQueryService cqs, CardCtxMenuVMF ctx, IDeckOptionsRepo dor, ICardRepo cr)
 {
     private readonly ICardService cardService = cs;
     private readonly ICardQueryService cardQuery = cqs;
+    private readonly ICardRepo cardRepo = cr;
     private readonly CardCtxMenuVMF ctxMenuVMF = ctx;
     private readonly IDeckOptionsRepo deckOptRepo = dor;
 
@@ -18,10 +19,10 @@ public class ReviewVMF(ICardService cs, ICardQueryService cqs, CardCtxMenuVMF ct
 
         var vm = new ReviewVM(
             cardService, cardQuery, 
-            userId, deck, deckOpt);
+            userId, deck, deckOpt, cardRepo);
 
         var ctxMenu = ctxMenuVMF
-            .Create(vm, vm, userId);
+            .Create(vm, userId);
 
         await vm.InitAsync(ctxMenu);
 

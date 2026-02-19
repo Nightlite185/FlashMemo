@@ -1,5 +1,4 @@
 using System.Windows;
-using FlashMemo.Model.Persistence;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
@@ -25,47 +24,50 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
     {
         switch (req)
         {
-            case BrowseNavRequest b:
-                await ShowBrowse(b.UserId);
+            case BrowseNavRequest e:
+                await ShowBrowse(e);
                 break;
 
-            case CreateCardNavRequest cc:
-                ShowCreateCard(cc.TargetDeck);
+            case CreateCardNavRequest e:
+                ShowCreateCard(e);
                 await Task.CompletedTask;
                 break;
 
-            case EditCardNavRequest ec:
-                await ShowEditCard(ec.CardId, ec.UserId);
+            case EditCardNavRequest e:
+                await ShowEditCard(e);
                 break;
 
-            case UserSelectNavRequest us:
-                await ShowUserSelect(us.CurrentUserId);
+            case UserSelectNavRequest e:
+                await ShowUserSelect(e.CurrentUserId);
                 break;
 
-            case UserOptionsNavRequest uo:
-                await ShowUserOptions(uo.UserId);
+            case UserOptionsNavRequest e:
+                await ShowUserOptions(e);
                 break;
         }
     }
 
     #region window showing dispatchers
-    private async Task ShowBrowse(long userId)
+    private async Task ShowBrowse(BrowseNavRequest e)
     {
-        var vm = await browseVMF.CreateAsync(userId);
+        var vm = await browseVMF.CreateAsync(e.UserId);
         var win = sp.GetRequiredService<BrowseWindow>();
 
         WireHelper(vm, win);
     }
-    private async Task ShowEditCard(long cardId, long userId)
+    private async Task ShowEditCard(EditCardNavRequest e)
     {
-        var vm = await editCardVMF.CreateAsync(cardId, userId);
+        var vm = await editCardVMF.CreateAsync(e.CardId, e.UserId);
         var win = sp.GetRequiredService<EditCardWindow>();
+
+        if (e.Sender is IClosedHandler ch)
+            vm.Closed += ch.OnClosed;
 
         WireHelper(vm, win);
     }
-    private void ShowCreateCard(IDeckMeta targetDeck)
+    private void ShowCreateCard(CreateCardNavRequest e)
     {
-        var vm = createCardVMF.Create(targetDeck);
+        var vm = createCardVMF.Create(e.TargetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();
 
         WireHelper(vm, win);
@@ -83,9 +85,9 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
 
         WireHelper(vm, win);
     }
-    private async Task ShowUserOptions(long userId)
+    private async Task ShowUserOptions(UserOptionsNavRequest e)
     {
-        var vm = await userOptionsVMF.CreateAsync(userId);
+        var vm = await userOptionsVMF.CreateAsync(e.UserId);
         var win = sp.GetRequiredService<UserOptionsWindow>();
 
         WireHelper(vm, win);
@@ -113,11 +115,14 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
     }
     internal void WireEvents(IViewModel vm, Window win)
     {
-        if (vm is INavRequestSender reqSender)
-            reqSender.NavRequested += NavRequestHandler;
+        if (vm is INavRequestSender nrs)
+            nrs.NavRequested += NavRequestHandler;
 
-        if (vm is ICloseRequest closable)
-            closable.OnCloseRequest += win.Close;
+        if (vm is ICloseRequest cr)
+            cr.OnCloseRequest += win.Close;
+
+        if (vm is IClosedHandler ch)
+            win.Closed += (_, _) => ch.OnClosed();
     }
     #endregion
 }

@@ -16,7 +16,7 @@ namespace FlashMemo.ViewModel;
     Tags, Cards, DeckTree
 }
 
-public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, IReloadHandler rh, DeckSelectVMF dsVMF, long userId): ObservableObject
+public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, DeckSelectVMF dsVMF, long userId): ObservableObject
 {
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     #region ICommands
@@ -163,8 +163,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             CardAction.Modify
         );
 
-        if (globalTagsEdited)
-            await reloadHandler.ReloadAsync(ReloadTargets.Tags | ReloadTargets.Cards);
+        //if (globalTagsEdited)
+            // raise event about sth modified.
 
         PopupCancel();
     }
@@ -175,7 +175,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     private readonly ICardRepo cardRepo = cr;
     private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IPopupHost popupHost = pph;
-    private readonly IReloadHandler reloadHandler = rh;
     private IReadOnlyCollection<CardVM>? capturedCards;
     private long userId = userId;
     #endregion

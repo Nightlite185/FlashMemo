@@ -20,7 +20,7 @@ public class BrowseVMF(ICardQueryService cqs,
             userId
         );
 
-        var ccm = cardCtxMenuVMF.Create(bvm, bvm, userId);
+        var ccm = cardCtxMenuVMF.Create(bvm, userId);
 
         await filtersVM.InitializeAsync(bvm);
         bvm.Initialize(ccm);

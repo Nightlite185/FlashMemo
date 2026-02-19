@@ -7,7 +7,7 @@ public interface ICardRepo
 {
     Task DeleteCards(IEnumerable<CardEntity> cards);
     Task AddCard(CardEntity card);
-    Task<CardEntity> GetCard(long cardId);
+    Task<CardEntity> GetById(long cardId);
 }
 
 public interface IDeckRepo

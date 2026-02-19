@@ -6,12 +6,13 @@ using FlashMemo.Model.Domain;
 using System.Diagnostics;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
+using FlashMemo.Repositories;
 
 namespace FlashMemo.ViewModel.Windows;
     
-public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
+public partial class ReviewVM: NavBaseVM, IPopupHost
 {
-    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck, DeckOptions deckOpt)
+    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck, DeckOptions deckOpt, ICardRepo cr)
     {
         this.userId = userId;
         this.Deck = deck;
@@ -20,6 +21,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
 
         cardService = cs;
         cardQuery = cqs;
+        cardRepo = cr;
         learningPool = new();
 
         stopWatch = new();
@@ -105,9 +107,14 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
                 $"Invalid Answers enum value: {answer}")
         };
     }
-    public Task ReloadAsync(ReloadTargets rt)
+    public async Task ReloadCurrentCardAsync()
     {
-        throw new NotImplementedException();
+        if (CurrentCard is null)
+            throw new InvalidOperationException(
+            "Can't reload current card since there was none loaded atm.");
+
+        CurrentCard = new CardVM(
+            await cardRepo.GetById(CurrentCard.Id));
     }
     private void ShowNextCard()
     {
@@ -163,6 +170,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
     private readonly DeckOptions deckOptions;
     private readonly ICardService cardService;
     private readonly ICardQueryService cardQuery;
+    private readonly ICardRepo cardRepo;
     private readonly LearningPool<CardVM> learningPool;
     private Stack<CardVM> cards = null!;
     private readonly Stopwatch stopWatch = null!;
@@ -203,7 +211,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
 
 
     [RelayCommand(CanExecute = nameof(CanReview))]
-    private async Task EasyAnswer() 
+    private async Task EasyAnswer()
         => await ReviewAsync(Answers.Easy);
     #endregion
 
@@ -213,15 +221,14 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IReloadHandler
         if (!IsCardLoaded) throw new InvalidOperationException(
         "tried to open card editor, but no card was loaded.");
 
-        await NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId));
-
-        //TODO: when coming back from the editor to this VM, gotta update the card;
+        await NavigateTo(new EditCardNavRequest(
+            CurrentCard!.Id, userId, this));
     }
 
     [RelayCommand]
     private void ShowCtxMenu()
     {
-        if (CurrentCard is null) 
+        if (CurrentCard is null)
             throw new InvalidOperationException(
             "Tried opening ctx menu with no currently loaded card.");
 

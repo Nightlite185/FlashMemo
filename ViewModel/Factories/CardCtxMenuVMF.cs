@@ -10,11 +10,11 @@ public class CardCtxMenuVMF(ICardRepo cr, ICardService cs, ManageTagsVMF mtVMF, 
     private readonly ICardService cardService = cs;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
 
-    public CardCtxMenuVM Create(IPopupHost pph, IReloadHandler rh, long userId)
+    public CardCtxMenuVM Create(IPopupHost pph, long userId)
     {
         return new(
             cardService, cardRepo, 
-            manageTagsVMF, pph, rh, 
+            manageTagsVMF, pph,
             deckSelectVMF, userId);
     }
 }

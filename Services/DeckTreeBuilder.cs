@@ -12,7 +12,7 @@ public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilde
     public async Task<IEnumerable<DeckNode>> BuildAsync(long userId)
     {
         var decksLookup = await deckRepo
-            .BuildDeckLookupAsync(userId);
+            .BuildDeckLookup(userId);
 
         return BuildDeckLevel(
             parentId: null, decksLookup);
@@ -21,7 +21,7 @@ public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilde
     public async Task<IEnumerable<DeckNode>> BuildCountedAsync(long userId)
     {
         var decksLookup = await deckRepo
-            .BuildDeckLookupAsync(userId);
+            .BuildDeckLookup(userId);
 
         var cardsCount = await counter
             .CardsByState(userId, onlyForStudy: true);

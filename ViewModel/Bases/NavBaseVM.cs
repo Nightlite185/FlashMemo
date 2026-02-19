@@ -9,6 +9,7 @@ public record BrowseNavRequest(long UserId): NavigationRequest;
 public record UserOptionsNavRequest(long UserId): NavigationRequest;
 public record EditCardNavRequest(long CardId, long UserId, NavBaseVM Sender): NavigationRequest;
 public record CreateCardNavRequest(IDeckMeta TargetDeck): NavigationRequest;
+public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 
 public abstract class NavBaseVM: ObservableObject, IViewModel, INavRequestSender
 {

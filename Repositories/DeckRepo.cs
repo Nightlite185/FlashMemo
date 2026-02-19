@@ -26,7 +26,7 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .SingleAsync(d => d.Id == deckId);
     }
 
-    public async Task SaveEditedDeckAsync(Deck updated)
+    public async Task SaveEditedDeck(Deck updated)
     {
         var db = GetDb;
 
@@ -39,14 +39,14 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
         await db.SaveChangesAsync();
     }
-    public async Task AddNewDeckAsync(Deck deck)
+    public async Task AddNewDeck(Deck deck)
     {
         var db = GetDb;
         
         await db.Decks.AddAsync(deck);
         await db.SaveChangesAsync();
     }
-    public async Task RemoveDeckAsync(long deckId)
+    public async Task RemoveDeck(long deckId)
     {
         var db = GetDb;
 
@@ -54,7 +54,7 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .Where(d => d.Id == deckId)
             .ExecuteDeleteAsync();
     }
-    public async Task<Deck> LoadDeckAsync(long deckId)
+    public async Task<Deck> GetById(long deckId)
     {
         var db = GetDb;
 
@@ -62,7 +62,7 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .AsNoTracking()
             .SingleAsync(d => d.Id == deckId);
     }
-    public async Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null)
+    public async Task<ILookup<long?, Deck>> BuildDeckLookup(long userId, AppDbContext? db = null)
     {
         db ??= GetDb;
 
@@ -98,7 +98,7 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .SingleAsync();
 
         var deckTree = await
-            BuildDeckLookupAsync(userId, db);
+            BuildDeckLookup(userId, db);
 
         List<long> childrenIds = [];
 

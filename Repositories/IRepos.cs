@@ -13,11 +13,11 @@ public interface ICardRepo
 public interface IDeckRepo
 {
     ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
-    Task SaveEditedDeckAsync(Deck updated);
-    Task AddNewDeckAsync(Deck deck);
-    Task RemoveDeckAsync(long deckId);
-    Task<Deck> LoadDeckAsync(long id);
-    Task<ILookup<long?, Deck>> BuildDeckLookupAsync(long userId, AppDbContext? db = null);
+    Task SaveEditedDeck(Deck updated);
+    Task AddNewDeck(Deck deck);
+    Task RemoveDeck(long deckId);
+    Task<Deck> GetById(long id);
+    Task<ILookup<long?, Deck>> BuildDeckLookup(long userId, AppDbContext? db = null);
     Task<IEnumerable<long>> GetChildrenIds(long deckId);
     Task<IDeckMeta> GetFirstDeckMeta(long userId);
     Task<IDeckMeta> GetDeckMetaById(long deckId);

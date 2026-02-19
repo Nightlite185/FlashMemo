@@ -24,26 +24,26 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     //* but those that directly call async internal methods and use services -> should
 
     [RelayCommand]
-    public async Task MoveCardsCtx()
+    private async Task MoveCardsCtx()
     {
         popupHost.CurrentPopup = await deckSelectVMF
             .CreateAsync(MoveCards, PopupCancel, userId);
     }
 
     [RelayCommand]
-    public void ShowRescheduleCtx() // this lets u choose datetime
+    private void ShowRescheduleCtx() // this lets u choose datetime
     {
         popupHost.CurrentPopup = new RescheduleVM(RescheduleCards, PopupCancel);
     }
 
     [RelayCommand]
-    public void ShowPostponeCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
-    {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE 
+    private void ShowPostponeCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
+    {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE
         popupHost.CurrentPopup = new PostponeVM(PostponeCards, PopupCancel);
     }
 
     [RelayCommand]
-    public async Task ForgetCardsCtx()
+    private async Task ForgetCardsCtx()
     {
         await ModifyCardsHelper(
             c => c.Forget(),
@@ -52,7 +52,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     }
 
     [RelayCommand]
-    public async Task ToggleBuryCtx()
+    private async Task ToggleBuryCtx()
     {
         await ModifyCardsHelper(
             c => c.FlipBuried(),
@@ -61,7 +61,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     }
 
     [RelayCommand]
-    public async Task ToggleSuspendedCtx()
+    private async Task ToggleSuspendedCtx()
     {
         await ModifyCardsHelper(
             c => c.FlipSuspended(),
@@ -70,8 +70,10 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     }
 
     [RelayCommand]
-    public async Task DeleteCardsCtx()
+    private async Task DeleteCardsCtx()
     {
+        ThrowIfNoCardsCaptured(nameof(DeleteCardsCtxCommand));
+
         foreach (var vm in capturedCards!)
         {
             vm.IsDeleted = true;
@@ -82,10 +84,11 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             capturedCards.Select(vm => vm.ToEntity()));
     }
 
-    [RelayCommand]
-    public async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
+    [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
+    private async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
     {
-        
+        ThrowIfNotOneCaptured();
+
         long cardId = capturedCards!
             .Single().Id;
 
@@ -94,6 +97,14 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             cancel: PopupCancel,
             cardId, userId
         );
+    }
+    [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
+    private async Task ShowCardDetails()
+    {
+        ThrowIfNotOneCaptured();
+
+        // show it here
+        throw new NotImplementedException();
     }
     
     #endregion
@@ -115,6 +126,12 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         if (capturedCards is null || capturedCards.Count == 0)
             throw new InvalidOperationException(
             $"Called {calledMember}, but there are no captured cards yet.");
+    }
+    private void ThrowIfNotOneCaptured([CallerMemberName] string? caller = null)
+    {
+        if (capturedCards?.Count != 1)
+            throw new InvalidOperationException(
+            $"To execute this there needs to be only one card captured, but there was {(capturedCards is null ? "null" : capturedCards.Count)}");
     }
     private void PopupCancel()
     {
@@ -171,6 +188,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     #endregion
     
     #region private things
+    private bool CanExecuteIfOneCard => capturedCards?.Count == 1;
     private readonly ICardService cardService = cs;
     private readonly ICardRepo cardRepo = cr;
     private readonly ManageTagsVMF manageTagsVMF = mtVMF;

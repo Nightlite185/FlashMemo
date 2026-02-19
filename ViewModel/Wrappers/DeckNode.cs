@@ -1,12 +1,15 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class DeckNode : ObservableObject, IViewModel, IDeckMeta
+public partial class DeckNode : NavBaseVM, IDeckMeta
 {
+    private readonly Deck deck;   
     public DeckNode(Deck deck, ICollection<DeckNode> children, CardsCount? countByState = null)
     {
         this.deck = deck;
@@ -21,26 +24,14 @@ public partial class DeckNode : ObservableObject, IViewModel, IDeckMeta
     #region public properties
     public long Id => deck.Id;
     public long UserId => deck.UserId;
-    private readonly Deck deck;
+    public long OptionsId => deck.OptionsId;
     public ObservableCollection<DeckNode> Children { get; set; }
-
-    [ObservableProperty]
-    public partial string Name { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsExpanded { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsSelected { get; set; }
-    
-    [ObservableProperty]
-    public partial int LessonsCount { get; set; }
-
-    [ObservableProperty]
-    public partial int LearningCount { get; set; }
-
-    [ObservableProperty]
-    public partial int ReviewsCount { get; set; }
+    [ObservableProperty] public partial string Name { get; set; }
+    [ObservableProperty] public partial bool IsExpanded { get; set; }
+    [ObservableProperty] public partial bool IsSelected { get; set; }
+    [ObservableProperty] public partial int LessonsCount { get; set; }
+    [ObservableProperty] public partial int LearningCount { get; set; }
+    [ObservableProperty] public partial int ReviewsCount { get; set; }
     #endregion
     
     #region methods
@@ -50,7 +41,7 @@ public partial class DeckNode : ObservableObject, IViewModel, IDeckMeta
         {
             LessonsCount = validCC.Lessons;
             LearningCount = validCC.Learning;
-            ReviewsCount = validCC.Reviews;   
+            ReviewsCount = validCC.Reviews;
         }
 
         else
@@ -64,6 +55,26 @@ public partial class DeckNode : ObservableObject, IViewModel, IDeckMeta
     {
         deck.Name = Name;
         return deck;
+    }
+    #endregion
+    
+    #region Ctx ICommands
+    [RelayCommand]
+    private async Task ShowDeckOptions()
+    {
+        await NavigateTo(new DeckOptionsNavRequest(Id));
+    }
+
+    [RelayCommand]
+    private async Task DeleteMe()
+    {
+        throw new NotImplementedException();
+    }
+
+    [RelayCommand]
+    private async Task RenameMe()
+    {
+        throw new NotImplementedException();
     }
     #endregion
 }

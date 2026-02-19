@@ -3,13 +3,15 @@ using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
 
 public class WindowService
 (IServiceProvider sp, BrowseVMF bVMF, EditCardVMF ecVMF, 
-CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
+CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuVMF domVMF)
 {
     #region private fields
     private readonly IServiceProvider sp = sp;
@@ -18,6 +20,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
     private readonly CreateCardVMF createCardVMF = ccVMF;
     private readonly UserSelectVMF userSelectVMF = usVMF;
     private readonly UserOptionsVMF userOptionsVMF = uoVMF;
+    private readonly DeckOptionsMenuVMF deckOptionsMenuVMF = domVMF;
     #endregion
 
     private async Task NavRequestHandler(NavigationRequest req)
@@ -43,6 +46,10 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
 
             case UserOptionsNavRequest e:
                 await ShowUserOptions(e);
+                break;
+
+            case DeckOptionsNavRequest e:
+                await ShowDeckOptions(e);
                 break;
         }
     }
@@ -89,6 +96,14 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF)
     {
         var vm = await userOptionsVMF.CreateAsync(e.UserId);
         var win = sp.GetRequiredService<UserOptionsWindow>();
+
+        WireHelper(vm, win);
+    }
+
+    private async Task ShowDeckOptions(DeckOptionsNavRequest e)
+    {
+        var vm = await deckOptionsMenuVMF.CreateAsync(e.DeckId);
+        var win = sp.GetRequiredService<DeckOptionsWindow>();
 
         WireHelper(vm, win);
     }

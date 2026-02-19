@@ -66,6 +66,7 @@ public partial class App : Application
         sc.AddTransient<EditCardWindow>();
         sc.AddTransient<CreateCardWindow>();
         sc.AddTransient<UserSelectWindow>();
+        sc.AddTransient<DeckOptionsWindow>();
         
         // ==== VM FACTORIES ====
         sc.AddSingleton<DeckOptionsMenuVMF>();

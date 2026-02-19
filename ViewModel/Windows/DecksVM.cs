@@ -43,7 +43,7 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
             .CreateNew(name, userId);
         
         await deckRepo
-            .AddNewDeckAsync(deck);
+            .AddNewDeck(deck);
         
         DeckNode node = new(
             deck: deck,

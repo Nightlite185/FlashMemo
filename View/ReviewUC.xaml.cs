@@ -20,17 +20,22 @@ public partial class ReviewUC : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not ReviewVM vm)
+        if (DataContext is not ReviewVM vm) 
             return;
 
+        // ctx menu events
+        MoreButton.ContextMenu.DataContext = vm.CtxMenuVM;
+        MoreButton.ContextMenuClosing += (_, _) => vm.CtxMenuVM.CloseMenu();
+        MoreButton.ContextMenuOpening += (_, _) => vm.ShowCtxMenuCommand.Execute(null);
+
+        // timer event
         CompositionTarget.Rendering += (_, _) => vm.UpdateTime();
 
+        // current card rendering
         vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(vm.CurrentCard))
-            {
                 LoadCard(vm);
-            }
         };
 
         LoadCard(vm);
@@ -128,10 +133,11 @@ public partial class ReviewUC : UserControl
 
     private void MoreButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.ContextMenu is not null)
-        {
-            btn.ContextMenu.PlacementTarget = btn;
-            btn.ContextMenu.IsOpen = true;
-        }
+        if (sender is not Button btn 
+        || btn.ContextMenu is null)
+            return;
+
+        btn.ContextMenu.PlacementTarget = btn;
+        btn.ContextMenu.IsOpen = true;
     }
 }

@@ -272,6 +272,7 @@
                 <!-- More -->
                 <Button
                     Grid.Column="2"
+                    Name="MoreButton"
                     Content="More"
                     Style="{StaticResource NavButtonStyle}"
                     Width="78"

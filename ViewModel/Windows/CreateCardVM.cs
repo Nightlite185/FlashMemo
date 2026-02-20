@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
+using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
@@ -12,9 +13,10 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, 
 IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss)
-: ObservableObject, ICloseRequest, IPopupHost, IViewModel
+: NavBaseVM, ICloseRequest, IPopupHost
 {
     #region private things
+    private const int HistoryCap = 10;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     private readonly ILastSessionService lastSession = lss;
     private readonly ICardService cardService = cs;
@@ -31,6 +33,8 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss)
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
+
+    public Queue<CardEntity> History { get; init; } = [];
     #endregion
 
     #region methods
@@ -60,6 +64,11 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss)
 
         await cardRepo.AddCard(card);
 
+        History.Enqueue(card);
+
+        if (History.Count > HistoryCap)
+            History.Dequeue();
+
         WipCard = new();
     }
     
@@ -69,6 +78,13 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss)
         CurrentPopup = await deckSelectVMF.CreateAsync(
             ChangeDeck, ClosePopup,
             CurrentDeck.UserId);
+    }
+
+    [RelayCommand]
+    private async Task ShowEditOnHistory(ICard card)
+    {
+        await NavigateTo(new EditCardNavRequest(
+            card.Id, CurrentDeck.UserId));
     }
 
     public event Action? OnCloseRequest;

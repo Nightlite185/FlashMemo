@@ -120,11 +120,27 @@
                 <Button
                     Grid.Column="2"
                     Content="History"
-                    Click="HistoryButtonClicked"
                     Style="{StaticResource NavButtonStyle}"
                     Width="76"
                     Height="39"
-                    Margin="0, 0, 0, 0"/>
+                    Click="HistoryButtonClicked">
+                    
+                    <Button.ContextMenu>
+                        <ContextMenu
+                            ItemsSource="{Binding History}">
+                            <ContextMenu.ItemTemplate>
+                                <DataTemplate>
+                                    <MenuItem
+                                        Header="{Binding FrontContent, Converter={StaticResource XamlToTextConverter}}"
+                                        Command="{Binding DataContext.ShowEditOnHistoryCommand,
+                                            RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        ItemTemplate="{StaticResource HistoryContextItemTemplate}"/>
+                                </DataTemplate>
+                            </ContextMenu.ItemTemplate>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
 
                 <!-- Add button -->
                 <Button

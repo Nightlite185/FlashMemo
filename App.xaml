@@ -25,6 +25,9 @@
         <helpers:TimeSpanHumanizer
             x:Key="TimeSpanHumanizer"/>
 
+        <helpers:XamlToTextConverter
+            x:Key="XamlToTextConverter"/>
+
             <!-- ===== ViewModel → View Mapping ===== -->
 
         <DataTemplate DataType="{x:Type vm:DecksVM}">
@@ -273,6 +276,30 @@
                 Converter={StaticResource BoolToVisConverter}}"/>
         </Style>
 
+        <DataTemplate x:Key="HistoryContextItemTemplate">
+
+            <Button
+                Height="34"
+                Padding="8,0"
+                HorizontalContentAlignment="Left"
+                Background="Transparent"
+                BorderThickness="0"
+                Foreground="White"
+
+                Command="{Binding DataContext.ShowEditFromHistoryCommand,
+                    RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+
+                CommandParameter="{Binding}">
+
+                <TextBlock
+                    Text="{Binding FrontContent,
+                        Converter={StaticResource XamlToTextConverter}}"
+                    TextWrapping="NoWrap"
+                    TextTrimming="CharacterEllipsis"/>
+
+            </Button>
+
+        </DataTemplate>
 
     </Application.Resources>
 </Application>

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 using FlashMemo.Repositories;
+using FlashMemo.Model;
 
 namespace FlashMemo.ViewModel.Windows;
     
@@ -23,6 +24,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
         cardQuery = cqs;
         cardRepo = cr;
         learningPool = new();
+        ReviewHistory = [];
 
         stopWatch = new();
     }
@@ -71,8 +73,9 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
 
     public PopupVMBase? CurrentPopup { get; set; }
     public CardsCountVM CardsCount { get; private set; } = null!;
-    public event Func<Task>? OnDecksNavRequest;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
+    public Queue<CardEntity> ReviewHistory { get; private init; }
+    public event Func<Task>? OnDecksNavRequest;
     #endregion
 
     #region methods
@@ -131,6 +134,21 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
         }
     }
 
+    private void UpdateOnReview(CardEntity reviewed, ScheduleInfo schedule)
+    {
+        learningPool.InjectDueInto(cards);
+
+        if (schedule.State == CardState.Learning)
+            learningPool.Add(new(reviewed));
+
+        CardsCount.UpdateCount(cards, learningPool.Count);
+
+        ReviewHistory.Enqueue(reviewed);
+
+        if (ReviewHistory.Count > HistoryCap)
+            ReviewHistory.Dequeue();
+    }
+
     internal void UpdateTime()
         => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
 
@@ -152,12 +170,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
             updatedSchedule, answer,
             stopWatch.Elapsed);
 
-        learningPool.InjectDueInto(cards);
-
-        if (updatedSchedule.State == CardState.Learning)
-            learningPool.Add(new(reviewed));
-
-        CardsCount.UpdateCount(cards, learningPool.Count);
+        UpdateOnReview(reviewed, updatedSchedule);
 
         ShowNextCard();
         stopWatch.Start();
@@ -174,7 +187,8 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
     private readonly LearningPool<CardVM> learningPool;
     private Stack<CardVM> cards = null!;
     private readonly Stopwatch stopWatch = null!;
-
+    private const int HistoryCap = 10;
+    
     private bool IsCardLoaded => CurrentCard is not null;
     private bool CanReview
         => IsCardLoaded && AnswerRevealed;
@@ -223,6 +237,13 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
 
         await NavigateTo(new EditCardNavRequest(
             CurrentCard!.Id, userId, this));
+    }
+
+    [RelayCommand]
+    private async Task ShowEditFromHistory(ICard card)
+    {
+        await NavigateTo(new EditCardNavRequest(
+            card.Id, userId));
     }
 
     [RelayCommand]

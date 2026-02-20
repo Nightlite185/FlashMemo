@@ -70,6 +70,37 @@ public class TimeSpanHumanizer : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class XamlToTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType,
+        object parameter, CultureInfo culture)
+    {
+        if (value is not string xaml || string.IsNullOrWhiteSpace(xaml))
+            return "";
+
+        try
+        {
+            var doc = XamlSerializer.FromXaml(xaml);
+            string text = XamlSerializer.GetPlainText(doc);
+
+            int idx = text.IndexOfAny(['\r', '\n']);
+
+            return idx >= 0
+                ? text[..idx].Trim()
+                : text.Trim();
+        }
+        
+        catch
+        {
+            return "[invalid]";
+        }
+    }
+
+    public object ConvertBack(object value, Type targetType,
+        object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}
 #endregion
 
 #region AutoMapper converters

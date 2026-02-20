@@ -7,7 +7,7 @@ public record NavigationRequest; // base request type
 public record UserSelectNavRequest(long CurrentUserId): NavigationRequest;
 public record BrowseNavRequest(long UserId): NavigationRequest;
 public record UserOptionsNavRequest(long UserId): NavigationRequest;
-public record EditCardNavRequest(long CardId, long UserId, NavBaseVM Sender): NavigationRequest;
+public record EditCardNavRequest(long CardId, long UserId, NavBaseVM? Sender = null): NavigationRequest;
 public record CreateCardNavRequest(IDeckMeta TargetDeck): NavigationRequest;
 public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 

@@ -140,4 +140,12 @@ public partial class ReviewUC : UserControl
         btn.ContextMenu.PlacementTarget = btn;
         btn.ContextMenu.IsOpen = true;
     }
+    private void HistoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.ContextMenu is null)
+            return;
+
+        btn.ContextMenu.PlacementTarget = btn;
+        btn.ContextMenu.IsOpen = true;
+    }
 }

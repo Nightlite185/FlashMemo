@@ -73,7 +73,11 @@ namespace FlashMemo.View
 
         public void HistoryButtonClicked(object sender, RoutedEventArgs e)
         {
-            // show ctx menu here listing the last ~8 cards created
+            if (sender is not Button btn || btn.ContextMenu is null)
+                return;
+
+            btn.ContextMenu.PlacementTarget = btn;
+            btn.ContextMenu.IsOpen = true;
         }
 
         private bool IsEditorEmpty()

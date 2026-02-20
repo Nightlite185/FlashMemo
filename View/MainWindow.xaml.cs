@@ -2,34 +2,32 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace FlashMemo.View
+namespace FlashMemo.View;
+public interface IViewFor<TViewModel>
 {
-    public interface IViewFor<TViewModel>
+    TViewModel VM { get; set; }
+}
+public partial class MainWindow: Window, IViewFor<MainVM>
+{
+    public MainVM VM { get; set; } = null!;
+    
+    public MainWindow()
     {
-        TViewModel VM { get; set; }
+        InitializeComponent();
     }
-    public partial class MainWindow: Window, IViewFor<MainVM>
+
+    internal void ChangeDataCtx(MainVM vm)
     {
-        public MainVM VM { get; set; } = null!;
-        
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+        DataContext = vm;
+        VM = vm;
+    }
 
-        internal void ChangeDataCtx(MainVM vm)
+    private void DeckOptions_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button bt && bt.ContextMenu != null)
         {
-            DataContext = vm;
-            VM = vm;
-        }
-
-        private void DeckOptions_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button bt && bt.ContextMenu != null)
-            {
-                bt.ContextMenu.PlacementTarget = bt;
-                bt.ContextMenu.IsOpen = true;
-            }
+            bt.ContextMenu.PlacementTarget = bt;
+            bt.ContextMenu.IsOpen = true;
         }
     }
 }

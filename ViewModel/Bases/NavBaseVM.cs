@@ -8,14 +8,14 @@ public record UserSelectNavRequest(long CurrentUserId): NavigationRequest;
 public record BrowseNavRequest(long UserId): NavigationRequest;
 public record UserOptionsNavRequest(long UserId): NavigationRequest;
 public record EditCardNavRequest(long CardId, long UserId, NavBaseVM? Sender = null): NavigationRequest;
-public record CreateCardNavRequest(IDeckMeta TargetDeck): NavigationRequest;
+public record CreateCardNavRequest(IDeckMeta TargetDeck, NavBaseVM? Sender = null): NavigationRequest;
 public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 
 public abstract class NavBaseVM: ObservableObject, IViewModel, INavRequestSender
 {
     public event Func<NavigationRequest, Task>? NavRequested;
 
-    public void RegisterBubbling(NavBaseVM vm) 
+    public void RegisterNavBubbling(NavBaseVM vm) 
         => vm.NavRequested += NavRequested;
 
     protected async Task NavigateTo(NavigationRequest where)

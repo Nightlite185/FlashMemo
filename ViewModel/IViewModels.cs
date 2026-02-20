@@ -37,11 +37,12 @@ public interface IPopupHost
 public interface IDisplayHost
 {
     object CurrentDisplay { get; set; }
+    event Func<Task>? NotifyRefresh;
 }
 
 public interface IClosedHandler
 {
-    Task OnClosed();
+    Task OnDialogClosed();
 }
 
 public interface IViewModel;

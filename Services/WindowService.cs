@@ -68,7 +68,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         var win = sp.GetRequiredService<EditCardWindow>();
 
         if (e.Sender is IClosedHandler ch)
-            vm.Closed += ch.OnClosed;
+            win.Closed += (_, _) => ch.OnDialogClosed();
 
         WireHelper(vm, win);
     }
@@ -76,6 +76,9 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
     {
         var vm = createCardVMF.Create(e.TargetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();
+
+        if (e.Sender is IClosedHandler ch)
+            win.Closed += (_, _) => ch.OnDialogClosed();
 
         WireHelper(vm, win);
     }
@@ -137,7 +140,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
             cr.OnCloseRequest += win.Close;
 
         if (vm is IClosedHandler ch)
-            win.Closed += (_, _) => ch.OnClosed();
+            win.Closed += (_, _) => ch.OnDialogClosed();
     }
     #endregion
 }

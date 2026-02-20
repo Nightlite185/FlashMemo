@@ -4,33 +4,31 @@ using System.Windows.Input;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 
-namespace FlashMemo.View
+namespace FlashMemo.View;
+public partial class DecksUC: UserControl
 {
-    public partial class DecksUC: UserControl
+    public DecksUC()
     {
-        public DecksUC()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+    }
 
-        private void TreeViewItem_DoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is not TreeViewItem item ||
-                item.DataContext is not DeckNode deck ||
-                this.DataContext is not DecksVM vm) 
-            { return; }
+    private void TreeViewItem_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not TreeViewItem item
+        || item.DataContext is not DeckNode deck
+        || this.DataContext is not DecksVM vm) 
+            return;
 
-            vm.ShowReviewCommand.Execute(deck);
-        }
+        vm.ShowReviewCommand.Execute(deck);
+    }
 
-        private void DeckTree_SelectedChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    private void DeckTree_SelectedChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (sender is TreeView treeView &&
+            treeView.DataContext is DecksVM vm &&
+            e.NewValue is DeckNode selected)
         {
-            if (sender is TreeView treeView &&
-                treeView.DataContext is DecksVM vm &&
-                e.NewValue is DeckNode selected)
-            {
-                vm.SelectedDeck = selected;
-            }
+            vm.SelectedDeck = selected;
         }
     }
 }

@@ -9,7 +9,7 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
-: ICloseRequest, IPopupHost, IClosedHandler, IViewModel
+: ICloseRequest, IPopupHost, IViewModel
 {
     public CardVM CardVM { get; protected set; } = null!; //* factory sets this
     public PopupVMBase? CurrentPopup { get; set; }
@@ -66,12 +66,5 @@ public partial class EditCardVM(ICardService cs, ITagRepo tr, ICardRepo cr)
     protected virtual void CancelChanges() => OnCloseRequest?.Invoke();
     #endregion
 
-    public event Func<Task>? Closed;
-    public async Task OnClosed()
-    {
-        if (Closed is null) await Task.CompletedTask;
-
-        Closed?.Invoke();
-    }
     public event Action? OnCloseRequest;
 }

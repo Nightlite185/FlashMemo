@@ -67,8 +67,8 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
     private async Task SyncDecks() => await SyncDeckTree();
     
     [RelayCommand]
-    private void ShowReview(DeckNode deck) 
-        => OnReviewShowRequest?.Invoke(deck);
+    private void ShowReview(DeckNode deck)
+        => OnReviewNavRequest?.Invoke(deck);
     #endregion
 
     #region public properties
@@ -80,7 +80,7 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
 
-    public event Func<IDeckMeta, Task>? OnReviewShowRequest;
+    public event Func<IDeckMeta, Task>? OnReviewNavRequest;
     #endregion
 
     #region private things

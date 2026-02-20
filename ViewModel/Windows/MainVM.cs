@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Bases;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
-: NavBaseVM, IViewModel, IDisplayHost
+: NavBaseVM, IViewModel, IDisplayHost, IClosedHandler
 {
     // called by factory only. Need this two-step creation cuz circular dependency
     internal void Initialize(IDisplayControl dsControl)
@@ -19,16 +19,20 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
         display.SwitchToDecks(UserId);
     }
 
+    public async Task OnDialogClosed() => NotifyRefresh?.Invoke();
+
     [ObservableProperty]
     //* current User Control being displayed in the main window, bound to this VM
     public partial object CurrentDisplay { get; set; }
     public long UserId { get; private set; } = userId;
+    public event Func<Task>? NotifyRefresh;
     
     #region ICommands
     [RelayCommand]
     public async Task DisplayDecks()
     {
-        await display.SwitchToDecks(UserId);
+        if (CurrentDisplay is not DecksVM)
+            await display.SwitchToDecks(UserId);
     }
 
     [RelayCommand]
@@ -66,7 +70,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
         // finally, just get first (oldest) deck from db with current user's id
         else deck = await deckRepo.GetFirstDeckMeta(UserId);
         
-        await NavigateTo(new CreateCardNavRequest(deck));
+        await NavigateTo(new CreateCardNavRequest(deck, this));
     }
 
     [RelayCommand]
@@ -78,13 +82,14 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
     [RelayCommand]
     private async Task DisplayStats()
     {
-        await display.SwitchToStats(UserId);
+        if (CurrentDisplay is not StatsVM)
+            await display.SwitchToStats(UserId);
     }
     #endregion
 
     #region private things
     private IDisplayControl display = null!;
     private readonly IDeckRepo deckRepo = dr;
-    private readonly ILastSessionService lastSession = lss;
+    private readonly ILastSessionService lastSession = lss;    
     #endregion
 }

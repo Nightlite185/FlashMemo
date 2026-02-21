@@ -19,7 +19,9 @@ public interface IDeckRepo
     Task<Deck> GetById(long id);
     Task<ILookup<long?, Deck>> BuildDeckLookup(long userId, AppDbContext? db = null);
     Task<IEnumerable<long>> GetChildrenIds(long deckId);
-    Task<IDeckMeta> GetFirstDeckMeta(long userId);
+    
+    ///<returns>first deck from the db. If no decks found -> null</returns>
+    Task<IDeckMeta?> GetFirstDeckMeta(long userId);
     Task<IDeckMeta> GetDeckMetaById(long deckId);
 }
 

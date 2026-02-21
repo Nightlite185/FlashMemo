@@ -5,7 +5,7 @@ namespace FlashMemo.Repositories;
     
 public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory), IDeckRepo
 {
-    public async Task<IDeckMeta> GetFirstDeckMeta(long userId)
+    public async Task<IDeckMeta?> GetFirstDeckMeta(long userId)
     {
         var db = GetDb;
 
@@ -13,7 +13,7 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .AsNoTracking()
             .Where(d => d.UserId == userId)
             .Cast<IDeckMeta>()
-            .FirstAsync();
+            .FirstOrDefaultAsync();
     }
     
     public async Task<IDeckMeta> GetDeckMetaById (long deckId)

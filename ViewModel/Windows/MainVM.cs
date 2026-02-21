@@ -68,7 +68,10 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
             deck = await deckRepo.GetDeckMetaById(id);
 
         // finally, just get first (oldest) deck from db with current user's id
-        else deck = await deckRepo.GetFirstDeckMeta(UserId);
+        else if (await deckRepo.GetFirstDeckMeta(UserId) is IDeckMeta first)
+            deck = first;
+
+        else return; // TODO: maybe show some warning messagebox in code-behind like "you have no decks so you cant add cards".
         
         await NavigateTo(new CreateCardNavRequest(deck, this));
     }

@@ -34,6 +34,8 @@ public record class DeckOptions
     public sealed record class SchedulingOpt
     {
         #region defaults
+        public const int LearningStagesCount = 3;
+
         public const float DefGoodMultiplier = 2.0f; 
         public const float DefEasyMultiplier = 3.0f; 
         public const float DefHardMultiplier = 0.8f; 

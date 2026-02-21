@@ -1,12 +1,305 @@
 ﻿<Window x:Class="FlashMemo.View.DeckOptionsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FlashMemo.View"
-        mc:Ignorable="d"
-        Title="DeckOptionsWindow" Height="450" Width="800">
-    <Grid>
-        
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:wrappers="clr-namespace:FlashMemo.ViewModel.Wrappers" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        Title="Deck Options"
+        Width="900"
+        Height="720"
+        Background="#FF1E1E1E"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="16">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ================= TOP BAR ================= -->
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+
+            <!-- Preset Selector -->
+            <ComboBox
+                Width="350"
+                ItemsSource="{Binding AllPresets}"
+                SelectedItem="{Binding CurrentOptions}"
+                DisplayMemberPath="Name"
+                DockPanel.Dock="Left"/>
+
+            <!-- Save Button -->
+            <Button
+                Content="Save"
+                Style="{StaticResource NavButtonStyle}"
+                Command="{Binding SaveChangesCommand}"
+                DockPanel.Dock="Right"
+                Width="90"/>
+
+            <!-- Menu -->
+            <Menu DockPanel.Dock="Right" Margin="0,0,8,0">
+                <MenuItem Header="⋮">
+                    <MenuItem Header="Clone"
+                              Command="{Binding ClonePresetFromCommand}"
+                              CommandParameter="{Binding CurrentOptions}"/>
+
+                    <MenuItem Header="Delete"
+                              Command="{Binding DeleteCurrentPresetCommand}"/>
+
+                    <MenuItem Header="Reset to Default"
+                              Command="{Binding ToDefaultCommand}"/>
+
+                    <MenuItem Header="Revert"
+                              Command="{Binding RevertChangesCommand}"/>
+                </MenuItem>
+            </Menu>
+
+        </DockPanel>
+
+        <!-- ================= CONTENT ================= -->
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+
+            <StackPanel>
+
+                <!-- ===== DAILY LIMITS ===== -->
+
+                <Border Style="{StaticResource OptionsCardStyle}">
+                    <StackPanel>
+
+                        <TextBlock
+                            Text="Daily Limits"
+                            Style="{StaticResource OptionsSectionTitleStyle}"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Text="New cards / day"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.DailyLimits.DailyLessonsLimit}"/>
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Text="Reviews / day"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.DailyLimits.DailyReviewsLimit}"/>
+
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== SCHEDULING ===== -->
+
+                <Border Style="{StaticResource OptionsCardStyle}">
+                    <StackPanel>
+
+                        <TextBlock
+                            Text="Scheduling Multipliers"
+                            Style="{StaticResource OptionsSectionTitleStyle}"/>
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Text="Good multiplier"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.GoodMultiplier}"/>
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Text="Easy multiplier"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.EasyMultiplier}"/>
+
+                            <TextBlock
+                                Grid.Row="2"
+                                Text="Hard multiplier"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.HardMultiplier}"/>
+
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== STAGES ===== -->
+
+                <Border Style="{StaticResource OptionsCardStyle}">
+                    <StackPanel>
+
+                        <TextBlock
+                            Text="Stages and Intervals"
+                            Style="{StaticResource OptionsSectionTitleStyle}"/>
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="240"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Text="Graduate day count"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.GraduateDayCount}"/>
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Text="Easy on new (days)"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.EasyOnNewDayCount}"/>
+
+                            <TextBlock
+                                Grid.Row="2"
+                                Text="Again review stage"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.AgainOnReviewStage}"/>
+
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== SORTING ===== -->
+
+                <Border Style="{StaticResource OptionsCardStyle}">
+                    <StackPanel>
+
+                        <TextBlock
+                            Text="Sorting"
+                            Style="{StaticResource OptionsSectionTitleStyle}"/>
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Text="Lesson order"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <ComboBox
+                                Grid.Column="1"
+                                ItemsSource="{Binding LessonOrderEnum}"
+                                SelectedItem="{Binding CurrentOptions.Sorting.LessonsOrder}"/>
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Text="Review order"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <ComboBox
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                ItemsSource="{Binding ReviewOrderEnum}"
+                                SelectedItem="{Binding CurrentOptions.Sorting.ReviewsOrder}"/>
+
+                            <TextBlock
+                                Grid.Row="2"
+                                Text="Card order"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <ComboBox
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                ItemsSource="{Binding CardStateOrderEnum}"
+                                SelectedItem="{Binding CurrentOptions.Sorting.CardStateOrder}"/>
+
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+
+        </ScrollViewer>
+
+        <!-- ================= BOTTOM ================= -->
+
+        <StackPanel
+            Grid.Row="2"
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            Margin="0,12,0,0">
+
+            <Button
+                Content="Close"
+                Width="100"
+                Style="{StaticResource NavButtonStyle}"
+                IsCancel="True"/>
+
+        </StackPanel>
+
     </Grid>
 </Window>

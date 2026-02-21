@@ -17,6 +17,17 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     [ObservableProperty]
     public partial DeckOptionsVM CurrentOptions { get; set; } = null!;
     public ObservableCollection<DeckOptionsVM> AllPresets { get; init; } = [];
+    public IEnumerable<LessonOrder> LessonOrderEnum =>
+        Enum.GetValues<LessonOrder>();
+
+    public IEnumerable<ReviewOrder> ReviewOrderEnum =>
+        Enum.GetValues<ReviewOrder>();
+
+    public IEnumerable<CardStateOrder> CardStateOrderEnum =>
+        Enum.GetValues<CardStateOrder>();
+
+    public IEnumerable<SortingDirection> SortingDirectionEnums =>
+        Enum.GetValues<SortingDirection>();
     #endregion
 
     #region methods
@@ -115,9 +126,9 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         // TODO: if any not-persisted changes made -> "are you sure?" pop-up opens from code behind, only if confirmed then call this.
         //* DeckOptVM on which the ctx menu was opened goes here as "CommandParam" or whatever its called.
         
-        CurrentOptions.DecksAssigned--; // decrementing previous preset's deck count
+        CurrentOptions.AssignedDecksCount--; // decrementing previous preset's deck count
         CurrentOptions = chosenPreset;
-        CurrentOptions.DecksAssigned++; // incrementing new one's
+        CurrentOptions.AssignedDecksCount++; // incrementing new one's
 
         deck.OptionsId = chosenPreset.Id;
 

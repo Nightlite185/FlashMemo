@@ -301,5 +301,38 @@
 
         </DataTemplate>
 
+        <!-- Options Panel Card -->
+        <Style x:Key="OptionsCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FF2A2E34"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="BorderBrush" Value="{StaticResource NavBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Options Section Title -->
+        <Style x:Key="OptionsSectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <!-- Options Label -->
+        <Style x:Key="OptionsLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Options TextBox -->
+        <Style x:Key="OptionsTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
     </Application.Resources>
 </Application>

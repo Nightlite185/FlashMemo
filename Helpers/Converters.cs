@@ -1,10 +1,12 @@
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using static FlashMemo.Model.Domain.DeckOptions.SchedulingOpt;
 
 namespace FlashMemo.Helpers;
 
@@ -120,5 +122,27 @@ public class ImmutableArrToList<T> : IValueConverter<ImmutableArray<T>, List<T>>
 {
     public List<T> Convert(ImmutableArray<T> sourceMember, ResolutionContext context)
         => [..sourceMember];
+}
+
+public class ObsColToImmutableArr : IValueConverter<ObservableCollection<int>, ImmutableArray<TimeSpan>>
+{
+    public ImmutableArray<TimeSpan> Convert(ObservableCollection<int> sourceMember, ResolutionContext context)
+    {
+        if (sourceMember.Count != LearningStagesCount)
+            throw new InvalidOperationException($"There must always be {LearningStagesCount} learning stages");
+
+        return [..sourceMember.Select(x => TimeSpan.FromMinutes(x))];
+    }
+}
+
+public class ImmutableArrToObsCol : IValueConverter<ImmutableArray<TimeSpan>, ObservableCollection<int>>
+{
+    public ObservableCollection<int> Convert(ImmutableArray<TimeSpan> sourceMember, ResolutionContext context)
+    {
+        if (sourceMember.Length != LearningStagesCount)
+            throw new InvalidOperationException($"There must always be {LearningStagesCount} learning stages");
+
+        return [..sourceMember.Select(ts => ts.Minutes)];
+    }
 }
 #endregion

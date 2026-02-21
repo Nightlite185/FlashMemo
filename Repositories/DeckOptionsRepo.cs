@@ -30,7 +30,9 @@ public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory, IMapper 
 
         var options = await db.DeckOptions
             .AsNoTracking()
-            .Where(x => x.UserId == userId)
+            .Where(x => 
+                x.UserId == userId 
+             || x.UserId == null)
             .ToArrayAsync();
 
         return options.Select(mapper.Map<DeckOptions>);

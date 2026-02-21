@@ -4,6 +4,7 @@ using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
 using static FlashMemo.ViewModel.Wrappers.DeckOptionsVM;
 
 namespace FlashMemo.Model;
@@ -23,16 +24,26 @@ public sealed class MappingProfile: Profile
         #endregion
 
         #region Deck options (VM <-> record)
-        CreateMap<DeckOptionsMenuVM, DeckOptions>();
-        CreateMap<DeckOptions, DeckOptionsMenuVM>();
+        CreateMap<DeckOptionsVM, DeckOptions>()
+            .ForMember(vm => vm.Decks, opt => 
+                opt.ConvertUsing(new ListToImmutableArr<long>()));
 
-        CreateMap<OrderingOptVM, DeckOptions.SortingOpt>();
-        CreateMap<SchedulingOptVM, DeckOptions.SchedulingOpt>();
-        CreateMap<DailyLimitsOptVM, DeckOptions.DailyLimitsOpt>();
+        CreateMap<DeckOptions, DeckOptionsVM>()
+            .ForMember(d => d.Decks, opt =>
+                opt.ConvertUsing(new ImmutableArrToList<long>()));
 
-        CreateMap<DeckOptions.SortingOpt, OrderingOptVM>();
-        CreateMap<DeckOptions.SchedulingOpt, SchedulingOptVM>();
-        CreateMap<DeckOptions.DailyLimitsOpt, DailyLimitsOptVM>();
+        CreateMap<DeckOptionsVM.SortingOpt, DeckOptions.SortingOpt>();
+        CreateMap<DeckOptionsVM.DailyLimitsOpt, DeckOptions.DailyLimitsOpt>();
+        CreateMap<DeckOptionsVM.SchedulingOpt, DeckOptions.SchedulingOpt>()
+            .ForMember(vm => vm.LearningStages, opt => 
+                opt.ConvertUsing(new ObsColToImmutableArr()));
+
+        CreateMap<DeckOptions.SortingOpt, DeckOptionsVM.SortingOpt>();
+        CreateMap<DeckOptions.DailyLimitsOpt, DeckOptionsVM.DailyLimitsOpt>();
+        CreateMap<DeckOptions.SchedulingOpt, DeckOptionsVM.SchedulingOpt>()
+            .ForMember(d => d.LearningStages, opt => 
+                opt.ConvertUsing(new ImmutableArrToObsCol()));
+                
         #endregion
 
         #region Deck options (entity <-> record)

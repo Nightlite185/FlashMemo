@@ -112,7 +112,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     [RelayCommand]
     private void ChangePreset(DeckOptionsVM chosenPreset)
     {
-        // TODO: if any not-persisted changes made and this is called -> "are you sure?" pop-up opens.
+        // TODO: if any not-persisted changes made -> "are you sure?" pop-up opens from code behind, only if confirmed then call this.
         //* DeckOptVM on which the ctx menu was opened goes here as "CommandParam" or whatever its called.
         
         CurrentOptions.DecksAssigned--; // decrementing previous preset's deck count

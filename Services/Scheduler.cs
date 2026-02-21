@@ -48,9 +48,10 @@ public static class Scheduler
             learningStage: null,
 
             interval: (card.State == CardState.New)
-                ? new TimeSpan(days: s.EasyOnNewDayCount, 0, 0, 0)
+                ? TimeSpan.FromDays(s.EasyOnNewDayCount)
+
             : (card.State == CardState.Learning)
-                ? new TimeSpan(days: (int)Math.Round(s.EasyMultiplier, MidpointRounding.AwayFromZero), 0, 0, 0)
+                ? TimeSpan.FromDays(s.GraduateDayCount)
                 : card.Interval * s.EasyMultiplier
         );
     }
@@ -68,29 +69,28 @@ public static class Scheduler
 
             CardState.Review => new(
                 interval: card.Interval * s.GoodMultiplier,
-                state: card.State,
+                state: CardState.Review,
                 learningStage: null
             ),
             
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
         };
     }
+    
+    // had to be separate method bc its a whole another world of things to consider, would get too messy.
     private static ScheduleInfo ProcessGoodIfLearningStage(ICard card, DeckOptions.SchedulingOpt s)
     {
-        /* this case has to be separate cuz next params depend on the previous variables set -> not to repeat the same ifs.
-        calling a ctor in switch case can't dynamically depend on previous args since the struct doesnt even exist yet. */
-
-        int? learningStage = (card.LearningStage == 2) // if its already last learning stage:
+        int? learningStage = (card.LearningStage == s.LearningStages.Length -1) // if its already last learning stage:
             ? null                              // set to null
             : card.LearningStage + 1;           // else just add one 
 
-        CardState state = (learningStage == null)
+        CardState state = (learningStage is null)
             ? CardState.Review
             : CardState.Learning;
 
         TimeSpan interval = (state == CardState.Learning)
             ? s.LearningStages[(int)learningStage!]
-            : new TimeSpan(days: (int)Math.Round(s.GoodMultiplier, MidpointRounding.AwayFromZero), 0, 0, 0);
+            : TimeSpan.FromDays(s.GraduateDayCount);
 
 
         return new(

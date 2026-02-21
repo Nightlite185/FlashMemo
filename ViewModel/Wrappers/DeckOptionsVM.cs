@@ -26,9 +26,9 @@ public partial class DeckOptionsVM: ObservableObject
         [ObservableProperty] public partial float GoodMultiplier { get; set; }
         [ObservableProperty] public partial float EasyMultiplier { get; set; }
         [ObservableProperty] public partial float HardMultiplier { get; set; }
-        [ObservableProperty] public partial int AgainDayCount { get; set; }
         [ObservableProperty] public partial List<TimeSpan> LearningStages { get; set; } = null!; // in minutes
-        [ObservableProperty] public partial int AgainStageFallback { get; set; }
+        [ObservableProperty] public partial int GraduateDayCount { get; set; }
+        [ObservableProperty] public partial int AgainOnReviewStage { get; set; }
         [ObservableProperty] public partial int GoodOnNewStage { get; set; }
         [ObservableProperty] public partial int EasyOnNewDayCount { get; set; }
         [ObservableProperty] public partial int HardOnNewStage { get; set; }

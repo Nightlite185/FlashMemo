@@ -34,26 +34,26 @@ public record class DeckOptions
     public sealed record class SchedulingOpt
     {
         #region defaults
-        public const float DefGoodMultiplier = 2.0f;
-        public const float DefEasyMultiplier = 3.0f;
-        public const float DefHardMultiplier = 0.8f;
-        public const int DefAgainDayCount = 1;
-        public const int DefEasyOnNewDayCount = 3;
-        public const int DefAgainOnReviewStage = 1; // mid stage by default
-        public static readonly ImmutableArray<TimeSpan> DefLearningStages = [ // all those are in minutes for now
+        public const float DefGoodMultiplier = 2.0f; 
+        public const float DefEasyMultiplier = 3.0f; 
+        public const float DefHardMultiplier = 0.8f; 
+        public const int DefGraduateDayCount = 1; 
+        public const int DefEasyOnNewDayCount = 2; 
+        public const int DefAgainOnReviewStage = 1; 
+        public static readonly ImmutableArray<TimeSpan> DefLearningStages = [
             TimeSpan.FromMinutes(4),
             TimeSpan.FromMinutes(8),
             TimeSpan.FromMinutes(15)
         ];
-        public const int DefGoodOnNewStage = 2; // last one, bc there should be always 3 elements of the learning stages
-        public const int DefHardOnNewStage = 1; // clicking hard on new card lands in the middle of learning stages.
+        public const int DefGoodOnNewStage = 2; 
+        public const int DefHardOnNewStage = 1; 
 
         public static readonly SchedulingOpt Default = new()
         {
             GoodMultiplier = DefGoodMultiplier,
             EasyMultiplier = DefEasyMultiplier,
             HardMultiplier = DefHardMultiplier,
-            AgainDayCount = DefAgainDayCount,
+            GraduateDayCount = DefGraduateDayCount,
             EasyOnNewDayCount = DefEasyOnNewDayCount,
             AgainOnReviewStage = DefAgainOnReviewStage,
             LearningStages = DefLearningStages,
@@ -63,15 +63,15 @@ public record class DeckOptions
         #endregion
         
         #region options
-        public float GoodMultiplier { get; init; }
-        public float EasyMultiplier { get; init; }
-        public float HardMultiplier { get; init; }
-        public int AgainDayCount { get; init; }
-        public required ImmutableArray<TimeSpan> LearningStages { get; init; }
-        public int EasyOnNewDayCount { get; init; }
-        public int GoodOnNewStage { get; init; }
-        public int AgainOnReviewStage { get; init; }
-        public int HardOnNewStage { get; init; }
+        public float GoodMultiplier { get; init; } //* a number that your interval is multiplied by when clicking good on a review card.
+        public float EasyMultiplier { get; init; } //* a number that your interval is multiplied by when clicking easy on a review card.
+        public float HardMultiplier { get; init; } //* a number that your interval is multiplied by when clicking hard on a review card.
+        public required ImmutableArray<TimeSpan> LearningStages { get; init; } //* all those are in minutes 
+        public int GraduateDayCount { get; init; } //* updated interval in days when passing the last stage of learning, into review state (by either answering good on last learning stage or easy or any learning stage).
+        public int EasyOnNewDayCount { get; init; } //* updated interval in days after clicking easy on a new card.
+        public int GoodOnNewStage { get; init; } //* learning stage you land on after clicking good on a new card.
+        public int AgainOnReviewStage { get; init; } //* learning stage you land on, when you click again on a review card.
+        public int HardOnNewStage { get; init; } //* learning stage you land on after clicking hard on a new card.
         #endregion
     }
     public sealed record class DailyLimitsOpt
@@ -79,17 +79,17 @@ public record class DeckOptions
         #region defaults
         public static readonly DailyLimitsOpt Default = new()
         {
-            NewIgnoreReviewLimit = DefNewIgnoreReviewLimit,
+            //NewIgnoreReviewLimit = DefNewIgnoreReviewLimit,
             DailyReviewsLimit = DefDailyReviewsLimit,
             DailyLessonsLimit = DefDailyLessonsLimit
         };
-        public const bool DefNewIgnoreReviewLimit = true;
+        //public const bool DefNewIgnoreReviewLimit = true;
         public const int DefDailyReviewsLimit = 20;
         public const int DefDailyLessonsLimit = 10;
         #endregion
 
         #region options
-        public bool NewIgnoreReviewLimit { get; init; }
+        // public bool NewIgnoreReviewLimit { get; init; }
         public int DailyReviewsLimit { get; init; }
         public int DailyLessonsLimit { get; init; }
         #endregion

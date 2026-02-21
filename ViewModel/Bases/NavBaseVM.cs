@@ -14,9 +14,8 @@ public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 public abstract class NavBaseVM: ObservableObject, IViewModel, INavRequestSender
 {
     public event Func<NavigationRequest, Task>? NavRequested;
-
-    public void RegisterNavBubbling(NavBaseVM vm) 
-        => vm.NavRequested += NavRequested;
+    public void RegisterNavBubbling(NavBaseVM vm)
+        => vm.NavRequested += NavigateTo;
 
     protected async Task NavigateTo(NavigationRequest where)
     {

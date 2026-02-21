@@ -3,8 +3,6 @@ using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
-using FlashMemo.ViewModel.Windows;
-using FlashMemo.ViewModel.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlashMemo.Services;
@@ -139,7 +137,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         if (vm is ICloseRequest cr)
             cr.OnCloseRequest += win.Close;
 
-        if (vm is IClosedHandler ch)
+        if (vm is IClosedHandler ch && win is not MainWindow)
             win.Closed += (_, _) => ch.OnDialogClosed();
     }
     #endregion

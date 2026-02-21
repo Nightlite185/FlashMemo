@@ -10,6 +10,8 @@ public partial class DeckOptionsVM: ObservableObject
     public List<long> Decks { get; set; } = [];
     public IReadOnlyCollection<long> AssignedDeckIds => [..Decks];
     [ObservableProperty] public partial string Name { get; set; }
+
+    // TODO: consider replacing this with a derived property from deck ids list on the vm.
     [ObservableProperty] public partial int AssignedDecksCount { get; set; }
 
     [ObservableProperty] public partial SortingOpt Sorting { get; set; }

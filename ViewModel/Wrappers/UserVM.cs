@@ -7,11 +7,12 @@ namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class UserVM: ObservableObject, IViewModel
 {
+    [Obsolete("TODO: get this repo out of here and replace with event bubbling to parent, requesting commit.")]
     private readonly IUserRepo userRepo;
     public UserVM(UserEntity u, UserVMStats stats, IUserRepo ur)
     {
-        this.userRepo = ur;
-        this.user = u;
+        userRepo = ur;
+        user = u;
         Name = u.Name;
 
         ReadyForReview = stats.ReadyForReview;

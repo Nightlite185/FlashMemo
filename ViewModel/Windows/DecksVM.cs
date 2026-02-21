@@ -11,7 +11,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
+public partial class DecksVM: NavBaseVM, IPopupHost
 {
     public DecksVM(IDeckRepo dr, IDeckTreeBuilder dtb, long userId)
     {
@@ -69,6 +69,25 @@ public partial class DecksVM: ObservableObject, IViewModel, IPopupHost
     [RelayCommand]
     private void ShowReview(DeckNode deck)
         => OnReviewNavRequest?.Invoke(deck);
+
+    [RelayCommand]
+    private async Task ShowDeckOptions(DeckNode? deck)
+    {
+        if (deck is not null)
+            await NavigateTo(new DeckOptionsNavRequest(deck.Id));
+    }
+
+    [RelayCommand]
+    private async Task RemoveDeck(DeckNode deck)
+    {
+        throw new NotImplementedException();
+    }
+
+    [RelayCommand]
+    private async Task RenameDeck(string newName)
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 
     #region public properties

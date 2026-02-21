@@ -9,7 +9,7 @@ namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class DeckNode : NavBaseVM, IDeckMeta
 {
-    private readonly Deck deck;   
+    private readonly Deck deck;
     public DeckNode(Deck deck, ICollection<DeckNode> children, CardsCount? countByState = null)
     {
         this.deck = deck;
@@ -55,26 +55,6 @@ public partial class DeckNode : NavBaseVM, IDeckMeta
     {
         deck.Name = Name;
         return deck;
-    }
-    #endregion
-    
-    #region Ctx ICommands
-    [RelayCommand]
-    private async Task ShowDeckOptions()
-    {
-        await NavigateTo(new DeckOptionsNavRequest(Id));
-    }
-
-    [RelayCommand]
-    private async Task DeleteMe()
-    {
-        throw new NotImplementedException();
-    }
-
-    [RelayCommand]
-    private async Task RenameMe()
-    {
-        throw new NotImplementedException();
     }
     #endregion
 }

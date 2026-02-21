@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:FlashMemo.View" 
              xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" 
              xmlns:helpers="clr-namespace:FlashMemo.Helpers"
+             x:Name="Root"
              d:DataContext="{d:DesignInstance Type=windows:DecksVM}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -122,7 +123,12 @@
                             <Button.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Rename"/>
-                                    <MenuItem Header="Options"/>
+
+                                    <MenuItem
+                                        Header="Options"
+                                        Command="{Binding DataContext.ShowDeckOptionsCommand, Source={x:Reference Root}}"
+                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        
                                     <MenuItem Header="Export"/>
                                     <Separator/>
                                     <MenuItem Header="Delete"/>

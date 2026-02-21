@@ -1,5 +1,6 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;

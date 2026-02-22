@@ -14,7 +14,8 @@ namespace FlashMemo.ViewModel.Windows;
 public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsRepo dor, Deck d): ObservableObject, IViewModel
 {
     #region public properties
-    [ObservableProperty]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanSaveOrDelete))]
+    [NotifyPropertyChangedFor(nameof(IsCurrentModified))]
     public partial DeckOptionsVM CurrentOptions { get; set; } = null!;
     public ObservableCollection<DeckOptionsVM> AllPresets { get; init; } = [];
     public IEnumerable<LessonOrder> LessonOrderEnum =>
@@ -28,10 +29,29 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
 
     public IEnumerable<SortingDirection> SortingDirectionEnums =>
         Enum.GetValues<SortingDirection>();
+
+    public bool CanSaveOrDelete => CurrentOptions.Id != DeckOptions.DefaultId;
+    public bool IsCurrentModified {
+        get
+        {
+            //TODO FIX: lastSaved's id is different than CurrentOptions's
+            // its because the selected item to current options binding is twoway, its too quickly changing it.
+            // not sure how to fix it, but it shouldnt be like this.
+
+            if (CurrentOptions.Id != lastSaved.Id)
+                throw new InvalidOperationException(
+                "BUG, current options cant have diff id from lastSaved. Impossible. WHY???");
+
+            var snapshot = mapper
+                .Map<DeckOptions>(CurrentOptions);
+
+            return !snapshot.Equals(lastSaved);
+        }
+    }
+    public bool RemoveRequiresConfirmation => CurrentOptions.Decks.Count != 0;
     #endregion
 
     #region methods
-    
     internal async Task InitializeAsync()
     {
         AllPresets.AddRange(
@@ -43,67 +63,69 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         lastSaved = mapper
             .Map<DeckOptions>(CurrentOptions);
     }
-    
+
+    private static void ThrowIfDefault(DeckOptionsVM opt)
+    {
+        if (opt.Id == DeckOptions.DefaultId) throw new InvalidOperationException(
+            "Removing or editing the default preset is forbidden.");
+    }
     #endregion
 
     #region private things
     private readonly Deck deck = d;
     private readonly IMapper mapper = m;
     private readonly IDeckOptVMBuilder vmBuilder = doVMB;
-    private DeckOptions lastSaved = null!;
     private readonly IDeckOptionsRepo deckOptRepo = dor;
-    private static DeckOptions DefaultOptions => DeckOptions.Default;
+    private DeckOptions lastSaved = null!;
     #endregion
 
     #region ICommands
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanSaveOrDelete))]
     private async Task SaveChanges()
     {
         //* this applies any changed made in the preset,
         //* as well as syncs the relation between deck and its preset.
 
+        ThrowIfDefault(CurrentOptions);
+
         var saving = mapper.Map<DeckOptions>(CurrentOptions);
 
         await deckOptRepo.SaveEditedPreset(saving);
         await deckOptRepo.AssignToDecks([deck.Id], saving.Id);
+
+        lastSaved = saving;
     }
 
     [RelayCommand]
-    private async Task DeleteCurrentPreset()
+    private async Task RemovePreset()
     {
-        // TODO: "are you sure???" pop up show here
-        
-        await deckOptRepo.Remove(CurrentOptions.Id);
+        ThrowIfDefault(CurrentOptions);
+        deck.OptionsId = DeckOptions.DefaultId;
+
+        mapper.Map(
+            DeckOptions.Default,
+            CurrentOptions);
+
         AllPresets.Remove(CurrentOptions);
+        await deckOptRepo.Remove(CurrentOptions.Id);
 
-        // fallback to default when deleting currently viewed preset.
-        mapper.Map(DefaultOptions, CurrentOptions);
-        deck.OptionsId = -1;
+        CurrentOptions = AllPresets.Single(o => 
+            o.Id == DeckOptions.DefaultId);
     }
 
     [RelayCommand]
-    private async Task DeletePresetFromList(DeckOptionsVM opt)
+    private async Task ClonePreset()
     {
-        if (opt.Id == CurrentOptions.Id)
-        {
-            await DeleteCurrentPreset();
-            return;
-        }
+        throw new NotImplementedException();
         
-        AllPresets.Remove(opt);
-        await deckOptRepo.Remove(opt.Id);
-    }
-
-    [RelayCommand]
-    private async Task ClonePresetFrom(DeckOptionsVM opt)
-    {
-        var clone = mapper.Map<DeckOptionsVM>(opt);
+        // TODO: Fix this bc it only copies the reference, not mapping!!!
+        var clone = mapper.Map<DeckOptionsVM>(CurrentOptions);
 
         clone.Id = IdGetter.Next();
-        clone.Name = $"{opt.Name} - copy";
+        clone.Name = $"{CurrentOptions.Name} - copy";
 
-        await deckOptRepo.CreateNew(mapper.Map<DeckOptions>(clone));
-        // todo: maybe later add mapping profile directly between vm and entity so no need for double mapping.
+        await deckOptRepo.CreateNew(
+            mapper.Map<DeckOptions>(clone));
         
         AllPresets.Add(clone);
     }
@@ -111,7 +133,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     [RelayCommand]
     private void ToDefault()
     {
-        mapper.Map(DefaultOptions, CurrentOptions);
+        mapper.Map(DeckOptions.Default, CurrentOptions);
     }
 
     [RelayCommand]
@@ -123,16 +145,13 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     [RelayCommand]
     private void ChangePreset(DeckOptionsVM chosenPreset)
     {
-        // TODO: if any not-persisted changes made -> "are you sure?" pop-up opens from code behind, only if confirmed then call this.
-        //* DeckOptVM on which the ctx menu was opened goes here as "CommandParam" or whatever its called.
-        
         CurrentOptions.AssignedDecksCount--; // decrementing previous preset's deck count
         CurrentOptions = chosenPreset;
         CurrentOptions.AssignedDecksCount++; // incrementing new one's
 
         deck.OptionsId = chosenPreset.Id;
 
-        mapper.Map(chosenPreset, lastSaved);
+        lastSaved = mapper.Map<DeckOptions>(chosenPreset);
     }
     #endregion
 }

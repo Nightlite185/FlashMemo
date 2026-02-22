@@ -5,7 +5,8 @@
         Width="900"
         Height="720"
         Background="#FF1E1E1E"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Closing="Window_Closing">
 
     <Grid Margin="16">
 
@@ -23,9 +24,9 @@
             <ComboBox
                 Width="350"
                 ItemsSource="{Binding AllPresets}"
-                SelectedItem="{Binding CurrentOptions}"
-                DisplayMemberPath="Name"
-                DockPanel.Dock="Left"/>
+                SelectedItem="{Binding CurrentOptions, Mode=TwoWay}"
+                SelectionChanged="PresetSelectionChanged"
+                DisplayMemberPath="Name"/>
 
             <!-- Save Button -->
             <Button
@@ -39,11 +40,10 @@
             <Menu DockPanel.Dock="Right" Margin="0,0,8,0">
                 <MenuItem Header="⋮">
                     <MenuItem Header="Clone"
-                              Command="{Binding ClonePresetFromCommand}"
-                              CommandParameter="{Binding CurrentOptions}"/>
+                              Command="{Binding ClonePresetCommand}"/>
 
                     <MenuItem Header="Delete"
-                              Command="{Binding DeleteCurrentPresetCommand}"/>
+                              Click="TryDeletePreset" IsEnabled="{Binding CanSaveOrDelete}"/>
 
                     <MenuItem Header="Reset to Default"
                               Command="{Binding ToDefaultCommand}"/>

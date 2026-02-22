@@ -5,6 +5,7 @@ namespace FlashMemo.Model.Domain;
 
 public record class DeckOptions
 {
+    public const sbyte DefaultId = -1;
     public static DeckOptions Default { get; } = CreateDefault();
     private static DeckOptions CreateDefault() // Factory for default preset
     {

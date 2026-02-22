@@ -1,14 +1,94 @@
 ﻿using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 
-namespace FlashMemo.View
+namespace FlashMemo.View;
+    
+public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
 {
-    public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
+    public DeckOptionsMenuVM VM { get; set; } = null!;
+    private bool controlledSelectionChange;
+    public DeckOptionsWindow()
     {
-        public DeckOptionsMenuVM VM { get; set; } = null!;
-        public DeckOptionsWindow()
+        InitializeComponent();
+    }
+
+    private async void TryDeletePreset(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem item
+        || item.DataContext is not DeckOptionsVM opt)
+            return;
+
+        var result = MessageBoxResult.Yes;
+
+        if (VM.RemoveRequiresConfirmation)
         {
-            InitializeComponent();
+            result = MessageBox.Show(
+            "Are you sure you want to delete currently viewed preset? Every deck currently referencing this preset, will now be assigned to the default one. Do you wish to proceed?",
+            "Are you sure?",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
         }
+
+        if (result == MessageBoxResult.Yes)
+            await VM.RemovePresetCommand.ExecuteAsync(null);
+    }
+
+    private async void Window_Closing(object sender, CancelEventArgs e)
+    {
+        var answer = GetApproval();
+
+        if (answer == MessageBoxResult.Cancel)
+            e.Cancel = true;
+
+        else if (answer == MessageBoxResult.Yes)
+            await VM.SaveChangesCommand.ExecuteAsync(null);
+    }
+
+    private MessageBoxResult GetApproval()
+    {
+        if (VM.IsCurrentModified)
+        {
+            return MessageBox.Show(
+                "You have unsaved changes. Do you want to save them?",
+                "Unsaved changes",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Warning
+            );
+        }
+
+        return MessageBoxResult.No; // no means discard, bc nothing changed anyway.
+    }
+
+    private async void PresetSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.RemovedItems.Count == 0
+        || controlledSelectionChange)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        var old = e.RemovedItems[0] as DeckOptionsVM;
+        var @new = e.AddedItems[0] as DeckOptionsVM;
+
+        var answer = GetApproval();
+
+        if (answer == MessageBoxResult.Cancel)
+        {
+            controlledSelectionChange = true;
+
+            ((ComboBox)sender).SelectedItem = old;
+
+            controlledSelectionChange = false;
+            return;
+        }
+
+        if (answer == MessageBoxResult.Yes)
+            await VM.SaveChangesCommand.ExecuteAsync(null);
+
+        VM.ChangePresetCommand.Execute(@new);
     }
 }

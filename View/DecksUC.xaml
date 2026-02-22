@@ -118,7 +118,8 @@
                         <Button
                             Grid.Column="4"
                             Content="⚙"
-                            Style="{StaticResource DeckOptionsButtonStyle}">
+                            Style="{StaticResource DeckOptionsButtonStyle}"
+                            Click="DeckCtxButton_Click">
 
                             <Button.ContextMenu>
                                 <ContextMenu>

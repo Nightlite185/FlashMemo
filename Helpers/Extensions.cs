@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Windows;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Wrappers;
@@ -58,5 +59,12 @@ public static class Extensions
         return expr.Combine(c =>
             selector(c) >= dayStart &&
             selector(c) < dayEnd);
+    }
+
+    public static T CloneWithJson<T>(this T obj)
+    {
+        var json = JsonSerializer.Serialize(obj);
+
+        return JsonSerializer.Deserialize<T>(json)!;
     }
 }

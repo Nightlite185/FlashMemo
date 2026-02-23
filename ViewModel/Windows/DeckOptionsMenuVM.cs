@@ -98,24 +98,19 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         ThrowIfDefault(CurrentOptions);
         deck.OptionsId = DeckOptions.DefaultId;
 
-        mapper.Map(
-            DeckOptions.Default,
-            CurrentOptions);
-
         AllPresets.Remove(CurrentOptions);
         await deckOptRepo.Remove(CurrentOptions.Id);
 
         CurrentOptions = AllPresets.Single(o => 
             o.Id == DeckOptions.DefaultId);
+
+        lastSaved = mapper.Map<DeckOptions>(CurrentOptions);
     }
 
     [RelayCommand]
     private async Task ClonePreset()
     {
-        throw new NotImplementedException();
-        
-        // TODO: Fix this bc it only copies the reference, not mapping!!!
-        var clone = mapper.Map<DeckOptionsVM>(CurrentOptions);
+        var clone = CurrentOptions.CloneWithJson();
 
         clone.Id = IdGetter.Next();
         clone.Name = $"{CurrentOptions.Name} - copy";

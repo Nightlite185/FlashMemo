@@ -16,10 +16,6 @@ public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
 
     private async void TryDeletePreset(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem item
-        || item.DataContext is not DeckOptionsVM opt)
-            return;
-
         var result = MessageBoxResult.Yes;
 
         if (VM.RemoveRequiresConfirmation)

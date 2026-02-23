@@ -6,6 +6,7 @@ using System.Windows.Data;
 using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel.Wrappers;
 using static FlashMemo.Model.Domain.DeckOptions.SchedulingOpt;
 
 namespace FlashMemo.Helpers;
@@ -124,25 +125,23 @@ public class ImmutableArrToList<T> : IValueConverter<ImmutableArray<T>, List<T>>
         => [..sourceMember];
 }
 
-public class ObsColToImmutableArr : IValueConverter<ObservableCollection<int>, ImmutableArray<TimeSpan>>
+public class ToLearningStagesArray : IValueConverter<LearningStagesVM, ImmutableArray<TimeSpan>>
 {
-    public ImmutableArray<TimeSpan> Convert(ObservableCollection<int> sourceMember, ResolutionContext context)
+    public ImmutableArray<TimeSpan> Convert(LearningStagesVM sourceMember, ResolutionContext context)
     {
-        if (sourceMember.Count != LearningStagesCount)
-            throw new InvalidOperationException($"There must always be {LearningStagesCount} learning stages");
-
-        return [..sourceMember.Select(x => TimeSpan.FromMinutes(x))];
+        return [..sourceMember.Select(x =>
+            TimeSpan.FromMinutes(x))];
     }
 }
 
-public class ImmutableArrToObsCol : IValueConverter<ImmutableArray<TimeSpan>, ObservableCollection<int>>
+public class ToLearningStagesVM : IValueConverter<ImmutableArray<TimeSpan>, LearningStagesVM>
 {
-    public ObservableCollection<int> Convert(ImmutableArray<TimeSpan> sourceMember, ResolutionContext context)
+    public LearningStagesVM Convert(ImmutableArray<TimeSpan> sourceMember, ResolutionContext context)
     {
         if (sourceMember.Length != LearningStagesCount)
             throw new InvalidOperationException($"There must always be {LearningStagesCount} learning stages");
 
-        return [..sourceMember.Select(ts => ts.Minutes)];
+        return new(sourceMember);
     }
 }
 #endregion

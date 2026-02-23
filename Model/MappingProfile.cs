@@ -36,13 +36,13 @@ public sealed class MappingProfile: Profile
         CreateMap<DeckOptionsVM.DailyLimitsOpt, DeckOptions.DailyLimitsOpt>();
         CreateMap<DeckOptionsVM.SchedulingOpt, DeckOptions.SchedulingOpt>()
             .ForMember(vm => vm.LearningStages, opt => 
-                opt.ConvertUsing(new ObsColToImmutableArr()));
+                opt.ConvertUsing(new ToLearningStagesArray()));
 
         CreateMap<DeckOptions.SortingOpt, DeckOptionsVM.SortingOpt>();
         CreateMap<DeckOptions.DailyLimitsOpt, DeckOptionsVM.DailyLimitsOpt>();
         CreateMap<DeckOptions.SchedulingOpt, DeckOptionsVM.SchedulingOpt>()
             .ForMember(d => d.LearningStages, opt => 
-                opt.ConvertUsing(new ImmutableArrToObsCol()));
+                opt.ConvertUsing(new ToLearningStagesVM()));
                 
         #endregion
 

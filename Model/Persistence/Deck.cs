@@ -1,6 +1,5 @@
 using System.Collections;
 using FlashMemo.Helpers;
-using Force.DeepCloner;
 
 namespace FlashMemo.Model.Persistence
 {
@@ -18,9 +17,9 @@ namespace FlashMemo.Model.Persistence
         public Deck? ParentDeck { get; set; }
         public long? ParentDeckId { get; set; }
         public bool IsTemporary { get; set; } //? idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
-        
+
         #region methods
-                
+
         public static Deck CreateNew(string name, long userId)
         {
             return new()
@@ -33,23 +32,6 @@ namespace FlashMemo.Model.Persistence
                 ParentDeckId = null,
                 IsTemporary = false,
             };
-        }
-
-        [Obsolete]
-        public Deck Duplicate(int? HighestCopyNum)
-        {
-            if (HighestCopyNum <= 0) throw new ArgumentOutOfRangeException(nameof(HighestCopyNum));
-            if (IsTemporary) throw new InvalidOperationException("Cannot duplicate a temporary deck.");
-
-            var copy = this.DeepClone();
-
-            copy.Name = $"{this.Name} - copy" + (
-                HighestCopyNum != null
-                    ? $"({HighestCopyNum+1})" 
-                    : ""
-            );
-
-            return copy;
         }
         #endregion
 

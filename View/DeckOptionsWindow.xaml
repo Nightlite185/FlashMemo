@@ -3,12 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:wrappers="clr-namespace:FlashMemo.ViewModel.Wrappers" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         Title="Deck Options"
         Width="900"
-        Height="720"
+        Height="993"
         Background="#FF1E1E1E"
         WindowStartupLocation="CenterOwner"
         Closing="Window_Closing">
 
-    <Grid Margin="16">
+    <Grid Margin="16,16,16,-58">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -22,7 +22,7 @@
 
             <!-- Preset Selector -->
             <ComboBox
-                Width="350"
+                Width="741"
                 ItemsSource="{Binding AllPresets}"
                 SelectedItem="{Binding CurrentOptions, Mode=OneWay}"
                 SelectionChanged="PresetSelectionChanged"
@@ -37,8 +37,8 @@
                 Width="90"/>
 
             <!-- Menu -->
-            <Menu DockPanel.Dock="Right" Margin="0,0,8,0">
-                <MenuItem Header="⋮">
+            <Menu DockPanel.Dock="Right" Margin="0,0,8,0" Width="29">
+                <MenuItem Header="⋮" Height="40" Width="29">
                     <MenuItem Header="Clone"
                               Command="{Binding ClonePresetCommand}"/>
 
@@ -89,7 +89,7 @@
                             <TextBox
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.DailyLimits.DailyLessonsLimit}"/>
+                                Text="{Binding CurrentOptions.DailyLimits.DailyLessonsLimit}" Margin="0,2,489,4"/>
 
                             <TextBlock
                                 Grid.Row="1"
@@ -100,7 +100,7 @@
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.DailyLimits.DailyReviewsLimit}"/>
+                                Text="{Binding CurrentOptions.DailyLimits.DailyReviewsLimit}" Margin="0,4,489,4"/>
 
                         </Grid>
 
@@ -136,7 +136,7 @@
                             <TextBox
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.GoodMultiplier}"/>
+                                Text="{Binding CurrentOptions.Scheduling.GoodMultiplier}" Margin="0,4,489,4"/>
 
                             <TextBlock
                                 Grid.Row="1"
@@ -147,7 +147,7 @@
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.EasyMultiplier}"/>
+                                Text="{Binding CurrentOptions.Scheduling.EasyMultiplier}" Margin="0,4,489,4"/>
 
                             <TextBlock
                                 Grid.Row="2"
@@ -158,7 +158,7 @@
                                 Grid.Row="2"
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.HardMultiplier}"/>
+                                Text="{Binding CurrentOptions.Scheduling.HardMultiplier}" Margin="0,4,489,4"/>
 
                         </Grid>
 
@@ -185,6 +185,9 @@
                                 <RowDefinition/>
                                 <RowDefinition/>
                                 <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
                             </Grid.RowDefinitions>
 
                             <TextBlock
@@ -194,7 +197,7 @@
                             <TextBox
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.GraduateDayCount}"/>
+                                Text="{Binding CurrentOptions.Scheduling.GraduateDayCount}" Margin="0,4,449,4"/>
 
                             <TextBlock
                                 Grid.Row="1"
@@ -205,7 +208,7 @@
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.EasyOnNewDayCount}"/>
+                                Text="{Binding CurrentOptions.Scheduling.EasyOnNewDayCount}" Margin="0,4,449,4"/>
 
                             <TextBlock
                                 Grid.Row="2"
@@ -216,10 +219,64 @@
                                 Grid.Row="2"
                                 Grid.Column="1"
                                 Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.AgainOnReviewStage}"/>
+                                Text="{Binding CurrentOptions.Scheduling.AgainOnReviewStage}" Margin="0,4,449,4"/>
+
+                            <TextBlock
+                                Grid.Row="3"
+                                Text="Good on new stage"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.GoodOnNewStage}" Margin="0,4,449,4"/>
+
+                            <TextBlock
+                                Grid.Row="4"
+                                Text="Hard on new stage"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <TextBox
+                                Grid.Row="4"
+                                Grid.Column="1"
+                                Style="{StaticResource OptionsTextBoxStyle}"
+                                Text="{Binding CurrentOptions.Scheduling.HardOnNewStage}" Margin="0,4,449,4"/>
+
+                            <TextBlock
+                                Grid.Row="5"
+                                Text="Learning stages (minutes)"
+                                Style="{StaticResource OptionsLabelStyle}"/>
+
+                            <StackPanel
+                                Grid.Row="5"
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Left">
+
+                                <TextBox
+                                    Width="40"
+                                    MaxLength="2"
+                                    Margin="0,4,10,4"
+                                    Style="{StaticResource OptionsTextBoxStyle}"
+                                    Text="{Binding CurrentOptions.Scheduling.LearningStages.First}"/>
+
+                                <TextBox
+                                    Width="40"
+                                    MaxLength="2"
+                                    Margin="0,0,10,0"
+                                    Style="{StaticResource OptionsTextBoxStyle}"
+                                    Text="{Binding CurrentOptions.Scheduling.LearningStages.Second}"/>
+
+                                <TextBox
+                                    Width="40"
+                                    MaxLength="2"
+                                    Style="{StaticResource OptionsTextBoxStyle}"
+                                    Text="{Binding CurrentOptions.Scheduling.LearningStages.Third}"/>
+
+                            </StackPanel>
 
                         </Grid>
-
                     </StackPanel>
                 </Border>
 
@@ -245,25 +302,73 @@
                                 <RowDefinition/>
                             </Grid.RowDefinitions>
 
+                            <!-- ================= LESSON ORDER ================= -->
+
                             <TextBlock
                                 Text="Lesson order"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <ComboBox
+                            <StackPanel
                                 Grid.Column="1"
-                                ItemsSource="{Binding LessonOrderEnum}"
-                                SelectedItem="{Binding CurrentOptions.Sorting.LessonsOrder}"/>
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                                <!-- Order Combo -->
+                                <ComboBox
+                                    Width="180"
+                                    ItemsSource="{Binding LessonOrderEnum}"
+                                    SelectedItem="{Binding CurrentOptions.Sorting.LessonsOrder}" Height="22"/>
+
+                                <!-- Direction Label -->
+                                <TextBlock
+                                    Text=" Dir:"
+                                    Margin="10,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Foreground="#CCCCCC"/>
+
+                                <!-- Direction Toggle -->
+                                <Button
+                                    Style="{StaticResource SortDirButtonStyle}"
+                                    Content="{Binding CurrentOptions.Sorting.LessonsDirArrow}"
+                                    ToolTip="{Binding CurrentOptions.Sorting.LessonsDirTooltip}"
+                                    Command="{Binding CurrentOptions.Sorting.ToggleLessonsDirCommand}" Height="26" Margin="0,2,0,2" Foreground="#FFFDFF00"/>
+                            </StackPanel>
+
+                            <!-- ================= REVIEW ORDER ================= -->
 
                             <TextBlock
                                 Grid.Row="1"
                                 Text="Review order"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <ComboBox
+                            <StackPanel
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                ItemsSource="{Binding ReviewOrderEnum}"
-                                SelectedItem="{Binding CurrentOptions.Sorting.ReviewsOrder}"/>
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                                <!-- Order Combo -->
+                                <ComboBox
+                                    Width="180"
+                                    ItemsSource="{Binding ReviewOrderEnum}"
+                                    SelectedItem="{Binding CurrentOptions.Sorting.ReviewsOrder}" Height="22"/>
+
+                                <!-- Direction Label -->
+                                <TextBlock
+                                    Text=" Dir:"
+                                    Margin="10,0,6,0"
+                                    VerticalAlignment="Center"
+                                    Foreground="#CCCCCC"/>
+
+                                <!-- Direction Toggle -->
+                                <Button
+                                    Style="{StaticResource SortDirButtonStyle}"
+                                    Content="{Binding CurrentOptions.Sorting.ReviewsDirArrow}"
+                                    ToolTip="{Binding CurrentOptions.Sorting.ReviewsDirTooltip}"
+                                    Command="{Binding CurrentOptions.Sorting.ToggleReviewsDirCommand}" Height="26" Margin="0,2,0,2" Foreground="#FFFFF500"/>
+                            </StackPanel>
+
+                            <!-- ================= CARD TYPE ORDER ================= -->
 
                             <TextBlock
                                 Grid.Row="2"
@@ -272,9 +377,8 @@
 
                             <ComboBox
                                 Grid.Row="2"
-                                Grid.Column="1"
                                 ItemsSource="{Binding CardStateOrderEnum}"
-                                SelectedItem="{Binding CurrentOptions.Sorting.CardStateOrder}"/>
+                                SelectedItem="{Binding CurrentOptions.Sorting.CardStateOrder}" Grid.Column="1" Margin="0,4,429,2"/>
 
                         </Grid>
 

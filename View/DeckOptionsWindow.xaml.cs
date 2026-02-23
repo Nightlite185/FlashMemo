@@ -9,7 +9,6 @@ namespace FlashMemo.View;
 public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
 {
     public DeckOptionsMenuVM VM { get; set; } = null!;
-    private bool controlledSelectionChange;
     public DeckOptionsWindow()
     {
         InitializeComponent();
@@ -64,31 +63,36 @@ public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
 
     private async void PresetSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (e.RemovedItems.Count == 0
-        || controlledSelectionChange)
-        {
-            e.Handled = true;
+        if (e.AddedItems.Count == 0)
             return;
+
+        var combo = (ComboBox)sender;
+        var neww = e.AddedItems[0] as DeckOptionsVM;
+
+        var old = e.RemovedItems.Count == 0 
+            ? null 
+            : e.RemovedItems[0] as DeckOptionsVM;
+
+        if (old == neww
+        || neww == VM.CurrentOptions) 
+            return;
+        
+        if (old is not null)
+        {
+            var answer = GetApproval();
+
+            if (answer == MessageBoxResult.Cancel)
+            {
+                // Restore UI only (VM untouched)
+                combo.SelectedItem = old;
+                return;
+            }
+
+            if (answer == MessageBoxResult.Yes)
+                await VM.SaveChangesCommand.ExecuteAsync(null);
         }
 
-        var old = e.RemovedItems[0] as DeckOptionsVM;
-        var @new = e.AddedItems[0] as DeckOptionsVM;
-
-        var answer = GetApproval();
-
-        if (answer == MessageBoxResult.Cancel)
-        {
-            controlledSelectionChange = true;
-
-            ((ComboBox)sender).SelectedItem = old;
-
-            controlledSelectionChange = false;
-            return;
-        }
-
-        if (answer == MessageBoxResult.Yes)
-            await VM.SaveChangesCommand.ExecuteAsync(null);
-
-        VM.ChangePresetCommand.Execute(@new);
+        // NOW commit to VM
+        VM.ChangePresetCommand.Execute(neww);
     }
 }

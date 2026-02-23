@@ -24,7 +24,7 @@
             <ComboBox
                 Width="350"
                 ItemsSource="{Binding AllPresets}"
-                SelectedItem="{Binding CurrentOptions, Mode=TwoWay}"
+                SelectedItem="{Binding CurrentOptions, Mode=OneWay}"
                 SelectionChanged="PresetSelectionChanged"
                 DisplayMemberPath="Name"/>
 

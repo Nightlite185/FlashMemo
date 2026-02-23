@@ -15,7 +15,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
 {
     #region public properties
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanSaveOrDelete))]
-    [NotifyPropertyChangedFor(nameof(IsCurrentModified))]
+    [NotifyPropertyChangedFor(nameof(IsCurrentModified))] [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand))]
     public partial DeckOptionsVM CurrentOptions { get; set; } = null!;
     public ObservableCollection<DeckOptionsVM> AllPresets { get; init; } = [];
     public IEnumerable<LessonOrder> LessonOrderEnum =>
@@ -34,13 +34,9 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     public bool IsCurrentModified {
         get
         {
-            //TODO FIX: lastSaved's id is different than CurrentOptions's
-            // its because the selected item to current options binding is twoway, its too quickly changing it.
-            // not sure how to fix it, but it shouldnt be like this.
-
             if (CurrentOptions.Id != lastSaved.Id)
                 throw new InvalidOperationException(
-                "BUG, current options cant have diff id from lastSaved. Impossible. WHY???");
+                "CurrentOptions's id must match with lastSaved's id");
 
             var snapshot = mapper
                 .Map<DeckOptions>(CurrentOptions);

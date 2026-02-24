@@ -14,7 +14,7 @@ namespace FlashMemo.ViewModel.Windows;
 public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsRepo dor, Deck d): ObservableObject, IViewModel
 {
     #region public properties
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanSaveOrDelete))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanEditSaveDelete))]
     [NotifyPropertyChangedFor(nameof(IsCurrentModified))] [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand))]
     public partial DeckOptionsVM CurrentOptions { get; set; } = null!;
     public ObservableCollection<DeckOptionsVM> AllPresets { get; init; } = [];
@@ -30,7 +30,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     public IEnumerable<SortingDirection> SortingDirectionEnums =>
         Enum.GetValues<SortingDirection>();
 
-    public bool CanSaveOrDelete => CurrentOptions.Id != DeckOptions.DefaultId;
+    public bool CanEditSaveDelete => CurrentOptions.Id != DeckOptions.DefaultId;
     public bool IsCurrentModified {
         get
         {
@@ -76,7 +76,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     #endregion
 
     #region ICommands
-    [RelayCommand(CanExecute = nameof(CanSaveOrDelete))]
+    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
     private async Task SaveChanges()
     {
         //* this applies any changed made in the preset,

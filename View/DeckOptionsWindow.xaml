@@ -1,14 +1,20 @@
 ﻿<Window x:Class="FlashMemo.View.DeckOptionsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:wrappers="clr-namespace:FlashMemo.ViewModel.Wrappers" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+        xmlns:wrappers="clr-namespace:FlashMemo.ViewModel.Wrappers" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:xceed="http://schemas.xceed.com/wpf/xaml/toolkit"
         Title="Deck Options"
-        Width="900"
-        Height="993"
+        Width="800"
+        Height="900"
+        MinWidth="800"
+        MinHeight="700"
+        ResizeMode="CanResize"
         Background="#FF1E1E1E"
         WindowStartupLocation="CenterOwner"
         Closing="Window_Closing">
 
-    <Grid Margin="16,16,16,-58">
+    <Grid Margin="16">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -20,15 +26,7 @@
 
         <DockPanel Grid.Row="0" Margin="0,0,0,16">
 
-            <!-- Preset Selector -->
-            <ComboBox
-                Width="741"
-                ItemsSource="{Binding AllPresets}"
-                SelectedItem="{Binding CurrentOptions, Mode=OneWay}"
-                SelectionChanged="PresetSelectionChanged"
-                DisplayMemberPath="Name"/>
-
-            <!-- Save Button -->
+            <!-- Save -->
             <Button
                 Content="Save"
                 Style="{StaticResource NavButtonStyle}"
@@ -37,21 +35,44 @@
                 Width="90"/>
 
             <!-- Menu -->
-            <Menu DockPanel.Dock="Right" Margin="0,0,8,0" Width="29">
-                <MenuItem Header="⋮" Height="40" Width="29">
+            <Menu DockPanel.Dock="Right" Margin="0,0,8,0">
+                <MenuItem Header="⋮" Height="40" Width="32">
+
                     <MenuItem Header="Clone"
-                              Command="{Binding ClonePresetCommand}"/>
-
+                        Command="{Binding ClonePresetCommand}"/>
                     <MenuItem Header="Delete"
-                              Click="TryDeletePreset" IsEnabled="{Binding CanSaveOrDelete}"/>
-
+                        Click="TryDeletePreset"
+                        IsEnabled="{Binding CanEditSaveDelete}"/>
                     <MenuItem Header="Reset to Default"
-                              Command="{Binding ToDefaultCommand}"/>
-
+                        Command="{Binding ToDefaultCommand}"/>
                     <MenuItem Header="Revert"
-                              Command="{Binding RevertChangesCommand}"/>
+                        Command="{Binding RevertChangesCommand}"/>
+
                 </MenuItem>
             </Menu>
+
+            <!-- Combo -->
+            <ComboBox
+                Margin="0,0,8,0"
+                Height="40"
+                ItemsSource="{Binding AllPresets}"
+                Style="{StaticResource DarkAlwaysEnabledComboBox}"
+                Opacity="1"
+                IsHitTestVisible="True"
+                Focusable="True"
+                SelectedItem="{Binding CurrentOptions, Mode=OneWay}"
+                SelectionChanged="PresetSelectionChanged"
+                FontSize="17">
+
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock
+                            Text="{Binding Name}"
+                            Foreground="White"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+
+            </ComboBox>
 
         </DockPanel>
 
@@ -74,7 +95,7 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="260"/>
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
@@ -86,21 +107,21 @@
                                 Text="New cards / day"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:UIntegerUpDown
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.DailyLimits.DailyLessonsLimit}" Margin="0,2,489,4"/>
+                                Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Value="{Binding CurrentOptions.DailyLimits.DailyLessonsLimit}"/>
 
                             <TextBlock
                                 Grid.Row="1"
                                 Text="Reviews / day"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:UIntegerUpDown
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.DailyLimits.DailyReviewsLimit}" Margin="0,4,489,4"/>
+                                Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Value="{Binding CurrentOptions.DailyLimits.DailyReviewsLimit}"/>
 
                         </Grid>
 
@@ -120,7 +141,7 @@
 
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="260"/>
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
@@ -133,32 +154,38 @@
                                 Text="Good multiplier"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:DoubleUpDown
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.GoodMultiplier}" Margin="0,4,489,4"/>
+                                Minimum="0.1"
+                                MaxLength="5"
+                                Style="{StaticResource FlatDoubleUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.GoodMultiplier}"/>
 
                             <TextBlock
                                 Grid.Row="1"
                                 Text="Easy multiplier"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:DoubleUpDown
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.EasyMultiplier}" Margin="0,4,489,4"/>
+                                Minimum="0.1"
+                                MaxLength="5"
+                                Style="{StaticResource FlatDoubleUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.EasyMultiplier}"/>
 
                             <TextBlock
                                 Grid.Row="2"
                                 Text="Hard multiplier"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:DoubleUpDown
                                 Grid.Row="2"
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.HardMultiplier}" Margin="0,4,489,4"/>
+                                Minimum="0.1"
+                                MaxLength="5"
+                                Style="{StaticResource FlatDoubleUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.HardMultiplier}"/>
 
                         </Grid>
 
@@ -178,7 +205,7 @@
 
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="240"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="260"/>
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
@@ -194,54 +221,60 @@
                                 Text="Graduate day count"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:UIntegerUpDown
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.GraduateDayCount}" Margin="0,4,449,4"/>
+                                Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.GraduateDayCount}" />
 
                             <TextBlock
                                 Grid.Row="1"
                                 Text="Easy on new (days)"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:UIntegerUpDown
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.EasyOnNewDayCount}" Margin="0,4,449,4"/>
+                                Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.EasyOnNewDayCount}" />
 
                             <TextBlock
                                 Grid.Row="2"
                                 Text="Again review stage"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:UIntegerUpDown
                                 Grid.Row="2"
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.AgainOnReviewStage}" Margin="0,4,449,4"/>
+                                Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.AgainOnReviewStage}"
+                                Maximum="{Binding CurrentOptions.Scheduling.MaxStage}"
+                                Minimum="{Binding CurrentOptions.Scheduling.MinStage}"/>
 
                             <TextBlock
                                 Grid.Row="3"
                                 Text="Good on new stage"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:UIntegerUpDown
                                 Grid.Row="3"
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.GoodOnNewStage}" Margin="0,4,449,4"/>
+                                Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.GoodOnNewStage}"
+                                Maximum="{Binding CurrentOptions.Scheduling.MaxStage}"
+                                Minimum="{Binding CurrentOptions.Scheduling.MinStage}"/>
 
                             <TextBlock
                                 Grid.Row="4"
                                 Text="Hard on new stage"
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
-                            <TextBox
+                            <xceed:UIntegerUpDown
                                 Grid.Row="4"
                                 Grid.Column="1"
-                                Style="{StaticResource OptionsTextBoxStyle}"
-                                Text="{Binding CurrentOptions.Scheduling.HardOnNewStage}" Margin="0,4,449,4"/>
+                                Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Value="{Binding CurrentOptions.Scheduling.HardOnNewStage}"
+                                Maximum="{Binding CurrentOptions.Scheduling.MaxStage}"
+                                Minimum="{Binding CurrentOptions.Scheduling.MinStage}"/>
 
                             <TextBlock
                                 Grid.Row="5"
@@ -252,27 +285,35 @@
                                 Grid.Row="5"
                                 Grid.Column="1"
                                 Orientation="Horizontal"
-                                HorizontalAlignment="Left">
+                                HorizontalAlignment="Left"
+                                Width="155">
 
-                                <TextBox
-                                    Width="40"
+                                <xceed:UIntegerUpDown
+                                    Width="43.33"
                                     MaxLength="2"
                                     Margin="0,4,10,4"
-                                    Style="{StaticResource OptionsTextBoxStyle}"
-                                    Text="{Binding CurrentOptions.Scheduling.LearningStages.First}"/>
+                                    Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                    Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
+                                    Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
+                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.First}"/>
 
-                                <TextBox
-                                    Width="40"
+                                <xceed:UIntegerUpDown
+                                    Width="43.33"
                                     MaxLength="2"
                                     Margin="0,0,10,0"
-                                    Style="{StaticResource OptionsTextBoxStyle}"
-                                    Text="{Binding CurrentOptions.Scheduling.LearningStages.Second}"/>
+                                    Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                    Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
+                                    Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
+                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.Second}"/>
 
-                                <TextBox
-                                    Width="40"
+                                <xceed:UIntegerUpDown
+                                    Width="43.33"
                                     MaxLength="2"
-                                    Style="{StaticResource OptionsTextBoxStyle}"
-                                    Text="{Binding CurrentOptions.Scheduling.LearningStages.Third}"/>
+                                    Margin="0,0,0,0"
+                                    Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                    Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
+                                    Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
+                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.Third}"/>
 
                             </StackPanel>
 
@@ -293,7 +334,7 @@
 
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="320"/>
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
@@ -315,16 +356,17 @@
 
                                 <!-- Order Combo -->
                                 <ComboBox
+                                    Style="{StaticResource DarkComboBoxStyle}"
                                     Width="180"
                                     ItemsSource="{Binding LessonOrderEnum}"
-                                    SelectedItem="{Binding CurrentOptions.Sorting.LessonsOrder}" Height="22"/>
+                                    SelectedItem="{Binding CurrentOptions.Sorting.LessonsOrder}" Height="22" Margin="0,0,10,0" FontSize="15"/>
 
                                 <!-- Direction Label -->
                                 <TextBlock
-                                    Text=" Dir:"
-                                    Margin="10,0,6,0"
+                                    Text=" Direction:"
+                                    Margin="10,0,15,0"
                                     VerticalAlignment="Center"
-                                    Foreground="#CCCCCC"/>
+                                    Foreground="#CCCCCC" FontSize="15"/>
 
                                 <!-- Direction Toggle -->
                                 <Button
@@ -350,15 +392,16 @@
                                 <!-- Order Combo -->
                                 <ComboBox
                                     Width="180"
+                                    Style="{StaticResource DarkComboBoxStyle}"
                                     ItemsSource="{Binding ReviewOrderEnum}"
-                                    SelectedItem="{Binding CurrentOptions.Sorting.ReviewsOrder}" Height="22"/>
+                                    SelectedItem="{Binding CurrentOptions.Sorting.ReviewsOrder}" Height="22" Margin="0,0,10,0" FontSize="15"/>
 
                                 <!-- Direction Label -->
                                 <TextBlock
-                                    Text=" Dir:"
-                                    Margin="10,0,6,0"
+                                    Text=" Direction:"
+                                    Margin="10,0,15,0"
                                     VerticalAlignment="Center"
-                                    Foreground="#CCCCCC"/>
+                                    Foreground="#CCCCCC" FontSize="15"/>
 
                                 <!-- Direction Toggle -->
                                 <Button
@@ -377,8 +420,9 @@
 
                             <ComboBox
                                 Grid.Row="2"
+                                Style="{StaticResource DarkComboBoxStyle}"
                                 ItemsSource="{Binding CardStateOrderEnum}"
-                                SelectedItem="{Binding CurrentOptions.Sorting.CardStateOrder}" Grid.Column="1" Margin="0,4,429,2"/>
+                                SelectedItem="{Binding CurrentOptions.Sorting.CardStateOrder}" Grid.Column="1" Margin="0,4,0,2" FontSize="15"/>
 
                         </Grid>
 

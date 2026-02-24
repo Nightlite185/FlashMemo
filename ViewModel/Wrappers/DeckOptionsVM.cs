@@ -63,10 +63,12 @@ public partial class DeckOptionsVM: ObservableObject
     }
     public partial class SchedulingOpt: ObservableObject, IViewModel
     {
-        [ObservableProperty] public partial float GoodMultiplier { get; set; }
-        [ObservableProperty] public partial float EasyMultiplier { get; set; }
-        [ObservableProperty] public partial float HardMultiplier { get; set; }
-        [ObservableProperty] public partial LearningStagesVM LearningStages { get; set; } = null!;
+        [ObservableProperty] public partial double GoodMultiplier { get; set; }
+        [ObservableProperty] public partial double EasyMultiplier { get; set; }
+        [ObservableProperty] public partial double HardMultiplier { get; set; }
+        public LearningStagesVM LearningStages { get; set; } = null!;
+        public int MinStage { get; } = 0;
+        public int MaxStage { get; } = 2;
         [ObservableProperty] public partial int GraduateDayCount { get; set; }
         [ObservableProperty] public partial int AgainOnReviewStage { get; set; }
         [ObservableProperty] public partial int GoodOnNewStage { get; set; }

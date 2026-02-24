@@ -39,9 +39,9 @@ public class DeckOptions
         #region defaults
         public const int LearningStagesCount = 3;
 
-        public const float DefGoodMultiplier = 2.0f; 
-        public const float DefEasyMultiplier = 3.0f; 
-        public const float DefHardMultiplier = 0.8f; 
+        public const double DefGoodMultiplier = 2; 
+        public const double DefEasyMultiplier = 3; 
+        public const double DefHardMultiplier = 0; 
         public const int DefGraduateDayCount = 1; 
         public const int DefEasyOnNewDayCount = 2; 
         public const int DefAgainOnReviewStage = 1; 
@@ -68,9 +68,9 @@ public class DeckOptions
         #endregion
         
         #region options
-        public float GoodMultiplier { get; init; } //* a number that your interval is multiplied by when clicking good on a review card.
-        public float EasyMultiplier { get; init; } //* a number that your interval is multiplied by when clicking easy on a review card.
-        public float HardMultiplier { get; init; } //* a number that your interval is multiplied by when clicking hard on a review card.
+        public double GoodMultiplier { get; init; } //* a number that your interval is multiplied by when clicking good on a review card.
+        public double EasyMultiplier { get; init; } //* a number that your interval is multiplied by when clicking easy on a review card.
+        public double HardMultiplier { get; init; } //* a number that your interval is multiplied by when clicking hard on a review card.
         public ImmutableArray<TimeSpan> LearningStages { get; init; } //* all those are in minutes 
         public int GraduateDayCount { get; init; } //* updated interval in days when passing the last stage of learning, into review state (by either answering good on last learning stage or easy or any learning stage).
         public int EasyOnNewDayCount { get; init; } //* updated interval in days after clicking easy on a new card.

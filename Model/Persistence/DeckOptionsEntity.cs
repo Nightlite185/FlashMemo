@@ -34,9 +34,9 @@ public class DeckOptionsEntity
     #region options sub-classes
     public sealed class SchedulingOpt
     {
-        public float GoodMultiplier { get; set; }
-        public float EasyMultiplier { get; set; }
-        public float HardMultiplier { get; set; }
+        public double GoodMultiplier { get; set; }
+        public double EasyMultiplier { get; set; }
+        public double HardMultiplier { get; set; }
         public List<TimeSpan> LearningStages { get; set; } = null!; // in minutes
         public int GraduateDayCount { get; set; }
         public int EasyOnNewDayCount { get; set; }

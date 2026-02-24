@@ -91,4 +91,5 @@ public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
         // NOW commit to VM
         VM.ChangePresetCommand.Execute(neww);
     }
+
 }

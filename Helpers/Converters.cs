@@ -129,8 +129,12 @@ public class ToLearningStagesArray : IValueConverter<LearningStagesVM, Immutable
 {
     public ImmutableArray<TimeSpan> Convert(LearningStagesVM sourceMember, ResolutionContext context)
     {
-        return [..sourceMember.Select(x =>
-            TimeSpan.FromMinutes(x))];
+        return 
+        [
+            TimeSpan.FromMinutes(sourceMember.First),
+            TimeSpan.FromMinutes(sourceMember.Second),
+            TimeSpan.FromMinutes(sourceMember.Third)
+        ];
     }
 }
 

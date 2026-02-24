@@ -3,12 +3,14 @@
             xmlns:view="clr-namespace:FlashMemo.View"
             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+            xmlns:xceed="http://schemas.xceed.com/wpf/xaml/toolkit"
             xmlns:helpers="clr-namespace:FlashMemo.Helpers"
             xmlns:popups="clr-namespace:FlashMemo.ViewModel.Popups"
             xmlns:local="clr-namespace:FlashMemo">
 
     <Application.Resources>
-        
+
         <!-- Converters -->
         <helpers:NullToVisConverter
             x:Key="NullToVisConverter"/>
@@ -21,14 +23,18 @@
 
         <helpers:InverseBoolToVisConverter
             x:Key="InverseBoolToVisConverter"/>
-            
+
         <helpers:TimeSpanHumanizer
             x:Key="TimeSpanHumanizer"/>
 
         <helpers:XamlToTextConverter
             x:Key="XamlToTextConverter"/>
 
-            <!-- ===== ViewModel → View Mapping ===== -->
+        <!-- Editable-state visuals -->
+        <sys:Double x:Key="EditableEnabledOpacity">1.0</sys:Double>
+        <sys:Double x:Key="EditableDisabledOpacity">0.78</sys:Double>
+
+        <!-- ===== ViewModel → View Mapping ===== -->
 
         <DataTemplate DataType="{x:Type vm:DecksVM}">
             <view:DecksUC />
@@ -44,7 +50,7 @@
 
         <!-- ===== Colors ===== -->
         <!--#region Navigation bar colors -->
-        
+
         <Color x:Key="NavBgColor">#2A2E34</Color>
         <Color x:Key="NavHoverColor">#343A40</Color>
         <Color x:Key="NavPressedColor">#1F6FEB</Color>
@@ -56,10 +62,10 @@
         <SolidColorBrush x:Key="NavPressedBrush" Color="{StaticResource NavPressedColor}" />
         <SolidColorBrush x:Key="NavBorderBrush" Color="{StaticResource NavBorderColor}" />
         <SolidColorBrush x:Key="NavTextBrush" Color="{StaticResource NavTextColor}" />
-        
+
         <!--#endregion-->
-        
-        <!--#region Deck Tree Colors --> 
+
+        <!--#region Deck Tree Colors -->
 
         <Color x:Key="DeckRowHoverColor">#2A2A2A</Color>
         <Color x:Key="DeckTextColor">#FFFFFF</Color>
@@ -101,7 +107,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="10">
-                            
+
                             <ContentPresenter
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
@@ -124,6 +130,7 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
         </Style>
 
         <!-- ===== Vertical Separator ===== -->
@@ -270,7 +277,7 @@
 
             <Setter Property="Margin" Value="6,0"/>
             <Setter Property="Width" Value="100"/>
-            
+
             <Setter Property="Visibility" Value="{Binding IsEnabled,
                 RelativeSource={RelativeSource Self}, 
                 Converter={StaticResource BoolToVisConverter}}"/>
@@ -322,13 +329,21 @@
         <!-- Options Label -->
         <Style x:Key="OptionsLabelStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#CCCCCC"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="17"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
         <!-- Options TextBox -->
         <Style x:Key="OptionsTextBoxStyle" TargetType="TextBox">
             <Setter Property="Height" Value="32"/>
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Foreground" Value="#FF69EEFF"/>
+            <Setter Property="Margin" Value="0,5,0,3"/>
+            <Setter Property="CaretBrush" Value="Silver"/>
+            <Setter Property="Background" Value="#4C006BE2"/>
+            <Setter Property="BorderBrush" Value="#FFB23DB3"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Padding" Value="6"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -343,6 +358,243 @@
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="IsHitTestVisible"
+                Value="{Binding CanEditSaveDelete}"/>
+            <Setter Property="Focusable"
+                Value="{Binding CanEditSaveDelete}"/>
+            <Setter Property="Opacity"
+                Value="{DynamicResource EditableEnabledOpacity}"/>
+
+            <Style.Triggers>
+                <DataTrigger
+                    Binding="{Binding CanEditSaveDelete}"
+                    Value="False">
+                    <Setter Property="Opacity"
+                        Value="{DynamicResource EditableDisabledOpacity}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="EditableControlBase" TargetType="Control">
+
+            <Setter Property="IsEnabled" Value="True"/>
+            <Setter Property="IsHitTestVisible"
+                Value="{Binding CanEditSaveDelete}"/>
+            <Setter Property="Focusable"
+                Value="{Binding CanEditSaveDelete}"/>
+
+            <Setter Property="Opacity"
+                Value="{DynamicResource EditableEnabledOpacity}"/>
+
+            <Style.Triggers>
+
+                <DataTrigger
+                    Binding="{Binding CanEditSaveDelete}"
+                    Value="False">
+
+                    <Setter Property="Opacity"
+                        Value="{DynamicResource EditableDisabledOpacity}"/>
+
+                </DataTrigger>
+
+            </Style.Triggers>
+
+        </Style>
+
+        <Style x:Key="EditableComboBase"
+               TargetType="ComboBox"
+               BasedOn="{StaticResource EditableControlBase}"/>
+
+        <Style x:Key="AlwaysEnabledComboBase"
+                TargetType="ComboBox">
+
+            <Setter Property="IsEnabled" Value="True"/>
+            <Setter Property="Opacity" Value="1"/>
+
+        </Style>
+        
+        
+
+        <Style x:Key="DarkComboBoxStyle"
+               TargetType="ComboBox"
+               BasedOn="{StaticResource EditableComboBase}">
+
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#2A2E34"/>
+            <Setter Property="BorderBrush" Value="{StaticResource NavBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+
+                    <ControlTemplate TargetType="ComboBox">
+
+                        <Grid>
+
+                            <Border
+                                x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"/>
+
+                            <ToggleButton
+                                x:Name="Header"
+                                IsChecked="{Binding IsDropDownOpen,
+                                    RelativeSource={RelativeSource TemplatedParent},
+                                    Mode=TwoWay}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Focusable="False">
+
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border
+                                            Background="Transparent"
+                                            BorderThickness="0">
+                                            <ContentPresenter/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Content -->
+                                    <ContentPresenter
+                                        Grid.Column="0"
+                                        Margin="6,0,8,0"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Left"
+                                        Content="{TemplateBinding SelectionBoxItem}"
+                                        ContentTemplate="{TemplateBinding ItemTemplate}"
+                                        TextElement.Foreground="{TemplateBinding Foreground}"/>
+
+                                    <!-- Arrow -->
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="▼"
+                                        Foreground="LightGray"
+                                        Margin="0,0,10,0"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Right"/>
+                                </Grid>
+
+                            </ToggleButton>
+
+                            <!-- Popup -->
+                            <Popup
+                                IsOpen="{TemplateBinding IsDropDownOpen}"
+                                Placement="Bottom"
+                                AllowsTransparency="True">
+
+                                <Border
+                                    Background="#2A2E34"
+                                    BorderBrush="{StaticResource NavBorderBrush}"
+                                    BorderThickness="2"
+                                    CornerRadius="8"
+                                    Padding="2">
+
+                                    <ScrollViewer>
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+
+                                </Border>
+
+                            </Popup>
+
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border"
+                                Property="Background"
+                                Value="#343A40"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+
+                </Setter.Value>
+            </Setter>
+
+            <Style.Resources>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="Padding" Value="6,2"/>
+                </Style>
+            </Style.Resources>
+
+        </Style>
+
+        <Style x:Key="DarkAlwaysEnabledComboBox"
+               TargetType="ComboBox"
+               BasedOn="{StaticResource DarkComboBoxStyle}">
+
+            <Setter Property="IsEnabled" Value="True"/>
+            <Setter Property="Opacity" Value="1"/>
+
+        </Style>
+
+        <Style x:Key="FlatUIntegerUpDownStyle"
+               TargetType="xceed:UIntegerUpDown"
+               BasedOn="{StaticResource EditableControlBase}">
+
+            <Setter Property="ShowButtonSpinner" Value="False"/>
+            <Setter Property="Background" Value="#4C006BE2"/>
+            <Setter Property="BorderBrush" Value="#FFB23DB3"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Foreground" Value="#FF69EEFF"/>
+            <Setter Property="CaretBrush" Value="Silver"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="UpdateValueOnEnterKey" Value="True"/>
+            <Setter Property="TextAlignment" Value="Left"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="0,5,0,3"/>
+
+        </Style>
+
+        <Style x:Key="FlatDoubleUpDownStyle"
+               TargetType="xceed:DoubleUpDown"
+               BasedOn="{StaticResource EditableControlBase}">
+
+            <Setter Property="ShowButtonSpinner" Value="False"/>
+            <Setter Property="Background" Value="#4C006BE2"/>
+            <Setter Property="BorderBrush" Value="#FFB23DB3"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Foreground" Value="#FF69EEFF"/>
+            <Setter Property="CaretBrush" Value="Silver"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="0,5,0,3"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="UpdateValueOnEnterKey" Value="True"/>
+            <Setter Property="TextAlignment" Value="Left"/>
+            <Setter Property="FormatString" Value="0.###"/>
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="Padding" Value="6"/>
+
         </Style>
 
     </Application.Resources>

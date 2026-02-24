@@ -1,9 +1,8 @@
-using System.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class LearningStagesVM: ObservableObject, IEnumerable<int>
+public partial class LearningStagesVM: ObservableObject
 {
     private static void ThrowIfNot3<T>(IList<T> stages)
     {
@@ -26,22 +25,18 @@ public partial class LearningStagesVM: ObservableObject, IEnumerable<int>
 
         First = stages[0];
         Second = stages[1];
-        Third = stages[2];  
+        Third = stages[2];
+    }
+
+    public LearningStagesVM() // for json serializer
+    {
+
     }
 
     [ObservableProperty] public partial int First { get; set; }
     [ObservableProperty] public partial int Second { get; set; }
     [ObservableProperty] public partial int Third { get; set; }
 
-    public IEnumerator<int> GetEnumerator()
-    {
-        yield return First;
-        yield return Second;
-        yield return Third;
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+    public int MaxValueOnAnyStage { get; } = 60;
+    public int MinValueOnAnyStage { get; } = 1;
 }

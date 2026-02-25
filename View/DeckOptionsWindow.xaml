@@ -15,7 +15,12 @@
         Closing="Window_Closing">
 
     <Window.Resources>
-        <Style x:Key="SchedulingHintLabelStyle"
+        <DataTemplate x:Key="EnumReadableItemTemplate">
+            <TextBlock
+                Text="{Binding Converter={StaticResource EnumToReadableTextConverter}}"/>
+        </DataTemplate>
+
+        <Style x:Key="DeckOptHintStyle"
                TargetType="TextBlock"
                BasedOn="{StaticResource OptionsLabelStyle}">
             <Setter Property="Cursor" Value="Help"/>
@@ -162,7 +167,7 @@
 
                             <TextBlock
                                 Text="Good multiplier"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="A number that a review card's interval is multiplied by after answering good."/>
 
                             <xceed:DoubleUpDown
@@ -175,7 +180,7 @@
                             <TextBlock
                                 Grid.Row="1"
                                 Text="Easy multiplier"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="A number that a review card's interval is multiplied by after answering easy."/>
 
                             <xceed:DoubleUpDown
@@ -189,7 +194,7 @@
                             <TextBlock
                                 Grid.Row="2"
                                 Text="Hard multiplier"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="A number that a review card's interval is multiplied by after answering hard."/>
 
                             <xceed:DoubleUpDown
@@ -232,7 +237,7 @@
 
                             <TextBlock
                                 Text="Graduate day count"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="New interval in days when graduating from learning into review (by answering good on the last learning stage, or easy on any learning stage)."/>
 
                             <xceed:UIntegerUpDown
@@ -243,7 +248,7 @@
                             <TextBlock
                                 Grid.Row="1"
                                 Text="Easy on new card (days)"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Updated interval in days after answering easy on a new card."/>
 
                             <xceed:UIntegerUpDown
@@ -255,7 +260,7 @@
                             <TextBlock
                                 Grid.Row="2"
                                 Text="Again on review card (days)"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Learning stage that a review card lands on after answering again."/>
 
                             <xceed:UIntegerUpDown
@@ -269,7 +274,7 @@
                             <TextBlock
                                 Grid.Row="3"
                                 Text="Good on new card (stage)"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Learning stage that a new card lands on after answering good."/>
 
                             <xceed:UIntegerUpDown
@@ -283,7 +288,7 @@
                             <TextBlock
                                 Grid.Row="4"
                                 Text="Hard on new card (stage)"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Learning stage that a new card lands on after answering hard."/>
 
                             <xceed:UIntegerUpDown
@@ -297,7 +302,7 @@
                             <TextBlock
                                 Grid.Row="5"
                                 Text="Learning stages (minutes)"
-                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Three learning stages that cards go through before they graduate and become review cards (all values are in minutes)."/>
 
                             <StackPanel
@@ -378,6 +383,7 @@
                                     Style="{StaticResource DarkComboBoxStyle}"
                                     Width="180"
                                     ItemsSource="{Binding LessonOrderEnum}"
+                                    ItemTemplate="{StaticResource EnumReadableItemTemplate}"
                                     SelectedItem="{Binding CurrentOptions.Sorting.LessonsOrder}" Height="22" Margin="0,0,10,0" FontSize="15"/>
 
                                 <!-- Direction Label -->
@@ -413,6 +419,7 @@
                                     Width="180"
                                     Style="{StaticResource DarkComboBoxStyle}"
                                     ItemsSource="{Binding ReviewOrderEnum}"
+                                    ItemTemplate="{StaticResource EnumReadableItemTemplate}"
                                     SelectedItem="{Binding CurrentOptions.Sorting.ReviewsOrder}" Height="22" Margin="0,0,10,0" FontSize="15"/>
 
                                 <!-- Direction Label -->
@@ -436,12 +443,13 @@
                                 Grid.Row="2"
                                 Text="Reviews/lessons first"
                                 ToolTip="Changes whether your cards are grouped into chunks by state, or random."
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Style="{StaticResource DeckOptHintStyle}"/>
 
                             <ComboBox
                                 Grid.Row="2"
                                 Style="{StaticResource DarkComboBoxStyle}"
                                 ItemsSource="{Binding CardStateOrderEnum}"
+                                ItemTemplate="{StaticResource EnumReadableItemTemplate}"
                                 SelectedItem="{Binding CurrentOptions.Sorting.CardStateOrder}" Grid.Column="1" Margin="0,4,0,2" FontSize="15"/>
 
                         </Grid>

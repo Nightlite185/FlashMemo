@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
 using AutoMapper;
@@ -102,6 +102,31 @@ public class XamlToTextConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType,
         object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+public class EnumToReadableTextConverter : IValueConverter
+{
+    private static readonly Regex WordBoundary = new(
+        "([a-z0-9])([A-Z])",
+        RegexOptions.Compiled);
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is null)
+            return string.Empty;
+
+        var enumText = value.ToString() ?? string.Empty;
+        if (enumText.Length == 0)
+            return string.Empty;
+
+        var withSpaces = WordBoundary.Replace(enumText, "$1 $2");
+
+        return char.ToUpperInvariant(withSpaces[0])
+            + withSpaces[1..].ToLowerInvariant();
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }
 #endregion

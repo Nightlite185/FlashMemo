@@ -30,6 +30,9 @@
         <helpers:XamlToTextConverter
             x:Key="XamlToTextConverter"/>
 
+        <helpers:EnumToReadableTextConverter
+            x:Key="EnumToReadableTextConverter"/>
+
         <!-- Editable-state visuals -->
         <sys:Double x:Key="EditableEnabledOpacity">1.0</sys:Double>
         <sys:Double x:Key="EditableDisabledOpacity">0.78</sys:Double>

@@ -7,7 +7,11 @@
     xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" 
     d:DataContext="{d:DesignInstance Type=windows:MainVM}"
     mc:Ignorable="d"
-    Title="MainWindow" Height="450" Width="800">
+    Title="MainWindow" 
+    Height="500"
+    Width="800"
+    MinHeight="480"
+    MinWidth="780">
 
     <Grid>
         <Grid.Background>

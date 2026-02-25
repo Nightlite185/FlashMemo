@@ -68,19 +68,19 @@ public class DeckOptions
         #endregion
         
         #region options
-        public double GoodMultiplier { get; init; } //* a number that your interval is multiplied by when clicking good on a review card.
-        public double EasyMultiplier { get; init; } //* a number that your interval is multiplied by when clicking easy on a review card.
-        public double HardMultiplier { get; init; } //* a number that your interval is multiplied by when clicking hard on a review card.
-        public ImmutableArray<TimeSpan> LearningStages { get; init; } //* all those are in minutes 
-        public int GraduateDayCount { get; init; } //* updated interval in days when passing the last stage of learning, into review state (by either answering good on last learning stage or easy or any learning stage).
-        public int EasyOnNewDayCount { get; init; } //* updated interval in days after clicking easy on a new card.
-        public int GoodOnNewStage { get; init; } //* learning stage you land on after clicking good on a new card.
-        public int AgainOnReviewStage { get; init; } //* learning stage you land on, when you click again on a review card.
-        public int HardOnNewStage { get; init; } //* learning stage you land on after clicking hard on a new card.
+        public double GoodMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "good" on a it.
+        public double EasyMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "easy" on a it.
+        public double HardMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "hard" on a it.
+        public ImmutableArray<TimeSpan> LearningStages { get; init; } //* there are 3 learning stages that cards go through before they graduate and become a "review" card (all of them are in minutes).
+        public int GraduateDayCount { get; init; } //* new interval in days when graduating from learning into "review" state (by either answering "good" on the last learning stage, or "easy" or any learning stage).
+        public int EasyOnNewDayCount { get; init; } //* updated interval in days, after answering "easy" on a new card.
+        public int GoodOnNewStage { get; init; } //* learning stage that a "new" card lands on, after answering "good" on it.
+        public int AgainOnReviewStage { get; init; } //* learning stage that a "review" card lands on, after answering "again" on it.
+        public int HardOnNewStage { get; init; } //* learning stage that a "new" card lands on, after answering "hard" on a it.
         #endregion
 
         #region Equals
-        // this one is also needed bc ImmutableArray's default Equals implementation is broken.
+        // this is necessary bc ImmutableArray's default Equals implementation doesn't work as you'd logically expect, when comparing arrays.
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))

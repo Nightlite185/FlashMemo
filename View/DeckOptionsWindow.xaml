@@ -14,6 +14,16 @@
         WindowStartupLocation="CenterOwner"
         Closing="Window_Closing">
 
+    <Window.Resources>
+        <Style x:Key="SchedulingHintLabelStyle"
+               TargetType="TextBlock"
+               BasedOn="{StaticResource OptionsLabelStyle}">
+            <Setter Property="Cursor" Value="Help"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="235"/>
+            <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="16">
 
         <Grid.RowDefinitions>
@@ -152,7 +162,8 @@
 
                             <TextBlock
                                 Text="Good multiplier"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="A number that a review card's interval is multiplied by after answering good."/>
 
                             <xceed:DoubleUpDown
                                 Grid.Column="1"
@@ -164,7 +175,8 @@
                             <TextBlock
                                 Grid.Row="1"
                                 Text="Easy multiplier"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="A number that a review card's interval is multiplied by after answering easy."/>
 
                             <xceed:DoubleUpDown
                                 Grid.Row="1"
@@ -177,7 +189,8 @@
                             <TextBlock
                                 Grid.Row="2"
                                 Text="Hard multiplier"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="A number that a review card's interval is multiplied by after answering hard."/>
 
                             <xceed:DoubleUpDown
                                 Grid.Row="2"
@@ -192,7 +205,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ===== STAGES ===== -->
+                <!-- ===== STAGES AND INTERVALS ===== -->
 
                 <Border Style="{StaticResource OptionsCardStyle}">
                     <StackPanel>
@@ -219,7 +232,8 @@
 
                             <TextBlock
                                 Text="Graduate day count"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="New interval in days when graduating from learning into review (by answering good on the last learning stage, or easy on any learning stage)."/>
 
                             <xceed:UIntegerUpDown
                                 Grid.Column="1"
@@ -228,8 +242,9 @@
 
                             <TextBlock
                                 Grid.Row="1"
-                                Text="Easy on new (days)"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Text="Easy on new card (days)"
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="Updated interval in days after answering easy on a new card."/>
 
                             <xceed:UIntegerUpDown
                                 Grid.Row="1"
@@ -239,8 +254,9 @@
 
                             <TextBlock
                                 Grid.Row="2"
-                                Text="Again review stage"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Text="Again on review card (days)"
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="Learning stage that a review card lands on after answering again."/>
 
                             <xceed:UIntegerUpDown
                                 Grid.Row="2"
@@ -252,8 +268,9 @@
 
                             <TextBlock
                                 Grid.Row="3"
-                                Text="Good on new stage"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Text="Good on new card (stage)"
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="Learning stage that a new card lands on after answering good."/>
 
                             <xceed:UIntegerUpDown
                                 Grid.Row="3"
@@ -265,8 +282,9 @@
 
                             <TextBlock
                                 Grid.Row="4"
-                                Text="Hard on new stage"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Text="Hard on new card (stage)"
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="Learning stage that a new card lands on after answering hard."/>
 
                             <xceed:UIntegerUpDown
                                 Grid.Row="4"
@@ -279,7 +297,8 @@
                             <TextBlock
                                 Grid.Row="5"
                                 Text="Learning stages (minutes)"
-                                Style="{StaticResource OptionsLabelStyle}"/>
+                                Style="{StaticResource SchedulingHintLabelStyle}"
+                                ToolTip="Three learning stages that cards go through before they graduate and become review cards (all values are in minutes)."/>
 
                             <StackPanel
                                 Grid.Row="5"
@@ -415,7 +434,8 @@
 
                             <TextBlock
                                 Grid.Row="2"
-                                Text="Card order"
+                                Text="Reviews/lessons first"
+                                ToolTip="Changes whether your cards are grouped into chunks by state, or random."
                                 Style="{StaticResource OptionsLabelStyle}"/>
 
                             <ComboBox

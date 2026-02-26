@@ -44,10 +44,16 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     
     #region ICommands
     [RelayCommand]
+    private async Task RenameUser(UserVM user)
+    {
+        string newName = user.CommitRename();
+        await userRepo.Rename(user.Id, newName);
+    }
+
+    [RelayCommand]
     private async Task RemoveUser(UserVM toRemove)
     {
-        //TODO: this button only visible when its not current user thats selected
-        //TODO: show "you sure?? it will cascade cards and decks!!" pop up here;
+        //TODO: this button only visible when the current logged user is not the one to remove.
 
         if (currentUserId == toRemove.Id)
             throw new InvalidOperationException(
@@ -79,6 +85,5 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
 
         OnCloseRequest?.Invoke();
     }
-
     #endregion
 }

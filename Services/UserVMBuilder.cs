@@ -1,6 +1,5 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
-using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Wrappers;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,13 +49,13 @@ public class UserVMBuilder(IDbContextFactory<AppDbContext> factory, IUserRepo ur
             Created = user.Created
         };
 
-        return new(user, stats, userRepo);
+        return new(user, stats);
     }
     public UserVM BuildUncounted(UserEntity user)
     {
         var stats = new UserVMStats()
             { Created = user.Created };
 
-        return new(user, stats, userRepo);
+        return new(user, stats);
     }
 }

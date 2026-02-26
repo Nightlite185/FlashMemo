@@ -36,7 +36,7 @@ namespace FlashMemo.View
 
                 else if (e.Key == Key.Enter && !IsNameConflicting(user.TempName))
                 {
-                    await user.CommitRenameCommand.ExecuteAsync(null);
+                    await VM.RenameUserCommand.ExecuteAsync(user);
                 }
             }
         }

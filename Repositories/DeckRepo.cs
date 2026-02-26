@@ -1,3 +1,4 @@
+using System.Collections;
 using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,20 +8,14 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 {
     public async Task<IDeckMeta?> GetFirstDeckMeta(long userId)
     {
-        var db = GetDb;
-
-        return await db.Decks
-            .AsNoTracking()
-            .Where(d => d.UserId == userId)
+        return await AllDecksQuery(GetDb, userId)
             .Cast<IDeckMeta>()
             .FirstOrDefaultAsync();
     }
     
-    public async Task<IDeckMeta> GetDeckMetaById (long deckId)
+    public async Task<IDeckMeta> GetDeckMetaById(long deckId)
     {
-        var db = GetDb;
-
-        return await db.Decks
+        return await GetDb.Decks
             .AsNoTracking()
             .Cast<IDeckMeta>()
             .SingleAsync(d => d.Id == deckId);
@@ -48,31 +43,41 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     }
     public async Task RemoveDeck(long deckId)
     {
-        var db = GetDb;
-
-        await db.Decks
+        await GetDb.Decks
             .Where(d => d.Id == deckId)
             .ExecuteDeleteAsync();
     }
     public async Task<Deck> GetById(long deckId)
     {
-        var db = GetDb;
-
-        return await db.Decks
+        return await GetDb.Decks
             .AsNoTracking()
             .SingleAsync(d => d.Id == deckId);
     }
-    public async Task<ILookup<long?, Deck>> BuildDeckLookup(long userId, AppDbContext? db = null)
+    public async Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId, AppDbContext? db = null)
     {
-        db ??= GetDb;
+        return (
+            await AllDecksQuery(db ?? GetDb, userId)
+            .ToArrayAsync())
+            .ToLookup(d => d.ParentDeckId
+        );
+    }
 
-        var decks = await db.Decks
-            .Where(d => d.UserId == userId)
-            .AsNoTracking()
-            .ToListAsync();
+    public async Task<IEnumerable<long>> GetChildrenIds(long deckId)
+    {
+        var db = GetDb;
 
-        return decks.ToLookup(
-            d => d.ParentDeckId);
+        var userId = await db.Decks
+            .Where(d => d.Id == deckId)
+            .Select(d => d.UserId)
+            .SingleAsync();
+
+        var deckTree = await
+            ParentIdChildrenLookup(userId, db);
+
+        List<long> childrenIds = [];
+
+        GetChildrenIds(deckId, deckTree, childrenIds);
+        return childrenIds;
     }
     
     // if any duplicates -> change IList to hashset. 99% sure there won't be any tho
@@ -88,21 +93,11 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         foreach (var deck in children)
             GetChildrenIds(deck.Id, deckTree, result);
     }
-    public async Task<IEnumerable<long>> GetChildrenIds(long deckId)
+
+    private static IQueryable<Deck> AllDecksQuery(AppDbContext db, long userId)
     {
-        var db = GetDb;
-
-        var userId = await db.Decks
-            .Where(d => d.Id == deckId)
-            .Select(d => d.UserId)
-            .SingleAsync();
-
-        var deckTree = await
-            BuildDeckLookup(userId, db);
-
-        List<long> childrenIds = [];
-
-        GetChildrenIds(deckId, deckTree, childrenIds);
-        return childrenIds;
+        return db.Decks
+            .AsNoTracking()
+            .Where(d => d.UserId == userId);
     }
 }

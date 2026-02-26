@@ -1,18 +1,18 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class DeckNode : NavBaseVM, IDeckMeta
+public partial class DeckNode : RenameVMBase, IDeckMeta
 {
     private readonly Deck deck;
-    public DeckNode(Deck deck, ICollection<DeckNode> children, CardsCount? countByState = null)
+    public DeckNode(Deck deck, ICollection<DeckNode> children, DeckNode? parent, CardsCount? countByState = null)
     {
         this.deck = deck;
+        this.Parent = parent;
         Name = deck.Name;
 
         Children = [..children];
@@ -23,10 +23,10 @@ public partial class DeckNode : NavBaseVM, IDeckMeta
     
     #region public properties
     public long Id => deck.Id;
+    public DeckNode? Parent { get; private set; }
     public long UserId => deck.UserId;
     public long OptionsId => deck.OptionsId;
     public ObservableCollection<DeckNode> Children { get; set; }
-    [ObservableProperty] public partial string Name { get; set; }
     [ObservableProperty] public partial bool IsExpanded { get; set; }
     [ObservableProperty] public partial bool IsSelected { get; set; }
     [ObservableProperty] public partial int LessonsCount { get; set; }
@@ -54,7 +54,44 @@ public partial class DeckNode : NavBaseVM, IDeckMeta
     public Deck ToEntity()
     {
         deck.Name = Name;
+        deck.ParentDeckId = Parent?.Id;
+
         return deck;
+    }
+
+    public void MoveTo(DeckNode? newParent)
+    {
+        if (ReferenceEquals(Parent, newParent) 
+        || Parent?.Id == newParent?.Id)
+        {
+            throw new InvalidOperationException(
+            "A deck cannot be its own parent.");
+        }
+
+        this.Parent = newParent;
+    }
+
+    public void AddChild(DeckNode newChild)
+    {
+        //* checking for circular relations
+        if (ReferenceEquals(this, newChild) || Id == newChild.Id)
+            throw new InvalidOperationException(
+            "A deck cannot be its own child");
+
+        //* checking for duplicates
+        if (Children.Any(c => c.Id == newChild.Id))
+            throw new InvalidOperationException(
+            "This deck already has the child you tried to add.");
+
+        Children.Add(newChild);
+        newChild.MoveTo(this);
+    }
+
+    public void RemoveChild(DeckNode deck)
+    {
+        if (!Children.Remove(deck))
+            throw new InvalidOperationException(
+            "Tried to remove a child from this deck, but it never had it in the first place.");
     }
     #endregion
 }

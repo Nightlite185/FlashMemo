@@ -48,6 +48,7 @@ public partial class DecksVM: NavBaseVM, IPopupHost
         DeckNode node = new(
             deck: deck,
             children: [],
+            parent: null, // TODO: replace this with actual node when creating as another one's child.
             countByState: new()
         );
 
@@ -80,14 +81,25 @@ public partial class DecksVM: NavBaseVM, IPopupHost
     [RelayCommand]
     private async Task RemoveDeck(DeckNode deck)
     {
-        throw new NotImplementedException();
+        deck.Parent?.RemoveChild(deck);
+        await deckRepo.RemoveDeck(deck.Id);
     }
 
     [RelayCommand]
-    private async Task RenameDeck(string newName)
+    private async Task RenameDeck(DeckNode deck)
     {
-        throw new NotImplementedException();
+        deck.CommitRename();
+
+        await deckRepo.SaveEditedDeck(
+            deck.ToEntity());
     }
+
+    [RelayCommand]
+    private async Task MoveDeck(DeckNode deck)
+    {
+        await deckRepo.SaveEditedDeck(deck.ToEntity());
+    }
+
     #endregion
 
     #region public properties

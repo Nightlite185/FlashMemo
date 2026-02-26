@@ -1,6 +1,5 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
-using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
@@ -13,51 +12,61 @@ public class DeckTreeBuilder(IDeckRepo dr, ICountingService cs): IDeckTreeBuilde
     public async Task<IEnumerable<DeckNode>> BuildAsync(long userId)
     {
         var decksLookup = await deckRepo
-            .BuildDeckLookup(userId);
+            .ParentIdChildrenLookup(userId);
 
         return BuildDeckLevel(
-            parentId: null, decksLookup);
+            parent: null, decksLookup);
     }
 
     public async Task<IEnumerable<DeckNode>> BuildCountedAsync(long userId)
     {
         var decksLookup = await deckRepo
-            .BuildDeckLookup(userId);
+            .ParentIdChildrenLookup(userId);
 
         var cardsCount = await counter
             .CardsByState(userId, onlyForStudy: true);
 
-        return BuildDeckLevelWithCount(
-            parentId: null, decksLookup, cardsCount);
+        return BuildDeckLevelCounted(
+            parent: null, decksLookup, cardsCount);
     }
-    private static IEnumerable<DeckNode> BuildDeckLevelWithCount(long? parentId, ILookup<long?, Deck> decksLookup,
-                                                                IDictionary<long, CardsCount> deckToCCMap)
+    private static IEnumerable<DeckNode> BuildDeckLevelCounted(DeckNode? parent, ILookup<long?, Deck> 
+                                                                lookup, IDictionary<long, CardsCount> deckToCCMap)
     {
-        foreach (var deck in decksLookup[parentId])
+        foreach (var deck in lookup[parent?.Id])
         {
-            // build children recursively
-            var children = BuildDeckLevelWithCount(deck.Id, decksLookup, deckToCCMap);
-
-            // get card counts for this deck
             if (!deckToCCMap.TryGetValue(deck.Id, out var cc))
-            {
-                throw new InvalidOperationException(
-                    $"{nameof(deckToCCMap)} deck ids don't match the ones in {nameof(decksLookup)}");
-            }
+                throw new InvalidOperationException("Missing card count");
 
-            // create the VM
-            yield return new DeckNode(deck, [..children], cc);
+            // create this node FIRST
+            var node = new DeckNode(deck, [], parent, cc);
+
+            // build children using THIS node as parent
+            var children = BuildDeckLevelCounted(
+                node, lookup, deckToCCMap);
+
+            foreach (var child in children)
+                node.AddChild(child);
+
+            // return node
+            yield return node;
         }
     }
-    private static IEnumerable<DeckNode> BuildDeckLevel(long? parentId, ILookup<long?, Deck> decksLookup)
-    {
-        foreach (var deck in decksLookup[parentId])
-        {
-            // build children recursively
-            var children = BuildDeckLevel(deck.Id, decksLookup);
 
-            // create the VM
-            yield return new DeckNode(deck, [..children]);
+    private static IEnumerable<DeckNode> BuildDeckLevel(DeckNode? parent, ILookup<long?, Deck> lookup)
+    {
+        foreach (var deck in lookup[parent?.Id])
+        {
+            // create this node first
+            var node = new DeckNode(deck, [], parent);
+
+            // build children using this node as parent
+            var children = BuildDeckLevel(node, lookup);
+
+            foreach (var child in children)
+                node.AddChild(child);
+
+            // return node
+            yield return node;
         }
     }
 }

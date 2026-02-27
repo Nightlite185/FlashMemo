@@ -10,7 +10,7 @@
              d:DataContext="{d:DesignInstance Type=windows:DecksVM}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid MouseDown="Root_MouseDown">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -57,9 +57,11 @@
 
         <!-- Deck list -->
         <TreeView
+            Name="DeckTree"
             Grid.Row="0"
             ItemsSource="{Binding DeckTree}"
             SelectedItemChanged="DeckTree_SelectedChanged"
+            KeyDown="DeckTree_KeyDown"
             Background="Transparent"
             BorderThickness="0">
 
@@ -87,12 +89,34 @@
                             <ColumnDefinition Width="32" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock
-                            Text="{Binding Name}"
-                            FontSize="18"
-                            FontWeight="DemiBold"
-                            Foreground="{StaticResource DeckTextBrush}"
-                            VerticalAlignment="Center"/>
+                        <Grid>
+                            <TextBlock
+                                Text="{Binding Name}"
+                                FontSize="18"
+                                FontWeight="DemiBold"
+                                Foreground="{StaticResource DeckTextBrush}"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding IsRenaming,
+                                            Converter={StaticResource InverseBoolToVisConverter}}"/>
+
+                            <TextBox
+                                Text="{Binding TempName, UpdateSourceTrigger=PropertyChanged}"
+                                FontSize="18"
+                                Height="30"
+                                Width="300"
+                                Background="Transparent"
+                                Foreground="White"
+                                CaretBrush="White"
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Left"
+                                HorizontalAlignment="Left"
+                                Visibility="{Binding IsRenaming,
+                                            Converter={StaticResource BoolToVisConverter}}"
+                                KeyDown="RenameBox_KeyDown"
+                                LostFocus="RenameBox_LostFocus"
+                                LostKeyboardFocus="RenameBox_LostFocus"
+                                IsVisibleChanged="RenameBox_IsVisibleChanged"/>
+                        </Grid>
 
                         <TextBlock
                             Grid.Column="1"
@@ -123,16 +147,26 @@
 
                             <Button.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Rename"/>
+                                    <MenuItem
+                                        Header="Rename"
+                                        Command="{Binding PlacementTarget.DataContext.BeginRenameCommand, 
+                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
 
                                     <MenuItem
                                         Header="Options"
                                         Command="{Binding DataContext.ShowDeckOptionsCommand, Source={x:Reference Root}}"
                                         CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                        
-                                    <MenuItem Header="Export"/>
+
+                                    <MenuItem
+                                        Header="Create sub-deck"
+                                        Command="{Binding DataContext.ShowCreateDeckCommand, Source={x:Reference Root}}"
+                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     <Separator/>
-                                    <MenuItem Header="Delete"/>
+                                    
+                                    <MenuItem
+                                        Header="Delete"
+                                        Command="{Binding DataContext.RemoveDeckCommand, Source={x:Reference Root}}"
+                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 </ContextMenu>
                             </Button.ContextMenu>
 

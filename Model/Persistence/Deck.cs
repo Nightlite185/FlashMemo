@@ -20,7 +20,7 @@ namespace FlashMemo.Model.Persistence
 
         #region methods
 
-        public static Deck CreateNew(string name, long userId)
+        public static Deck CreateNew(string name, long userId, long? parentId)
         {
             return new()
             {
@@ -29,7 +29,7 @@ namespace FlashMemo.Model.Persistence
                 Created = DateTime.Now,
                 UserId = userId,
                 OptionsId = -1, // default preset
-                ParentDeckId = null,
+                ParentDeckId = parentId,
                 IsTemporary = false,
             };
         }

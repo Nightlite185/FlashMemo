@@ -9,7 +9,7 @@ namespace FlashMemo.ViewModel.Wrappers;
 public partial class DeckNode : RenameVMBase, IDeckMeta
 {
     private readonly Deck deck;
-    public DeckNode(Deck deck, ICollection<DeckNode> children, DeckNode? parent, CardsCount? countByState = null)
+    public DeckNode(Deck deck, ICollection<DeckNode> children, DeckNode? parent = null, CardsCount? countByState = null)
     {
         this.deck = deck;
         this.Parent = parent;
@@ -59,24 +59,12 @@ public partial class DeckNode : RenameVMBase, IDeckMeta
         return deck;
     }
 
-    public void MoveTo(DeckNode? newParent)
-    {
-        if (ReferenceEquals(Parent, newParent) 
-        || Parent?.Id == newParent?.Id)
-        {
-            throw new InvalidOperationException(
-            "A deck cannot be its own parent.");
-        }
-
-        this.Parent = newParent;
-    }
-
     public void AddChild(DeckNode newChild)
     {
         //* checking for circular relations
         if (ReferenceEquals(this, newChild) || Id == newChild.Id)
             throw new InvalidOperationException(
-            "A deck cannot be its own child");
+            "Circular parent/child DeckNode relation detected.");
 
         //* checking for duplicates
         if (Children.Any(c => c.Id == newChild.Id))
@@ -84,7 +72,7 @@ public partial class DeckNode : RenameVMBase, IDeckMeta
             "This deck already has the child you tried to add.");
 
         Children.Add(newChild);
-        newChild.MoveTo(this);
+        newChild.Parent = this;
     }
 
     public void RemoveChild(DeckNode deck)
@@ -92,6 +80,9 @@ public partial class DeckNode : RenameVMBase, IDeckMeta
         if (!Children.Remove(deck))
             throw new InvalidOperationException(
             "Tried to remove a child from this deck, but it never had it in the first place.");
+
+        deck.Parent = null;
     }
+    
     #endregion
 }

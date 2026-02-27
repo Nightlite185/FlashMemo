@@ -1,13 +1,15 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public partial class EnterNameVM(Func<string, Task> confirmAction, Action cancel): PopupVMBase(cancel)
+public partial class CreateDeckVM(Func<string, DeckNode?, Task> confirmAction, 
+                        Action cancel, DeckNode? parent = null): PopupVMBase(cancel)
 {
-    private readonly Func<string, Task> confirm = confirmAction;
+    private readonly Func<string, DeckNode?, Task> confirm = confirmAction;
 
-    protected override bool CanConfirm 
+    protected override bool CanConfirm
         => !string.IsNullOrWhiteSpace(NameField);
 
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
@@ -15,7 +17,7 @@ public partial class EnterNameVM(Func<string, Task> confirmAction, Action cancel
 
     protected override async Task Confirm()
     {
-        await confirm(NameField);
+        await confirm(NameField, parent);
         Close();
     }
 }

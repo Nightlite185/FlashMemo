@@ -13,7 +13,7 @@ public abstract partial class RenameVMBase: ObservableObject, IViewModel
     protected virtual bool CanRename => !IsRenaming;
 
     [RelayCommand(CanExecute = nameof(CanRename))]
-    private async Task BeginRename()
+    private void BeginRename()
     {
         IsRenaming = true;
         TempName = Name;

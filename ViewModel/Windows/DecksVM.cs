@@ -37,31 +37,31 @@ public partial class DecksVM: NavBaseVM, IPopupHost
 
         DeckTree.AddRange(deckTree);
     }
-    private async Task CreateDeck(string name)
+    private async Task CreateDeck(string name, DeckNode? parent = null)
     {
-        Deck deck = Deck
-            .CreateNew(name, userId);
-        
-        await deckRepo
-            .AddNewDeck(deck);
+        Deck deck = Deck.CreateNew(
+            name, userId, parent?.Id);
         
         DeckNode node = new(
             deck: deck,
             children: [],
-            parent: null, // TODO: replace this with actual node when creating as another one's child.
-            countByState: new()
-        );
+            countByState: new());
 
-        DeckTree.Add(node);
+        if (parent is not null)
+            parent.AddChild(node);
+
+        else DeckTree.Add(node);
+        
+        await deckRepo.AddNewDeck(deck);
     }
     #endregion
 
     #region ICommands
     [RelayCommand]
-    private void ShowCreateDeck()
+    private void ShowCreateDeck(DeckNode? parent = null)
     {
         //* show create deck popup, in which you give it a name.
-        CurrentPopup = new EnterNameVM(CreateDeck, PopupCancel);
+        CurrentPopup = new CreateDeckVM(CreateDeck, PopupCancel, parent);
     }
 
     [RelayCommand]
@@ -81,7 +81,11 @@ public partial class DecksVM: NavBaseVM, IPopupHost
     [RelayCommand]
     private async Task RemoveDeck(DeckNode deck)
     {
-        deck.Parent?.RemoveChild(deck);
+        if (deck.Parent is DeckNode parent)
+            parent.RemoveChild(deck);
+
+        else DeckTree.Remove(deck);
+
         await deckRepo.RemoveDeck(deck.Id);
     }
 

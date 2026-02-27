@@ -217,7 +217,7 @@
 
         <!-- Enter Name Popup -->
 
-        <DataTemplate DataType="{x:Type popups:EnterNameVM}">
+        <DataTemplate DataType="{x:Type popups:CreateDeckVM}">
 
             <Border
                 Width="320"
@@ -231,7 +231,7 @@
 
                     <!-- Title -->
                     <TextBlock
-                        Text="Create New Deck"
+                        Text="Create new deck"
                         FontSize="22"
                         FontWeight="SemiBold"
                         Foreground="White"
@@ -244,7 +244,8 @@
                         Height="34"
                         FontSize="16"
                         Margin="0,0,0,16"
-                        VerticalContentAlignment="Center"/>
+                        VerticalContentAlignment="Center"
+                        helpers:PopupInputBehavior.EnableCreateDeckNameBehavior="True"/>
 
                     <!-- Buttons -->
                     <StackPanel

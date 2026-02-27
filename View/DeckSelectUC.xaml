@@ -51,11 +51,24 @@
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
 
-                        <TextBlock
-                            Text="{Binding Name}"
-                            Foreground="{StaticResource DeckTextBrush}"
-                            FontSize="16"
-                            VerticalAlignment="Center"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="34"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ToggleButton
+                                Grid.Column="0"
+                                Style="{StaticResource DeckExpandToggleStyle}"
+                                IsChecked="{Binding IsExpanded, Mode=TwoWay}"/>
+
+                            <TextBlock
+                                Grid.Column="1"
+                                Text="{Binding Name}"
+                                Foreground="{StaticResource DeckTextBrush}"
+                                FontSize="16"
+                                VerticalAlignment="Center"/>
+                        </Grid>
 
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>

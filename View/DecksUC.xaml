@@ -82,6 +82,7 @@
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="34" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="60" />
                             <ColumnDefinition Width="60" />
@@ -89,7 +90,12 @@
                             <ColumnDefinition Width="32" />
                         </Grid.ColumnDefinitions>
 
-                        <Grid>
+                        <ToggleButton
+                            Grid.Column="0"
+                            Style="{StaticResource DeckExpandToggleStyle}"
+                            IsChecked="{Binding IsExpanded, Mode=TwoWay}"/>
+
+                        <Grid Grid.Column="1">
                             <TextBlock
                                 Text="{Binding Name}"
                                 FontSize="18"
@@ -119,31 +125,37 @@
                         </Grid>
 
                         <TextBlock
-                            Grid.Column="1"
+                            Grid.Column="2"
                             Text="{Binding LessonsCount}"
                             FontSize="18"
                             Foreground="{StaticResource DeckNewBrush}"
                             HorizontalAlignment="Center"/>
 
                         <TextBlock
-                            Grid.Column="2"
+                            Grid.Column="3"
                             Text="{Binding LearningCount}"
                             FontSize="18"
                             Foreground="{StaticResource DeckLearnBrush}"
                             HorizontalAlignment="Center"/>
 
                         <TextBlock
-                            Grid.Column="3"
+                            Grid.Column="4"
                             Text="{Binding ReviewsCount}"
                             FontSize="18"
                             Foreground="{StaticResource DeckDueBrush}"
                             HorizontalAlignment="Center"/>
 
                         <Button
-                            Grid.Column="4"
+                            Grid.Column="5"
                             Content="⚙"
                             Style="{StaticResource DeckOptionsButtonStyle}"
                             Click="DeckCtxButton_Click">
+                            <Button.Visibility>
+                                <Binding
+                                    Path="IsMouseOver"
+                                    RelativeSource="{RelativeSource AncestorType=TreeViewItem}"
+                                    Converter="{StaticResource BoolToVisConverter}"/>
+                            </Button.Visibility>
 
                             <Button.ContextMenu>
                                 <ContextMenu>

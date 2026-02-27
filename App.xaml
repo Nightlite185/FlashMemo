@@ -154,6 +154,103 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="{StaticResource DeckDimBrush}"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DeckExpandToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="25"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Visibility" Value="Visible"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0">
+                            <Grid
+                                Width="14"
+                                Height="14"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+
+                                <Border
+                                    x:Name="MinusBar"
+                                    Width="14"
+                                    Height="2"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+
+                                <Border
+                                    x:Name="PlusVerticalBar"
+                                    Width="2"
+                                    Height="14"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="Aquamarine"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Trigger>
+
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter TargetName="PlusVerticalBar" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Children.Count}" Value="0">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <!-- TREEVIEW ITEM STYLE -->
@@ -192,6 +289,8 @@
 
                             <!-- Children -->
                             <ItemsPresenter
+                                x:Name="ChildrenHost"
+                                Visibility="Collapsed"
                                 Margin="20,2,0,2"/>
 
                         </StackPanel>
@@ -208,6 +307,13 @@
                                     TargetName="Row"
                                     Property="Background"
                                     Value="#402A82DA"/>
+                            </Trigger>
+
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter
+                                    TargetName="ChildrenHost"
+                                    Property="Visibility"
+                                    Value="Visible"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

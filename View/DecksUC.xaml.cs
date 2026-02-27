@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using FlashMemo.ViewModel.Windows;
@@ -15,6 +16,13 @@ public partial class DecksUC: UserControl
 
     private void TreeViewItem_DoubleClick(object sender, MouseButtonEventArgs e)
     {
+        if (e.OriginalSource is DependencyObject source 
+        && IsInsideButtonBase(source))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (sender is not TreeViewItem item
         || item.DataContext is not DeckNode deck
         || this.DataContext is not DecksVM vm)
@@ -128,6 +136,21 @@ public partial class DecksUC: UserControl
         while (current is not null)
         {
             if (current is TextBox)
+                return true;
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
+    }
+
+    private static bool IsInsideButtonBase(DependencyObject source)
+    {
+        DependencyObject? current = source;
+
+        while (current is not null)
+        {
+            if (current is ButtonBase)
                 return true;
 
             current = VisualTreeHelper.GetParent(current);

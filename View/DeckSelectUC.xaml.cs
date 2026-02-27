@@ -1,10 +1,10 @@
-﻿using FlashMemo.ViewModel.Factories;
-using FlashMemo.ViewModel.Popups;
-using FlashMemo.ViewModel.Windows;
+﻿using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace FlashMemo.View;
 
@@ -40,11 +40,33 @@ public partial class DeckSelectUC : UserControl
     }
     private async void TreeViewItem_DoubleClick(object sender, MouseButtonEventArgs e)
     {
+        if (e.OriginalSource is DependencyObject source &&
+            IsInsideButtonBase(source))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (sender is not TreeViewItem item
         || item.DataContext is not DeckNode deck
         || this.DataContext is not DeckSelectVM vm)
             return;
 
         await vm.ConfirmCommand.ExecuteAsync(deck);
+    }
+
+    private static bool IsInsideButtonBase(DependencyObject source)
+    {
+        DependencyObject? current = source;
+
+        while (current is not null)
+        {
+            if (current is ButtonBase)
+                return true;
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
     }
 }

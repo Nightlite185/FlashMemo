@@ -29,15 +29,27 @@ namespace FlashMemo.View
             if (sender is TextBox tb &&
                 tb.DataContext is UserVM user)
             {
-                if (e.Key == Key.Escape || string.IsNullOrWhiteSpace(user.TempName))
+                if (e.Key == Key.Escape)
+                {
+                    user.CancelRenameCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+
+                if (e.Key != Key.Enter)
+                    return;
+
+                if (string.IsNullOrWhiteSpace(user.TempName) || user.TempName == user.Name)
                 {
                     user.CancelRenameCommand.Execute(null);
                 }
 
-                else if (e.Key == Key.Enter && !IsNameConflicting(user.TempName))
+                else if (!IsNameConflicting(user.TempName))
                 {
                     await VM.RenameUserCommand.ExecuteAsync(user);
                 }
+
+                e.Handled = true;
             }
         }
 
@@ -56,15 +68,17 @@ namespace FlashMemo.View
             Keyboard.ClearFocus();
         }
 
-        private void TextBox_Loaded(object sender, RoutedEventArgs e)
+        private void RenameBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            var tb = sender as TextBox 
-                ?? throw new InvalidOperationException(
-                "Wrong control type, expected TextBox.");
+            if (sender is not TextBox tb || !tb.IsVisible)
+                return;
 
-            tb.Focus();
-            Keyboard.Focus(tb);
-            tb.SelectAll();
+            tb.Dispatcher.BeginInvoke(() =>
+            {
+                tb.Focus();
+                Keyboard.Focus(tb);
+                tb.SelectAll();
+            });
         }
 
         private async void RemoveButton_Click(object sender, RoutedEventArgs e)
@@ -161,8 +175,11 @@ namespace FlashMemo.View
                     break;
 
                 case Key.Enter:
-                    await VM.LoginCommand
-                        .ExecuteAsync(user);
+                    await VM.LoginCommand.ExecuteAsync(user);
+                    break;
+
+                case Key.F2:
+                    user.BeginRenameCommand.Execute(null);
                     break;
             };
         }

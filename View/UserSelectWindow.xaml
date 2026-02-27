@@ -93,6 +93,7 @@
                                         KeyDown="RenameBox_KeyDown"
                                         LostFocus="RenameBox_LostFocus"
                                         LostKeyboardFocus="RenameBox_LostFocus"
+                                        IsVisibleChanged="RenameBox_IsVisibleChanged"
                                         Background="#330162FD"
                                         Foreground="#FF00ECC6"
                                         Margin="0,0,246,0"/>
@@ -157,17 +158,17 @@
                 VerticalContentAlignment="Center"
                 FontSize="16"
                 ToolTip="Enter new user name"
-                Background="#22FFFFFF"
+                Background="#3F000000"
                 Foreground="White"
                 BorderBrush="{StaticResource NavBorderBrush}"
-                BorderThickness="1"/>
+                BorderThickness="1" CaretBrush="White"/>
 
             <!-- Create button -->
             <Button
                 Style="{StaticResource NavButtonStyle}"
                 Content="Create User"
                 Name="CreateButton"
-                Click="CreateButton_Click"/>
+                Click="CreateButton_Click" Width="106"/>
 
         </StackPanel>
     </Grid>

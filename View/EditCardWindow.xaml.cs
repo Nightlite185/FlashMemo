@@ -3,9 +3,9 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.View
 {
-    public partial class EditCardWindow : Window, IViewFor<EditCardVM>
+    public partial class EditCardWindow : Window, IViewFor<CardEditorVM>
     {
-        public EditCardVM VM { get; set; } = null!;
+        public CardEditorVM VM { get; set; } = null!;
         public EditCardWindow()
         {
             InitializeComponent();

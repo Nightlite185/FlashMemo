@@ -52,7 +52,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
             if (CurrentCard is null) throw new InvalidOperationException(
                 $"tried to access {nameof(BackContent)} property, but no card was loaded atm.");
 
-            return CurrentCard.BackContent ?? "うら空っぽみたい"; // just for testing so ik if its actually empty or sth bugged
+            return CurrentCard.BackContent ?? "Seems that the back is empty...";
         }
     }
     

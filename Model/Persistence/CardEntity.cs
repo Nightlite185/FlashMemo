@@ -8,8 +8,7 @@ public class CardEntity: IEntity, ICard
 {
     #region Properties
     public long Id { get; set; }
-    public string FrontContent { get; set; } = null!;
-    public string? BackContent { get; set; }
+    public Note Note { get; set; } = null!; // TODO: migrate to db cuz note owned type.
     public long DeckId { get; set; }
     public ICollection<Tag> Tags { get; set; } = [];
     public ICollection<CardLog> CardLogs { get; set; } = [];
@@ -134,7 +133,7 @@ public class CardEntity: IEntity, ICard
         Tags.AddRange(newTags);
     }
     #endregion
-    public static CardEntity CreateNew(string frontContent, string? backContent, long deckId, IEnumerable<Tag> tags)
+    public static CardEntity CreateNew(Note note, long deckId, IEnumerable<Tag> tags)
     {
         return new()
         {
@@ -153,9 +152,7 @@ public class CardEntity: IEntity, ICard
             IsSuspended = false,
 
             Tags = [..tags],
-            
-            FrontContent = frontContent,
-            BackContent = backContent
+            Note = note
         };
     }
 }

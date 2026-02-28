@@ -4,7 +4,7 @@ using FlashMemo.Model;
 
 namespace FlashMemo.Services;
 
-public class LearningPool<TCard> where TCard: class, ICard
+public class LearningPool<TCard> where TCard: class, ILearningPoolCard
 {
     private readonly PriorityQueue<TCard, DateTime> cardPool = new(initialCapacity: 8);
     public void Add(TCard card)

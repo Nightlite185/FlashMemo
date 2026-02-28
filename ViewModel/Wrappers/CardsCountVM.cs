@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Services;
 
@@ -30,7 +29,7 @@ public partial class CardsCountVM: ObservableObject
     [ObservableProperty] public partial int Learning { get; set; }
     [ObservableProperty] public partial int Reviews { get; set; }
 
-    public void UpdateCount(IEnumerable<ICard> cards, int learningCount)
+    public void UpdateCount(IEnumerable<CardVM> cards, int learningCount)
     {
         Lessons = 0;
         Learning = 0;

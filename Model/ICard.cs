@@ -3,17 +3,33 @@ using FlashMemo.Model.Domain;
 namespace FlashMemo.Model;
 public interface ICard
 {
-    public long Id { get; }
-    public long DeckId { get; }
-    public bool IsBuried { get; }
-    public bool IsSuspended { get; }
-    public DateTime Created { get; }
-    public DateTime? LastModified { get; }
-    public DateTime? Due { get; }
-    public bool IsDueToday => Due?.Date == DateTime.Today;
-    public bool IsDueNow => Due <= DateTime.Now;
-    public DateTime? LastReviewed { get; }
-    public TimeSpan Interval { get; }
-    public CardState State { get; }
-    public int? LearningStage { get; }
+    long Id { get; }
+    long DeckId { get; }
+    bool IsBuried { get; }
+    bool IsSuspended { get; }
+    DateTime Created { get; }
+    DateTime? LastModified { get; }
+    DateTime? Due { get; }
+    bool IsDueToday => Due?.Date == DateTime.Today;
+    bool IsDueNow => Due <= DateTime.Now;
+    DateTime? LastReviewed { get; }
+    TimeSpan Interval { get; }
+    CardState State { get; }
+    int? LearningStage { get; }
 }
+
+public interface IScheduleInfoCard
+{
+    TimeSpan Interval { get; }
+    CardState State { get; }
+    int? LearningStage { get; }
+}
+
+public interface ILearningPoolCard
+{
+    DateTime? Due { get; }
+    bool IsDueNow => Due <= DateTime.Now;
+    CardState State { get; }
+}
+
+public interface INote;

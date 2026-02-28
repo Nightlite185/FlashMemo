@@ -5,7 +5,7 @@ namespace FlashMemo.Services;
    
 public static class Scheduler
 {
-    public static SchedulePermutations GetForecast(ICard card, DeckOptions.SchedulingOpt options)
+    public static SchedulePermutations GetForecast(IScheduleInfoCard card, DeckOptions.SchedulingOpt options)
     {
         return new(
             Easy: ProcessEasy(card, options),
@@ -16,7 +16,7 @@ public static class Scheduler
     }
     
     #region Private answer handlers
-    private static ScheduleInfo ProcessHard(ICard card, DeckOptions.SchedulingOpt s)
+    private static ScheduleInfo ProcessHard(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
         return card.State switch
         {
@@ -41,7 +41,7 @@ public static class Scheduler
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
         };
     }
-    private static ScheduleInfo ProcessEasy(ICard card, DeckOptions.SchedulingOpt s)
+    private static ScheduleInfo ProcessEasy(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
         return new(
             state: CardState.Review,
@@ -55,7 +55,7 @@ public static class Scheduler
                 : card.Interval * s.EasyMultiplier
         );
     }
-    private static ScheduleInfo ProcessGood(ICard card, DeckOptions.SchedulingOpt s)
+    private static ScheduleInfo ProcessGood(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
         return card.State switch
         {
@@ -78,7 +78,7 @@ public static class Scheduler
     }
     
     // had to be separate method bc its a whole another world of things to consider, would get too messy.
-    private static ScheduleInfo ProcessGoodIfLearningStage(ICard card, DeckOptions.SchedulingOpt s)
+    private static ScheduleInfo ProcessGoodIfLearningStage(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
         int? learningStage = (card.LearningStage == s.LearningStages.Length -1) // if its already last learning stage:
             ? null                              // set to null
@@ -99,7 +99,7 @@ public static class Scheduler
             interval: interval
         );
     }
-    private static ScheduleInfo ProcessAgain(ICard card, DeckOptions.SchedulingOpt s)
+    private static ScheduleInfo ProcessAgain(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
         return card.State switch 
         {
@@ -119,8 +119,8 @@ public static class Scheduler
         };
     }
     #endregion
-    private static string InvalidStateExMessage(ICard c)
-        => $"card has invalid state enum value ({c.State}), card's id = {c.Id}";
+    private static string InvalidStateExMessage(IScheduleInfoCard si)
+        => $"card has invalid state enum value ({si.State})";
 }
 
 public record SchedulePermutations(

@@ -1,15 +1,8 @@
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class NewCardVM(): ObservableObject, IViewModel
+public partial class NewCardVM: WiPCardVMBase
 {
-    [ObservableProperty]
-    public partial string FrontContentXAML { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string BackContentXAML { get; set; } = "";
-
-    public ObservableCollection<TagVM> Tags { get; init; } = [];
+    
 }

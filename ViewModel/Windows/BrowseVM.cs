@@ -98,7 +98,7 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable
     private CardCtxMenuVM cardCtxMenu = null!;
     private readonly ICardQueryService cardQueryS;
     private readonly FiltersVM filtersVM;
-    private EditCardVM? editVM;
+    private CardEditorVM? editVM;
     private IReadOnlyCollection<CardVM>? capturedCards;
     private long loadedUserId;
     private Filters? cachedFilters;

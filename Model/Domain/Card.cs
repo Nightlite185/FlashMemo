@@ -1,18 +1,7 @@
 namespace FlashMemo.Model.Domain;
 
-public enum CardState
-{
-    New,
-    Learning,
-    Review
-}
-public enum Answers
-{
-    Again,
-    Hard,
-    Good,
-    Easy
-}
+public enum CardState { New, Learning, Review }
+public enum Answers { Again, Hard, Good, Easy }
 
 public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStage)
 {

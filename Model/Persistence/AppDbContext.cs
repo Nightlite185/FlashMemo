@@ -23,10 +23,15 @@ namespace FlashMemo.Model.Persistence
 
         private static void DefineTables(ModelBuilder mb)
         {
-            mb.Entity<CardEntity>()
-                .ToTable("Cards")
-                .Property(c => c.Id)
-                .ValueGeneratedNever();
+            mb.Entity<CardEntity>(mb =>
+            {
+                mb.ToTable("Cards")
+                    .Property(c => c.Id)
+                    .ValueGeneratedNever(); 
+
+                mb.OwnsOne(c => c.Note);
+            });
+                
 
             mb.Entity<LastSessionData>(mb =>
             {

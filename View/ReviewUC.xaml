@@ -289,7 +289,7 @@
                             <ContextMenu.ItemTemplate>
                                 <DataTemplate>
                                     <MenuItem
-                                        Header="{Binding FrontContent,
+                                        Header="{Binding Note.FrontContent,
                                             Converter={StaticResource XamlToTextConverter}}"
                                         Command="{Binding DataContext.ShowEditFromHistoryCommand,
                                             RelativeSource={RelativeSource AncestorType=UserControl}}"

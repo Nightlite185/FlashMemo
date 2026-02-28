@@ -11,9 +11,9 @@ public class EditCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, CardCtxMenu
     private readonly ICardRepo cardRepo = cr;
     private readonly CardCtxMenuVMF cardCtxMenuVMF = ccmVMF;
 
-    public async Task<EditCardVM> CreateAsync(long cardId, long userId)
+    public async Task<CardEditorVM> CreateAsync(long cardId, long userId)
     {
-        EditCardVM ecVM = new(
+        CardEditorVM ecVM = new(
             cardService, tagRepo, cardRepo);
 
         var ccm = cardCtxMenuVMF

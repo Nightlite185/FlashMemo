@@ -7,46 +7,47 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class CardVM(CardEntity card): ObservableObject, ICard, IViewModel
+public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolCard, IViewModel
 {
+    public CardVM(CardEntity card)
+    {
+        if (card.Note is not StandardNote sn)
+            throw new NotSupportedException(
+            "Only standard note supported for now.");
+        
+        Note = new StandardNoteVM(sn);
+        Tags = [..card.Tags.ToVMs()];
+
+        this.card = card;
+    }
+
     [ObservableProperty] public partial bool IsSelected { get; set; } = false;
     [ObservableProperty] public partial bool IsDeleted { get; set; } = false;
-    [ObservableProperty] public partial string FrontContent { get; set; } = card.FrontContent;
-    [ObservableProperty] public partial string BackContent { get; set; } = card.BackContent ?? "";
-    public ObservableCollection<TagVM> Tags { get; init; } = [..card.Tags.ToVMs()];
+    [ObservableProperty] public partial NoteVM Note { get; set; } = null!;
+    public ObservableCollection<TagVM> Tags { get; init; }
     public int DayInterval => (int)card.Interval.TotalDays;
 
-    #region ICard implementation
+    #region interface
     public long Id => card.Id;
-    public long DeckId => card.DeckId;
-    public bool IsBuried => card.IsBuried;
-    public bool IsSuspended => card.IsSuspended;
-    public DateTime Created => card.Created;
-    public DateTime? LastModified => card.LastModified;
-    public DateTime? Due => card.Due;
-    public DateTime? LastReviewed => card.LastReviewed;
     public TimeSpan Interval => card.Interval;
     public CardState State => card.State;
+    public DateTime? Due => card.Due;
     public int? LearningStage => card.LearningStage;
     #endregion
     
-    private readonly CardEntity card = card;
+    private readonly CardEntity card;
     public void NotifyChanged() => CardVersion++;
     public CardEntity ToEntity()
     {
-        card.FrontContent = FrontContent;
-        
-        card.BackContent = BackContent.Length == 0
-            ? null
-            : BackContent;
+        card.Note = this.Note.ToDomain();
 
         card.ReplaceTagsWith(Tags.ToEntities());
 
         return card;
     }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(State))]
+    // [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(State))]
+    [ObservableProperty] // cant notify for a child vm.
     private partial int CardVersion { get; set; }
     // this is incremented every time when card is updated, to notify the UI.
 }

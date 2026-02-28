@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using FlashMemo.Helpers;
-using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 
@@ -32,11 +31,14 @@ namespace FlashMemo.View
                 return;
             }
 
+            if (VM.WipCard.Note is not StandardNoteVM sn)
+                throw new NotSupportedException("Only Standard notes supported for now.");
+
             // Serialize editors
-            VM.WipCard.FrontContentXAML = XamlSerializer
+            sn.FrontContent = XamlSerializer
                 .ToXaml(FrontBox.Document);
 
-            VM.WipCard.BackContentXAML = XamlSerializer
+            sn.BackContent = XamlSerializer
                 .ToXaml(BackBox.Document);
 
             await VM.AddCardCommand.ExecuteAsync(null);
@@ -48,13 +50,16 @@ namespace FlashMemo.View
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            if (VM.WipCard.Note is not StandardNoteVM sn)
+                throw new NotSupportedException("Only Standard notes supported for now.");
+
             // Load Front
             FrontBox.Document = XamlSerializer
-                .FromXaml(VM.WipCard.FrontContentXAML);
+                .FromXaml(sn.FrontContent);
 
             // Load Back
             BackBox.Document = XamlSerializer
-                .FromXaml(VM.WipCard.BackContentXAML);
+                .FromXaml(sn.BackContent);
         }
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
@@ -90,8 +95,6 @@ namespace FlashMemo.View
 
             return string.IsNullOrWhiteSpace(front)
                 && string.IsNullOrWhiteSpace(back);
-
-            //TODO: CHECK FOR THE IMAGES SOMEHOW (won't appear from GetPlainText() probably)
         }
     }
 }

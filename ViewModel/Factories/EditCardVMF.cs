@@ -4,19 +4,14 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class EditCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, CardCtxMenuVMF ccmVMF)
+public class EditCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, CardCtxMenuVMF ctxFactory, IDomainEventBus bus)
 {
-    private readonly ICardService cardService = cs;
-    private readonly ITagRepo tagRepo = tr;
-    private readonly ICardRepo cardRepo = cr;
-    private readonly CardCtxMenuVMF cardCtxMenuVMF = ccmVMF;
-
     public async Task<CardEditorVM> CreateAsync(long cardId, long userId)
     {
         CardEditorVM ecVM = new(
-            cardService, tagRepo, cardRepo);
+            cs, tr, cr, bus);
 
-        var ccm = cardCtxMenuVMF
+        var ccm = ctxFactory
             .Create(ecVM, userId);
 
         await ecVM.Initialize(cardId, ccm);

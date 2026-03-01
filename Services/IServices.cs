@@ -78,3 +78,9 @@ public interface IDeckOptVMBuilder
 {
     Task<ICollection<DeckOptionsVM>> BuildAllCounted(long userId);
 }
+
+public interface IDomainEventBus
+{
+    event Func<DomainChangedArgs, Task>? DomainChanged;
+    Task Notify(DomainChangedArgs args);
+}

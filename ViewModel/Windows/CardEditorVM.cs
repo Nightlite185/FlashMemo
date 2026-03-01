@@ -8,8 +8,8 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr)
-: ICloseRequest, IPopupHost, IViewModel
+public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IDomainEventBus bus)
+                                : ICloseRequest, IPopupHost, IClosedHandler, IViewModel
 {
     public EditableCardVM Card { get; protected set; } = null!; //* factory sets this
     public PopupVMBase? CurrentPopup { get; set; }
@@ -33,7 +33,18 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr)
             CardAction.Modify
         );
 
+        await eventBus.Notify(new NoteModifiedArgs(Card.ToEntity()));
         OnCloseRequest?.Invoke();
+    }
+
+    private async Task OnDomainChanged(DomainChangedArgs e)
+    {
+        
+    }
+
+    public void OnClosed()
+    {
+        eventBus.DomainChanged -= OnDomainChanged;
     }
 
     #endregion
@@ -44,23 +55,13 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr)
     private readonly ITagRepo tagRepo = tr;
     private readonly ICardService cardService = cs;
     private readonly ICardRepo cardRepo = cr;
+    private readonly IDomainEventBus eventBus = bus;
     #endregion
 
     #region ICommands
     [RelayCommand]
-    private async Task RevertChanges() // only reverts the vm-made changes to what the card was.
-    {
-        Card.RevertChanges();
-
-        // refreshing the tags cuz user might have edited them globally
-        // after loading this VM, but before this command was called.
-        
-        // var oldTagIds = lastSavedCard.Tags;
-        // var oldTags = await tagRepo.GetByIds(
-        //     oldTagIds.Select(t => t.Id));
-
-        // Card.Tags.AddRange(oldTags.ToVMs());
-    }
+    private async Task RevertChanges() //* only reverts the vm-made changes to what the card was.
+        => Card.RevertChanges();
 
     [RelayCommand]
     protected virtual void CancelChanges() => OnCloseRequest?.Invoke();

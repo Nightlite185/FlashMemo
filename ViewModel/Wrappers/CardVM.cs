@@ -26,6 +26,8 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
     [ObservableProperty] public partial NoteVM Note { get; set; } = null!;
     public ObservableCollection<TagVM> Tags { get; init; }
     public int DayInterval => (int)card.Interval.TotalDays;
+    public bool IsSuspended => card.IsSuspended;
+    public bool IsBuried => card.IsBuried;
 
     #region interface
     public long Id => card.Id;

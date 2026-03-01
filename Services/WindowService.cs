@@ -65,20 +65,14 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         var vm = await editCardVMF.CreateAsync(e.CardId, e.UserId);
         var win = sp.GetRequiredService<EditCardWindow>();
 
-        if (e.Sender is IClosedHandler ch)
-            win.Closed += (_, _) => ch.OnDialogClosed();
-
-        WireHelper(vm, win);
+        WireHelper(vm, win, e.Sender);
     }
     private void ShowCreateCard(CreateCardNavRequest e)
     {
         var vm = createCardVMF.Create(e.TargetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();
 
-        if (e.Sender is IClosedHandler ch)
-            win.Closed += (_, _) => ch.OnDialogClosed();
-
-        WireHelper(vm, win);
+        WireHelper(vm, win, e.Sender);
     }
 
     ///<param name="currentUserId">
@@ -111,10 +105,10 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
     #endregion
     
     #region private helpers
-    private void WireHelper<TVM>(TVM vm, Window win) where TVM: class, IViewModel
+    private void WireHelper<TVM>(TVM vm, Window win, NavBaseVM? sender = null) where TVM: class, IViewModel
     {
         SetDataCtx(vm, win);
-        WireEvents(vm, win);
+        WireEvents(vm, win, sender);
 
         win.ShowDialog();
     }
@@ -129,7 +123,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         else throw new InvalidOperationException(
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TVM).Name}>");
     }
-    internal void WireEvents(IViewModel vm, Window win)
+    internal void WireEvents(IViewModel vm, Window win, NavBaseVM? sender = null)
     {
         if (vm is INavRequestSender nrs)
             nrs.NavRequested += NavRequestHandler;
@@ -137,8 +131,11 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         if (vm is ICloseRequest cr)
             cr.OnCloseRequest += win.Close;
 
-        if (vm is IClosedHandler ch && win is not MainWindow)
-            win.Closed += (_, _) => ch.OnDialogClosed();
+        if (vm is IClosedHandler ch)
+            win.Closed += (_, _) => ch.OnClosed();
+
+        if (sender is IDialogClosedHandler dch)
+            win.Closed += (_, _) => dch.OnDialogClosed();
     }
     #endregion
 }

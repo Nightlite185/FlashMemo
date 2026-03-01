@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Bases;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
-: NavBaseVM, IViewModel, IDisplayHost, IClosedHandler
+: NavBaseVM, IViewModel, IDisplayHost, IDialogClosedHandler
 {
     // called by factory only. Need this two-step creation cuz circular dependency
     internal void Initialize(IDisplayControl dsControl)
@@ -19,7 +19,11 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
         display.SwitchToDecks(UserId);
     }
 
-    public async Task OnDialogClosed() => NotifyRefresh?.Invoke();
+    public async Task OnDialogClosed()
+    {
+        if (NotifyRefresh is not null)
+            await NotifyRefresh.Invoke();
+    }
 
     [ObservableProperty]
     //* current User Control being displayed in the main window, bound to this VM

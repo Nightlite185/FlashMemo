@@ -10,10 +10,11 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable
+public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosedHandler
 {
-    internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId)
+    internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId, IDomainEventBus bus)
     {
+        eventBus = bus;
         cardQueryS = cqs;
         filtersVM = fvm;
         loadedUserId = userId;
@@ -45,6 +46,7 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable
     internal void Initialize(CardCtxMenuVM ccm)
     {
         this.cardCtxMenu = ccm;
+        eventBus.DomainChanged += OnDomainChanged;
     }
     ///<summary> FiltersVM should either call this as delegate whenever current filters change and user presses 'apply'.</summary>
     public async Task ApplyFiltersAsync(Filters filters)
@@ -69,16 +71,6 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable
 
         await ApplyFiltersAsync(cachedFilters);
     }
-    [Obsolete]
-    public async Task ReloadAsync(ReloadTargets rt)
-    {
-        //TODO: for each of the flags in rt, gotta reload respectively
-
-        if (rt.HasFlag(ReloadTargets.Cards))
-            await ReloadCardsAsync();
-
-        throw new NotImplementedException();
-    }
     private static void ThrowIfInvalidSelected(int selectedCount, [CallerMemberName] string? called = null)
     {
         if (selectedCount <= 0)
@@ -93,11 +85,22 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable
         capturedCards = cards;
         cardCtxMenu.OpenMenu(cards);
     }
+
+    private async Task OnDomainChanged(DomainChangedArgs e)
+    {
+        
+    }
+
+    public void OnClosed()
+    {
+        eventBus.DomainChanged -= OnDomainChanged;
+    }
     #endregion
     
     #region private things
     private CardCtxMenuVM cardCtxMenu = null!;
     private readonly ICardQueryService cardQueryS;
+    private readonly IDomainEventBus eventBus;
     private readonly FiltersVM filtersVM;
     private CardEditorVM? editVM;
     private IReadOnlyCollection<CardVM>? capturedCards;

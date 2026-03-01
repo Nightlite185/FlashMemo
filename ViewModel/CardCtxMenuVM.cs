@@ -11,15 +11,9 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
-[Obsolete]
-[Flags] public enum ReloadTargets
+public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, 
+                                DeckSelectVMF dsVMF, IDomainEventBus eventBus, long userId): ObservableObject
 {
-    Tags, Cards, DeckTree
-}
-
-public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, DeckSelectVMF dsVMF, long userId): ObservableObject
-{
-    private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     #region ICommands
     
     [RelayCommand]
@@ -79,8 +73,10 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
                 vm.IsDeleted = true;
         }
         
-        await cardRepo.DeleteCards(
-            capturedCards!.Select(vm => vm.Id));
+        var ids = capturedCards!.Select(c => c.Id);
+
+        await cardRepo.DeleteCards(ids);
+        await eventBus.Notify(new CardsDeletedArgs(ids));
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
@@ -119,7 +115,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     }
 
     ///<summary> Called when user closed ctx menu without clicking on any option </summary>
-    public void CloseMenu() => capturedCards = null;
+    internal void CloseMenu() => capturedCards = null;
     private void ThrowIfNoCardsCaptured(string? calledMember)
     {
         if (capturedCards is null || capturedCards.Count == 0)
@@ -141,13 +137,15 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     {
         ThrowIfNoCardsCaptured(caller);
 
-        foreach (var vm in capturedCards!)
-            cardModifier(vm.ToEntity());
+        var entities = capturedCards!.ToEntities();
+
+        foreach (var card in entities)
+            cardModifier(card);
 
         await cardService.SaveEditedCards(
-            capturedCards.ToEntities(),
-            cardAction
-        );
+            entities, cardAction);
+
+        await RaiseBasedOnAction(entities, cardAction);
     }
     private async Task RescheduleCards(DateTime dt, bool keepInterval)
     {
@@ -181,11 +179,33 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 
         PopupCancel();
     }
+
+    private async Task RaiseBasedOnAction(IEnumerable<CardEntity> cards, CardAction action)
+    {
+        switch (action)
+        {
+            case CardAction.Reschedule or CardAction.Forget:
+                await eventBus.Notify(new CardsRescheduledArgs(cards));
+                break;
+
+            case CardAction.Bury or CardAction.Suspend:
+                await eventBus.Notify(new CardsSuspendBuryArgs(cards));
+                break;
+
+            case CardAction.Relocate:
+                await eventBus.Notify(new CardsRelocatedArgs(
+                    cards.Select(c => c.Id),
+                    cards.First().DeckId));
+                break;
+        }
+    }
     #endregion
     
     #region private things
     private bool CanExecuteIfOneCard => capturedCards?.Count == 1;
     private readonly ICardService cardService = cs;
+    private readonly DeckSelectVMF deckSelectVMF = dsVMF;
+    private readonly IDomainEventBus eventBus = eventBus;
     private readonly ICardRepo cardRepo = cr;
     private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IPopupHost popupHost = pph;

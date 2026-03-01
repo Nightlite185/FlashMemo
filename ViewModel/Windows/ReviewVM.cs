@@ -11,20 +11,22 @@ using FlashMemo.Model;
 
 namespace FlashMemo.ViewModel.Windows;
     
-public partial class ReviewVM: NavBaseVM, IPopupHost
+public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
 {
-    public ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck, DeckOptions deckOpt, ICardRepo cr)
+    internal ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck,
+                        DeckOptions deckOpt, ICardRepo cr, IDomainEventBus bus)
     {
         this.userId = userId;
         this.Deck = deck;
 
         deckOptions = deckOpt;
 
+        eventBus = bus;
         cardService = cs;
         cardQuery = cqs;
         cardRepo = cr;
-        learningPool = new();
         ReviewHistory = [];
+        learningPool = new();
 
         stopWatch = new();
     }
@@ -76,6 +78,8 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
         this.CardsCount = (CardsCountVM)count;
         this.InitialCount = cards.Count;
 
+        eventBus.DomainChanged += OnDomainChanged;
+
         ShowNextCard();
         stopWatch.Start();
     }
@@ -119,7 +123,6 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
             IsSessionFinished = true;
         }
     }
-
     private void UpdateOnReview(CardEntity reviewed, ScheduleInfo schedule)
     {
         learningPool.InjectDueInto(cards);
@@ -134,10 +137,8 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
         if (ReviewHistory.Count > HistoryCap)
             ReviewHistory.Dequeue();
     }
-
-    internal void UpdateTime()
-        => ElapsedTime = $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
-
+    internal void UpdateTime() => ElapsedTime = 
+        $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
     private async Task ReviewAsync(Answers answer)
     {
         stopWatch.Reset();
@@ -162,6 +163,15 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
         stopWatch.Start();
     }
     
+    private async Task OnDomainChanged(DomainChangedArgs e)
+    {
+        
+    }
+
+    public void OnClosed()
+    {
+        eventBus.DomainChanged -= OnDomainChanged;
+    }
     #endregion
 
     #region private things
@@ -170,6 +180,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
     private readonly ICardService cardService;
     private readonly ICardQueryService cardQuery;
     private readonly ICardRepo cardRepo;
+    private readonly IDomainEventBus eventBus;
     private readonly LearningPool<CardVM> learningPool;
     private Stack<CardVM> cards = null!;
     private readonly Stopwatch stopWatch = null!;

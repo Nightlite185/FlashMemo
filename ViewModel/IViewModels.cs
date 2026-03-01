@@ -41,9 +41,14 @@ public interface IDisplayHost
     event Func<Task>? NotifyRefresh;
 }
 
-public interface IClosedHandler
+public interface IDialogClosedHandler
 {
     Task OnDialogClosed();
+}
+
+public interface IClosedHandler
+{
+    void OnClosed();
 }
 
 public interface IViewModel;

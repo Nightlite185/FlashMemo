@@ -1,4 +1,5 @@
 using FlashMemo.Model;
+using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel;
@@ -46,3 +47,9 @@ public interface IClosedHandler
 }
 
 public interface IViewModel;
+
+public interface ICardVM
+{
+    long Id { get; }
+    CardEntity ToEntity();
+}

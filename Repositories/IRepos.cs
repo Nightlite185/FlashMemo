@@ -5,7 +5,7 @@ namespace FlashMemo.Repositories;
 
 public interface ICardRepo
 {
-    Task DeleteCards(IEnumerable<CardEntity> cards);
+    Task DeleteCards(IEnumerable<long> cardIds);
     Task AddCard(CardEntity card);
     Task<CardEntity> GetById(long cardId);
 }

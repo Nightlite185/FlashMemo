@@ -11,6 +11,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
+[Obsolete]
 [Flags] public enum ReloadTargets
 {
     Tags, Cards, DeckTree
@@ -20,9 +21,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 {
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     #region ICommands
-    //* commands that open a window -> dont get async,
-    //* but those that directly call async internal methods and use services -> should
-
+    
     [RelayCommand]
     private async Task MoveCardsCtx()
     {
@@ -38,7 +37,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 
     [RelayCommand]
     private void ShowPostponeCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
-    {                                    // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE
+    {                             // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE
         popupHost.CurrentPopup = new PostponeVM(PostponeCards, PopupCancel);
     }
 
@@ -74,14 +73,14 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     {
         ThrowIfNoCardsCaptured(nameof(DeleteCardsCtxCommand));
 
-        foreach (var vm in capturedCards!)
+        if (capturedCards!.First() is CardVM)
         {
-            vm.IsDeleted = true;
-            vm.NotifyChanged();
+            foreach (var vm in capturedCards!.Cast<CardVM>())
+                vm.IsDeleted = true;
         }
         
         await cardRepo.DeleteCards(
-            capturedCards.Select(vm => vm.ToEntity()));
+            capturedCards!.Select(vm => vm.Id));
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
@@ -110,7 +109,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     #endregion
     
     #region methods
-    public void OpenMenu(IReadOnlyCollection<CardVM> selected)
+    public void OpenMenu(IReadOnlyCollection<ICardVM> selected)
     {
         if (capturedCards is not null)
             throw new InvalidOperationException(
@@ -143,10 +142,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         ThrowIfNoCardsCaptured(caller);
 
         foreach (var vm in capturedCards!)
-        {
             cardModifier(vm.ToEntity());
-            vm.NotifyChanged();
-        }
 
         await cardService.SaveEditedCards(
             capturedCards.ToEntities(),
@@ -193,7 +189,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     private readonly ICardRepo cardRepo = cr;
     private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IPopupHost popupHost = pph;
-    private IReadOnlyCollection<CardVM>? capturedCards;
+    private IReadOnlyCollection<ICardVM>? capturedCards;
     private long userId = userId;
     #endregion
 }

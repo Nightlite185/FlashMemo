@@ -25,12 +25,14 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr)
         
         Card = new (lastSavedCard);
     }
+    
     protected async Task SaveChanges()
     {
-        var card = Card.ToEntity();
-        card.ReplaceTagsWith(Card.Tags.ToEntities());
+        await cardService.SaveEditedCard(
+            Card.ToEntity(), 
+            CardAction.Modify
+        );
 
-        await cardService.SaveEditedCard(card, CardAction.Modify);
         OnCloseRequest?.Invoke();
     }
 
@@ -48,22 +50,26 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr)
     [RelayCommand]
     private async Task RevertChanges() // only reverts the vm-made changes to what the card was.
     {
-        Card.FrontContentXAML = lastSavedCard.FrontContent;
-        Card.BackContentXAML = lastSavedCard.BackContent ?? "";
+        Card.RevertChanges();
 
-        Card.Tags.Clear();
-        var oldTagIds = lastSavedCard.Tags;
+        // refreshing the tags cuz user might have edited them globally
+        // after loading this VM, but before this command was called.
+        
+        // var oldTagIds = lastSavedCard.Tags;
+        // var oldTags = await tagRepo.GetByIds(
+        //     oldTagIds.Select(t => t.Id));
 
-        //* refreshing the tags cuz user might have edited them globally
-        //* after loading this VM, but before this command was called.
-        var oldTags = await tagRepo.GetByIds(
-            oldTagIds.Select(t => t.Id));
-
-        Card.Tags.AddRange(oldTags.ToVMs());
+        // Card.Tags.AddRange(oldTags.ToVMs());
     }
 
     [RelayCommand]
     protected virtual void CancelChanges() => OnCloseRequest?.Invoke();
+
+    [RelayCommand]
+    private void ShowCtxMenu()
+    {
+        ctxMenu.OpenMenu([Card]);
+    }
     #endregion
 
     public event Action? OnCloseRequest;

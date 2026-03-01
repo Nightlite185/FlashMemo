@@ -1,17 +1,40 @@
-using FlashMemo.Model;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public class EditableCardVM: WiPCardVMBase
+public partial class EditableCardVM: ObservableObject, ICardVM
 {
-    public EditableCardVM(ICard card, ICollection<TagVM> tags)
+    public EditableCardVM(CardEntity card)
     {
-        Card = card;
-        Tags = [..tags];
-
+        Tags = [..card.Tags.ToVMs()];
+        Note = card.Note.ToVM();
         
+        this.card = card;
     }
-    public ICard Card { get; init; }
+
+    [ObservableProperty] 
+    public partial NoteVM Note { get; set; }
+    public ObservableCollection<TagVM> Tags { get; init; } = [];
+    public long Id => card.Id;
+
+    public void RevertChanges()
+    {
+        Note = card.Note.ToVM();
+
+        Tags.Clear();
+        Tags.AddRange(card.Tags.ToVMs());
+    }
+
+    public CardEntity ToEntity()
+    {
+        card.Note = Note.ToDomain();
+        card.ReplaceTagsWith(Tags.ToEntities());
+
+        return card;
+    }
+
+    private readonly CardEntity card;
 }

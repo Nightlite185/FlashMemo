@@ -1,5 +1,6 @@
 ﻿using FlashMemo.Helpers;
 using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -48,11 +49,14 @@ public partial class ReviewUC : UserControl
         if (vm.CurrentCard is null)
             return;
 
+        if (vm.CurrentCard.Note is not StandardNoteVM sn)
+            throw new NotSupportedException("Only standard notes supported for now.");
+
         FrontBox.Document = XamlSerializer
-            .FromXaml(vm.FrontContent);
+            .FromXaml(sn.FrontContent);
 
         BackBox.Document = XamlSerializer
-            .FromXaml(vm.BackContent);
+            .FromXaml(sn.BackContent);
 
         ApplyZoom();
     }

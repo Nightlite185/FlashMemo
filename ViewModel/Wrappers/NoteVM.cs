@@ -1,10 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public abstract class NoteVM: ObservableObject, INote
+public abstract class NoteVM: ObservableObject
 {
     public Note ToDomain()
     {

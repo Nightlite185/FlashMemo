@@ -31,7 +31,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
     
     #region public properties
     
-    [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(IsCardLoaded), nameof(ReviewedCount))]
+    [NotifyPropertyChangedFor(nameof(IsCardLoaded), nameof(ReviewedCount))]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
     [ObservableProperty] public partial CardVM? CurrentCard { get; set; }
@@ -42,20 +42,6 @@ public partial class ReviewVM: NavBaseVM, IPopupHost
     [ObservableProperty] public partial bool AnswerRevealed { get; set; } = false;
 
     public IDeckMeta Deck { get; init; }
-    public string FrontContent => CurrentCard?.FrontContent
-        ?? throw new InvalidOperationException(
-        $"tried to access {nameof(FrontContent)} property, but no card was loaded atm.");
-    public string BackContent
-    {
-        get
-        {
-            if (CurrentCard is null) throw new InvalidOperationException(
-                $"tried to access {nameof(BackContent)} property, but no card was loaded atm.");
-
-            return CurrentCard.BackContent ?? "Seems that the back is empty...";
-        }
-    }
-    
     public int InitialCount { get; private set; }
     public int ReviewedCount => InitialCount
         - cards.Count

@@ -7,7 +7,7 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolCard, IViewModel
+public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolCard, IViewModel, ICardVM
 {
     public CardVM(CardEntity card)
     {
@@ -36,7 +36,6 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
     #endregion
     
     private readonly CardEntity card;
-    public void NotifyChanged() => CardVersion++;
     public CardEntity ToEntity()
     {
         card.Note = this.Note.ToDomain();
@@ -45,9 +44,4 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
 
         return card;
     }
-
-    // [NotifyPropertyChangedFor(nameof(FrontContent), nameof(BackContent), nameof(State))]
-    [ObservableProperty] // cant notify for a child vm.
-    private partial int CardVersion { get; set; }
-    // this is incremented every time when card is updated, to notify the UI.
 }

@@ -69,6 +69,7 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable
 
         await ApplyFiltersAsync(cachedFilters);
     }
+    [Obsolete]
     public async Task ReloadAsync(ReloadTargets rt)
     {
         //TODO: for each of the flags in rt, gotta reload respectively

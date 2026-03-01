@@ -31,5 +31,3 @@ public interface ILearningPoolCard
     bool IsDueNow => Due <= DateTime.Now;
     CardState State { get; }
 }
-
-public interface INote;

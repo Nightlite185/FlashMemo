@@ -1,7 +1,9 @@
 using System.Linq.Expressions;
 using System.Text.Json;
 using System.Windows;
+using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Wrappers;
 using Expression = System.Linq.Expressions.Expression;
 
@@ -48,8 +50,16 @@ public static class Extensions
     public static IEnumerable<Tag> ToEntities(this IEnumerable<TagVM> tags)
         => tags.Select(t => t.ToEntity());
 
-    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<CardVM> cards)
+    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<ICardVM> cards)
         => cards.Select(c => c.ToEntity());
+
+    public static NoteVM ToVM(this Note note)
+    {
+        if (note is StandardNote sn)
+            return new StandardNoteVM(sn);
+
+        throw new NotSupportedException("Only standard note supported for now.");
+    }
     
     public static Expression<Func<CardEntity, bool>> OnSameDay(this Expression<Func<CardEntity, bool>> expr, Func<CardEntity, DateTime?> selector, DateTime when)
     {

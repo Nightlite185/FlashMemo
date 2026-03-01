@@ -22,6 +22,8 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
 
         var tags = await tagRepo.GetFromCard(cardId);
         lastSavedCard.Tags.AddRange(tags); // snapshotting old tags
+
+        eventBus.DomainChanged += OnDomainChanged;
         
         Card = new (lastSavedCard);
     }
@@ -33,7 +35,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
             CardAction.Modify
         );
 
-        await eventBus.Notify(new NoteModifiedArgs(Card.ToEntity()));
+        await eventBus.Notify(new NoteModifiedArgs(Card.Id));
         OnCloseRequest?.Invoke();
     }
 

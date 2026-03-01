@@ -67,12 +67,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     {
         ThrowIfNoCardsCaptured(nameof(DeleteCardsCtxCommand));
 
-        if (capturedCards!.First() is CardVM)
-        {
-            foreach (var vm in capturedCards!.Cast<CardVM>())
-                vm.IsDeleted = true;
-        }
-        
         var ids = capturedCards!.Select(c => c.Id);
 
         await cardRepo.DeleteCards(ids);
@@ -182,20 +176,20 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 
     private async Task RaiseBasedOnAction(IEnumerable<CardEntity> cards, CardAction action)
     {
+        var ids = cards.Select(c => c.Id);
         switch (action)
         {
             case CardAction.Reschedule or CardAction.Forget:
-                await eventBus.Notify(new CardsRescheduledArgs(cards));
+                await eventBus.Notify(new CardsRescheduledArgs(ids));
                 break;
 
             case CardAction.Bury or CardAction.Suspend:
-                await eventBus.Notify(new CardsSuspendBuryArgs(cards));
+                await eventBus.Notify(new CardsSuspendBuryArgs(ids));
                 break;
 
             case CardAction.Relocate:
                 await eventBus.Notify(new CardsRelocatedArgs(
-                    cards.Select(c => c.Id),
-                    cards.First().DeckId));
+                    ids, cards.First().DeckId));
                 break;
         }
     }

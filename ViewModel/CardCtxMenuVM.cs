@@ -7,7 +7,6 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Factories;
-using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
@@ -70,7 +69,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         var ids = capturedCards!.Select(c => c.Id);
 
         await cardRepo.DeleteCards(ids);
-        await eventBus.Notify(new CardsDeletedArgs(ids));
+        await eventBus.Notify();
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
@@ -139,7 +138,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         await cardService.SaveEditedCards(
             entities, cardAction);
 
-        await RaiseBasedOnAction(entities, cardAction);
+        await eventBus.Notify();
     }
     private async Task RescheduleCards(DateTime dt, bool keepInterval)
     {
@@ -172,26 +171,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             // raise event about sth modified.
 
         PopupCancel();
-    }
-
-    private async Task RaiseBasedOnAction(IEnumerable<CardEntity> cards, CardAction action)
-    {
-        var ids = cards.Select(c => c.Id);
-        switch (action)
-        {
-            case CardAction.Reschedule or CardAction.Forget:
-                await eventBus.Notify(new CardsRescheduledArgs(ids));
-                break;
-
-            case CardAction.Bury or CardAction.Suspend:
-                await eventBus.Notify(new CardsSuspendBuryArgs(ids));
-                break;
-
-            case CardAction.Relocate:
-                await eventBus.Notify(new CardsRelocatedArgs(
-                    ids, cards.First().DeckId));
-                break;
-        }
     }
     #endregion
     

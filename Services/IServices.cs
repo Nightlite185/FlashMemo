@@ -1,6 +1,7 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
@@ -9,6 +10,7 @@ public interface ILoginService
 {
     void ChangeUser(long userId);
 }
+
 public interface IDeckTreeBuilder
 {
     Task<IEnumerable<DeckNode>> BuildAsync(long userId);
@@ -81,6 +83,6 @@ public interface IDeckOptVMBuilder
 
 public interface IDomainEventBus
 {
-    event Func<DomainChangedArgs, Task>? DomainChanged;
-    Task Notify(DomainChangedArgs args);
+    event Func<Task>? DomainChanged;
+    Task Notify();
 }

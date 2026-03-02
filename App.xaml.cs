@@ -8,6 +8,7 @@ using FlashMemo.Services;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.Model;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo;
 public partial class App : Application

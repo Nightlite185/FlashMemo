@@ -111,22 +111,19 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
     }
     private void ShowNextCard()
     {
-        if (cards.TryPop(out var popped))
-            CurrentCard = popped;
+        learningPool.InjectDueInto(cards);
+        
+        CurrentCard = cards.TryPop(out var fromStack)
+            ? fromStack
+            : learningPool.TryPopEarly();
 
-        else if (learningPool.TryPopEarly() is CardVM card)
-            CurrentCard = card;
-
-        else
-        {
-            CurrentCard = null;
+        if (CurrentCard is null)
             IsSessionFinished = true;
-        }
+
+        else stopWatch.Start();
     }
     private void UpdateOnReview(CardEntity reviewed, ScheduleInfo schedule)
     {
-        learningPool.InjectDueInto(cards);
-
         if (schedule.State == CardState.Learning)
             learningPool.Add(new(reviewed));
 
@@ -158,12 +155,10 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
             stopWatch.Elapsed);
 
         UpdateOnReview(reviewed, updatedSchedule);
-
         ShowNextCard();
-        stopWatch.Start();
     }
     
-    private async Task OnDomainChanged(DomainChangedArgs e)
+    private async Task OnDomainChanged()
     {
         
     }

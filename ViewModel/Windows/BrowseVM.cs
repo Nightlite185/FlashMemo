@@ -86,7 +86,7 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosed
         cardCtxMenu.OpenMenu(cards);
     }
 
-    private async Task OnDomainChanged(DomainChangedArgs e)
+    private async Task OnDomainChanged()
     {
         
     }

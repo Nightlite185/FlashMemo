@@ -35,11 +35,11 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
             CardAction.Modify
         );
 
-        await eventBus.Notify(new NoteModifiedArgs(Card.Id));
+        await eventBus.Notify();
         OnCloseRequest?.Invoke();
     }
 
-    private async Task OnDomainChanged(DomainChangedArgs e)
+    private async Task OnDomainChanged()
     {
         
     }

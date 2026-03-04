@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosedHandler
+public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
 {
     internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId, IDomainEventBus bus)
     {
@@ -94,6 +94,11 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosed
     public void OnClosed()
     {
         eventBus.DomainChanged -= OnDomainChanged;
+    }
+
+    public void OnActionExecuted(CtxMenuAction action)
+    {
+        
     }
     #endregion
     

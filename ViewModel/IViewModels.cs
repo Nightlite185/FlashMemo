@@ -58,3 +58,14 @@ public interface ICardVM
     long Id { get; }
     CardEntity ToEntity();
 }
+
+public interface IFocusState
+{
+    Task OnFocusGained();
+    void OnFocusLost();
+}
+
+public interface ICtxMenuHost
+{
+    void OnActionExecuted(CtxMenuAction action);
+}

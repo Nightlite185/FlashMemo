@@ -29,6 +29,9 @@ public class LearningPool<TCard> where TCard: class, ILearningPoolCard
         for (int i = dueCards.Count - 1; i >= 0 ; i--)
             allCards.Push(dueCards[i]);
     }
+
+    public void Clear() => cardPool.Clear();
+
     public int Count => cardPool.Count;
 
     private ReadOnlyCollection<TCard> GetDue()

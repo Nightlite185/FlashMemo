@@ -56,4 +56,11 @@ public partial class CardsCountVM: ObservableObject
         if (Learning == 0)
             Learning = learningCount;
     }
+
+    public void Clear()
+    {
+        Lessons = 0;
+        Reviews = 0;
+        Learning = 0;
+    }
 }

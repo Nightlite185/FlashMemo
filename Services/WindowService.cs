@@ -134,6 +134,12 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         if (vm is IClosedHandler ch)
             win.Closed += (_, _) => ch.OnClosed();
 
+        if (vm is IFocusState fs)
+        {
+            win.Activated += (_, _) => fs.OnFocusGained();
+            win.Deactivated += (_, _) => fs.OnFocusLost();
+        }
+
         if (sender is IDialogClosedHandler dch)
             win.Closed += (_, _) => dch.OnDialogClosed();
     }

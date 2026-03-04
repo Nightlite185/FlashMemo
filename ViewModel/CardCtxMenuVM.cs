@@ -10,8 +10,10 @@ using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.ViewModel;
 
+public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete, ShowDetails }
+
 public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, 
-                                DeckSelectVMF dsVMF, IDomainEventBus eventBus, long userId): ObservableObject
+                                DeckSelectVMF dsVMF, IDomainEventBus eventBus, long userId, ICtxMenuHost host): ObservableObject
 {
     #region ICommands
     
@@ -41,6 +43,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             c => c.Forget(),
             CardAction.Forget
         );
+
+        ctxHost.OnActionExecuted(CtxMenuAction.Forget);
     }
 
     [RelayCommand]
@@ -50,6 +54,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             c => c.FlipBuried(),
             CardAction.Bury
         );
+
+        ctxHost.OnActionExecuted(CtxMenuAction.Bury);
     }
 
     [RelayCommand]
@@ -59,6 +65,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             c => c.FlipSuspended(),
             CardAction.Suspend
         );
+
+        ctxHost.OnActionExecuted(CtxMenuAction.Suspend);
     }
 
     [RelayCommand]
@@ -70,6 +78,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 
         await cardRepo.DeleteCards(ids);
         await eventBus.Notify();
+
+        ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
@@ -93,6 +103,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 
         // show it here
         throw new NotImplementedException();
+        ctxHost.OnActionExecuted(CtxMenuAction.ShowDetails);
     }
     
     #endregion
@@ -145,6 +156,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         await ModifyCardsHelper(
             c => c.Reschedule(dt, keepInterval),
             CardAction.Reschedule);
+
+        ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
     }
     private async Task PostponeCards(int PostponeBy, bool keepInterval)
     {
@@ -152,6 +165,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             c => c.Postpone(PostponeBy, keepInterval),
             CardAction.Reschedule
         );
+
+        ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
     }
     private async Task MoveCards(IDeckMeta newDeck)
     {
@@ -159,6 +174,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             c => c.MoveToDeck(newDeck.Id),
             CardAction.Relocate
         );
+
+        ctxHost.OnActionExecuted(CtxMenuAction.Relocate);
     }
     private async Task ChangeTags(IEnumerable<Tag> newTags, bool globalTagsEdited)
     {
@@ -182,6 +199,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     private readonly ICardRepo cardRepo = cr;
     private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IPopupHost popupHost = pph;
+    private readonly ICtxMenuHost ctxHost = host;
     private IReadOnlyCollection<ICardVM>? capturedCards;
     private long userId = userId;
     #endregion

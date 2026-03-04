@@ -11,14 +11,14 @@ using FlashMemo.Model;
 
 namespace FlashMemo.ViewModel.Windows;
     
-public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
+public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusState, ICtxMenuHost
 {
     internal ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck,
                         DeckOptions deckOpt, ICardRepo cr, IDomainEventBus bus)
     {
         this.userId = userId;
         this.Deck = deck;
-
+        
         deckOptions = deckOpt;
 
         eventBus = bus;
@@ -33,7 +33,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
     
     #region public properties
     
-    [NotifyPropertyChangedFor(nameof(IsCardLoaded), nameof(ReviewedCount))]
+    [NotifyPropertyChangedFor(nameof(IsCardLoaded))]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
     [ObservableProperty] public partial CardVM? CurrentCard { get; set; }
@@ -44,12 +44,9 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
     [ObservableProperty] public partial bool AnswerRevealed { get; set; } = false;
 
     public IDeckMeta Deck { get; init; }
-    public int InitialCount { get; private set; }
-    public int ReviewedCount => InitialCount
-        - cards.Count
-        - learningPool.Count
-        - (CurrentCard is null ? 0 : 1);
-
+    [ObservableProperty] public partial int InitialCount { get; private set; }
+    [ObservableProperty] public partial int ReviewedCount  { get; private set; }
+    
     [ObservableProperty]
     public partial string ElapsedTime { get; set; } = "00:00";
 
@@ -70,18 +67,18 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
     internal async Task InitAsync(CardCtxMenuVM ctxMenu) //* called in factory
     {
         this.CtxMenuVM = ctxMenu;
+        eventBus.DomainChanged += OnDomainChanged;
 
         (var freshCards, var count) = await cardQuery
             .GetForStudy(Deck.Id);
 
-        this.cards = new (freshCards.Select(c => new CardVM(c)));
+        this.activeCards = new (freshCards.Select(c => new CardVM(c)));
         this.CardsCount = (CardsCountVM)count;
-        this.InitialCount = cards.Count;
 
-        eventBus.DomainChanged += OnDomainChanged;
+        allSessionCards = [..activeCards];
+        InitialCount = activeCards.Count;
 
         ShowNextCard();
-        stopWatch.Start();
     }
     private ScheduleInfo GetScheduleInfo(Answers answer)
     {
@@ -111,23 +108,32 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
     }
     private void ShowNextCard()
     {
-        learningPool.InjectDueInto(cards);
+        learningPool.InjectDueInto(activeCards);
         
-        CurrentCard = cards.TryPop(out var fromStack)
+        CurrentCard = activeCards.TryPop(out var fromStack)
             ? fromStack
             : learningPool.TryPopEarly();
 
         if (CurrentCard is null)
             IsSessionFinished = true;
 
+        else if (CurrentCard.IsDeleted)
+            ShowNextCard();
+
         else stopWatch.Start();
     }
     private void UpdateOnReview(CardEntity reviewed, ScheduleInfo schedule)
     {
-        if (schedule.State == CardState.Learning)
+        if (schedule.State is CardState.Learning)
             learningPool.Add(new(reviewed));
 
-        CardsCount.UpdateCount(cards, learningPool.Count);
+        else if (schedule.State is CardState.Review)
+            ReviewedCount++;
+
+        else throw new InvalidOperationException(
+            "Card after reviewing can't still have lesson state.");
+
+        CardsCount.UpdateCount(activeCards, learningPool.Count);
 
         ReviewHistory.Enqueue(reviewed);
 
@@ -160,28 +166,81 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler
     
     private async Task OnDomainChanged()
     {
+        if (!isFocused)
+            isDirty = true;
+    }
+    public async Task OnFocusGained()
+    {
+        if (isDirty)
+        {
+            await SoftReloadAsync();
+            isDirty = false;
+        }
+    }
+    public void OnFocusLost() => isFocused = false;
+    public void OnClosed() => eventBus.DomainChanged -= OnDomainChanged;
+
+    private async Task SoftReloadAsync()
+    {
+        stopWatch.Reset();
+
+        var removedIds = await cardQuery.RemovedFromSubset(
+            allSessionCards.Select(c => c.Id));
+
+        var removedCards = allSessionCards
+            .Where(c => removedIds.Contains(c.Id))
+            .ToArray();
+
+        foreach (var card in removedCards)
+            card.IsDeleted = true;
         
+        InitialCount -= removedCards.Length;
+
+        CardsCount.UpdateCount(activeCards, learningPool.Count);
+
+        ShowNextCard();
     }
 
-    public void OnClosed()
+    public void OnActionExecuted(CtxMenuAction action)
     {
-        eventBus.DomainChanged -= OnDomainChanged;
+        if (CurrentCard is null) throw new InvalidOperationException(
+            "Couldn't have called ctx menu action if current card is null");
+
+        if (action is CtxMenuAction.Relocate
+        or CtxMenuAction.Reschedule
+        or CtxMenuAction.Bury
+        or CtxMenuAction.Suspend
+        or CtxMenuAction.Delete
+        or CtxMenuAction.Forget)
+        {
+            CurrentCard.IsDeleted = true;
+            ShowNextCard();
+
+            CardsCount.UpdateCount(
+                activeCards, learningPool.Count);
+
+            ReviewedCount++;
+        }
     }
+
     #endregion
 
     #region private things
     private readonly long userId;
-    private readonly DeckOptions deckOptions;
+    private DeckOptions deckOptions;
     private readonly ICardService cardService;
     private readonly ICardQueryService cardQuery;
     private readonly ICardRepo cardRepo;
     private readonly IDomainEventBus eventBus;
     private readonly LearningPool<CardVM> learningPool;
-    private Stack<CardVM> cards = null!;
+    private List<CardVM> allSessionCards = [];
+    private Stack<CardVM> activeCards = null!;
     private readonly Stopwatch stopWatch = null!;
     private const int HistoryCap = 10;
     
     private bool IsCardLoaded => CurrentCard is not null;
+    private bool isDirty;
+    private bool isFocused = true;
     private bool CanReview
         => IsCardLoaded && AnswerRevealed;
     private bool CanRevealAnswer

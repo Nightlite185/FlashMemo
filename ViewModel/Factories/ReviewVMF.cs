@@ -18,7 +18,7 @@ public class ReviewVMF(ICardService cs, ICardQueryService cqs, CardCtxMenuVMF ct
             deck, deckOpt, cr, bus
         );
 
-        var ctxMenu = ctxFactory.Create(vm, userId);
+        var ctxMenu = ctxFactory.Create(vm, vm, userId);
 
         await vm.InitAsync(ctxMenu);
 

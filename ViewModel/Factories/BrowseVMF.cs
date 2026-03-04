@@ -16,7 +16,7 @@ public class BrowseVMF(ICardQueryService cqs, FiltersVMF filtersVMF,
             userId, bus
         );
 
-        var ccm = ctxFactory.Create(bvm, userId);
+        var ccm = ctxFactory.Create(bvm, bvm, userId);
 
         await filtersVM.InitializeAsync(bvm);
         bvm.Initialize(ccm);

@@ -12,7 +12,7 @@ public class EditCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, CardCtxMenu
             cs, tr, cr, bus);
 
         var ccm = ctxFactory
-            .Create(ecVM, userId);
+            .Create(ecVM, ecVM, userId);
 
         await ecVM.Initialize(cardId, ccm);
 

@@ -15,7 +15,7 @@ public partial class EditableCardVM: ObservableObject, ICardVM
         this.card = card;
     }
 
-    [ObservableProperty] 
+    [ObservableProperty]
     public partial NoteVM Note { get; set; }
     public ObservableCollection<TagVM> Tags { get; init; } = [];
     public long Id => card.Id;
@@ -30,7 +30,7 @@ public partial class EditableCardVM: ObservableObject, ICardVM
 
     public CardEntity ToEntity()
     {
-        card.Note = Note.ToDomain();
+        card.Note = Note.ToEntity();
         card.ReplaceTagsWith(Tags.ToEntities());
 
         return card;

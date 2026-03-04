@@ -57,7 +57,7 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IDomainEvent
     protected async Task AddCard()
     {
         var card = CardEntity.CreateNew(
-            WipCard.Note.ToDomain(),
+            WipCard.Note.ToEntity(),
             CurrentDeck.Id,
             WipCard.Tags.ToEntities());
 

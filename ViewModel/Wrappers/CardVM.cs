@@ -40,7 +40,7 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
     private readonly CardEntity card;
     public CardEntity ToEntity()
     {
-        card.Note = this.Note.ToDomain();
+        card.Note = this.Note.ToEntity();
 
         card.ReplaceTagsWith(Tags.ToEntities());
 

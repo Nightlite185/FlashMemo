@@ -11,7 +11,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class DecksVM: NavBaseVM, IPopupHost
+public partial class DecksVM: BaseVM, IPopupHost
 {
     public DecksVM(IDeckRepo dr, IDeckTreeBuilder dtb, long userId)
     {

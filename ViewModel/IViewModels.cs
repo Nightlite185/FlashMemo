@@ -1,6 +1,7 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
@@ -68,4 +69,9 @@ public interface IFocusState
 public interface ICtxMenuHost
 {
     void OnActionExecuted(CtxMenuAction action);
+}
+
+public interface ICardsSource<TCard> where TCard: class
+{
+    IEnumerable<TCard> Cards { get; }
 }

@@ -5,9 +5,10 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelectVMF dsVMF, ILastSessionService lss)
+public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelectVMF dsVMF, ILastSessionService lss, IDomainEventBus bus)
 {
     private readonly ICardService cardService = cs;
+    private readonly IDomainEventBus eventBus = bus;
     private readonly ITagRepo tagRepo = tr;
     private readonly ICardRepo cardRepo = cr;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
@@ -15,9 +16,11 @@ public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelec
 
     public CreateCardVM Create(IDeckMeta targetDeck)
     {
-        return new(cardService, tagRepo,
+        return new(
+            cardService, tagRepo,
             cardRepo, targetDeck,
-            deckSelectVMF, lastSession);
+            deckSelectVMF, lastSession, eventBus
+        );
     }
 
     // TODO: merge this with EditCardVMF if they still have same dependencies in the end.

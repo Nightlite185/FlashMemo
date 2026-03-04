@@ -10,11 +10,10 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
+public sealed partial class BrowseVM: BaseVM, IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
 {
-    internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId, IDomainEventBus bus)
+    internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId, IDomainEventBus bus): base(bus)
     {
-        eventBus = bus;
         cardQueryS = cqs;
         filtersVM = fvm;
         loadedUserId = userId;
@@ -45,7 +44,7 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosed
     #region methods
     internal void Initialize(CardCtxMenuVM ccm)
     {
-        this.cardCtxMenu = ccm;
+        cardCtxMenu = ccm;
         eventBus.DomainChanged += OnDomainChanged;
     }
     ///<summary> FiltersVM should either call this as delegate whenever current filters change and user presses 'apply'.</summary>
@@ -86,16 +85,6 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosed
         cardCtxMenu.OpenMenu(cards);
     }
 
-    private async Task OnDomainChanged()
-    {
-        
-    }
-
-    public void OnClosed()
-    {
-        eventBus.DomainChanged -= OnDomainChanged;
-    }
-
     public void OnActionExecuted(CtxMenuAction action)
     {
         
@@ -105,7 +94,6 @@ public sealed partial class BrowseVM: NavBaseVM, IPopupHost, IFiltrable, IClosed
     #region private things
     private CardCtxMenuVM cardCtxMenu = null!;
     private readonly ICardQueryService cardQueryS;
-    private readonly IDomainEventBus eventBus;
     private readonly FiltersVM filtersVM;
     private CardEditorVM? editVM;
     private IReadOnlyCollection<CardVM>? capturedCards;

@@ -105,7 +105,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
     #endregion
     
     #region private helpers
-    private void WireHelper<TVM>(TVM vm, Window win, NavBaseVM? sender = null) where TVM: class, IViewModel
+    private void WireHelper<TVM>(TVM vm, Window win, BaseVM? sender = null) where TVM: class, IViewModel
     {
         SetDataCtx(vm, win);
         WireEvents(vm, win, sender);
@@ -123,7 +123,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         else throw new InvalidOperationException(
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TVM).Name}>");
     }
-    internal void WireEvents(IViewModel vm, Window win, NavBaseVM? sender = null)
+    internal void WireEvents(IViewModel vm, Window win, BaseVM? sender = null)
     {
         if (vm is INavRequestSender nrs)
             nrs.NavRequested += NavRequestHandler;

@@ -6,36 +6,48 @@ namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class CardsCountVM: ObservableObject
 {
-    public static explicit operator CardsCountVM(CardsCount cc)
+    private ICardsSource<CardVM> source;
+
+    public CardsCountVM(CardsCount cc, ICardsSource<CardVM> source)
     {
-        return new()
-        {
-            Lessons = cc.Lessons,
-            Learning = cc.Learning,
-            Reviews = cc.Reviews
-        };
+        this.source = source;
+
+        Lessons = cc.Lessons;
+        Learning = cc.Learning;
+        Reviews = cc.Reviews;
     }
-    public static explicit operator CardsCountVM(CardsByState cbs)
+    public CardsCountVM(CardsByState cbs, ICardsSource<CardVM> source)
     {
-        return new()
-        {
-            Lessons = cbs.Lessons.Count,
-            Learning = cbs.Learning.Count,
-            Reviews = cbs.Reviews.Count
-        };
+        this.source = source;
+
+        Lessons = cbs.Lessons.Count;
+        Learning = cbs.Learning.Count;
+        Reviews = cbs.Reviews.Count;
     }
+
+    public CardsCountVM(ICardsSource<CardVM> source)
+        => this.source = source;
     
     [ObservableProperty] public partial int Lessons { get; set; }
     [ObservableProperty] public partial int Learning { get; set; }
     [ObservableProperty] public partial int Reviews { get; set; }
 
-    public void UpdateCount(IEnumerable<CardVM> cards, int learningCount)
+    public void UpdateCount()
     {
-        Lessons = 0;
-        Learning = 0;
-        Reviews = 0;
+        Clear();
 
-        foreach (var kvp in cards.CountBy(c => c.State))
+        // TODO: Maybe I can optimize it later somehow.
+        // Can't take IEnumerable from PriorityQueue so I dont know how else to do this.
+
+        var today = DateTime.Today;
+
+        var inPlay = source.Cards.Where(c => 
+            !c.IsDeleted &&
+            (c.State is not CardState.Review ||
+            (c.State is CardState.Review && c.Due?.Date == today)))
+            .CountBy(c => c.State);
+
+        foreach (var kvp in inPlay)
         {
             switch (kvp.Key)
             {
@@ -45,7 +57,6 @@ public partial class CardsCountVM: ObservableObject
 
                 case CardState.Learning:
                     Learning = kvp.Value;
-                    Learning += learningCount;
                     break;
 
                 case CardState.Review:
@@ -53,11 +64,9 @@ public partial class CardsCountVM: ObservableObject
                     break;
             }
         }
-        if (Learning == 0)
-            Learning = learningCount;
     }
 
-    public void Clear()
+    private void Clear()
     {
         Lessons = 0;
         Reviews = 0;

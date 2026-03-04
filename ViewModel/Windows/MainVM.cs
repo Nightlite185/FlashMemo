@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Bases;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class MainVM(ILastSessionService lss, IDeckRepo dr, long userId)
-: NavBaseVM, IViewModel, IDisplayHost, IDialogClosedHandler
+: BaseVM, IViewModel, IDisplayHost, IDialogClosedHandler
 {
     // called by factory only. Need this two-step creation cuz circular dependency
     internal void Initialize(IDisplayControl dsControl)

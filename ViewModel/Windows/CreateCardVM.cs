@@ -12,8 +12,8 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, 
-IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss)
-: NavBaseVM, ICloseRequest, IPopupHost
+IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IDomainEventBus bus)
+: BaseVM(bus), ICloseRequest, IPopupHost
 {
     #region private things
     private const int HistoryCap = 10;

@@ -47,7 +47,7 @@ public class DisplayControl(IDisplayHost hostVM, DecksVMF dVMF, ReviewVMF rVMF):
 
     private void WireEvents(object vm)
     {
-        if (vm is NavBaseVM navVM && host is NavBaseVM parent)
+        if (vm is BaseVM navVM && host is BaseVM parent) // TODO: replace "is BaseVM with INavRequestSender"
             parent.RegisterNavBubbling(navVM);
     }
 

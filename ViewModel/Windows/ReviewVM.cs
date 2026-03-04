@@ -11,17 +11,15 @@ using FlashMemo.Model;
 
 namespace FlashMemo.ViewModel.Windows;
     
-public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusState, ICtxMenuHost
+public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
     internal ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck,
-                        DeckOptions deckOpt, ICardRepo cr, IDomainEventBus bus)
+                        DeckOptions deckOpt, ICardRepo cr, IDomainEventBus bus): base(bus)
     {
         this.userId = userId;
         this.Deck = deck;
         
         deckOptions = deckOpt;
-
-        eventBus = bus;
         cardService = cs;
         cardQuery = cqs;
         cardRepo = cr;
@@ -61,6 +59,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     public Queue<CardEntity> ReviewHistory { get; private init; }
     public event Func<Task>? OnDecksNavRequest;
+    public IEnumerable<CardVM> Cards => allSessionCards.AsEnumerable();
     #endregion
 
     #region methods
@@ -73,7 +72,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
             .GetForStudy(Deck.Id);
 
         this.activeCards = new (freshCards.Select(c => new CardVM(c)));
-        this.CardsCount = (CardsCountVM)count;
+        this.CardsCount = new(count, this);
 
         allSessionCards = [..activeCards];
         InitialCount = activeCards.Count;
@@ -133,7 +132,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
         else throw new InvalidOperationException(
             "Card after reviewing can't still have lesson state.");
 
-        CardsCount.UpdateCount(activeCards, learningPool.Count);
+        CardsCount.UpdateCount();
 
         ReviewHistory.Enqueue(reviewed);
 
@@ -164,23 +163,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
         ShowNextCard();
     }
     
-    private async Task OnDomainChanged()
-    {
-        if (!isFocused)
-            isDirty = true;
-    }
-    public async Task OnFocusGained()
-    {
-        if (isDirty)
-        {
-            await SoftReloadAsync();
-            isDirty = false;
-        }
-    }
-    public void OnFocusLost() => isFocused = false;
-    public void OnClosed() => eventBus.DomainChanged -= OnDomainChanged;
-
-    private async Task SoftReloadAsync()
+    protected override async Task ReloadAsync()
     {
         stopWatch.Reset();
 
@@ -196,8 +179,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
         
         InitialCount -= removedCards.Length;
 
-        CardsCount.UpdateCount(activeCards, learningPool.Count);
-
+        CardsCount.UpdateCount();
         ShowNextCard();
     }
 
@@ -216,9 +198,7 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
             CurrentCard.IsDeleted = true;
             ShowNextCard();
 
-            CardsCount.UpdateCount(
-                activeCards, learningPool.Count);
-
+            CardsCount.UpdateCount();
             ReviewedCount++;
         }
     }
@@ -231,7 +211,6 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
     private readonly ICardService cardService;
     private readonly ICardQueryService cardQuery;
     private readonly ICardRepo cardRepo;
-    private readonly IDomainEventBus eventBus;
     private readonly LearningPool<CardVM> learningPool;
     private List<CardVM> allSessionCards = [];
     private Stack<CardVM> activeCards = null!;
@@ -239,8 +218,6 @@ public partial class ReviewVM: NavBaseVM, IPopupHost, IClosedHandler, IFocusStat
     private const int HistoryCap = 10;
     
     private bool IsCardLoaded => CurrentCard is not null;
-    private bool isDirty;
-    private bool isFocused = true;
     private bool CanReview
         => IsCardLoaded && AnswerRevealed;
     private bool CanRevealAnswer

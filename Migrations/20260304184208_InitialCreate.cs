@@ -44,9 +44,9 @@ namespace FlashMemo.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Scheduling_GoodMultiplier = table.Column<float>(type: "REAL", nullable: false),
-                    Scheduling_EasyMultiplier = table.Column<float>(type: "REAL", nullable: false),
-                    Scheduling_HardMultiplier = table.Column<float>(type: "REAL", nullable: false),
+                    Scheduling_GoodMultiplier = table.Column<double>(type: "REAL", nullable: false),
+                    Scheduling_EasyMultiplier = table.Column<double>(type: "REAL", nullable: false),
+                    Scheduling_HardMultiplier = table.Column<double>(type: "REAL", nullable: false),
                     Scheduling_LearningStages = table.Column<string>(type: "TEXT", nullable: false),
                     Scheduling_GraduateDayCount = table.Column<int>(type: "INTEGER", nullable: false),
                     Scheduling_EasyOnNewDayCount = table.Column<int>(type: "INTEGER", nullable: false),
@@ -131,8 +131,6 @@ namespace FlashMemo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
-                    FrontContent = table.Column<string>(type: "TEXT", nullable: false),
-                    BackContent = table.Column<string>(type: "TEXT", nullable: true),
                     DeckId = table.Column<long>(type: "INTEGER", nullable: false),
                     IsBuried = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsSuspended = table.Column<bool>(type: "INTEGER", nullable: false),

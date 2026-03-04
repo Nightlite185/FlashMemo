@@ -7,6 +7,7 @@
              xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" 
              xmlns:helpers="clr-namespace:FlashMemo.Helpers"
              x:Name="Root"
+             helpers:FocusBoundaryBehavior.EnableBoundaryFocusTracking="True"
              d:DataContext="{d:DesignInstance Type=windows:DecksVM}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">

@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using FlashMemo.Model.Domain;
+using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
@@ -9,7 +9,7 @@ public abstract class NoteVM: ObservableObject
     {
         return this switch
         {
-            StandardNoteVM sn => new StandardNote(
+            StandardNoteVM sn => StandardNote.Create(
                 sn.FrontContent, sn.BackContent),
 
             _ => throw new NotSupportedException()

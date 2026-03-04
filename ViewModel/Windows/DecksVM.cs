@@ -13,7 +13,7 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM: BaseVM, IPopupHost
 {
-    public DecksVM(IDeckRepo dr, IDeckTreeBuilder dtb, long userId)
+    public DecksVM(IDeckRepo dr, IDeckTreeBuilder dtb, long userId, IDomainEventBus bus): base(bus)
     {
         deckTreeBuilder = dtb;
         deckRepo = dr;

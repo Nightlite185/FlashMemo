@@ -37,9 +37,6 @@ namespace FlashMemo.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("BackContent")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
 
@@ -47,10 +44,6 @@ namespace FlashMemo.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("Due")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FrontContent")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<TimeSpan>("Interval")
@@ -248,7 +241,23 @@ namespace FlashMemo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsOne("FlashMemo.Model.Persistence.Note", "Note", b1 =>
+                        {
+                            b1.Property<long>("CardEntityId")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("CardEntityId");
+
+                            b1.ToTable("Cards");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CardEntityId");
+                        });
+
                     b.Navigation("Deck");
+
+                    b.Navigation("Note")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardLog", b =>
@@ -327,13 +336,13 @@ namespace FlashMemo.Migrations
                             b1.Property<int>("AgainOnReviewStage")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<float>("EasyMultiplier")
+                            b1.Property<double>("EasyMultiplier")
                                 .HasColumnType("REAL");
 
                             b1.Property<int>("EasyOnNewDayCount")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<float>("GoodMultiplier")
+                            b1.Property<double>("GoodMultiplier")
                                 .HasColumnType("REAL");
 
                             b1.Property<int>("GoodOnNewStage")
@@ -342,7 +351,7 @@ namespace FlashMemo.Migrations
                             b1.Property<int>("GraduateDayCount")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<float>("HardMultiplier")
+                            b1.Property<double>("HardMultiplier")
                                 .HasColumnType("REAL");
 
                             b1.Property<int>("HardOnNewStage")

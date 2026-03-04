@@ -8,7 +8,7 @@ public class CardEntity: IEntity, ICard
 {
     #region Properties
     public long Id { get; set; }
-    public Note Note { get; set; } = null!; // TODO: migrate to db cuz note owned type.
+    public Note Note { get; set; } = null!;
     public long DeckId { get; set; }
     public ICollection<Tag> Tags { get; set; } = [];
     public ICollection<CardLog> CardLogs { get; set; } = [];

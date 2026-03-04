@@ -2,8 +2,11 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:vm="clr-namespace:FlashMemo.ViewModel.Windows" xmlns:viewmodel="clr-namespace:FlashMemo.ViewModel"
-             Focusable="True">
+             xmlns:vm="clr-namespace:FlashMemo.ViewModel.Windows"
+             xmlns:viewmodel="clr-namespace:FlashMemo.ViewModel"
+             xmlns:helpers="clr-namespace:FlashMemo.Helpers"
+             Focusable="True"
+             helpers:FocusBoundaryBehavior.EnableBoundaryFocusTracking="True">
 
     <Grid Background="#FF2A2A2A"
           KeyDown="Root_KeyDown"

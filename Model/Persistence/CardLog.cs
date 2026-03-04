@@ -4,7 +4,7 @@ using FlashMemo.Model.Domain;
 namespace FlashMemo.Model.Persistence
 {
     public enum CardAction { Review, Modify, Reschedule, Bury, Suspend, Relocate, Forget }
-    public class CardLog(): IEntity
+    public class CardLog()
     {
         public long Id { get; set; }
         public long CardId { get; set; }

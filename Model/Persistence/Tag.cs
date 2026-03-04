@@ -2,7 +2,7 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.Model.Persistence
 {
-    public class Tag: IEquatable<Tag>, IEntity
+    public class Tag: IEquatable<Tag>
     {
         public Tag(string name, int color) // genuine creation
         {

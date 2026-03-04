@@ -50,6 +50,8 @@ namespace FlashMemo.View
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            if (VM.WipCard.Note is null) throw new NullReferenceException();
+
             if (VM.WipCard.Note is not StandardNoteVM sn)
                 throw new NotSupportedException("Only Standard notes supported for now.");
 

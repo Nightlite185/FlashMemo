@@ -3,7 +3,7 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.Model.Persistence
 {
-    public class Deck(): IEntity, IEnumerable<CardEntity>, IEquatable<Deck>, IDeckMeta
+    public class Deck: IEnumerable<CardEntity>, IEquatable<Deck>, IDeckMeta
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;

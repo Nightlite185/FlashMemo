@@ -17,11 +17,23 @@ public abstract class NoteVM: ObservableObject
     }
 }
 
-public partial class StandardNoteVM(StandardNote sn): NoteVM
+public partial class StandardNoteVM: NoteVM
 {
+    public StandardNoteVM(StandardNote sn)
+    {
+        FrontContent = sn.FrontContent;
+        BackContent = sn.BackContent;
+    }
+
+    public StandardNoteVM()
+    {
+        FrontContent = "";
+        BackContent = "";
+    }
+
     [ObservableProperty] 
-    public partial string FrontContent { get; set; } = sn.FrontContent;
+    public partial string FrontContent { get; set; }
     
     [ObservableProperty]
-    public partial string BackContent { get; set; } = sn.BackContent;
+    public partial string BackContent { get; set; }
 }

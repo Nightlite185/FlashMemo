@@ -2,7 +2,7 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.Model.Persistence
 {
-    public class UserEntity(): IEntity
+    public class UserEntity
     {
         public long Id { get; set; }
         public string Name { get; set; } = null!;

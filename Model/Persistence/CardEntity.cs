@@ -3,12 +3,12 @@ using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Model.Persistence;
 
-public interface IEntity { long Id { get; set; } }
-public class CardEntity: IEntity, ICard
+public class CardEntity: ICard
 {
     #region Properties
     public long Id { get; set; }
     public Note Note { get; set; } = null!;
+    public long NoteId { get; set; }
     public long DeckId { get; set; }
     public ICollection<Tag> Tags { get; set; } = [];
     public ICollection<CardLog> CardLogs { get; set; } = [];

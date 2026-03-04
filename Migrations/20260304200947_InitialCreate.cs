@@ -25,6 +25,20 @@ namespace FlashMemo.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Notes",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    NoteType = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
+                    FrontContent = table.Column<string>(type: "TEXT", nullable: true),
+                    BackContent = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -131,6 +145,7 @@ namespace FlashMemo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    NoteId = table.Column<long>(type: "INTEGER", nullable: false),
                     DeckId = table.Column<long>(type: "INTEGER", nullable: false),
                     IsBuried = table.Column<bool>(type: "INTEGER", nullable: false),
                     IsSuspended = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -149,6 +164,12 @@ namespace FlashMemo.Migrations
                         name: "FK_Cards_Decks_DeckId",
                         column: x => x.DeckId,
                         principalTable: "Decks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Cards_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -227,6 +248,11 @@ namespace FlashMemo.Migrations
                 column: "DeckId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Cards_NoteId",
+                table: "Cards",
+                column: "NoteId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DeckOptions_UserId",
                 table: "DeckOptions",
                 column: "UserId");
@@ -272,6 +298,9 @@ namespace FlashMemo.Migrations
 
             migrationBuilder.DropTable(
                 name: "Decks");
+
+            migrationBuilder.DropTable(
+                name: "Notes");
 
             migrationBuilder.DropTable(
                 name: "DeckOptions");

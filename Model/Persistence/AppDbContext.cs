@@ -27,9 +27,19 @@ namespace FlashMemo.Model.Persistence
             {
                 mb.ToTable("Cards")
                     .Property(c => c.Id)
-                    .ValueGeneratedNever(); 
+                    .ValueGeneratedNever();
+            });
 
-                mb.OwnsOne(c => c.Note);
+            mb.Entity<Note>(mb =>
+            {
+                mb.HasKey(n => n.Id);
+
+                mb.ToTable("Notes")
+                    .Property(n => n.Id)
+                    .ValueGeneratedNever();
+                    
+                mb.HasDiscriminator<string>("NoteType")
+                    .HasValue<StandardNote>("Standard");
             });
                 
 
@@ -103,6 +113,10 @@ namespace FlashMemo.Model.Persistence
         }                                           
         private static void DefineAutoIncludes(ModelBuilder mb)
         {
+            mb.Entity<CardEntity>()
+                .Navigation(c => c.Note)
+                .AutoInclude();
+
             // mb.Entity<Deck>()
             //     .Navigation(d => d.Cards)
             //     .AutoInclude();

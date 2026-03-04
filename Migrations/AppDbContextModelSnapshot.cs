@@ -64,12 +64,17 @@ namespace FlashMemo.Migrations
                     b.Property<int?>("LearningStage")
                         .HasColumnType("INTEGER");
 
+                    b.Property<long>("NoteId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("State")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DeckId");
+
+                    b.HasIndex("NoteId");
 
                     b.ToTable("Cards", (string)null);
                 });
@@ -179,6 +184,25 @@ namespace FlashMemo.Migrations
                     b.ToTable("LastSessionData");
                 });
 
+            modelBuilder.Entity("FlashMemo.Model.Persistence.Note", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NoteType")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notes", (string)null);
+
+                    b.HasDiscriminator<string>("NoteType").HasValue("Note");
+
+                    b.UseTphMappingStrategy();
+                });
+
             modelBuilder.Entity("FlashMemo.Model.Persistence.Tag", b =>
                 {
                     b.Property<long>("Id")
@@ -218,6 +242,21 @@ namespace FlashMemo.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("FlashMemo.Model.Persistence.StandardNote", b =>
+                {
+                    b.HasBaseType("FlashMemo.Model.Persistence.Note");
+
+                    b.Property<string>("BackContent")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FrontContent")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasDiscriminator().HasValue("Standard");
+                });
+
             modelBuilder.Entity("CardEntityTag", b =>
                 {
                     b.HasOne("FlashMemo.Model.Persistence.CardEntity", null)
@@ -241,23 +280,15 @@ namespace FlashMemo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("FlashMemo.Model.Persistence.Note", "Note", b1 =>
-                        {
-                            b1.Property<long>("CardEntityId")
-                                .HasColumnType("INTEGER");
-
-                            b1.HasKey("CardEntityId");
-
-                            b1.ToTable("Cards");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CardEntityId");
-                        });
+                    b.HasOne("FlashMemo.Model.Persistence.Note", "Note")
+                        .WithMany()
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Deck");
 
-                    b.Navigation("Note")
-                        .IsRequired();
+                    b.Navigation("Note");
                 });
 
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardLog", b =>

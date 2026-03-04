@@ -1,8 +1,13 @@
+using FlashMemo.Helpers;
+
 namespace FlashMemo.Model.Persistence;
 
-public class Note; // would make abstract but EF hates it, and this is an entity
+public abstract class Note
+{
+    public long Id { get; set; }
+}
 
-public class StandardNote : Note
+public class StandardNote: Note
 {
     public string FrontContent { get; set; } = null!;
     public string BackContent { get; set; } = null!;
@@ -11,6 +16,8 @@ public class StandardNote : Note
     {
         return new()
         {
+            Id = IdGetter.Next(),
+            
             FrontContent = front,
             BackContent = back
         };

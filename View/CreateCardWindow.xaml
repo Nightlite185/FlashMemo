@@ -131,7 +131,7 @@
                             <ContextMenu.ItemTemplate>
                                 <DataTemplate>
                                     <MenuItem
-                                        Header="{Binding FrontContent, Converter={StaticResource XamlToTextConverter}}"
+                                        Header="{Binding Note.FrontContent, Converter={StaticResource XamlToTextConverter}}"
                                         Command="{Binding DataContext.ShowEditOnHistoryCommand,
                                             RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}"

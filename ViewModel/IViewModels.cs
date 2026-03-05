@@ -42,6 +42,7 @@ public interface IDisplayHost
     event Func<Task>? NotifyRefresh;
 }
 
+[Obsolete("Use IFocusState instead")]
 public interface IDialogClosedHandler
 {
     Task OnDialogClosed();
@@ -74,4 +75,9 @@ public interface ICtxMenuHost
 public interface ICardsSource<TCard> where TCard: class
 {
     IEnumerable<TCard> Cards { get; }
+}
+
+public interface IClosingAware
+{
+    Task<bool> CanCloseAsync();
 }

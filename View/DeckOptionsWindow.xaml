@@ -11,8 +11,7 @@
         MinHeight="700"
         ResizeMode="CanResize"
         Background="#FF1E1E1E"
-        WindowStartupLocation="CenterOwner"
-        Closing="Window_Closing">
+        WindowStartupLocation="CenterOwner">
 
     <Window.Resources>
         <DataTemplate x:Key="EnumReadableItemTemplate">
@@ -56,7 +55,7 @@
                     <MenuItem Header="Clone"
                         Command="{Binding ClonePresetCommand}"/>
                     <MenuItem Header="Delete"
-                        Click="TryDeletePreset"
+                        Command="{Binding RemovePresetCommand}"
                         IsEnabled="{Binding CanEditSaveDelete}"/>
                     <MenuItem Header="Reset to Default"
                         Command="{Binding ToDefaultCommand}"/>

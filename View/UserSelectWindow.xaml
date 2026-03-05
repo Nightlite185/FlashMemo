@@ -125,7 +125,7 @@
 
                                 <Button
                                     Content="Delete"
-                                    Click="RemoveButton_Click"
+                                    Command="{Binding DataContext.RemoveUserCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource NavButtonStyle}"
                                     Width="80"

@@ -11,7 +11,7 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsRepo dor, Deck d): ObservableObject, IViewModel
+public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsRepo dor, Deck d): ObservableObject, IViewModel, IClosingAware
 {
     #region public properties
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanEditSaveDelete))]
@@ -44,7 +44,45 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
             return !snapshot.Equals(lastSaved);
         }
     }
-    public bool RemoveRequiresConfirmation => CurrentOptions.Decks.Count != 0;
+    public bool CanRemovePreset()
+    {
+        var result = DialogResult.Yes;
+
+        if (CurrentOptions.Decks.Count != 0)
+            result = DialogService.Show(
+                "Are you sure you want to delete currently viewed preset? Every deck currently referencing this preset, will now be assigned to the default one. Do you wish to proceed?",
+                "Are you sure?",
+                DialogButtons.YesNo,
+                DialogIcons.Warning);
+
+        return result is DialogResult.Yes;
+    }
+    public async Task<bool> CanCloseAsync()
+    {
+        bool canClose = !IsCurrentModified;
+
+        if (canClose)
+            await SaveChanges();
+
+        return canClose;
+    }
+    public async Task<bool> CanDiscardAsync()
+    {
+        if (!IsCurrentModified) return true;
+        
+        var result = DialogService.Show(
+            title: "Unsaved changes",
+            message: "You have unsaved changes. Do you want to save them?",
+            buttons: DialogButtons.YesNoCancel,
+            icon: DialogIcons.Warning
+        );
+
+        if (result is DialogResult.Yes)
+            await SaveChanges();
+
+        return result is DialogResult.Yes or DialogResult.No;
+        // only cancel clicked doesnt discard it
+    }
     #endregion
 
     #region methods
@@ -96,6 +134,10 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     private async Task RemovePreset()
     {
         ThrowIfDefault(CurrentOptions);
+
+        if (!CanRemovePreset())
+            return;
+
         deck.OptionsId = DeckOptions.DefaultId;
 
         AllPresets.Remove(CurrentOptions);
@@ -136,6 +178,8 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     [RelayCommand]
     private void ChangePreset(DeckOptionsVM chosenPreset)
     {
+        //TODO: FIX: when changing presets, there are unsaved changes, I click No (dont save), it needs to revert that VM to its previous state.
+
         CurrentOptions.AssignedDecksCount--; // decrementing previous preset's deck count
         CurrentOptions = chosenPreset;
         CurrentOptions.AssignedDecksCount++; // incrementing new one's

@@ -81,33 +81,6 @@ namespace FlashMemo.View
             });
         }
 
-        private async void RemoveButton_Click(object sender, RoutedEventArgs e)
-        {
-            //TODO: make this invisible for the currently logged user
-
-            // TODO: persist user preference if they want to have this popup show or not.
-            // I mean like "dont show this again" checkbox pattern
-
-            var answer = MessageBox.Show(
-                messageBoxText: "Are you sure you want to delete this user? This action can't be undone, and will delete every deck, card, etc. related with this user! Do you still wish to proceed?",
-                
-                caption: "Are you sure?",
-                button: MessageBoxButton.YesNo,
-                icon: MessageBoxImage.Warning
-            );
-
-            if (answer == MessageBoxResult.Yes)
-            {
-                if (sender is not Button bt) return;
-
-                if (bt.DataContext is not UserVM user)
-                    throw new InvalidOperationException(
-                    $"Wrong button's datacontext type, its {bt.DataContext.GetType().FullName}");
-
-                await VM.RemoveUserCommand.ExecuteAsync(user);
-            }
-        }
-
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
             string name = VM.NewUsernameField;
@@ -124,9 +97,7 @@ namespace FlashMemo.View
         private void NewUserNameBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
-            {
                 CreateButton_Click(sender, new());
-            }
 
             else if (e.Key == Key.Escape)
                 Keyboard.ClearFocus();

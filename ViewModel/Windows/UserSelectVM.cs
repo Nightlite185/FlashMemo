@@ -53,7 +53,21 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     [RelayCommand]
     private async Task RemoveUser(UserVM toRemove)
     {
+        // TODO: persist user preference if they want to have this popup show or not.
+        // I mean like "dont show this again" checkbox pattern
+
         //TODO: this button only visible when the current logged user is not the one to remove.
+
+        var answer = DialogService.Show(
+            title: "Are you sure?",
+            message: "Are you sure you want to delete this user? This action can't be undone, and will delete every deck, card, etc. related with this user! Do you still wish to proceed?",
+
+            buttons: DialogButtons.YesNo,
+            icon: DialogIcons.Warning
+        );
+
+        if (answer is DialogResult.No) 
+            return;
 
         if (currentUserId == toRemove.Id)
             throw new InvalidOperationException(

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
@@ -138,6 +139,14 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
         {
             win.Activated += (_, _) => fs.OnFocusGained();
             win.Deactivated += (_, _) => fs.OnFocusLost();
+        }
+
+        if (vm is IClosingAware ac)
+        {
+            async Task closingHelper(CancelEventArgs e)
+                => e.Cancel = !(await ac.CanCloseAsync());
+
+            win.Closing += async (_, e) => await closingHelper(e);
         }
 
         if (sender is IDialogClosedHandler dch)

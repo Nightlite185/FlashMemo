@@ -75,7 +75,7 @@ public partial class App : Application
         sc.AddSingleton<CardCtxMenuVMF>();
         sc.AddSingleton<CreateCardVMF>();
         sc.AddSingleton<UserSelectVMF>();
-        sc.AddSingleton<EditCardVMF>();
+        sc.AddSingleton<CardEditorVMF>();
         sc.AddSingleton<FiltersVMF>();
         sc.AddSingleton<ManageTagsVMF>();
         sc.AddSingleton<BrowseVMF>();

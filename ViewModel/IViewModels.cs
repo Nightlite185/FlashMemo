@@ -68,7 +68,7 @@ public interface IFocusState
 
 public interface ICtxMenuHost
 {
-    void OnActionExecuted(CtxMenuAction action);
+    Task OnActionExecuted(CtxMenuAction action);
 }
 
 public interface ICardsSource<TCard> where TCard: class

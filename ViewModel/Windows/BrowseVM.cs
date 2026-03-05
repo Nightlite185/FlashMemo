@@ -85,7 +85,7 @@ public sealed partial class BrowseVM: BaseVM, IPopupHost, IFiltrable, IClosedHan
         cardCtxMenu.OpenMenu(cards);
     }
 
-    public void OnActionExecuted(CtxMenuAction action)
+    public async Task OnActionExecuted(CtxMenuAction action)
     {
         
     }

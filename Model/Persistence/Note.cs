@@ -2,6 +2,8 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.Model.Persistence;
 
+public enum NoteTypes { Standard, Cloze, List }
+
 public abstract class Note
 {
     public long Id { get; set; }

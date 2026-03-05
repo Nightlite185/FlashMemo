@@ -183,7 +183,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
         ShowNextCard();
     }
 
-    public void OnActionExecuted(CtxMenuAction action)
+    public async Task OnActionExecuted(CtxMenuAction action)
     {
         if (CurrentCard is null) throw new InvalidOperationException(
             "Couldn't have called ctx menu action if current card is null");

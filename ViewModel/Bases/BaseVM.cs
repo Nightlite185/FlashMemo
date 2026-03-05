@@ -47,7 +47,7 @@ public abstract class BaseVM(IDomainEventBus bus): ObservableObject, IViewModel,
         eventBus.DomainChanged -= OnDomainChanged;
     }
 
-    /// <summary>optional method, must override base to be useful.</summary>
+    /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
     protected virtual async Task ReloadAsync() => await Task.CompletedTask;
 
     protected bool isFocused = true;

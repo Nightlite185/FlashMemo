@@ -7,6 +7,7 @@ public interface ICardRepo
 {
     Task DeleteCards(IEnumerable<long> cardIds);
     Task AddCard(CardEntity card);
+    /// <summary>Includes Deck nav property with it.</summary>
     Task<CardEntity> GetById(long cardId);
 }
 
@@ -16,6 +17,7 @@ public interface IDeckRepo
     Task SaveEditedDeck(Deck updated);
     Task AddNewDeck(Deck deck);
     Task RemoveDeck(long deckId);
+    Task<Deck> GetFromCard(long cardId);
     Task<Deck> GetById(long id);
 
     ///<returns>ILookup with key being the parent deck's Id, and value being IEnumerable of its children decks</returns>

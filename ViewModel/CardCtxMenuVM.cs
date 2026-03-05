@@ -44,7 +44,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             CardAction.Forget
         );
 
-        ctxHost.OnActionExecuted(CtxMenuAction.Forget);
+        await ctxHost.OnActionExecuted(CtxMenuAction.Forget);
     }
 
     [RelayCommand]
@@ -55,7 +55,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             CardAction.Bury
         );
 
-        ctxHost.OnActionExecuted(CtxMenuAction.Bury);
+        await ctxHost.OnActionExecuted(CtxMenuAction.Bury);
     }
 
     [RelayCommand]
@@ -66,7 +66,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             CardAction.Suspend
         );
 
-        ctxHost.OnActionExecuted(CtxMenuAction.Suspend);
+        await ctxHost.OnActionExecuted(CtxMenuAction.Suspend);
     }
 
     [RelayCommand]
@@ -79,7 +79,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         await cardRepo.DeleteCards(ids);
         await eventBus.Notify();
 
-        ctxHost.OnActionExecuted(CtxMenuAction.Delete);
+        await ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
@@ -103,7 +103,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
 
         // show it here
         throw new NotImplementedException();
-        ctxHost.OnActionExecuted(CtxMenuAction.ShowDetails);
+        await ctxHost.OnActionExecuted(CtxMenuAction.ShowDetails);
     }
     
     #endregion
@@ -157,7 +157,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             c => c.Reschedule(dt, keepInterval),
             CardAction.Reschedule);
 
-        ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
+        await ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
     }
     private async Task PostponeCards(int PostponeBy, bool keepInterval)
     {
@@ -166,7 +166,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             CardAction.Reschedule
         );
 
-        ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
+        await ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
     }
     private async Task MoveCards(IDeckMeta newDeck)
     {
@@ -175,7 +175,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             CardAction.Relocate
         );
 
-        ctxHost.OnActionExecuted(CtxMenuAction.Relocate);
+        await ctxHost.OnActionExecuted(CtxMenuAction.Relocate);
     }
     private async Task ChangeTags(IEnumerable<Tag> newTags, bool globalTagsEdited)
     {

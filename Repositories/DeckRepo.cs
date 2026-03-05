@@ -1,4 +1,3 @@
-using System.Collections;
 using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,6 +51,15 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         return await GetDb.Decks
             .AsNoTracking()
             .SingleAsync(d => d.Id == deckId);
+    }
+
+    public async Task<Deck> GetFromCard(long cardId)
+    {
+        return await GetDb.Cards
+            .Where(c => c.Id == cardId)
+            .Include(c => c.Deck)
+            .Select(c => c.Deck)
+            .SingleAsync();
     }
     public async Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId, AppDbContext? db = null)
     {

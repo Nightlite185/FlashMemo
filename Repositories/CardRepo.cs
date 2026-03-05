@@ -20,6 +20,7 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         await db.SaveChangesAsync();
     }
 
-    public async Task<CardEntity> GetById(long cardId)
-        => await GetDb.Cards.SingleAsync(c => c.Id == cardId);
+    public async Task<CardEntity> GetById(long cardId) => await GetDb.Cards
+        .Include(c => c.Deck)
+        .SingleAsync(c => c.Id == cardId);
 }

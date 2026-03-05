@@ -8,13 +8,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FlashMemo.Services;
 
 public class WindowService
-(IServiceProvider sp, BrowseVMF bVMF, EditCardVMF ecVMF, 
+(IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ecVMF, 
 CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuVMF domVMF)
 {
     #region private fields
     private readonly IServiceProvider sp = sp;
     private readonly BrowseVMF browseVMF = bVMF;
-    private readonly EditCardVMF editCardVMF = ecVMF;
+    private readonly CardEditorVMF editCardVMF = ecVMF;
     private readonly CreateCardVMF createCardVMF = ccVMF;
     private readonly UserSelectVMF userSelectVMF = usVMF;
     private readonly UserOptionsVMF userOptionsVMF = uoVMF;

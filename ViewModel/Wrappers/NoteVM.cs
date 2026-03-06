@@ -14,10 +14,13 @@ public abstract class NoteVM: ObservableObject
             _ => throw new NotSupportedException()
         };
     }
+
+    public virtual NoteTypes Type { get; }
 }
 
 public partial class StandardNoteVM: NoteVM
 {
+    public override NoteTypes Type => NoteTypes.Standard;
     public StandardNoteVM(StandardNote sn)
     {
         entity = sn;

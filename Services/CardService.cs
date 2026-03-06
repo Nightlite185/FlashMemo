@@ -32,7 +32,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         return cardEntity;
     }
     
-    ///<summary>Updates scalars, FKs, and syncs tags.<summary>
+    ///<summary>Updates scalars, note, FKs, and syncs tags.<summary>
     public async Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null)
     {
         bool dbProvided = db is not null;
@@ -40,10 +40,13 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         
         var tracked = await db.Cards
             .Include(c => c.Tags)
+            .Include(c => c.Deck)
             .SingleAsync(c => c.Id == updated.Id);
 
         db.Entry(tracked).CurrentValues
             .SetValues(updated);
+
+        updated.Note.MapTo(tracked.Note);
 
         tracked.SyncTagsFrom(updated);
         

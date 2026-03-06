@@ -107,8 +107,6 @@ namespace FlashMemo.View
         {
             FrontBox.FontSize = EditorFontSize;
             BackBox.FontSize = EditorFontSize;
-            FrontBox.Document.FontSize = EditorFontSize;
-            BackBox.Document.FontSize = EditorFontSize;
         }
     }
 }

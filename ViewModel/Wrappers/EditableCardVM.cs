@@ -34,6 +34,17 @@ public partial class EditableCardVM: ObservableObject, ICardVM
 
     public void ChangeDeck(IDeckMeta newDeck) => Deck = newDeck;
 
+    public bool IsSameAsSavedNote(string frontContent, string backContent)
+    {
+        return Note.Type switch
+        {
+            NoteTypes.Standard => IsSameSavedStandard(frontContent, backContent),
+
+            _ => throw new NotSupportedException(
+                $"Note type '{Note.Type}' is not supported yet.")
+        };
+    }
+
     public CardEntity ToEntity()
     {
         card.Note = Note.ToEntity();
@@ -42,6 +53,16 @@ public partial class EditableCardVM: ObservableObject, ICardVM
         card.ReplaceTagsWith(Tags.ToEntities());
 
         return card;
+    }
+
+    private bool IsSameSavedStandard(string frontContent, string backContent)
+    {
+        if (card.Note is not StandardNote saved)
+            throw new NotSupportedException(
+                $"Expected saved note to be {nameof(StandardNote)} for note type '{Note.Type}'.");
+
+        return string.Equals(frontContent, saved.FrontContent, StringComparison.Ordinal)
+            && string.Equals(backContent, saved.BackContent, StringComparison.Ordinal);
     }
 
     private readonly CardEntity card;

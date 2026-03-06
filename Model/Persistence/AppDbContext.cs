@@ -108,8 +108,6 @@ namespace FlashMemo.Model.Persistence
                 .WithMany(o => o.Decks)
                 .HasForeignKey(d => d.OptionsId)    //* restrict on preset delete when there are still decks pointing to it.
                 .OnDelete(DeleteBehavior.Restrict); //* First manually set it to -1 for each deck, then remove preset :)
-
-            //TODO: define cascade on user deletion to set LastSessionData's userId to null;
         }                                           
         private static void DefineAutoIncludes(ModelBuilder mb)
         {

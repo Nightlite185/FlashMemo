@@ -70,9 +70,8 @@ public interface IUserVMBuilder
 
 public interface ILastSessionService
 {
-    LastSessionData Current { get; }
-    void UpdateDeck(long deckId);
-    void UpdateUser(long userId);
+    public long? LastUserId { get; set; }
+    public long? LastDeckId { get; set; }
 
     Task LoadAsync();
     Task SaveStateAsync();

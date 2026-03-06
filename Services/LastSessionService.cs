@@ -6,22 +6,26 @@ namespace FlashMemo.Services;
 
 public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ILastSessionService
 {
-    public LastSessionData Current { get; private set; } = new();
+    private LastSessionData data = new();
+
+    public long? LastUserId { 
+        get => data.LastLoadedUserId; 
+        set => data.LastLoadedUserId = value; 
+    }
+
+    public long? LastDeckId { 
+        get => data.LastUsedDeckId; 
+        set => data.LastUsedDeckId = value; 
+    }
 
     public async Task LoadAsync()
-        => Current = await GetDb.LastSessionData.SingleAsync();
+        => data = await GetDb.LastSessionData.SingleAsync();
 
     public async Task SaveStateAsync()
     {
         var db = GetDb;
 
-        db.LastSessionData.Update(Current);
+        db.LastSessionData.Update(data);
         await db.SaveChangesAsync();
     }
-
-    public void UpdateDeck(long deckId)
-        => Current.LastUsedDeckId = deckId;
-
-    public void UpdateUser(long userId)
-        => Current.LastLoadedUserId = userId;
 }

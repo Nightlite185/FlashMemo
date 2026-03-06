@@ -68,14 +68,23 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IDomainEventB
             deck = meta;
 
         // else: try from last used cached deck
-        else if (lastSession.Current.LastUsedDeckId is long id)
+        else if (lastSession.LastDeckId is long id)
             deck = await deckRepo.GetDeckMetaById(id);
 
         // finally, just get first (oldest) deck from db with current user's id
         else if (await deckRepo.GetFirstDeckMeta(UserId) is IDeckMeta first)
             deck = first;
 
-        else return; // TODO: maybe show some warning messagebox in code-behind like "you have no decks so you cant add cards".
+        else
+        {
+            DialogService.Show(
+                title: "No decks yet",
+                message: "You don't have any decks to create new cards in. Add a new deck first!",
+                buttons: DialogButtons.OK,
+                icon: DialogIcons.Information);
+
+            return;
+        }
         
         await NavigateTo(new CreateCardNavRequest(deck, this));
     }

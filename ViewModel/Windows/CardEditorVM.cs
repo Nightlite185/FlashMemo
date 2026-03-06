@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
@@ -13,7 +14,9 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
                                 : BaseVM(bus), ICloseRequest, IPopupHost, IClosedHandler, ICtxMenuHost
 {
     public EditableCardVM Card { get; private set; } = null!;
-    public PopupVMBase? CurrentPopup { get; set; }
+
+    [ObservableProperty]
+    public partial PopupVMBase? CurrentPopup { get; set; }
 
     #region methods
     internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM) //* Factory calls this
@@ -68,7 +71,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
     [RelayCommand] private async Task SaveChanges()
     {
         await cardService.SaveEditedCard(
-            Card.ToEntity(), 
+            Card.ToEntity(),
             CardAction.Modify
         );
 
@@ -76,13 +79,13 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
         OnCloseRequest?.Invoke();
     }
 
-    [RelayCommand] private async Task RevertChanges() 
+    [RelayCommand] private async Task RevertChanges()
         => Card.RevertChanges();
 
-    [RelayCommand] private void CancelChanges() 
+    [RelayCommand] private void CancelChanges()
         => OnCloseRequest?.Invoke();
 
-    [RelayCommand] private void ShowCtxMenu() 
+    [RelayCommand] private void ShowCtxMenu()
         => ctxMenu.OpenMenu([Card]);
 
     [RelayCommand] private async Task ShowDeckSelect()

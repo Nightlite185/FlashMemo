@@ -8,7 +8,6 @@ using FlashMemo.Services;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.Model;
-using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo;
 public partial class App : Application
@@ -39,9 +38,7 @@ public partial class App : Application
         var lss = sp.GetRequiredService<ILastSessionService>();
         await lss.LoadAsync();
 
-        long? lastUser = lss.Current.LastLoadedUserId;
-        
-        if (lastUser is null)
+        if (lss.LastUserId is null)
         {
             await sp.GetRequiredService<WindowService>()
                 .ShowUserSelect(currentUserId: null);
@@ -50,7 +47,7 @@ public partial class App : Application
         else
         {
             var mainVM = sp.GetRequiredService<MainVMF>()
-                .Create((long)lastUser);
+                .Create((long)lss.LastUserId);
             
             sp.GetRequiredService<MainWindowBootstrapper>()
                 .SetupMainWindow(mainVM);

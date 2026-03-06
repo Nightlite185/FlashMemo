@@ -44,7 +44,7 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IDomainEvent
             return;
 
         CurrentDeck = newDeck;
-        lastSession.UpdateDeck(newDeck.Id);
+        lastSession.LastDeckId = newDeck.Id;
     }
     private void ClosePopup() => CurrentPopup = null;
     #endregion

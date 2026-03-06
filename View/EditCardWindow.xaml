@@ -1,12 +1,143 @@
-﻿<Window x:Class="FlashMemo.View.EditCardWindow"
+<Window x:Class="FlashMemo.View.EditCardWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FlashMemo.View"
+        xmlns:vm="clr-namespace:FlashMemo.ViewModel.Windows"
+        d:DataContext="{d:DesignInstance Type=vm:CardEditorVM}"
         mc:Ignorable="d"
-        Title="EditWindow" Height="450" Width="800">
+        Title="Edit Card"
+        Width="900"
+        Height="650"
+        FontSize="24"
+        WindowStartupLocation="CenterOwner">
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FFFF7878"/>
+            <GradientStop Color="#FF9B7DF3" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
+
     <Grid>
-        
+        <Grid Margin="20">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Background="#66000000">
+
+                <TextBlock
+                    Text="Move to deck: "
+                    Foreground="White"
+                    FontSize="18"
+                    Margin="10,10,10,10"
+                    VerticalAlignment="Center"/>
+
+                <Button
+                    Content="{Binding Card.Deck.Name}"
+                    Command="{Binding ShowDeckSelectCommand}"
+                    Style="{StaticResource NavButtonStyle}"
+                    Margin="5,0,0,0"
+                    Width="230"
+                    Height="34"
+                    BorderBrush="#FFDEDEDE"/>
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    Margin="0,16,0,8"
+                    Padding="12"
+                    CornerRadius="12"
+                    BorderBrush="{StaticResource NavBorderBrush}"
+                    BorderThickness="2">
+                <Border.Background>
+                    <SolidColorBrush Color="#CC2A2E34"/>
+                </Border.Background>
+
+                <Grid>
+                    <TextBlock Text="Front:"
+                               Foreground="White"
+                               FontSize="18"
+                               Margin="0,0,0,8"/>
+
+                    <RichTextBox x:Name="FrontBox"
+                                 Margin="0,28,0,0"
+                                 Background="#22000000"
+                                 Foreground="White"
+                                 BorderThickness="0"
+                                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=FontSize}"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="2"
+                    Margin="0,8,0,16"
+                    Padding="12"
+                    CornerRadius="12"
+                    BorderBrush="{StaticResource NavBorderBrush}"
+                    BorderThickness="2"
+                    Background="#CC2A2E34">
+
+                <Grid>
+                    <TextBlock Text="Back:"
+                               Foreground="White"
+                               FontSize="18"
+                               Margin="0,0,0,8"/>
+
+                    <RichTextBox x:Name="BackBox"
+                                 Margin="0,28,0,0"
+                                 Background="#22000000"
+                                 Foreground="White"
+                                 BorderThickness="0"
+                                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=FontSize}"/>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    Grid.Column="0"
+                    Content="Cancel"
+                    Command="{Binding CancelChangesCommand}"
+                    Style="{StaticResource NavButtonStyle}"
+                    Width="90"
+                    Height="39"/>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button
+                        Content="Revert"
+                        Click="RevertButtonClicked"
+                        Style="{StaticResource NavButtonStyle}"
+                        Width="90"
+                        Height="39"/>
+
+                    <Button
+                        Content="Save"
+                        Click="SaveButtonClicked"
+                        Style="{StaticResource NavButtonStyle}"
+                        Width="90"
+                        Height="39"
+                        Margin="10,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Grid
+            Background="#80000000"
+            Visibility="{Binding CurrentPopup,
+            Converter={StaticResource NullToVisConverter}}">
+
+            <ContentControl
+                Content="{Binding CurrentPopup}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/>
+        </Grid>
     </Grid>
 </Window>

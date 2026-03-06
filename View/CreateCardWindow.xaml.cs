@@ -9,6 +9,7 @@ namespace FlashMemo.View
 {
     public partial class CreateCardWindow : Window, IViewFor<CreateCardVM>
     {
+        private const double EditorFontSize = 24;
         public CreateCardVM VM { get; set; } = null!;
         public CreateCardWindow()
         {
@@ -46,6 +47,7 @@ namespace FlashMemo.View
             // clearing the editor
             FrontBox.Document = new();
             BackBox.Document = new();
+            ApplyEditorDefaults();
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -62,6 +64,8 @@ namespace FlashMemo.View
             // Load Back
             BackBox.Document = XamlSerializer
                 .FromXaml(sn.BackContent);
+
+            ApplyEditorDefaults();
         }
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
@@ -97,6 +101,14 @@ namespace FlashMemo.View
 
             return string.IsNullOrWhiteSpace(front)
                 && string.IsNullOrWhiteSpace(back);
+        }
+
+        private void ApplyEditorDefaults()
+        {
+            FrontBox.FontSize = EditorFontSize;
+            BackBox.FontSize = EditorFontSize;
+            FrontBox.Document.FontSize = EditorFontSize;
+            BackBox.Document.FontSize = EditorFontSize;
         }
     }
 }

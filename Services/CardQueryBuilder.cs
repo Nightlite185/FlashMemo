@@ -29,7 +29,7 @@ public class CardQueryBuilder(IDeckRepo dr): ICardQueryBuilder
 
         return baseQuery.Where(c =>
             !c.IsSuspended && !c.IsBuried
-            && (!c.Due.HasValue || c.Due.Value.Date == today));
+            && (!c.Due.HasValue || c.Due.Value.Date <= today));
     }
     
     public async Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(long deckId, AppDbContext db)

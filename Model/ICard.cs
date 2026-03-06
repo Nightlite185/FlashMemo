@@ -10,7 +10,7 @@ public interface ICard
     DateTime Created { get; }
     DateTime? LastModified { get; }
     DateTime? Due { get; }
-    bool IsDueToday => Due?.Date == DateTime.Today;
+    bool IsDueToday => Due?.Date <= DateTime.Today;
     bool IsDueNow => Due <= DateTime.Now;
     DateTime? LastReviewed { get; }
     TimeSpan Interval { get; }

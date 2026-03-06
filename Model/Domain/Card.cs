@@ -18,8 +18,8 @@ public class Card: ICard
     public bool IsBuried { get; protected set; }
     public bool IsSuspended { get; protected set; }
     private bool IsDueNow => Due <= DateTime.Now;
-    private bool IsDueToday => Due.HasValue 
-        && Due.Value.Date == DateTime.Today;
+    private bool IsDueToday => Due.HasValue
+        && Due.Value.Date <= DateTime.Today;
     public CardState State { get; protected set; }
     public TimeSpan Interval { get; protected set; }
     public DateTime Created { get; protected set; }

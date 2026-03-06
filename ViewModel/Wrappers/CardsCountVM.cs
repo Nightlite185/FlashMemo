@@ -44,7 +44,7 @@ public partial class CardsCountVM: ObservableObject
         var inPlay = source.Cards.Where(c => 
             !c.IsDeleted &&
             (c.State is not CardState.Review ||
-            (c.State is CardState.Review && c.Due?.Date == today)))
+            (c.State is CardState.Review && c.Due?.Date <= today)))
             .CountBy(c => c.State);
 
         foreach (var kvp in inPlay)

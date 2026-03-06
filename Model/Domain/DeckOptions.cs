@@ -39,9 +39,9 @@ public class DeckOptions
         #region defaults
         public const int LearningStagesCount = 3;
 
-        public const double DefGoodMultiplier = 2; 
-        public const double DefEasyMultiplier = 3; 
-        public const double DefHardMultiplier = 0; 
+        public const double DefGoodMultiplier = 1.8;
+        public const double DefEasyMultiplier = 2.4;
+        public const double DefHardMultiplier = 0.7;
         public const int DefGraduateDayCount = 1; 
         public const int DefEasyOnNewDayCount = 2; 
         public const int DefAgainOnReviewStage = 1; 

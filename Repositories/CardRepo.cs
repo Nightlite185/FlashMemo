@@ -23,4 +23,10 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     public async Task<CardEntity> GetById(long cardId) => await GetDb.Cards
         .Include(c => c.Deck)
         .SingleAsync(c => c.Id == cardId);
+
+    public async Task<IEnumerable<CardEntity>> GetByIds(IEnumerable<long> cardIds) 
+        => await GetDb.Cards
+        .Include(c => c.Deck)
+        .Where(c => cardIds.Contains(c.Id))
+        .ToArrayAsync();
 }

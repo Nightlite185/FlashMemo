@@ -1,5 +1,4 @@
 using FlashMemo.Model;
-using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -87,22 +86,6 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
 
         return await cardsQuery
             .ToListAsync();
-    }
-    
-    /// <returns>an ICollection of card ids present in the subset, but absent in the db</returns>
-    public async Task<ICollection<long>> RemovedFromSubset(IEnumerable<long> subset)
-    {
-        var db = GetDb;
-
-        var today = DateTime.Today;
-
-        var subsetQuery = db.Cards
-            .Where(c => subset.Contains(c.Id))
-            .Select(c => c.Id);
-
-        return await subsetQuery
-            .Except(db.Cards.Select(c => c.Id))
-            .ToArrayAsync();
     }
     #endregion
     

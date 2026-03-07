@@ -15,6 +15,15 @@ public abstract class NoteVM: ObservableObject
         };
     }
 
+    public static NoteVM Create(Note note)
+    {
+        if (note is not StandardNote sn)
+            throw new NotSupportedException(
+            "Only standard note supported for now.");
+
+        return new StandardNoteVM(sn);
+    }
+
     public virtual NoteTypes Type { get; }
 }
 

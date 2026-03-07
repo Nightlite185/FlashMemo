@@ -165,22 +165,55 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
     
     protected override async Task ReloadAsync()
     {
-        stopWatch.Reset();
+        /*============== OLD IMPLEMENTATION ==================
 
-        var removedIds = await cardQuery.RemovedFromSubset(
+            stopWatch.Reset();
+
+            var removedIds = await cardQuery.RemovedFromSubset(
+                allSessionCards.Select(c => c.Id));
+
+            var removedCards = allSessionCards
+                .Where(c => removedIds.Contains(c.Id))
+                .ToArray();
+
+            foreach (var card in removedCards)
+                card.IsDeleted = true;
+
+            InitialCount -= removedCards.Length;
+
+            CardsCount.UpdateCount();
+
+            if (!IsCardLoaded) ShowNextCard();
+
+        ============== OLD IMPLEMENTATION ==================*/
+
+
+        // 1. Fetch fresh entities for all session card IDs in one query
+        var freshEntities = await cardRepo.GetByIds(
             allSessionCards.Select(c => c.Id));
 
-        var removedCards = allSessionCards
-            .Where(c => removedIds.Contains(c.Id))
-            .ToArray();
+        var freshById = freshEntities.ToDictionary(e => e.Id);
 
-        foreach (var card in removedCards)
-            card.IsDeleted = true;
-        
-        InitialCount -= removedCards.Length;
+        // 2. Refresh note data on all CardVMs (including deleted detection)
+        foreach (var card in allSessionCards)
+        {
+            // if found -> rehydrate it with new data
+            if (freshById.TryGetValue(card.Id, out var freshEntity))
+                card.Refresh(freshEntity);
+            
+            // Disappeared from DB entirely — treat as deleted
+            else card.IsDeleted = true;
+        }
 
+        // 3. Recount valid initials
+        InitialCount = allSessionCards.Count(c => !c.IsDeleted);
+
+        // 4. Update count vm
         CardsCount.UpdateCount();
-        ShowNextCard();
+
+        // 5. If current card got nuked, move on
+        if (CurrentCard?.IsDeleted == true)
+            ShowNextCard();
     }
 
     public async Task OnActionExecuted(CtxMenuAction action)
@@ -203,6 +236,13 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
         }
     }
 
+    public override async Task OnFocusGained()
+    {
+        if (IsCardLoaded && !IsSessionFinished && !stopWatch.IsRunning)
+            stopWatch.Start();
+
+        await base.OnFocusGained();
+    }
     #endregion
 
     #region private things
@@ -271,7 +311,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
     private async Task ShowEditFromHistory(ICard card)
     {
         await NavigateTo(new EditCardNavRequest(
-            card.Id, userId));
+            card.Id, userId, this));
     }
 
     [RelayCommand]

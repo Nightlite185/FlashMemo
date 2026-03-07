@@ -24,7 +24,7 @@ public abstract class BaseVM(IDomainEventBus bus): ObservableObject, IViewModel,
             await NavRequested(where);
     }
 
-    public async Task OnFocusGained()
+    public virtual async Task OnFocusGained()
     {
         isFocused = true;
         
@@ -34,7 +34,7 @@ public abstract class BaseVM(IDomainEventBus bus): ObservableObject, IViewModel,
             isDirty = false;
         }
     }
-    public void OnFocusLost() => isFocused = false;
+    public virtual void OnFocusLost() => isFocused = false;
 
     protected virtual async Task OnDomainChanged()
     {

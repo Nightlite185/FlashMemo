@@ -9,6 +9,7 @@ public interface ICardRepo
     Task AddCard(CardEntity card);
     /// <summary>Includes Deck nav property with it.</summary>
     Task<CardEntity> GetById(long cardId);
+    Task<IEnumerable<CardEntity>> GetByIds(IEnumerable<long> cardIds);
 }
 
 public interface IDeckRepo

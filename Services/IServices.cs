@@ -34,8 +34,6 @@ public interface ICountingService
 }
 public interface ICardQueryService
 {
-    /// <returns>an ICollection of card ids present in the subset, but absent in the db</returns>
-    Task<ICollection<long>> RemovedFromSubset(IEnumerable<long> subset);
     Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir);
     Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId);
     Task<IList<CardEntity>> GetAllFromUser(long userId);

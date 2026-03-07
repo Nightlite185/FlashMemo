@@ -26,6 +26,8 @@ public abstract class BaseVM(IDomainEventBus bus): ObservableObject, IViewModel,
 
     public virtual async Task OnFocusGained()
     {
+        if (isFocused) return;
+
         isFocused = true;
         
         if (isDirty)

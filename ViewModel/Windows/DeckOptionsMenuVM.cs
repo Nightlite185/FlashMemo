@@ -34,6 +34,9 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     public bool IsCurrentModified {
         get
         {
+            if (CurrentOptions.Id == DeckOptions.DefaultId)
+                return false;
+
             if (CurrentOptions.Id != lastSaved.Id)
                 throw new InvalidOperationException(
                 "CurrentOptions's id must match with lastSaved's id");
@@ -57,15 +60,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
 
         return result is DialogResult.Yes;
     }
-    public async Task<bool> CanCloseAsync()
-    {
-        bool canClose = !IsCurrentModified;
-
-        if (canClose)
-            await SaveChanges();
-
-        return canClose;
-    }
+    public bool CanClose() => !IsCurrentModified;
     public async Task<bool> CanDiscardAsync()
     {
         if (!IsCurrentModified) return true;

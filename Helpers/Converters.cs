@@ -38,7 +38,7 @@ public class InverseBoolConverter : IValueConverter
         => !(bool)value;
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        => throw new NotImplementedException();
+        => !(bool)value;
 }
 
 public class InverseBoolToVisConverter : IValueConverter

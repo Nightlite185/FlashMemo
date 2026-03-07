@@ -54,7 +54,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
     [ObservableProperty]
     public partial bool IsSessionFinished { get; private set; }
 
-    public PopupVMBase? CurrentPopup { get; set; }
+    [ObservableProperty]
+    public partial PopupVMBase? CurrentPopup { get; set; }
     public CardsCountVM CardsCount { get; private set; } = null!;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     public Queue<CardEntity> ReviewHistory { get; private init; }
@@ -162,6 +163,17 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
         UpdateOnReview(reviewed, updatedSchedule);
         ShowNextCard();
     }
+
+    partial void OnCurrentPopupChanged(PopupVMBase? value)
+    {
+        if (CurrentPopup is null)
+        {
+            if (!stopWatch.IsRunning && IsCardLoaded)
+                stopWatch.Start();
+        }
+
+        else stopWatch.Stop();
+    }
     
     protected override async Task ReloadAsync()
     {
@@ -238,10 +250,20 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
 
     public override async Task OnFocusGained()
     {
-        if (IsCardLoaded && !IsSessionFinished && !stopWatch.IsRunning)
+        if (IsCardLoaded && !IsSessionFinished &&
+        !stopWatch.IsRunning && CurrentPopup is null)
+        {
             stopWatch.Start();
+        }
 
         await base.OnFocusGained();
+    }
+
+    public override void OnFocusLost()
+    {
+        base.OnFocusLost();
+
+        stopWatch.Stop();
     }
     #endregion
 
@@ -303,6 +325,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
         if (!IsCardLoaded) throw new InvalidOperationException(
         "tried to open card editor, but no card was loaded.");
 
+        stopWatch.Stop();
+
         await NavigateTo(new EditCardNavRequest(
             CurrentCard!.Id, userId, this));
     }
@@ -310,6 +334,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
     [RelayCommand]
     private async Task ShowEditFromHistory(ICard card)
     {
+        stopWatch.Stop();
+
         await NavigateTo(new EditCardNavRequest(
             card.Id, userId, this));
     }

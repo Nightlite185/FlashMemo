@@ -25,15 +25,9 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     }
 
     [RelayCommand]
-    private void ShowRescheduleCtx() // this lets u choose datetime
+    private void ShowRescheduleCtx() // this lets u choose datetime OR postpone by days. Choose whether keep interval. 
     {
         popupHost.CurrentPopup = new RescheduleVM(RescheduleCards, PopupCancel);
-    }
-
-    [RelayCommand]
-    private void ShowPostponeCtx() // this moves due date by specified num of days. Choose if keep interval or change to num of days choosen.
-    {                             // also you can choose if postpone by days SINCE today or SINCE card's DUE DATE
-        popupHost.CurrentPopup = new PostponeVM(PostponeCards, PopupCancel);
     }
 
     [RelayCommand]
@@ -116,6 +110,9 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             "Cannot capture cards if there already are some captured. Clean those up first.");
 
         capturedCards = [..selected];
+
+        //TODO: FIX: this only gets called when I click on "more" button with RMB, but never with LMB. 
+        // MAKE IT WORK WITH LMB!!!
     }
 
     ///<summary> Called when user closed ctx menu without clicking on any option </summary>

@@ -47,6 +47,10 @@
             <view:DeckSelectUC/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type popups:RescheduleVM}">
+            <view:RescheduleUC/>
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type vm:ReviewVM}">
             <view:ReviewUC/>
         </DataTemplate>
@@ -667,6 +671,7 @@
                BasedOn="{StaticResource EditableControlBase}">
 
             <Setter Property="ShowButtonSpinner" Value="False"/>
+            <Setter Property="MouseWheelActiveTrigger" Value="Disabled"/>
             <Setter Property="Background" Value="#4C006BE2"/>
             <Setter Property="BorderBrush" Value="#FFB23DB3"/>
             <Setter Property="BorderThickness" Value="1.5"/>
@@ -675,13 +680,19 @@
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Height" Value="32"/>
             <Setter Property="Width" Value="150"/>
-            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Padding" Value="6,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="UpdateValueOnEnterKey" Value="True"/>
             <Setter Property="TextAlignment" Value="Left"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Margin" Value="0,5,0,3"/>
 
+            <Style.Resources>
+                <Style TargetType="TextBox">
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </Style.Resources>
         </Style>
 
         <Style x:Key="FlatDoubleUpDownStyle"
@@ -689,6 +700,7 @@
                BasedOn="{StaticResource EditableControlBase}">
 
             <Setter Property="ShowButtonSpinner" Value="False"/>
+            <Setter Property="MouseWheelActiveTrigger" Value="Disabled"/>
             <Setter Property="Background" Value="#4C006BE2"/>
             <Setter Property="BorderBrush" Value="#FFB23DB3"/>
             <Setter Property="BorderThickness" Value="1.5"/>
@@ -703,8 +715,14 @@
             <Setter Property="TextAlignment" Value="Left"/>
             <Setter Property="FormatString" Value="0.###"/>
             <Setter Property="Width" Value="150"/>
-            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Padding" Value="6,0"/>
 
+            <Style.Resources>
+                <Style TargetType="TextBox">
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </Style.Resources>
         </Style>
 
     </Application.Resources>

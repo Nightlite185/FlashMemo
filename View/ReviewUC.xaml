@@ -321,7 +321,6 @@
                             <MenuItem Header="Forget" Command="{Binding ForgetCardsCtxCommand}"/>
                             <MenuItem Header="Bury" Command="{Binding ToggleBuryCtxCommand}"/>
                             <MenuItem Header="Reschedule" Command="{Binding ShowRescheduleCtxCommand}"/>
-                            <MenuItem Header="Postpone" Command="{Binding ShowPostponeCtxCommand}"/>
                             <MenuItem Header="Delete" Command="{Binding DeleteCardsCtxCommand}"/>
                        <!-- <MenuItem Header="Card details" Command="{Binding showdetails}"/> -->
                         </ContextMenu>
@@ -378,6 +377,18 @@
             Minimum="0"
             Maximum="{Binding InitialCount, Mode=OneWay}"
             Value="{Binding ReviewedCount, Mode=OneWay}" Background="#FF001A40" Foreground="#FF009CFF"/>
+
+        <Grid
+            Grid.RowSpan="4"
+            Background="#80000000"
+            Visibility="{Binding CurrentPopup,
+                Converter={StaticResource NullToVisConverter}}">
+
+            <ContentControl
+                Content="{Binding CurrentPopup}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/>
+        </Grid>
 
     </Grid>
 </UserControl>

@@ -21,7 +21,7 @@ public partial class ReviewUC : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not ReviewVM vm) 
+        if (DataContext is not ReviewVM vm)
             return;
 
         // ctx menu events

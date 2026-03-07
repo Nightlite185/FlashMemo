@@ -63,8 +63,8 @@ public interface ICardVM
 
 public interface IFocusState
 {
-    Task OnFocusGained();
-    void OnFocusLost();
+    Task OnFocusGained(); // TODO: should only change focus state when the focus crosses the window border, NOT JUST UC!!!
+    void OnFocusLost(); // example: ReviewVM should not lose focus just because I clicked on the nav bar in MainWindow.
 }
 
 public interface ICtxMenuHost
@@ -79,5 +79,5 @@ public interface ICardsSource<TCard> where TCard: class
 
 public interface IClosingAware
 {
-    Task<bool> CanCloseAsync();
+    bool CanClose();
 }

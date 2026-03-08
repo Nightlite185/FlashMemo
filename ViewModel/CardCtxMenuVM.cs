@@ -104,19 +104,9 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     
     #region methods
     public void OpenMenu(IReadOnlyCollection<ICardVM> selected)
-    {
-        if (capturedCards is not null)
-            throw new InvalidOperationException(
-            "Cannot capture cards if there already are some captured. Clean those up first.");
-
-        capturedCards = [..selected];
-
-        //TODO: FIX: this only gets called when I click on "more" button with RMB, but never with LMB. 
-        // MAKE IT WORK WITH LMB!!!
-    }
+        => capturedCards = [..selected];
 
     ///<summary> Called when user closed ctx menu without clicking on any option </summary>
-    internal void CloseMenu() => capturedCards = null;
     private void ThrowIfNoCardsCaptured(string? calledMember)
     {
         if (capturedCards is null || capturedCards.Count == 0)
@@ -130,10 +120,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
             $"To execute this there needs to be only one card captured, but there was {(capturedCards is null ? "null" : capturedCards.Count)}");
     }
     private void PopupCancel()
-    {
-        CloseMenu();
-        popupHost.CurrentPopup = null;
-    }
+        => popupHost.CurrentPopup = null;
+
     private async Task ModifyCardsHelper(Action<CardEntity> cardModifier, CardAction cardAction, [CallerMemberName] string? caller = null)
     {
         ThrowIfNoCardsCaptured(caller);
@@ -153,15 +141,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         await ModifyCardsHelper(
             c => c.Reschedule(dt, keepInterval),
             CardAction.Reschedule);
-
-        await ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
-    }
-    private async Task PostponeCards(int PostponeBy, bool keepInterval)
-    {
-        await ModifyCardsHelper(
-            c => c.Postpone(PostponeBy, keepInterval),
-            CardAction.Reschedule
-        );
 
         await ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
     }

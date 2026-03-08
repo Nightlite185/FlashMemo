@@ -102,29 +102,50 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button
-                    Grid.Column="0"
-                    Content="Cancel"
-                    Command="{Binding CancelChangesCommand}"
-                    Style="{StaticResource NavButtonStyle}"
-                    Width="90"
-                    Height="39"/>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <Button
-                        Content="Revert"
-                        Click="RevertButtonClicked"
+                        Content="Cancel"
+                        Command="{Binding CancelChangesCommand}"
                         Style="{StaticResource NavButtonStyle}"
                         Width="90"
                         Height="39"/>
 
                     <Button
-                        Content="Save"
-                        Click="SaveButtonClicked"
+                        Content="Revert"
+                        Click="RevertButtonClicked"
                         Style="{StaticResource NavButtonStyle}"
                         Width="90"
                         Height="39"
                         Margin="10,0,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button
+                        Content="Save"
+                        Click="SaveButtonClicked"
+                        Style="{StaticResource NavButtonStyle}"
+                        Width="90"
+                        Height="39"/>
+
+                    <Button
+                        Name="MoreButton"
+                        Content="More"
+                        Click="MoreButtonClicked"
+                        Style="{StaticResource NavButtonStyle}"
+                        Width="90"
+                        Height="39"
+                        Margin="10,0,0,0">
+
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Suspend" Command="{Binding ToggleSuspendedCtxCommand}"/>
+                                <MenuItem Header="Forget" Command="{Binding ForgetCardsCtxCommand}"/>
+                                <MenuItem Header="Bury" Command="{Binding ToggleBuryCtxCommand}"/>
+                                <MenuItem Header="Reschedule" Command="{Binding ShowRescheduleCtxCommand}"/>
+                                <MenuItem Header="Delete" Command="{Binding DeleteCardsCtxCommand}"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Grid>

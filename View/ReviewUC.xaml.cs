@@ -1,4 +1,5 @@
 using FlashMemo.Helpers;
+using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using System.ComponentModel;
@@ -12,7 +13,7 @@ namespace FlashMemo.View;
 public partial class ReviewUC : UserControl
 {
     private double zoom = 1.0;
-    private ReviewVM? VM;
+    private ReviewVM VM = null!;
     private StandardNoteVM? observedNote;
 
     public ReviewUC()
@@ -26,14 +27,13 @@ public partial class ReviewUC : UserControl
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (DataContext is not ReviewVM reviewVM)
-            return;
+            throw new InvalidOperationException(
+            $"Can't load this window with datacontext being {DataContext}");
 
         this.VM = reviewVM;
 
         // ctx menu events
         MoreButton.ContextMenu.DataContext = VM.CtxMenuVM;
-        MoreButton.ContextMenuClosing += (_, _) => VM.CtxMenuVM.CloseMenu();
-        MoreButton.ContextMenuOpening += (_, _) => VM.ShowCtxMenuCommand.Execute(null);
 
         // timer event
         CompositionTarget.Rendering += (_, _) => VM.UpdateTime();
@@ -48,18 +48,12 @@ public partial class ReviewUC : UserControl
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        if (VM is not null)
-            VM.PropertyChanged -= OnVMPropertyChanged;
-
+        VM.PropertyChanged -= OnVMPropertyChanged;
         UnwireObservedNote();
-        VM = null;
     }
 
     private void OnVMPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (VM is null)
-            return;
-
         if (e.PropertyName == nameof(VM.CurrentCard))
         {
             RewireObservedNote(VM.CurrentCard);
@@ -69,8 +63,6 @@ public partial class ReviewUC : UserControl
 
     private void OnObservedNotePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (VM is null) return;
-
         if (e.PropertyName is nameof(StandardNoteVM.FrontContent)
             or nameof(StandardNoteVM.BackContent))
         {
@@ -142,43 +134,41 @@ public partial class ReviewUC : UserControl
 
     private void Root_KeyDown(object sender, KeyEventArgs e)
     {
-        if (DataContext is not ReviewVM vm) return;
-
         if (e.Key is Key.Space or Key.Enter)
         {
-            if (!vm.AnswerRevealed &&
-            vm.RevealAnswerCommand.CanExecute(null))
+            if (!VM.AnswerRevealed &&
+            VM.RevealAnswerCommand.CanExecute(null))
             {
-                vm.RevealAnswerCommand.Execute(null);
+                VM.RevealAnswerCommand.Execute(null);
             }
 
-            else if (vm.GoodAnswerCommand.CanExecute(null))
+            else if (VM.GoodAnswerCommand.CanExecute(null))
             {
-                vm.GoodAnswerCommand.Execute(null);
+                VM.GoodAnswerCommand.Execute(null);
             }
 
             e.Handled = true;
             return;
         }
 
-        if (!vm.AnswerRevealed) return;
+        if (!VM.AnswerRevealed) return;
 
         switch (e.Key)
         {
             case Key.D1 or Key.NumPad1:
-                vm.AgainAnswerCommand.Execute(null);
+                VM.AgainAnswerCommand.Execute(null);
                 break;
 
             case Key.D2 or Key.NumPad2:
-                vm.HardAnswerCommand.Execute(null);
+                VM.HardAnswerCommand.Execute(null);
                 break;
 
             case Key.D3 or Key.NumPad3:
-                vm.GoodAnswerCommand.Execute(null);
+                VM.GoodAnswerCommand.Execute(null);
                 break;
 
             case Key.D4 or Key.NumPad4:
-                vm.EasyAnswerCommand.Execute(null);
+                VM.EasyAnswerCommand.Execute(null);
                 break;
 
             default:
@@ -191,15 +181,18 @@ public partial class ReviewUC : UserControl
     private void MoreButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button btn
-        || btn.ContextMenu is null)
+        || btn.ContextMenu?.DataContext is not CardCtxMenuVM)
             return;
 
         btn.ContextMenu.PlacementTarget = btn;
         btn.ContextMenu.IsOpen = true;
+
+        VM.ShowCtxMenuCommand.Execute(null);
     }
     private void HistoryButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button btn || btn.ContextMenu is null)
+        if (sender is not Button btn
+        || btn.ContextMenu is null)
             return;
 
         btn.ContextMenu.PlacementTarget = btn;

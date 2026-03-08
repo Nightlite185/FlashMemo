@@ -97,15 +97,6 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
                 $"Invalid Answers enum value: {answer}")
         };
     }
-    public async Task ReloadCurrentCardAsync()
-    {
-        if (CurrentCard is null)
-            throw new InvalidOperationException(
-            "Can't reload current card since there was none loaded atm.");
-
-        CurrentCard = new CardVM(
-            await cardRepo.GetById(CurrentCard.Id));
-    }
     private void ShowNextCard()
     {
         learningPool.InjectDueInto(activeCards);
@@ -181,7 +172,9 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         var freshEntities = await cardRepo.GetByIds(
             allSessionCards.Select(c => c.Id));
 
-        var freshById = freshEntities.ToDictionary(e => e.Id);
+        var freshById = CardQueryBuilder // TODO: test if this works
+            .ForStudy(freshEntities)
+            .ToDictionary(e => e.Id);
 
         // 2. Refresh note data on all CardVMs (including deleted detection)
         foreach (var card in allSessionCards)

@@ -14,6 +14,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
                                 : BaseVM(bus), ICloseRequest, IPopupHost, ICtxMenuHost
 {
     public EditableCardVM Card { get; private set; } = null!;
+    public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
@@ -21,7 +22,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
     #region methods
     internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM) //* Factory calls this
     {
-        ctxMenu = ccmVM;
+        CtxMenuVM = ccmVM;
         eventBus.DomainChanged += OnDomainChanged;
 
         var card = await cardRepo.GetById(cardId);
@@ -59,7 +60,6 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
     #endregion
 
     #region private things
-    private CardCtxMenuVM ctxMenu = null!;
     private readonly ITagRepo tagRepo = tr;
     private readonly ICardService cardService = cs;
     private readonly ICardRepo cardRepo = cr;
@@ -86,7 +86,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
         => OnCloseRequest?.Invoke();
 
     [RelayCommand] private void ShowCtxMenu()
-        => ctxMenu.OpenMenu([Card]);
+        => CtxMenuVM.OpenMenu([Card]);
 
     [RelayCommand] private async Task ShowDeckSelect()
         => CurrentPopup = await deckSelectVMF.CreateAsync(

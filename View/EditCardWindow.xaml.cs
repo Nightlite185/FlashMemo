@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 
@@ -21,7 +23,10 @@ namespace FlashMemo.View
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
-            => LoadEditorsFromVm();
+        {
+            MoreButton.ContextMenu.DataContext = VM.CtxMenuVM;
+            LoadEditorsFromVm();
+        }
 
         public async void SaveButtonClicked(object sender, RoutedEventArgs e)
         {
@@ -33,6 +38,18 @@ namespace FlashMemo.View
         {
             await VM.RevertChangesCommand.ExecuteAsync(null);
             LoadEditorsFromVm();
+        }
+
+        public void MoreButtonClicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn
+            || btn.ContextMenu?.DataContext is not CardCtxMenuVM)
+                return;
+
+            btn.ContextMenu.PlacementTarget = btn;
+            btn.ContextMenu.IsOpen = true;
+
+            VM.ShowCtxMenuCommand.Execute(null);
         }
 
         private void LoadEditorsFromVm()

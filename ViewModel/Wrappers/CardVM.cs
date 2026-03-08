@@ -28,7 +28,7 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
     public void Refresh(CardEntity card)
     {
         this.card = card;
-        Note = NoteVM.Create(card.Note);
+        Note.Refresh(card.Note);
 
         Tags.Clear();
         Tags.AddRange(card.Tags.ToVMs());

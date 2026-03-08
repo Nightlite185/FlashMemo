@@ -24,6 +24,20 @@ public abstract class NoteVM: ObservableObject
         return new StandardNoteVM(sn);
     }
 
+    public void Refresh(Note note)
+    {
+        switch (this)
+        {
+            case StandardNoteVM snVM when note is StandardNote sn:
+                snVM.FrontContent = sn.FrontContent;
+                snVM.BackContent = sn.BackContent;
+                break;
+
+            default: throw new NotSupportedException(
+                "Only standard notes supported for now.");
+        };
+    }
+
     public virtual NoteTypes Type { get; }
 }
 

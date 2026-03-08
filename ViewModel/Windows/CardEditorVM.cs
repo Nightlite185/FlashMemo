@@ -11,7 +11,7 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IDomainEventBus bus, IDeckRepo dr, DeckSelectVMF dsVMF)
-                                : BaseVM(bus), ICloseRequest, IPopupHost, IClosedHandler, ICtxMenuHost
+                                : BaseVM(bus), ICloseRequest, IPopupHost, ICtxMenuHost
 {
     public EditableCardVM Card { get; private set; } = null!;
 

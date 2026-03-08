@@ -101,6 +101,7 @@
                     Grid.Column="1"
                     Text="Postpone by (days):"
                     Foreground="White"
+                    Margin="0,0,10,0"
                     FontSize="14.5"
                     VerticalAlignment="Center"/>
 

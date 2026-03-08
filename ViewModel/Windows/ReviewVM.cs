@@ -10,8 +10,8 @@ using FlashMemo.Repositories;
 using FlashMemo.Model;
 
 namespace FlashMemo.ViewModel.Windows;
-    
-public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
+
+public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
     internal ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck,
                         DeckOptions deckOpt, ICardRepo cr, IDomainEventBus bus): base(bus)
@@ -177,29 +177,6 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
     
     protected override async Task ReloadAsync()
     {
-        /*============== OLD IMPLEMENTATION ==================
-
-            stopWatch.Reset();
-
-            var removedIds = await cardQuery.RemovedFromSubset(
-                allSessionCards.Select(c => c.Id));
-
-            var removedCards = allSessionCards
-                .Where(c => removedIds.Contains(c.Id))
-                .ToArray();
-
-            foreach (var card in removedCards)
-                card.IsDeleted = true;
-
-            InitialCount -= removedCards.Length;
-
-            CardsCount.UpdateCount();
-
-            if (!IsCardLoaded) ShowNextCard();
-
-        ============== OLD IMPLEMENTATION ==================*/
-
-
         // 1. Fetch fresh entities for all session card IDs in one query
         var freshEntities = await cardRepo.GetByIds(
             allSessionCards.Select(c => c.Id));
@@ -223,7 +200,11 @@ public partial class ReviewVM: BaseVM, IPopupHost, IClosedHandler, IFocusState, 
         // 4. Update count vm
         CardsCount.UpdateCount();
 
-        // 5. If current card got nuked, move on
+        // 5. Notify that current card may have updated note content.
+        if (CurrentCard is not null)
+            OnPropertyChanged(nameof(CurrentCard));
+
+        // 6. If current card got nuked, move on
         if (CurrentCard?.IsDeleted == true)
             ShowNextCard();
     }

@@ -1,7 +1,6 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Bases;
-using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
@@ -24,6 +23,7 @@ public interface ICloseRequest
 public interface INavRequestSender
 {
     public event Func<NavigationRequest, Task>? NavRequested;
+    void RegisterNavBubbling(INavRequestSender vm);
 }
 
 public interface IFiltrable
@@ -63,8 +63,8 @@ public interface ICardVM
 
 public interface IFocusState
 {
-    Task OnFocusGained(); // TODO: should only change focus state when the focus crosses the window border, NOT JUST UC!!!
-    void OnFocusLost(); // example: ReviewVM should not lose focus just because I clicked on the nav bar in MainWindow.
+    Task OnFocusGained();
+    void OnFocusLost();
 }
 
 public interface ICtxMenuHost

@@ -15,7 +15,7 @@ public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 public abstract class BaseVM(IDomainEventBus bus): ObservableObject, IViewModel, INavRequestSender, IFocusState, IClosedHandler
 {
     public event Func<NavigationRequest, Task>? NavRequested;
-    public void RegisterNavBubbling(BaseVM vm)
+    public void RegisterNavBubbling(INavRequestSender vm)
         => vm.NavRequested += NavigateTo;
 
     protected async Task NavigateTo(NavigationRequest where)

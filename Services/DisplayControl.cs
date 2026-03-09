@@ -1,6 +1,5 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
-using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
 
@@ -47,7 +46,7 @@ public class DisplayControl(IDisplayHost hostVM, DecksVMF dVMF, ReviewVMF rVMF):
 
     private void WireEvents(object vm)
     {
-        if (vm is BaseVM navVM && host is BaseVM parent) // TODO: replace "is BaseVM with INavRequestSender"
+        if (vm is INavRequestSender navVM && host is INavRequestSender parent)
             parent.RegisterNavBubbling(navVM);
     }
 

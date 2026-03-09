@@ -132,8 +132,9 @@ public static class FocusBoundaryBehavior
 
         var oldInside = IsInsideRoot(root, e.OldFocus as DependencyObject);
         var newInside = IsInsideRoot(root, e.NewFocus as DependencyObject);
+        var focusStaysInSameWindow = IsInSameWindow(root, e.NewFocus as DependencyObject, state);
 
-        if (oldInside && !newInside && state.HasBoundaryFocus)
+        if (oldInside && !newInside && state.HasBoundaryFocus && !focusStaysInSameWindow)
         {
             state.HasBoundaryFocus = false;
             NotifyFocusLost(root);
@@ -177,6 +178,16 @@ public static class FocusBoundaryBehavior
             return false;
 
         return IsInsideRoot(root, Keyboard.FocusedElement as DependencyObject);
+    }
+
+    private static bool IsInSameWindow(FrameworkElement root, DependencyObject? element, FocusTrackingState state)
+    {
+        var rootWindow = state.Window ?? Window.GetWindow(root);
+        if (rootWindow is null)
+            return false;
+
+        var elementWindow = Window.GetWindow(element);
+        return ReferenceEquals(rootWindow, elementWindow);
     }
 
     private static void Reevaluate(FrameworkElement root, FocusTrackingState state)
@@ -273,6 +284,7 @@ public static class FocusBoundaryBehavior
         public void OnWindowPreviewMouseDown(object? sender, MouseButtonEventArgs e)
         {
             var clickedInside = IsInsideRoot(root, e.OriginalSource as DependencyObject);
+            var clickedInSameWindow = IsInSameWindow(root, e.OriginalSource as DependencyObject, this);
 
             if (!HasBoundaryFocus && clickedInside)
             {
@@ -281,7 +293,7 @@ public static class FocusBoundaryBehavior
                 return;
             }
 
-            if (HasBoundaryFocus && !clickedInside)
+            if (HasBoundaryFocus && !clickedInside && !clickedInSameWindow)
             {
                 HasBoundaryFocus = false;
                 NotifyFocusLost(root);

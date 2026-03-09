@@ -168,6 +168,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     
     protected override async Task ReloadAsync()
     {
+        // TODO: any changes persisted from either user or deck options should be handled, requery for all cards.
+     
         // 1. Fetch fresh entities for all session card IDs in one query
         var freshEntities = await cardRepo.GetByIds(
             allSessionCards.Select(c => c.Id));

@@ -24,6 +24,7 @@ public class UserOptionsService(IDbContextFactory<AppDbContext> factory): DbDepe
 
     public async Task<UserOptions> GetFromUser(long userId)
         => await GetDb.Users
+            .AsNoTracking()
             .Where(u => u.Id == userId)
             .Select(u => u.Options)
             .SingleAsync();

@@ -26,4 +26,25 @@ public class UserOptions
             IncludeLessonsInReviewLimit = DefIncludeLessonsInReviewLimit
         };
     }
+
+    //TODO: replace this with some immutable record for auto equals and hashcode at some point.
+    public override bool Equals(object? obj)
+    {
+        if (obj is not UserOptions valid)
+            return false;
+        
+        return DayStartTime.Equals(valid.DayStartTime)
+            && ShowReviewTimer == valid.ShowReviewTimer
+            && TimerStopsOnReveal == valid.TimerStopsOnReveal
+            && IncludeLessonsInReviewLimit == valid.IncludeLessonsInReviewLimit;
+    }
+    
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(
+            DayStartTime, 
+            ShowReviewTimer, 
+            TimerStopsOnReveal, 
+            IncludeLessonsInReviewLimit);
+    }
 }

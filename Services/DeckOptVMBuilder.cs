@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class DeckOptVMBuilder(IDbContextFactory<AppDbContext> factory, IMapper m, IDeckOptionsRepo dor): DbDependentClass(factory), IDeckOptVMBuilder
+public class DeckOptVMBuilder(IDbContextFactory<AppDbContext> factory, IMapper m, IDeckOptionsService dor): DbDependentClass(factory), IDeckOptVMBuilder
 {
     private readonly IMapper mapper = m;
-    private readonly IDeckOptionsRepo repo = dor;
+    private readonly IDeckOptionsService repo = dor;
     public async Task<ICollection<DeckOptionsVM>> BuildAllCounted(long userId)
     {
         var db = GetDb;

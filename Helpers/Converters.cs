@@ -173,4 +173,17 @@ public class ToLearningStagesVM : IValueConverter<ImmutableArray<TimeSpan>, Lear
         return new(sourceMember);
     }
 }
+
+public class TimeOnlyToUint : IValueConverter<TimeOnly, uint>
+{
+    public uint Convert(TimeOnly sourceMember, ResolutionContext context)
+        => (uint)sourceMember.Hour;
+}
+
+public class UintToTimeOnly : IValueConverter<uint, TimeOnly>
+{
+    public TimeOnly Convert(uint sourceMember, ResolutionContext context)
+        => new((int)sourceMember, 0);
+}
+
 #endregion

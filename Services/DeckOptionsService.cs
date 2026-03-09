@@ -1,13 +1,12 @@
 using AutoMapper;
-using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace FlashMemo.Repositories;
-//TODO: move this class to services layer since it enforces important invariants which repos shouldnt handle.
-public class DeckOptionsRepo(IDbContextFactory<AppDbContext> dbFactory, IMapper mapper)
-    : DbDependentClass(dbFactory), IDeckOptionsRepo
+namespace FlashMemo.Services;
+public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapper mapper)
+    : DbDependentClass(dbFactory), IDeckOptionsService
 {
     private readonly IMapper mapper = mapper;
 

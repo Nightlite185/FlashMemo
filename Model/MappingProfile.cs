@@ -3,9 +3,7 @@ using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
-using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
-using static FlashMemo.ViewModel.Wrappers.DeckOptionsVM;
 
 namespace FlashMemo.Model;
 public sealed class MappingProfile: Profile
@@ -19,8 +17,13 @@ public sealed class MappingProfile: Profile
         CreateMap<Filters, FiltersVM>();
         CreateMap<FiltersVM, Filters>();
 
-        CreateMap<UserOptions, UserOptionsVM>();
-        CreateMap<UserOptionsVM, UserOptions>();
+        CreateMap<UserOptions, UserOptionsVM>()
+            .ForMember(x => x.DayStartTime, opt => 
+            opt.ConvertUsing(new TimeOnlyToUint()));
+
+        CreateMap<UserOptionsVM, UserOptions>()
+            .ForMember(x => x.DayStartTime, opt => 
+            opt.ConvertUsing(new UintToTimeOnly()));
         #endregion
 
         #region Deck options (VM <-> record)

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260304200947_InitialCreate")]
+    [Migration("20260309195425_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -303,7 +303,7 @@ namespace FlashMemo.Migrations
                         .IsRequired();
 
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("Logs")
+                        .WithMany()
                         .HasForeignKey("UserId");
 
                     b.Navigation("Card");
@@ -325,7 +325,7 @@ namespace FlashMemo.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("Decks")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -340,7 +340,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.DeckOptionsEntity", b =>
                 {
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("DeckOptions")
+                        .WithMany()
                         .HasForeignKey("UserId");
 
                     b.OwnsOne("FlashMemo.Model.Persistence.DeckOptionsEntity+DailyLimitsOpt", "DailyLimits", b1 =>
@@ -446,7 +446,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.Tag", b =>
                 {
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
-                        .WithMany("Tags")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -459,6 +459,18 @@ namespace FlashMemo.Migrations
                     b.OwnsOne("FlashMemo.Model.Persistence.UserOptions", "Options", b1 =>
                         {
                             b1.Property<long>("UserEntityId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<TimeOnly>("DayStartTime")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<bool>("IncludeLessonsInReviewLimit")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ShowReviewTimer")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("TimerStopsOnReveal")
                                 .HasColumnType("INTEGER");
 
                             b1.HasKey("UserEntityId");
@@ -488,17 +500,6 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.DeckOptionsEntity", b =>
                 {
                     b.Navigation("Decks");
-                });
-
-            modelBuilder.Entity("FlashMemo.Model.Persistence.UserEntity", b =>
-                {
-                    b.Navigation("DeckOptions");
-
-                    b.Navigation("Decks");
-
-                    b.Navigation("Logs");
-
-                    b.Navigation("Tags");
                 });
 #pragma warning restore 612, 618
         }

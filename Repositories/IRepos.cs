@@ -40,9 +40,10 @@ public interface ITagRepo
     Task<IEnumerable<Tag>> GetByIds(IEnumerable<long> tagIds);
 }
 
-public interface IUserOptionsRepo
+public interface IUserOptionsService
 {
-    
+    Task Update(long userId, UserOptions updated);
+    Task<UserOptions> GetFromUser(long userId);
 }
 
 public interface IUserRepo
@@ -54,7 +55,7 @@ public interface IUserRepo
     Task Remove(long userId);
 }
 
-public interface IDeckOptionsRepo
+public interface IDeckOptionsService
 {
     Task<DeckOptions> GetFromDeck(long deckId);
     Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);

@@ -10,7 +10,7 @@ namespace FlashMemo.Services;
 
 public class WindowService
 (IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ecVMF, 
-CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuVMF domVMF)
+CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsMenuVMF domVMF)
 {
     #region private fields
     private readonly IServiceProvider sp = sp;
@@ -18,7 +18,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsVMF uoVMF, DeckOptionsMenuV
     private readonly CardEditorVMF editCardVMF = ecVMF;
     private readonly CreateCardVMF createCardVMF = ccVMF;
     private readonly UserSelectVMF userSelectVMF = usVMF;
-    private readonly UserOptionsVMF userOptionsVMF = uoVMF;
+    private readonly UserOptionsMenuVMF userOptionsVMF = uoVMF;
     private readonly DeckOptionsMenuVMF deckOptionsMenuVMF = domVMF;
     #endregion
 

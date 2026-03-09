@@ -11,7 +11,7 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsRepo dor, Deck d): ObservableObject, IViewModel, IClosingAware
+public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor, Deck d): ObservableObject, IViewModel, IClosingAware
 {
     #region public properties
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanEditSaveDelete))]
@@ -104,7 +104,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     private readonly Deck deck = d;
     private readonly IMapper mapper = m;
     private readonly IDeckOptVMBuilder vmBuilder = doVMB;
-    private readonly IDeckOptionsRepo deckOptRepo = dor;
+    private readonly IDeckOptionsService deckOptRepo = dor;
     private DeckOptions lastSaved = null!;
     #endregion
 

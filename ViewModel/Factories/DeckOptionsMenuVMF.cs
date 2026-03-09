@@ -5,11 +5,11 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class DeckOptionsMenuVMF(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsRepo dor, IDeckRepo dr)
+public class DeckOptionsMenuVMF(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor, IDeckRepo dr)
 {
     private readonly IMapper mapper = m;
     private readonly IDeckRepo deckRepo = dr;
-    private readonly IDeckOptionsRepo deckOptRepo = dor;
+    private readonly IDeckOptionsService deckOptRepo = dor;
     private readonly IDeckOptVMBuilder deckOptVMBuilder = doVMB;
 
     public async Task<DeckOptionsMenuVM> CreateAsync(long deckId)

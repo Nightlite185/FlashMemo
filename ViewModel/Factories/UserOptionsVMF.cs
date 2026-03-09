@@ -1,15 +1,15 @@
+using AutoMapper;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class UserOptionsVMF(IUserOptionsRepo uor)
+public class UserOptionsMenuVMF(IUserOptionsService userOptRepo, IMapper mapper)
 {
-    private readonly IUserOptionsRepo userOptRepo = uor;
-
-    public async Task<UserOptionsVM> CreateAsync(long userId)
+    public async Task<UserOptionsMenuVM> CreateAsync(long userId)
     {
-        var vm = new UserOptionsVM(userId, userOptRepo);
+        var vm = new UserOptionsMenuVM(
+            userId, userOptRepo, mapper);
 
         await vm.InitAsync();
         return vm;

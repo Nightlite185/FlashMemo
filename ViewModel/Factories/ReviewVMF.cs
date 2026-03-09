@@ -6,7 +6,7 @@ using FlashMemo.ViewModel.Windows;
 namespace FlashMemo.ViewModel.Factories;
 
 public class ReviewVMF(ICardService cs, ICardQueryService cqs, CardCtxMenuVMF ctxFactory, 
-                        IDeckOptionsRepo deckOptRepo, ICardRepo cr, IDomainEventBus bus)
+                        IDeckOptionsService deckOptRepo, ICardRepo cr, IDomainEventBus bus)
 {
     public async Task<ReviewVM> CreateAsync(long userId, IDeckMeta deck)
     {

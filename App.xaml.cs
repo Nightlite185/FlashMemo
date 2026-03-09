@@ -77,7 +77,7 @@ public partial class App : Application
         sc.AddSingleton<ManageTagsVMF>();
         sc.AddSingleton<BrowseVMF>();
         sc.AddSingleton<MainVMF>();
-        sc.AddSingleton<UserOptionsVMF>();
+        sc.AddSingleton<UserOptionsMenuVMF>();
         sc.AddSingleton<ReviewVMF>();
         sc.AddSingleton<DecksVMF>();
 
@@ -100,8 +100,8 @@ public partial class App : Application
         sc.AddLogging();
 
         // ==== REPOS ====
-        sc.AddSingleton<IDeckOptionsRepo, DeckOptionsRepo>();
-        sc.AddSingleton<IUserOptionsRepo, UserOptionsRepo>();
+        sc.AddSingleton<IDeckOptionsService, DeckOptionsService>();
+        sc.AddSingleton<IUserOptionsService, UserOptionsService>();
         sc.AddSingleton<IDeckRepo, DeckRepo>();
         sc.AddSingleton<ITagRepo, TagRepo>();
         sc.AddSingleton<ICardRepo, CardRepo>();

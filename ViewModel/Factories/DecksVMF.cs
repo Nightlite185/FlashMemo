@@ -17,7 +17,7 @@ public class DecksVMF(IDeckRepo dr, IDeckTreeBuilder dtb, IVMEventBus bus)
             userId, eventBus
         );
 
-        await vm.SyncDeckTree();
+        await vm.InitAsync();
         return vm;
     }
 }

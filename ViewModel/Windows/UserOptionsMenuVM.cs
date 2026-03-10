@@ -30,7 +30,7 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
         SaveChangesCommand.NotifyCanExecuteChanged();
     }
 
-    public bool CanClose()
+    public async Task<bool> CanCloseAsync()
     {
         var snapshot = mapper.Map<UserOptions>(Options);
 
@@ -39,12 +39,15 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
 
         var result = DialogService.Show(
             title: "Unsaved changes",
-            message: "You have unsaved changes. Do you want to discard them?",
-            buttons: DialogButtons.YesNo,
+            message: "You have unsaved changes. Do you want to save them?",
+            buttons: DialogButtons.YesNoCancel,
             icon: DialogIcons.Warning
         );
 
-        return result == DialogResult.Yes;
+        if (result is DialogResult.Yes)
+            await SaveChanges();
+
+        return result is DialogResult.Yes or DialogResult.No;
     }
     #endregion
 

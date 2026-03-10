@@ -16,12 +16,13 @@ public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelec
 
     public CreateCardVM Create(IDeckMeta targetDeck)
     {
-        return new(
+        var vm = new CreateCardVM(
             cardService, tagRepo,
             cardRepo, targetDeck,
             deckSelectVMF, lastSession, eventBus
         );
-    }
 
-    // TODO: merge this with EditCardVMF if they still have same dependencies in the end.
+        vm.Initialize();
+        return vm;
+    }
 }

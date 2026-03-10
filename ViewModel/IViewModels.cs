@@ -39,13 +39,6 @@ public interface IPopupHost
 public interface IDisplayHost
 {
     object CurrentDisplay { get; set; }
-    event Func<Task>? NotifyRefresh;
-}
-
-[Obsolete("Use IFocusState instead")]
-public interface IDialogClosedHandler
-{
-    Task OnDialogClosed();
 }
 
 public interface IClosedHandler
@@ -79,5 +72,5 @@ public interface ICardsSource<TCard> where TCard: class
 
 public interface IClosingAware
 {
-    bool CanClose();
+    Task<bool> CanCloseAsync();
 }

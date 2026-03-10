@@ -23,20 +23,13 @@ public partial class DecksVM: BaseVM, IPopupHost
     }
 
     #region methods
-    private void PopupCancel()
+    internal async Task InitAsync()
     {
-        CurrentPopup = null;
+        eventBus.DomainChanged += OnDomainChanged;
+        await ReloadDomainAsync();
     }
-    internal async Task SyncDeckTree()
-    {
-        DeckTree.Clear();
-
-        // build root-level decks without parents (ParentId == null)
-        var deckTree = await
-            deckTreeBuilder.BuildCountedAsync(userId);
-
-        DeckTree.AddRange(deckTree);
-    }
+    private void PopupCancel() => CurrentPopup = null;
+    
     private async Task CreateDeck(string name, DeckNode? parent = null)
     {
         Deck deck = Deck.CreateNew(
@@ -57,6 +50,16 @@ public partial class DecksVM: BaseVM, IPopupHost
     #endregion
 
     #region ICommands
+
+    [RelayCommand]
+    protected override async Task ReloadDomainAsync()
+    {
+        DeckTree.Clear();
+
+        DeckTree.AddRange(await deckTreeBuilder
+            .BuildCountedAsync(userId));
+    }
+
     [RelayCommand]
     private void ShowCreateDeck(DeckNode? parent = null)
     {
@@ -64,9 +67,6 @@ public partial class DecksVM: BaseVM, IPopupHost
         CurrentPopup = new CreateDeckVM(CreateDeck, PopupCancel, parent);
     }
 
-    [RelayCommand]
-    private async Task SyncDecks() => await SyncDeckTree();
-    
     [RelayCommand]
     private void ShowReview(DeckNode deck)
         => OnReviewNavRequest?.Invoke(deck);

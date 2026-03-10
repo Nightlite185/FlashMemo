@@ -38,6 +38,11 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus 
     #endregion
 
     #region methods
+    //TODO: react to domain changes: if currently chosen deck was removed - chose last used from lastsession, else if null: 1st from db, else: close the create window
+
+    internal void Initialize()
+        => eventBus.DomainChanged += OnDomainChanged;
+
     private async Task ChangeDeck(IDeckMeta newDeck)
     {
         if (CurrentDeck.Id == newDeck.Id)
@@ -69,8 +74,9 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus 
             History.Dequeue();
 
         WipCard = new();
+        eventBus.NotifyDomain();
     }
-    
+
     [RelayCommand]
     private async Task ShowDeckSelect()
     {

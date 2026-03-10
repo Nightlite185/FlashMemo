@@ -259,21 +259,27 @@ public static class FocusBoundaryBehavior
         }
 
         public bool HasBoundaryFocus { get; set; }
+        public bool RestoreBoundaryFocusOnActivate { get; set; }
         public Window? Window { get; set; }
 
         public void OnWindowActivated(object? sender, EventArgs e)
         {
             var hasFocusNow = IsInsideRoot(root, Keyboard.FocusedElement as DependencyObject);
+            if (!hasFocusNow && RestoreBoundaryFocusOnActivate && root.IsVisible)
+                hasFocusNow = true;
 
             if (!HasBoundaryFocus && hasFocusNow)
             {
                 HasBoundaryFocus = true;
+                RestoreBoundaryFocusOnActivate = false;
                 NotifyFocusGained(root);
             }
         }
 
         public void OnWindowDeactivated(object? sender, EventArgs e)
         {
+            RestoreBoundaryFocusOnActivate = HasBoundaryFocus;
+
             if (!HasBoundaryFocus)
                 return;
 

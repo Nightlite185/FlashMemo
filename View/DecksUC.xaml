@@ -193,7 +193,7 @@
         <Button
             Grid.Row="1"
             Content="Sync decks"
-            Command="{Binding SyncDecksCommand}"
+            Command="{Binding ReloadDomainCommand}"
             Style="{StaticResource NavButtonStyle}"
             Width="110"
             Height="45"

@@ -143,14 +143,11 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
 
         if (vm is IClosingAware ac)
         {
-            void closingHelper(CancelEventArgs e)
-                => e.Cancel = !ac.CanClose();
+            async Task closingHelper(CancelEventArgs e)
+                => e.Cancel = !await ac.CanCloseAsync();
 
-            win.Closing += (_, e) => closingHelper(e);
+            win.Closing += async (_, e) => await closingHelper(e);
         }
-
-        if (sender is IDialogClosedHandler dch)
-            win.Closed += (_, _) => dch.OnDialogClosed();
     }
     #endregion
 }

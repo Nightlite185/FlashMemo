@@ -12,7 +12,7 @@ namespace FlashMemo.ViewModel.Windows;
 
 public sealed partial class BrowseVM: BaseVM, IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
 {
-    internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId, IDomainEventBus bus): base(bus)
+    internal BrowseVM(ICardQueryService cqs, FiltersVM fvm, long userId, IVMEventBus bus): base(bus)
     {
         cardQueryS = cqs;
         filtersVM = fvm;

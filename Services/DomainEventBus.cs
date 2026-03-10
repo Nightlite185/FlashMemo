@@ -1,12 +1,12 @@
 namespace FlashMemo.Services;
 
-public class DomainEventBus: IDomainEventBus
+public class VMEventBus: IVMEventBus
 {
-    public event Func<Task>? DomainChanged;
+    public event Action? DomainChanged;
+    public event Action? UserOptionsChanged;
+    public event Action? DeckOptionsChanged;
 
-    public async Task Notify()
-    {
-        if (DomainChanged is not null)
-            await DomainChanged.Invoke();
-    }
+    public async void NotifyDomain() => DomainChanged?.Invoke();
+    public async void NotifyUserOpt() => UserOptionsChanged?.Invoke();
+    public async void NotifyDeckOpt() => DeckOptionsChanged?.Invoke();
 }

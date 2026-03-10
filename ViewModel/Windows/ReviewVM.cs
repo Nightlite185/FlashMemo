@@ -14,10 +14,11 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
     internal ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck,
-                        DeckOptions deckOpt, ICardRepo cr, IDomainEventBus bus): base(bus)
+                        DeckOptions deckOpt, ICardRepo cr, IVMEventBus bus, IUserOptionsService uos): base(bus)
     {
         this.userId = userId;
         this.Deck = deck;
+        uOptionsService = uos;
         
         deckOptions = deckOpt;
         cardService = cs;
@@ -41,26 +42,20 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
     [ObservableProperty] public partial bool AnswerRevealed { get; set; } = false;
 
-    public IDeckMeta Deck { get; init; }
     [ObservableProperty] public partial int InitialCount { get; private set; }
     [ObservableProperty] public partial int ReviewedCount  { get; private set; }
-    
-    [ObservableProperty]
-    public partial string ElapsedTime { get; set; } = "00:00";
+    [ObservableProperty] public partial string ElapsedTime { get; set; } = "00:00";
+    [ObservableProperty] public partial SchedulePermutations? SchedulePerms { get; set; }
+    [ObservableProperty] public partial bool IsSessionFinished { get; private set; }
+    [ObservableProperty] public partial PopupVMBase? CurrentPopup { get; set; }
 
-    [ObservableProperty]
-    public partial SchedulePermutations? SchedulePerms { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsSessionFinished { get; private set; }
-
-    [ObservableProperty]
-    public partial PopupVMBase? CurrentPopup { get; set; }
     public CardsCountVM CardsCount { get; private set; } = null!;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     public Queue<CardEntity> ReviewHistory { get; private init; }
     public event Func<Task>? OnDecksNavRequest;
     public IEnumerable<CardVM> Cards => allSessionCards.AsEnumerable();
+    public bool TimerVisible => userOptions.ShowReviewTimer;
+    public IDeckMeta Deck { get; init; }
     #endregion
 
     #region methods
@@ -68,6 +63,10 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     {
         this.CtxMenuVM = ctxMenu;
         eventBus.DomainChanged += OnDomainChanged;
+        eventBus.UserOptionsChanged += OnUserOptChanged;
+
+        userOptions = await uOptionsService
+            .GetFromUser(userId);
 
         (var freshCards, var count) = await cardQuery
             .GetForStudy(Deck.Id);
@@ -166,7 +165,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         else stopWatch.Stop();
     }
     
-    protected override async Task ReloadAsync()
+    protected override async Task ReloadDomainAsync()
     {
         // TODO: any changes persisted from either user or deck options should be handled, requery for all cards.
      
@@ -241,11 +240,21 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
 
         stopWatch.Stop();
     }
+
+    protected override async Task ReloadUserOptAsync()
+    {
+        userOptions = await uOptionsService
+            .GetFromUser(userId);
+
+        OnPropertyChanged(nameof(TimerVisible));
+    }
     #endregion
 
     #region private things
     private readonly long userId;
     private DeckOptions deckOptions;
+    private UserOptions userOptions = null!;
+    private readonly IUserOptionsService uOptionsService;
     private readonly ICardService cardService;
     private readonly ICardQueryService cardQuery;
     private readonly ICardRepo cardRepo;

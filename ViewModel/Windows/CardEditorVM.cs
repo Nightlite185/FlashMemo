@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IDomainEventBus bus, IDeckRepo dr, DeckSelectVMF dsVMF)
+public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IVMEventBus bus, IDeckRepo dr, DeckSelectVMF dsVMF)
                                 : BaseVM(bus), ICloseRequest, IPopupHost, ICtxMenuHost
 {
     public EditableCardVM Card { get; private set; } = null!;
@@ -47,7 +47,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
         }
     }
 
-    protected override async Task ReloadAsync()
+    protected override async Task ReloadDomainAsync()
         => Card = new( await cardRepo.GetById(Card.Id));
 
     private async Task ChangeDeck(IDeckMeta deck)
@@ -75,7 +75,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, ID
             CardAction.Modify
         );
 
-        await eventBus.Notify();
+        eventBus.NotifyDomain();
         OnCloseRequest?.Invoke();
     }
 

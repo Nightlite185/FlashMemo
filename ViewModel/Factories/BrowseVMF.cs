@@ -5,7 +5,7 @@ using FlashMemo.ViewModel.Windows;
 namespace FlashMemo.ViewModel.Factories;
 
 public class BrowseVMF(ICardQueryService cqs, FiltersVMF filtersVMF, 
-                    CardCtxMenuVMF ctxFactory, IDomainEventBus bus)
+                    CardCtxMenuVMF ctxFactory, IVMEventBus bus)
 {
     public async Task<BrowseVM> CreateAsync(long userId)
     {

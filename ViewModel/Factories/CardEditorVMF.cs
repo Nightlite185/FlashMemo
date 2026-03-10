@@ -5,7 +5,7 @@ using FlashMemo.ViewModel.Windows;
 namespace FlashMemo.ViewModel.Factories;
 
 public class CardEditorVMF(ICardService cs, ITagRepo tr, ICardRepo cr, 
-                        CardCtxMenuVMF ctxFactory, IDomainEventBus bus, 
+                        CardCtxMenuVMF ctxFactory, IVMEventBus bus, 
                         IDeckRepo dr, DeckSelectVMF dsVMF)
 {
     public async Task<CardEditorVM> CreateAsync(long cardId, long userId)

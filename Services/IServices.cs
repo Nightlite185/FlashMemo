@@ -80,8 +80,13 @@ public interface IDeckOptVMBuilder
     Task<ICollection<DeckOptionsVM>> BuildAllCounted(long userId);
 }
 
-public interface IDomainEventBus
+public interface IVMEventBus
 {
-    event Func<Task>? DomainChanged;
-    Task Notify();
+    event Action? DomainChanged;
+    event Action? UserOptionsChanged;
+    event Action? DeckOptionsChanged;
+
+    void NotifyDomain();
+    void NotifyUserOpt();
+    void NotifyDeckOpt();
 }

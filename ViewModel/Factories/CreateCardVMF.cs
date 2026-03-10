@@ -5,10 +5,10 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelectVMF dsVMF, ILastSessionService lss, IDomainEventBus bus)
+public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus)
 {
     private readonly ICardService cardService = cs;
-    private readonly IDomainEventBus eventBus = bus;
+    private readonly IVMEventBus eventBus = bus;
     private readonly ITagRepo tagRepo = tr;
     private readonly ICardRepo cardRepo = cr;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;

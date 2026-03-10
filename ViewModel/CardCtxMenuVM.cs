@@ -13,7 +13,7 @@ namespace FlashMemo.ViewModel;
 public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete, ShowDetails }
 
 public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, 
-                                DeckSelectVMF dsVMF, IDomainEventBus eventBus, long userId, ICtxMenuHost host): ObservableObject
+                                DeckSelectVMF dsVMF, IVMEventBus eventBus, long userId, ICtxMenuHost host): ObservableObject
 {
     #region ICommands
     
@@ -71,7 +71,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         var ids = capturedCards!.Select(c => c.Id);
 
         await cardRepo.DeleteCards(ids);
-        await eventBus.Notify();
+        eventBus.NotifyDomain();
 
         await ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
@@ -134,7 +134,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         await cardService.SaveEditedCards(
             entities, cardAction);
 
-        await eventBus.Notify();
+        eventBus.NotifyDomain();
     }
     private async Task RescheduleCards(DateTime dt, bool keepInterval)
     {
@@ -171,7 +171,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     private bool CanExecuteIfOneCard => capturedCards?.Count == 1;
     private readonly ICardService cardService = cs;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
-    private readonly IDomainEventBus eventBus = eventBus;
+    private readonly IVMEventBus eventBus = eventBus;
     private readonly ICardRepo cardRepo = cr;
     private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IPopupHost popupHost = pph;

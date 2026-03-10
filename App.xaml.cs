@@ -93,7 +93,7 @@ public partial class App : Application
         sc.AddSingleton<ICardQueryBuilder, CardQueryBuilder>();
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
         sc.AddSingleton<ILastSessionService, LastSessionService>();
-        sc.AddSingleton<IDomainEventBus, DomainEventBus>();
+        sc.AddSingleton<IVMEventBus, VMEventBus>();
         sc.AddAutoMapper(opt => opt.AddProfile<MappingProfile>());
         sc.AddSingleton<WindowService>();
         sc.AddTransient<DbSeeder>();

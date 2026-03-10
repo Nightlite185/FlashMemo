@@ -9,7 +9,7 @@ using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IDomainEventBus bus, long userId)
+public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus bus, long userId)
 : BaseVM(bus), IViewModel, IDisplayHost, IDialogClosedHandler
 {
     // called by factory only. Need this two-step creation cuz circular dependency

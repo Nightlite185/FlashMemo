@@ -8,7 +8,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class UserOptionsMenuVM(long userId, IUserOptionsService optService, IMapper imapper)
+public partial class UserOptionsMenuVM(long userId, IUserOptionsService optService, IMapper imapper, IVMEventBus bus)
                                         : ObservableObject, IViewModel, ICloseRequest, IClosingAware
 {
     public UserOptionsVM Options { get; private set; } = null!;
@@ -59,6 +59,7 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
 
         lastSaved = mapper.Map<UserOptions>(Options);
 
+        eventBus.NotifyUserOpt();
         OnCloseRequest?.Invoke();
     }
     [RelayCommand] private void RevertChanges()
@@ -74,5 +75,6 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
     private readonly long userId = userId;
     private readonly IUserOptionsService repo = optService;
     private readonly IMapper mapper = imapper;
+    private readonly IVMEventBus eventBus = bus;
     #endregion
 }

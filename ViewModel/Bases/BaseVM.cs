@@ -12,7 +12,7 @@ public record EditCardNavRequest(long CardId, long UserId, BaseVM? Sender = null
 public record CreateCardNavRequest(IDeckMeta TargetDeck, BaseVM? Sender = null): NavigationRequest;
 public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 
-public abstract class BaseVM(IDomainEventBus bus): ObservableObject, IViewModel, INavRequestSender, IFocusState, IClosedHandler
+public abstract class BaseVM(IVMEventBus bus): ObservableObject, IViewModel, INavRequestSender, IFocusState, IClosedHandler
 {
     public event Func<NavigationRequest, Task>? NavRequested;
     public void RegisterNavBubbling(INavRequestSender vm)
@@ -30,30 +30,47 @@ public abstract class BaseVM(IDomainEventBus bus): ObservableObject, IViewModel,
 
         isFocused = true;
         
-        if (isDirty)
+        if (isDomainDirty)
         {
-            await ReloadAsync();
-            isDirty = false;
+            await ReloadDomainAsync();
+            isDomainDirty = false;
+        }
+
+        if (isUserOptDirty)
+        {
+            await ReloadUserOptAsync();
+            isUserOptDirty = false;
         }
     }
     public virtual void OnFocusLost() => isFocused = false;
 
-    protected virtual async Task OnDomainChanged()
+    protected virtual void OnDomainChanged()
     {
         if (!isFocused)
-            isDirty = true;
+            isDomainDirty = true;
+    }
+
+    protected virtual void OnUserOptChanged()
+    {
+        if (!isFocused)
+            isUserOptDirty = true;
     }
 
     public virtual void OnClosed()
     {
         eventBus.DomainChanged -= OnDomainChanged;
+        eventBus.UserOptionsChanged -= OnUserOptChanged;
     }
 
     /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
-    protected virtual async Task ReloadAsync() => await Task.CompletedTask;
+    protected virtual async Task ReloadDomainAsync() => await Task.CompletedTask;
+
+    /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
+    protected virtual async Task ReloadUserOptAsync() => await Task.CompletedTask;
 
     protected bool isFocused = true;
-    protected bool isDirty;
+    protected bool isDomainDirty;
+    protected bool isUserOptDirty;
 
-    protected readonly IDomainEventBus eventBus = bus;
+    protected readonly IVMEventBus eventBus = bus;
 }

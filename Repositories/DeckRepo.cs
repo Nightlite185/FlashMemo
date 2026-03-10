@@ -5,10 +5,9 @@ namespace FlashMemo.Repositories;
     
 public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDependentClass(dbFactory), IDeckRepo
 {
-    public async Task<IDeckMeta?> GetFirstDeckMeta(long userId)
+    public async Task<Deck?> GetFirst(long userId)
     {
         return await AllDecksQuery(GetDb, userId)
-            .Cast<IDeckMeta>()
             .FirstOrDefaultAsync();
     }
     
@@ -20,7 +19,13 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .SingleAsync(d => d.Id == deckId);
     }
 
-    // TODO: add a method for only renaming
+    public async Task RenameDeck(long id, string name)
+    {
+        await GetDb.Decks
+            .Where(d => d.Id == id)
+            .ExecuteUpdateAsync(opt => 
+                opt.SetProperty(d => d.Name, name));
+    }
 
     public async Task SaveEditedDeck(Deck updated)
     {
@@ -48,11 +53,11 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .Where(d => d.Id == deckId)
             .ExecuteDeleteAsync();
     }
-    public async Task<Deck> GetById(long deckId)
+    public async Task<Deck?> GetById(long deckId)
     {
         return await GetDb.Decks
             .AsNoTracking()
-            .SingleAsync(d => d.Id == deckId);
+            .SingleOrDefaultAsync(d => d.Id == deckId);
     }
 
     public async Task<Deck> GetFromCard(long cardId)
@@ -88,6 +93,12 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
         GetChildrenIds(deckId, deckTree, childrenIds);
         return childrenIds;
+    }
+
+    public async Task<bool> Exists(long id)
+    {
+        return await GetDb.Decks
+            .AnyAsync(d => d.Id == id);
     }
     
     // if any duplicates -> change IList to hashset. 99% sure there won't be any tho

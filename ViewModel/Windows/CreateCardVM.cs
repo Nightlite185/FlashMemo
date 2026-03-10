@@ -11,15 +11,15 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr, 
-IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus)
+public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr,
+IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
 : BaseVM(bus), ICloseRequest, IPopupHost
 {
     #region private things
     private const int HistoryCap = 10;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     private readonly ILastSessionService lastSession = lss;
-    private readonly ICardService cardService = cs;
+    private readonly IDeckRepo deckRepo = repo;
     private readonly ITagRepo tagRepo = tr;
     private readonly ICardRepo cardRepo = cr;
     #endregion
@@ -52,6 +52,25 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus 
         lastSession.LastDeckId = newDeck.Id;
     }
     private void ClosePopup() => CurrentPopup = null;
+    
+    // TODO: test this, cant yet since all windows are dialogs for now.
+    protected override async Task ReloadDomainAsync()
+    {
+        if (await deckRepo.Exists(CurrentDeck.Id))
+            return;
+        
+        Deck? deck;
+
+        if (lastSession.LastDeckId is long valid)
+            deck = await deckRepo.GetById(valid);
+
+        else deck = await deckRepo
+            .GetFirst(CurrentDeck.UserId);
+
+        // if its still null at this point, just close the window
+        // since there are no decks on this user.
+        if (deck is null) OnCloseRequest?.Invoke();
+    }
     #endregion
 
     #region ICommands

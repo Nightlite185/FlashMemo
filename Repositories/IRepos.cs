@@ -16,17 +16,19 @@ public interface IDeckRepo
 {
     ///<summary>ONLY UPDATES SCALARS, does not touch navs.</summary>
     Task SaveEditedDeck(Deck updated);
+    Task RenameDeck(long id, string name);
+    Task<bool> Exists(long id);
     Task AddNewDeck(Deck deck);
     Task RemoveDeck(long deckId);
     Task<Deck> GetFromCard(long cardId);
-    Task<Deck> GetById(long id);
+    Task<Deck?> GetById(long id);
 
     ///<returns>ILookup with key being the parent deck's Id, and value being IEnumerable of its children decks</returns>
     Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId, AppDbContext? db = null);
     Task<IEnumerable<long>> GetChildrenIds(long deckId);
     
     ///<returns>first deck from the db. If no decks found -> null</returns>
-    Task<IDeckMeta?> GetFirstDeckMeta(long userId);
+    Task<Deck?> GetFirst(long userId);
     Task<IDeckMeta> GetDeckMetaById(long deckId);
 }
 

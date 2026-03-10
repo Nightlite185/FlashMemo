@@ -9,7 +9,9 @@ public class DeckOptionsMenuVMF(IMapper mapper, IDeckOptVMBuilder deckOptVMB, ID
 {
     public async Task<DeckOptionsMenuVM> CreateAsync(long deckId)
     {
-        var deck = await deckRepo.GetById(deckId);
+        var deck = await deckRepo.GetById(deckId)
+            ?? throw new ArgumentException(
+            "Deck with provided id does not exist in the db.");
 
         DeckOptionsMenuVM vm = new(
             mapper, deckOptVMB, 

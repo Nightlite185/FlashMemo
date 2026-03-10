@@ -56,10 +56,17 @@ public abstract class BaseVM(IVMEventBus bus): ObservableObject, IViewModel, INa
             isUserOptDirty = true;
     }
 
+    protected virtual void OnDeckOptChanged()
+    {
+        if (!isFocused)
+            isUserOptDirty = true;
+    }
+
     public virtual void OnClosed()
     {
         eventBus.DomainChanged -= OnDomainChanged;
         eventBus.UserOptionsChanged -= OnUserOptChanged;
+        eventBus.DeckOptionsChanged -= OnDeckOptChanged;
     }
 
     /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
@@ -71,6 +78,7 @@ public abstract class BaseVM(IVMEventBus bus): ObservableObject, IViewModel, INa
     protected bool isFocused = true;
     protected bool isDomainDirty;
     protected bool isUserOptDirty;
+    protected bool deckOptionsDirty;
 
     protected readonly IVMEventBus eventBus = bus;
 }

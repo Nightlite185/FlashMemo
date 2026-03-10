@@ -65,7 +65,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
             deck = await deckRepo.GetDeckMetaById(id);
 
         // finally, just get first (oldest) deck from db with current user's id
-        else if (await deckRepo.GetFirstDeckMeta(UserId) is IDeckMeta first)
+        else if (await deckRepo.GetFirst(UserId) is IDeckMeta first)
             deck = first;
 
         else

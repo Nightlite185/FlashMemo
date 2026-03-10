@@ -94,8 +94,8 @@ public partial class DecksVM: BaseVM, IPopupHost
     {
         deck.CommitRename();
 
-        await deckRepo.SaveEditedDeck(
-            deck.ToEntity());
+        await deckRepo.RenameDeck(
+            deck.Id, deck.Name);
     }
 
     [RelayCommand]

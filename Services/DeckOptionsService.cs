@@ -105,4 +105,12 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
         mapper.Map(updatedRecord, tracked);
         await db.SaveChangesAsync();
     }
+
+    public async Task Rename(string name, long id)
+    {
+        await GetDb.DeckOptions
+            .Where(d => d.Id == id)
+            .ExecuteUpdateAsync(opt => 
+                opt.SetProperty(d => d.Name, name));
+    }
 }

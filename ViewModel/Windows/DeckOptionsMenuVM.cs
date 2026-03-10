@@ -14,9 +14,12 @@ namespace FlashMemo.ViewModel.Windows;
 public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor, Deck d, IVMEventBus bus): ObservableObject, IViewModel, IClosingAware
 {
     #region public properties
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanEditSaveDelete))]
-    [NotifyPropertyChangedFor(nameof(IsCurrentModified))] [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsCurrentModified), nameof(CanEditSaveDelete))]
+    [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand), nameof(RevertChangesCommand),
+    nameof(BeginRenameCurrentPresetCommand), nameof(ToDefaultCommand), nameof(RemovePresetCommand))]
     public partial DeckOptionsVM CurrentOptions { get; set; } = null!;
+    [ObservableProperty] public partial bool IsCreatingPreset { get; set; }
+    [ObservableProperty] public partial string? NewPresetName { get; set; }
     public ObservableCollection<DeckOptionsVM> AllPresets { get; init; } = [];
     public IEnumerable<LessonOrder> LessonOrderEnum =>
         Enum.GetValues<LessonOrder>();
@@ -60,7 +63,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
 
         return result is DialogResult.Yes;
     }
-    public bool CanClose() => !IsCurrentModified;
+    public async Task<bool> CanCloseAsync() => await CanDiscardAsync();
     public async Task<bool> CanDiscardAsync()
     {
         if (!IsCurrentModified) return true;
@@ -75,8 +78,8 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         if (result is DialogResult.Yes)
             await SaveChanges();
 
-        return result is DialogResult.Yes or DialogResult.No;
         // only cancel clicked doesnt discard it
+        return result is DialogResult.Yes or DialogResult.No;
     }
     #endregion
 
@@ -104,7 +107,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     private readonly Deck deck = d;
     private readonly IMapper mapper = m;
     private readonly IDeckOptVMBuilder vmBuilder = doVMB;
-    private readonly IDeckOptionsService deckOptRepo = dor;
+    private readonly IDeckOptionsService deckOptService = dor;
     private DeckOptions lastSaved = null!;
     private readonly IVMEventBus eventBus = bus;
     #endregion
@@ -120,13 +123,14 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
 
         var saving = mapper.Map<DeckOptions>(CurrentOptions);
 
-        await deckOptRepo.SaveEditedPreset(saving);
-        await deckOptRepo.AssignToDecks([deck.Id], saving.Id);
+        await deckOptService.SaveEditedPreset(saving);
+        await deckOptService.AssignToDecks([deck.Id], saving.Id);
 
         lastSaved = saving;
+        eventBus.NotifyDeckOpt();
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
     private async Task RemovePreset()
     {
         ThrowIfDefault(CurrentOptions);
@@ -137,35 +141,78 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         deck.OptionsId = DeckOptions.DefaultId;
 
         AllPresets.Remove(CurrentOptions);
-        await deckOptRepo.Remove(CurrentOptions.Id);
+        await deckOptService.Remove(CurrentOptions.Id);
 
         CurrentOptions = AllPresets.Single(o => 
             o.Id == DeckOptions.DefaultId);
 
         lastSaved = mapper.Map<DeckOptions>(CurrentOptions);
+        eventBus.NotifyDeckOpt();
     }
 
     [RelayCommand]
     private async Task ClonePreset()
     {
-        var clone = CurrentOptions.CloneWithJson();
+        //TODO: WiP invert the order of actions, use "with" keyword
 
-        clone.Id = IdGetter.Next();
-        clone.Name = $"{CurrentOptions.Name} - copy";
+        // var clone = CurrentOptions.CloneWithJson();
 
-        await deckOptRepo.CreateNew(
-            mapper.Map<DeckOptions>(clone));
+        // clone.Id = IdGetter.Next();
+        // clone.Name = $"{CurrentOptions.Name} - copy";
+
+        // await deckOptService.CreateNew(
+        //     mapper.Map<DeckOptions>(clone));
         
-        AllPresets.Add(clone);
+        // AllPresets.Add(clone);
+
+        throw new NotImplementedException();
     }
 
     [RelayCommand]
+    private async Task AddNewPreset()
+    {
+        if (string.IsNullOrWhiteSpace(NewPresetName))
+            throw new InvalidOperationException(
+            "Can't create a new preset with name being null or whitespace.");
+
+        var newPreset = DeckOptions
+            .CreateNew(NewPresetName, deck.UserId);
+
+        await deckOptService.CreateNew(newPreset);
+        
+        AllPresets.Add(
+            mapper.Map<DeckOptionsVM>(newPreset));
+    }
+
+    [RelayCommand]
+    private void BeginCreatePreset()
+    {
+        CurrentOptions.CancelRenameCommand.Execute(null);
+        IsCreatingPreset = true;
+        NewPresetName = string.Empty;
+    }
+
+    [RelayCommand]
+    private void CancelCreatePreset()
+    {
+        IsCreatingPreset = false;
+        NewPresetName = null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    private void BeginRenameCurrentPreset()
+    {
+        CancelCreatePreset();
+        CurrentOptions.BeginRenameCommand.Execute(null);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
     private void ToDefault()
     {
         mapper.Map(DeckOptions.Default, CurrentOptions);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
     private void RevertChanges()
     {
         mapper.Map(lastSaved, CurrentOptions);
@@ -183,6 +230,15 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         deck.OptionsId = chosenPreset.Id;
 
         lastSaved = mapper.Map<DeckOptions>(chosenPreset);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    private async Task RenamePreset(DeckOptionsVM options)
+    {
+        options.CommitRename();
+        
+        await deckOptService.Rename(
+            options.Name, options.Id);
     }
     #endregion
 }

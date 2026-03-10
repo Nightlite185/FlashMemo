@@ -2,17 +2,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class DeckOptionsVM: ObservableObject
+public partial class DeckOptionsVM: RenameVMBase
 {
     public long Id { get; set; }
     public bool CanDelete => Id != DeckOptions.DefaultId;
     public List<long> Decks { get; set; } = [];
     public IReadOnlyCollection<long> AssignedDeckIds => [..Decks];
-    [ObservableProperty] public partial string Name { get; set; }
-
+    
     //? consider replacing this with a derived property from deck ids list on the vm.
     [ObservableProperty] public partial int AssignedDecksCount { get; set; }
 

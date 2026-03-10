@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model.Domain;
 
-public class DeckOptions
+public record DeckOptions
 {
     public const sbyte DefaultId = -1;
     public static DeckOptions Default { get; } = CreateDefault();
@@ -22,7 +23,16 @@ public class DeckOptions
             Sorting = SortingOpt.Default
         };
     }
-    
+    public static DeckOptions CreateNew(string name, long userId) // factory for new presets, based on default one.
+    {
+        return Default with
+        { 
+            Id = IdGetter.Next(), 
+            Name = name, 
+            UserId = userId
+        };
+    }
+
     public long Id { get; init; }
     public string Name { get; init; } = null!;
     public long? UserId { get; init; }
@@ -173,13 +183,12 @@ public class DeckOptions
     #region Equals override
     // I need this cuz record auto-equals is gonna diff decks as well 
     // but thats irrelevant to logical comparison.
-    public override bool Equals(object? obj)
+    public virtual bool Equals(DeckOptions? other)
     {
-        if (ReferenceEquals(this, obj))
+        if (other is null) return false;
+        
+        if (ReferenceEquals(this, other))
             return true;
-
-        if (obj is not DeckOptions other)
-            return false;
 
         return
             Equals(DailyLimits, other.DailyLimits) &&

@@ -20,6 +20,8 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .SingleAsync(d => d.Id == deckId);
     }
 
+    // TODO: add a method for only renaming
+
     public async Task SaveEditedDeck(Deck updated)
     {
         var db = GetDb;

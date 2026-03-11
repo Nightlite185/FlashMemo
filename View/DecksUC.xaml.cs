@@ -3,11 +3,12 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using GongSolutions.Wpf.DragDrop;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.View;
-public partial class DecksUC: UserControl
+public partial class DecksUC: UserControl, IDropTarget
 {
     public DecksUC()
     {
@@ -157,5 +158,43 @@ public partial class DecksUC: UserControl
         }
 
         return false;
+    }
+
+    void IDropTarget.DragOver(IDropInfo dropInfo)
+    {
+        if (!TryCreateReparentRequest(dropInfo, out DecksVM.DeckReparentRequest? request) ||
+            DataContext is not DecksVM vm ||
+            !vm.ReparentDeckCommand.CanExecute(request))
+        {
+            dropInfo.Effects = DragDropEffects.None;
+            return;
+        }
+
+        dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+        dropInfo.Effects = DragDropEffects.Move;
+    }
+
+    async void IDropTarget.Drop(IDropInfo dropInfo)
+    {
+        if (!TryCreateReparentRequest(dropInfo, out DecksVM.DeckReparentRequest? request) ||
+            DataContext is not DecksVM vm ||
+            !vm.ReparentDeckCommand.CanExecute(request))
+        {
+            return;
+        }
+
+        await vm.ReparentDeckCommand.ExecuteAsync(request);
+    }
+
+    private static bool TryCreateReparentRequest(IDropInfo dropInfo, out DecksVM.DeckReparentRequest? request)
+    {
+        request = null;
+
+        if (dropInfo.Data is not DeckNode draggedDeck)
+            return false;
+
+        DeckNode? targetDeck = dropInfo.TargetItem as DeckNode;
+        request = new DecksVM.DeckReparentRequest(draggedDeck, targetDeck);
+        return true;
     }
 }

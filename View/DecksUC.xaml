@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FlashMemo.View" 
              xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" 
+             xmlns:dd="urn:gong-wpf-dragdrop"
              xmlns:helpers="clr-namespace:FlashMemo.Helpers"
              x:Name="Root"
              helpers:FocusBoundaryBehavior.EnableBoundaryFocusTracking="True"
@@ -63,6 +64,9 @@
             ItemsSource="{Binding DeckTree}"
             SelectedItemChanged="DeckTree_SelectedChanged"
             KeyDown="DeckTree_KeyDown"
+            dd:DragDrop.IsDragSource="True"
+            dd:DragDrop.IsDropTarget="True"
+            dd:DragDrop.DropHandler="{Binding ElementName=Root}"
             Background="Transparent"
             BorderThickness="0">
 

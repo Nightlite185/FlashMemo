@@ -74,7 +74,11 @@ public partial class DeckNode : RenameVMBase, IDeckMeta
         Children.Add(newChild);
         newChild.Parent = this;
     }
-
+    public void Reparent(DeckNode? newParent)
+    {
+        Parent?.RemoveChild(this);
+        newParent?.AddChild(this);
+    }
     public void RemoveChild(DeckNode deck)
     {
         if (!Children.Remove(deck))

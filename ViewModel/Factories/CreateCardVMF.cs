@@ -19,8 +19,7 @@ public class CreateCardVMF(ICardService cs, ITagRepo tr, ICardRepo cr, DeckSelec
     public CreateCardVM Create(IDeckMeta targetDeck)
     {
         var vm = new CreateCardVM(
-            cardService, tagRepo,
-            cardRepo, targetDeck,
+            tagRepo, cardRepo, targetDeck,
             deckSelectVMF, lastSession,
             eventBus, deckRepo
         );

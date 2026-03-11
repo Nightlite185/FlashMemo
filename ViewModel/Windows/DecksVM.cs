@@ -13,6 +13,8 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM: BaseVM, IPopupHost
 {
+    public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
+
     public DecksVM(IDeckRepo dr, IDeckTreeBuilder dtb, long userId, IVMEventBus bus): base(bus)
     {
         deckTreeBuilder = dtb;
@@ -98,10 +100,66 @@ public partial class DecksVM: BaseVM, IPopupHost
             deck.Id, deck.Name);
     }
 
-    [RelayCommand]
-    private async Task MoveDeck(DeckNode deck)
+    [RelayCommand(CanExecute = nameof(CanReparentDeck))]
+    private async Task ReparentDeck(DeckReparentRequest request)
     {
+        DeckNode deck = request.Deck;
+        DeckNode? oldParent = deck.Parent;
+        DeckNode? newParent = request.NewParent;
+
+        if (newParent is null)
+        {
+            if (oldParent is null)
+                return;
+
+            oldParent.RemoveChild(deck);
+            DeckTree.Add(deck);
+        }
+
+        else
+        {
+            if (oldParent is null)
+                DeckTree.Remove(deck);
+
+            deck.Reparent(newParent);
+            newParent.IsExpanded = true;
+        }
+
         await deckRepo.SaveEditedDeck(deck.ToEntity());
+    }
+
+    private bool CanReparentDeck(DeckReparentRequest? request)
+    {
+        if (request?.Deck is not DeckNode deck)
+            return false;
+
+        DeckNode? newParent = request.NewParent;
+
+        if (newParent is null)
+            return deck.Parent is not null;
+
+        if (deck.Id == newParent.Id)
+            return false;
+
+        if (deck.Parent?.Id == newParent.Id)
+            return false;
+
+        return !IsDeckWithinSubtree(newParent, deck);
+    }
+
+    private static bool IsDeckWithinSubtree(DeckNode node, DeckNode potentialAncestor)
+    {
+        DeckNode? current = node;
+
+        while (current is not null)
+        {
+            if (current.Id == potentialAncestor.Id)
+                return true;
+
+            current = current.Parent;
+        }
+
+        return false;
     }
 
     #endregion

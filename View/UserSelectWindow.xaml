@@ -100,13 +100,39 @@
                                 </Grid>
 
 
-                                <TextBlock
-                                    Text="{Binding DeckCount, StringFormat='Decks: {0}'}"
-                                    Foreground="{StaticResource DeckDimBrush}"/>
+                                <Grid Margin="0,0,0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <TextBlock
-                                    Text="{Binding CardCount, StringFormat='Cards: {0}'}"
-                                    Foreground="{StaticResource DeckDimBrush}"/>
+                                    <TextBlock
+                                        Text="{Binding DeckCount, StringFormat='Decks: {0}'}"
+                                        Foreground="{StaticResource DeckDimBrush}"/>
+
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding Created, StringFormat='Created: {0:dd.MM / yyyy}'}"
+                                        Foreground="{StaticResource DeckDimBrush}"
+                                        Margin="30,0,0,0"/>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock
+                                        Text="{Binding CardCount, StringFormat='Cards: {0}'}"
+                                        Foreground="{StaticResource DeckDimBrush}"/>
+
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding ReadyForReview, StringFormat='Ready cards: {0}'}"
+                                        Foreground="{StaticResource DeckDimBrush}"
+                                        Margin="30,0,0,0"/>
+                                </Grid>
                             </StackPanel>
 
                             <!-- ACTIONS -->

@@ -14,8 +14,12 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
     {
         var db = GetDb;
 
+        var userDeckIds = db.Decks
+            .Where(d => d.UserId == userId)
+            .Select(d => d.Id);
+
         return await db.Cards
-            .Where(c => c.Id == userId)
+            .Where(c => userDeckIds.Contains(c.DeckId))
             .AsNoTracking()
             .CountAsync();
     }
@@ -36,9 +40,9 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
             .Where(d => d.UserId == userId)
             .Select(d => d.Id);
 
-        return await db.Cards
-            .Where(c => deckIdsQ
-            .Contains(c.Id))
+        return await CardQueryBuilder
+            .ForStudy(db.Cards.Where(c => 
+                deckIdsQ.Contains(c.DeckId)))
             .CountAsync();
     }
     

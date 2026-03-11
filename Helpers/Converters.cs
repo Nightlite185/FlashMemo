@@ -129,6 +129,23 @@ public class EnumToReadableTextConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }
+
+public class DivideDoubleConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not double number || number <= 0)
+            return 0d;
+
+        if (parameter is null || !double.TryParse(parameter.ToString(), out var divisor) || divisor == 0)
+            return number;
+
+        return number / divisor;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}
 #endregion
 
 #region AutoMapper converters

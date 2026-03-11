@@ -95,11 +95,24 @@
                         </Style>
                     </ComboBox.Style>
 
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="Width"
+                                    Value="{Binding ActualWidth, 
+                                            RelativeSource={RelativeSource AncestorType=ComboBox}}"/>
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock
-                                Text="{Binding Name}"
-                                Foreground="White"/>
+                                Foreground="White"
+                                TextTrimming="CharacterEllipsis">
+                                <Run Text="{Binding Name, Mode=OneWay}"/>
+                                <Run Text=" ("/>
+                                <Run Text="{Binding AssignedDecksCount, Mode=OneWay}"/>
+                                <Run Text=" decks)"/>
+                            </TextBlock>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
 

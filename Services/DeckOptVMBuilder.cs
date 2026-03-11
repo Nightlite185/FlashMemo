@@ -18,7 +18,8 @@ public class DeckOptVMBuilder(IDbContextFactory<AppDbContext> factory, IMapper m
             .GetAllFromUser(userId);
 
         var vms = domainOptions
-            .Select(mapper.Map<DeckOptionsVM>);
+            .Select(mapper.Map<DeckOptionsVM>)
+            .ToArray();
 
         var countMap = await db.Decks
             .GroupBy(d => d.OptionsId)
@@ -34,6 +35,6 @@ public class DeckOptVMBuilder(IDbContextFactory<AppDbContext> factory, IMapper m
                 : 0;
         }
 
-        return [..vms];
+        return vms;
     }
 }

@@ -25,7 +25,10 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
         CtxMenuVM = ccmVM;
         eventBus.DomainChanged += OnDomainChanged;
 
-        var card = await cardRepo.GetById(cardId);
+        var card = await cardRepo.GetById(cardId) 
+            ?? throw new InvalidOperationException(
+                "Tried to initialize card editor but provided card doesn't exist.");
+
         var tags = await tagRepo.GetFromCard(cardId);
 
         card.Tags.AddRange(tags); // snapshotting old tags
@@ -48,8 +51,18 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
     }
 
     protected override async Task ReloadDomainAsync()
-        => Card = new( await cardRepo.GetById(Card.Id));
+    {
+        var card = await cardRepo
+            .GetById(Card.Id);
 
+        if (card is null)
+        {
+            OnCloseRequest?.Invoke();
+            return;
+        }
+
+        
+    } 
     private async Task ChangeDeck(IDeckMeta deck)
     {
         Card.ChangeDeck(deck);

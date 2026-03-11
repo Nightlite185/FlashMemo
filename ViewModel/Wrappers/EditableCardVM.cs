@@ -15,8 +15,17 @@ public partial class EditableCardVM: ObservableObject, ICardVM
         Note = card.Note.ToVM();
         
         this.card = card;
-        Deck = card.Deck ?? throw new NullReferenceException(
-            "Deck needs to be included with card for this to work.");
+        Deck = TryGetDeck(card);
+    }
+
+    public void Refresh(CardEntity updated)
+    {
+        card = updated;
+        Deck = TryGetDeck(updated);
+        Note.Refresh(updated.Note);
+
+        Tags.Clear();
+        Tags.AddRange(updated.Tags.ToVMs());
     }
 
     [ObservableProperty] public partial NoteVM Note { get; set; }
@@ -65,5 +74,11 @@ public partial class EditableCardVM: ObservableObject, ICardVM
             && string.Equals(backContent, saved.BackContent, StringComparison.Ordinal);
     }
 
-    private readonly CardEntity card;
+    private static Deck TryGetDeck(CardEntity card)
+    {
+        return card.Deck ?? throw new NullReferenceException(
+            "Deck needs to be included with card for this to work.");
+    }
+
+    private CardEntity card;
 }

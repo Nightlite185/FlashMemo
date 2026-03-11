@@ -11,8 +11,8 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CreateCardVM(ICardService cs, ITagRepo tr, ICardRepo cr,
-IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
+public partial class CreateCardVM(ITagRepo tr, ICardRepo cr, IDeckMeta targetDeck, 
+DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
 : BaseVM(bus), ICloseRequest, IPopupHost
 {
     #region private things
@@ -38,8 +38,6 @@ IDeckMeta targetDeck, DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus 
     #endregion
 
     #region methods
-    //TODO: react to domain changes: if currently chosen deck was removed - chose last used from lastsession, else if null: 1st from db, else: close the create window
-
     internal void Initialize()
         => eventBus.DomainChanged += OnDomainChanged;
 

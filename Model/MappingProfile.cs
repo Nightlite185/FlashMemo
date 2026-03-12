@@ -34,7 +34,7 @@ public sealed class MappingProfile: Profile
         CreateMap<DeckOptionsVM.DailyLimitsOpt, DeckOptions.DailyLimitsOpt>();
         CreateMap<DeckOptionsVM.SchedulingOpt, DeckOptions.SchedulingOpt>()
             .ForMember(vm => vm.LearningStages, opt => 
-                opt.ConvertUsing(new ToLearningStagesArray()));
+                opt.ConvertUsing(new ToLearningStagesDomain()));
 
         CreateMap<DeckOptions.SortingOpt, DeckOptionsVM.SortingOpt>();
         CreateMap<DeckOptions.DailyLimitsOpt, DeckOptionsVM.DailyLimitsOpt>();
@@ -48,20 +48,15 @@ public sealed class MappingProfile: Profile
         CreateMap<DeckOptionsEntity, DeckOptions>();
 
         CreateMap<DeckOptions, DeckOptionsEntity>()
-            .ForMember(x => x.Decks, o => o.Ignore())
             .ForMember(x => x.User, o => o.Ignore());
 
         CreateMap<DeckOptions.SortingOpt, DeckOptionsEntity.SortingOpt>();
         CreateMap<DeckOptions.DailyLimitsOpt, DeckOptionsEntity.DailyLimitsOpt>();
-        CreateMap<DeckOptions.SchedulingOpt, DeckOptionsEntity.SchedulingOpt>()
-            .ForMember(x => x.LearningStages, opt => 
-                opt.ConvertUsing(new ImmutableArrToList<TimeSpan>()));
+        CreateMap<DeckOptions.SchedulingOpt, DeckOptionsEntity.SchedulingOpt>();
 
         CreateMap<DeckOptionsEntity.SortingOpt, DeckOptions.SortingOpt>();
         CreateMap<DeckOptionsEntity.DailyLimitsOpt, DeckOptions.DailyLimitsOpt>();
-        CreateMap<DeckOptionsEntity.SchedulingOpt, DeckOptions.SchedulingOpt>()
-            .ForMember(x => x.LearningStages, opt => 
-                opt.ConvertUsing(new ListToImmutableArr<TimeSpan>()));
+        CreateMap<DeckOptionsEntity.SchedulingOpt, DeckOptions.SchedulingOpt>();
 
         #endregion
     }

@@ -7,7 +7,6 @@ using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Wrappers;
-using static FlashMemo.Model.Domain.DeckOptions.SchedulingOpt;
 
 namespace FlashMemo.Helpers;
 
@@ -105,11 +104,10 @@ public class XamlToTextConverter : IValueConverter
         => throw new NotImplementedException();
 }
 
-public class EnumToReadableTextConverter : IValueConverter
+public partial class EnumToReadableTextConverter : IValueConverter
 {
-    private static readonly Regex WordBoundary = new(
-        "([a-z0-9])([A-Z])",
-        RegexOptions.Compiled);
+    [GeneratedRegex("([a-z0-9])([A-Z])", RegexOptions.Compiled)]
+    private static partial Regex WordBoundary { get; }
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -127,7 +125,31 @@ public class EnumToReadableTextConverter : IValueConverter
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        => throw new NotImplementedException();
+        => throw new NotImplementedException();    
+}
+
+public class EnumEqualsConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is null || parameter is null)
+            return false;
+
+        var enumType = value.GetType();
+        if (!enumType.IsEnum)
+            return false;
+
+        var parsed = Enum.Parse(enumType, parameter.ToString()!, ignoreCase: true);
+        return value.Equals(parsed);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not bool isChecked || !isChecked || parameter is null || !targetType.IsEnum)
+            return Binding.DoNothing;
+
+        return Enum.Parse(targetType, parameter.ToString()!, ignoreCase: true);
+    }
 }
 
 public class DivideDoubleConverter : IValueConverter
@@ -167,28 +189,18 @@ public class ImmutableArrToList<T> : IValueConverter<ImmutableArray<T>, List<T>>
         => [..sourceMember];
 }
 
-public class ToLearningStagesArray : IValueConverter<LearningStagesVM, ImmutableArray<TimeSpan>>
+public class ToLearningStagesDomain : IValueConverter<LearningStagesVM, LearningStages>
 {
-    public ImmutableArray<TimeSpan> Convert(LearningStagesVM sourceMember, ResolutionContext context)
-    {
-        return 
-        [
-            TimeSpan.FromMinutes(sourceMember.First),
-            TimeSpan.FromMinutes(sourceMember.Second),
-            TimeSpan.FromMinutes(sourceMember.Third)
-        ];
-    }
+    public LearningStages Convert(LearningStagesVM sourceMember, ResolutionContext context)
+        => new(sourceMember.I, 
+               sourceMember.II, 
+               sourceMember.III);
 }
 
-public class ToLearningStagesVM : IValueConverter<ImmutableArray<TimeSpan>, LearningStagesVM>
+public class ToLearningStagesVM : IValueConverter<LearningStages, LearningStagesVM>
 {
-    public LearningStagesVM Convert(ImmutableArray<TimeSpan> sourceMember, ResolutionContext context)
-    {
-        if (sourceMember.Length != LearningStagesCount)
-            throw new InvalidOperationException($"There must always be {LearningStagesCount} learning stages");
-
-        return new(sourceMember);
-    }
+    public LearningStagesVM Convert(LearningStages sourceMember, ResolutionContext context)
+        => new(sourceMember);
 }
 
 public class TimeOnlyToUint : IValueConverter<TimeOnly, uint>

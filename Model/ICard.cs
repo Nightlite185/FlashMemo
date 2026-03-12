@@ -15,14 +15,14 @@ public interface ICard
     DateTime? LastReviewed { get; }
     TimeSpan Interval { get; }
     CardState State { get; }
-    int? LearningStage { get; }
+    LearningStage? LearningStage { get; }
 }
 
 public interface IScheduleInfoCard
 {
     TimeSpan Interval { get; }
     CardState State { get; }
-    int? LearningStage { get; }
+    LearningStage? LearningStage { get; }
 }
 
 public interface ILearningPoolCard

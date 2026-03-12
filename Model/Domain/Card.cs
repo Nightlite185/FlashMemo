@@ -1,14 +1,14 @@
+using System.ComponentModel;
+
 namespace FlashMemo.Model.Domain;
 
 public enum CardState { New, Learning, Review }
 public enum Answers { Again, Hard, Good, Easy }
 
-public struct ScheduleInfo(TimeSpan interval, CardState state, int? learningStage)
-{
-    public TimeSpan Interval { get; set; } = interval;
-    public CardState State { get; set; } = state;
-    public int? LearningStage { get; set; } = learningStage;
-}
+public record struct ScheduleInfo(
+    TimeSpan Interval, 
+    CardState State, 
+    LearningStage? LearningStage);
 
 public class Card: ICard
 {
@@ -26,7 +26,7 @@ public class Card: ICard
     public DateTime? LastModified { get; protected set; }
     public DateTime? Due { get; protected set; }
     public DateTime? LastReviewed { get; protected set; }
-    public int? LearningStage { get; protected set; } // TODO: consider changing this into enum; its safer than int.
+    public LearningStage? LearningStage { get; protected set; }
     #endregion
 
     #region Methods
@@ -41,8 +41,7 @@ public class Card: ICard
         State = s.State;
         LearningStage = s.LearningStage;
     }
-
-    public void Validate()
+    private void Validate()
     {
         if (Due is null && State != CardState.New)
             throw new InvalidOperationException(
@@ -52,9 +51,14 @@ public class Card: ICard
             throw new InvalidOperationException(
             "Card cannot be in learning state when stage is null");
 
-        if (LearningStage is < 0 or > 2)
-            throw new InvalidOperationException(
-            $"Card's learning stage has to be either 0, 1 or 2. Current stage: {LearningStage}");
+        if (LearningStage is not null 
+            and not Domain.LearningStage.I 
+            and not Domain.LearningStage.II 
+            and not Domain.LearningStage.III)
+        {
+            throw new InvalidEnumArgumentException(
+            $"Card's learning stage was neither null nor any of the allowed values. Current stage: {LearningStage}");
+        }
 
         if (State != CardState.Learning && LearningStage is not null)
             throw new InvalidOperationException(

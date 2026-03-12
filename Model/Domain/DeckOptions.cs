@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 
@@ -41,24 +40,18 @@ public record DeckOptions
     public SortingOpt Sorting { get; init; } = null!;
     #endregion
 
-    public sealed class SchedulingOpt
+    public sealed record SchedulingOpt
     {
         #region defaults
-        public const int LearningStagesCount = 3;
-
         public const double DefGoodMultiplier = 1.8;
         public const double DefEasyMultiplier = 2.4;
         public const double DefHardMultiplier = 0.7;
         public const int DefGraduateDayCount = 1; 
         public const int DefEasyOnNewDayCount = 2; 
-        public const int DefAgainOnReviewStage = 1; 
-        public static readonly ImmutableArray<TimeSpan> DefLearningStages = [
-            TimeSpan.FromMinutes(4),
-            TimeSpan.FromMinutes(8),
-            TimeSpan.FromMinutes(15)
-        ];
-        public const int DefGoodOnNewStage = 2; 
-        public const int DefHardOnNewStage = 1; 
+        public static readonly LearningStages DefLearningStages = new(4, 8, 15);
+        public const LearningStage DefAgainOnReviewStage = LearningStage.II;
+        public const LearningStage DefGoodOnNewStage = LearningStage.III;
+        public const LearningStage DefHardOnNewStage = LearningStage.II;
 
         public static readonly SchedulingOpt Default = new()
         {
@@ -78,56 +71,12 @@ public record DeckOptions
         public double GoodMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "good" on a it.
         public double EasyMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "easy" on a it.
         public double HardMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "hard" on a it.
-        [Obsolete("Change this to a LearningStages object; its safer from a collection bc only 3 allowed")]
-        public ImmutableArray<TimeSpan> LearningStages { get; init; } //* there are 3 learning stages that cards go through before they graduate and become a "review" card (all of them are in minutes).
+        public LearningStages LearningStages { get; init; } = null!; //* there are 3 learning stages that cards go through before they graduate and become a "review" card (all of them are in minutes).
         public int GraduateDayCount { get; init; } //* new interval in days when graduating from learning into "review" state (by either answering "good" on the last learning stage, or "easy" or any learning stage).
         public int EasyOnNewDayCount { get; init; } //* updated interval in days, after answering "easy" on a new card.
-        public int GoodOnNewStage { get; init; } //* learning stage that a "new" card lands on, after answering "good" on it.
-        public int AgainOnReviewStage { get; init; } //* learning stage that a "review" card lands on, after answering "again" on it.
-        public int HardOnNewStage { get; init; } //* learning stage that a "new" card lands on, after answering "hard" on a it.
-        #endregion
-
-        #region Equals
-        // this is necessary bc ImmutableArray's default Equals implementation doesn't work as you'd logically expect, when comparing arrays.
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            if (obj is not SchedulingOpt other)
-                return false;
-
-            return
-                GoodMultiplier == other.GoodMultiplier &&
-                EasyMultiplier == other.EasyMultiplier &&
-                HardMultiplier == other.HardMultiplier &&
-                GraduateDayCount == other.GraduateDayCount &&
-                EasyOnNewDayCount == other.EasyOnNewDayCount &&
-                GoodOnNewStage == other.GoodOnNewStage &&
-                AgainOnReviewStage == other.AgainOnReviewStage &&
-                HardOnNewStage == other.HardOnNewStage &&
-                LearningStages.SequenceEqual(other.LearningStages);
-        }
-        public override int GetHashCode()
-        {
-            var hash = new HashCode();
-
-            hash.Add(GoodMultiplier);
-            hash.Add(EasyMultiplier);
-            hash.Add(HardMultiplier);
-
-            hash.Add(GraduateDayCount);
-            hash.Add(EasyOnNewDayCount);
-            hash.Add(GoodOnNewStage);
-            hash.Add(AgainOnReviewStage);
-            hash.Add(HardOnNewStage);
-
-            // LearningStages
-            foreach (var stage in LearningStages)
-                hash.Add(stage);
-
-            return hash.ToHashCode();
-        }
+        public LearningStage GoodOnNewStage { get; init; } //* learning stage that a "new" card lands on, after answering "good" on it.
+        public LearningStage AgainOnReviewStage { get; init; } //* learning stage that a "review" card lands on, after answering "again" on it.
+        public LearningStage HardOnNewStage { get; init; } //* learning stage that a "new" card lands on, after answering "hard" on a it.
         #endregion
     }
     public sealed record DailyLimitsOpt
@@ -177,32 +126,4 @@ public record DeckOptions
         public CardStateOrder CardTypeOrder { get; init; }
         #endregion
     }
-
-    #region Equals override
-    // I need this cuz record auto-equals is gonna diff decks as well 
-    // but thats irrelevant to logical comparison.
-    public virtual bool Equals(DeckOptions? other)
-    {
-        if (other is null) return false;
-        
-        if (ReferenceEquals(this, other))
-            return true;
-
-        return
-            Equals(DailyLimits, other.DailyLimits) &&
-            Equals(Scheduling, other.Scheduling) &&
-            Equals(Sorting, other.Sorting) &&
-            Id == other.Id &&
-            Nullable.Equals(UserId, other.UserId) &&
-            string.Equals(Name, other.Name, StringComparison.Ordinal);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(
-            Id, Name, UserId, 
-            Scheduling, DailyLimits, 
-            Sorting);
-    }
-    #endregion
 }

@@ -7,6 +7,7 @@ using FlashMemo.Model.Persistence;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Services;
+using System.Text.Json;
 
 namespace FlashMemo.ViewModel.Windows;
 
@@ -96,7 +97,7 @@ public sealed partial class DeckOptionsMenuVM(
         );
 
         if (result is DialogResult.Yes)
-            await SaveChanges();
+            await SaveCore();
 
         else if (result is DialogResult.No)
             mapper.Map(lastSaved, CurrentOptions);
@@ -104,20 +105,7 @@ public sealed partial class DeckOptionsMenuVM(
         // only cancel clicked doesnt discard it
         return result is DialogResult.Yes or DialogResult.No;
     }
-    #endregion
-
-    #region private things
-    private readonly Deck deck = d;
-    private readonly IMapper mapper = m;
-    private readonly IDeckOptVMBuilder vmBuilder = doVMB;
-    private readonly IDeckOptionsService deckOptService = dor;
-    private DeckOptions lastSaved = null!;
-    private readonly IVMEventBus eventBus = bus;
-    #endregion
-
-    #region ICommands
-    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
-    private async Task SaveChanges()
+    private async Task SaveCore()
     {
         //* this applies any changed made in the preset,
         //* as well as syncs the relation between deck and its preset.
@@ -134,6 +122,23 @@ public sealed partial class DeckOptionsMenuVM(
 
         lastSaved = saving;
         eventBus.NotifyDeckOpt();
+    }
+    #endregion
+
+    #region private things
+    private readonly Deck deck = d;
+    private readonly IMapper mapper = m;
+    private readonly IDeckOptVMBuilder vmBuilder = doVMB;
+    private readonly IDeckOptionsService deckOptService = dor;
+    private DeckOptions lastSaved = null!;
+    private readonly IVMEventBus eventBus = bus;
+    #endregion
+
+    #region ICommands
+    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    private async Task SaveChanges()
+    {
+        await SaveCore();
         OnCloseRequest?.Invoke();
     }
 

@@ -1,42 +1,23 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Model.Domain;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class LearningStagesVM: ObservableObject
 {
-    private static void ThrowIfNot3<T>(IList<T> stages)
+    public LearningStagesVM(LearningStages ls)
     {
-        if (stages.Count != 3) throw new ArgumentException(
-            "there must be always exactly 3 stages", nameof(stages));
-    }
-    
-    public LearningStagesVM(IList<TimeSpan> stages)
-    {
-        ThrowIfNot3(stages);
-
-        First = stages[0].Minutes;
-        Second = stages[1].Minutes;
-        Third = stages[2].Minutes;
+        I = ls.I.Minutes;
+        II = ls.II.Minutes;
+        III = ls.III.Minutes;
     }
 
-    public LearningStagesVM(IList<int> stages)
-    {
-        ThrowIfNot3(stages);
+    public LearningStagesVM(){} // for json serializer
 
-        First = stages[0];
-        Second = stages[1];
-        Third = stages[2];
-    }
+    [ObservableProperty] public partial int I { get; set; }
+    [ObservableProperty] public partial int II { get; set; }
+    [ObservableProperty] public partial int III { get; set; }
 
-    public LearningStagesVM() // for json serializer
-    {
-
-    }
-
-    [ObservableProperty] public partial int First { get; set; }
-    [ObservableProperty] public partial int Second { get; set; }
-    [ObservableProperty] public partial int Third { get; set; }
-
-    public int MaxValueOnAnyStage { get; } = 60;
-    public int MinValueOnAnyStage { get; } = 1;
+    public int MinValueOnAnyStage => 1;
+    public int MaxValueOnAnyStage => 60;
 }

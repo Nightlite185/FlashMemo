@@ -21,21 +21,21 @@ public static class Scheduler
         return card.State switch
         {
             CardState.New => new(
-                state: CardState.Learning,
-                learningStage: s.HardOnNewStage,
-                interval: s.LearningStages[s.HardOnNewStage]
+                State: CardState.Learning,
+                LearningStage: s.HardOnNewStage,
+                Interval: s.LearningStages[s.HardOnNewStage]
             ),
             
             CardState.Learning => new(
-                learningStage: card.LearningStage,
-                interval: s.LearningStages[(int)card.LearningStage!],
-                state: card.State
+                LearningStage: card.LearningStage,
+                Interval: s.LearningStages[card.LearningStage],
+                State: card.State
             ),
             
             CardState.Review => new(
-                interval: card.Interval * s.HardMultiplier,
-                state: card.State,
-                learningStage: null
+                Interval: card.Interval * s.HardMultiplier,
+                State: card.State,
+                LearningStage: null
             ),
 
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
@@ -44,10 +44,10 @@ public static class Scheduler
     private static ScheduleInfo ProcessEasy(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
         return new(
-            state: CardState.Review,
-            learningStage: null,
+            State: CardState.Review,
+            LearningStage: null,
 
-            interval: (card.State == CardState.New)
+            Interval: (card.State == CardState.New)
                 ? TimeSpan.FromDays(s.EasyOnNewDayCount)
 
             : (card.State == CardState.Learning)
@@ -60,17 +60,17 @@ public static class Scheduler
         return card.State switch
         {
             CardState.New => new(
-                learningStage: s.GoodOnNewStage,
-                state: CardState.Learning,
-                interval: s.LearningStages[s.GoodOnNewStage]
+                LearningStage: s.GoodOnNewStage,
+                State: CardState.Learning,
+                Interval: s.LearningStages[s.GoodOnNewStage]
             ),
 
             CardState.Learning => ProcessGoodIfLearningStage(card, s),
 
             CardState.Review => new(
-                interval: card.Interval * s.GoodMultiplier,
-                state: CardState.Review,
-                learningStage: null
+                Interval: card.Interval * s.GoodMultiplier,
+                State: CardState.Review,
+                LearningStage: null
             ),
             
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
@@ -80,23 +80,23 @@ public static class Scheduler
     // had to be separate method bc its a whole another world of things to consider, would get too messy.
     private static ScheduleInfo ProcessGoodIfLearningStage(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
-        int? learningStage = (card.LearningStage == s.LearningStages.Length -1) // if its already last learning stage:
-            ? null                              // set to null
-            : card.LearningStage + 1;           // else just add one 
+        LearningStage? learningStage = (card.LearningStage is LearningStage.III) // if its already last learning stage:
+            ? null                     // set to null
+            : card.LearningStage + 1;  // else just add one //TODO: idk if this is gonna work, test it
 
         CardState state = (learningStage is null)
             ? CardState.Review
             : CardState.Learning;
 
         TimeSpan interval = (state == CardState.Learning)
-            ? s.LearningStages[(int)learningStage!]
+            ? s.LearningStages[learningStage]
             : TimeSpan.FromDays(s.GraduateDayCount);
 
 
         return new(
-            learningStage: learningStage,
-            state: state,
-            interval: interval
+            LearningStage: learningStage,
+            State: state,
+            Interval: interval
         );
     }
     private static ScheduleInfo ProcessAgain(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
@@ -104,15 +104,15 @@ public static class Scheduler
         return card.State switch 
         {
             CardState.Review => new(
-                state: CardState.Learning,
-                interval: s.LearningStages[s.AgainOnReviewStage],
-                learningStage: s.AgainOnReviewStage
+                State: CardState.Learning,
+                Interval: s.LearningStages[s.AgainOnReviewStage],
+                LearningStage: s.AgainOnReviewStage
             ),
         
             CardState.New or CardState.Learning => new(
-                state: CardState.Learning,
-                interval: s.LearningStages[0],
-                learningStage: 0
+                State: CardState.Learning,
+                Interval: s.LearningStages.I,
+                LearningStage: LearningStage.I
             ),
 
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))

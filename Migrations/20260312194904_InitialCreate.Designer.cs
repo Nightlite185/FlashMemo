@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260309195425_InitialCreate")]
+    [Migration("20260312194904_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -391,16 +391,37 @@ namespace FlashMemo.Migrations
                             b1.Property<int>("HardOnNewStage")
                                 .HasColumnType("INTEGER");
 
-                            b1.PrimitiveCollection<string>("LearningStages")
-                                .IsRequired()
-                                .HasColumnType("TEXT");
-
                             b1.HasKey("DeckOptionsEntityId");
 
                             b1.ToTable("DeckOptions");
 
                             b1.WithOwner()
                                 .HasForeignKey("DeckOptionsEntityId");
+
+                            b1.OwnsOne("FlashMemo.Model.Domain.LearningStages", "LearningStages", b2 =>
+                                {
+                                    b2.Property<long>("SchedulingOptDeckOptionsEntityId")
+                                        .HasColumnType("INTEGER");
+
+                                    b2.Property<TimeSpan>("I")
+                                        .HasColumnType("TEXT");
+
+                                    b2.Property<TimeSpan>("II")
+                                        .HasColumnType("TEXT");
+
+                                    b2.Property<TimeSpan>("III")
+                                        .HasColumnType("TEXT");
+
+                                    b2.HasKey("SchedulingOptDeckOptionsEntityId");
+
+                                    b2.ToTable("DeckOptions");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("SchedulingOptDeckOptionsEntityId");
+                                });
+
+                            b1.Navigation("LearningStages")
+                                .IsRequired();
                         });
 
                     b.OwnsOne("FlashMemo.Model.Persistence.DeckOptionsEntity+SortingOpt", "Sorting", b1 =>

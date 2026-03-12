@@ -55,7 +55,9 @@ namespace FlashMemo.Model.Persistence
                 .Property(c => c.Id)
                 .ValueGeneratedNever();
 
-                mb.OwnsOne(d => d.Scheduling);
+                mb.OwnsOne(d => d.Scheduling)
+                    .OwnsOne(s => s.LearningStages);
+                    
                 mb.OwnsOne(d => d.DailyLimits);
                 mb.OwnsOne(d => d.Sorting);
             });

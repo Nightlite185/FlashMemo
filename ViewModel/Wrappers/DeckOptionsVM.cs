@@ -63,13 +63,11 @@ public partial class DeckOptionsVM: RenameVMBase
         [ObservableProperty] public partial double EasyMultiplier { get; set; }
         [ObservableProperty] public partial double HardMultiplier { get; set; }
         public LearningStagesVM LearningStages { get; set; } = null!;
-        public int MinStage { get; } = 0;
-        public int MaxStage { get; } = 2;
+        [ObservableProperty] public partial LearningStage AgainOnReviewStage { get; set; }
+        [ObservableProperty] public partial LearningStage GoodOnNewStage { get; set; }
+        [ObservableProperty] public partial LearningStage HardOnNewStage { get; set; }
         [ObservableProperty] public partial int GraduateDayCount { get; set; }
-        [ObservableProperty] public partial int AgainOnReviewStage { get; set; }
-        [ObservableProperty] public partial int GoodOnNewStage { get; set; }
         [ObservableProperty] public partial int EasyOnNewDayCount { get; set; }
-        [ObservableProperty] public partial int HardOnNewStage { get; set; }
     }
     public partial class DailyLimitsOpt: ObservableObject, IViewModel
     {

@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
         xmlns:wrappers="clr-namespace:FlashMemo.ViewModel.Wrappers" 
+        xmlns:helpers="clr-namespace:FlashMemo.Helpers"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:xceed="http://schemas.xceed.com/wpf/xaml/toolkit"
         Title="Deck Options"
@@ -14,6 +15,8 @@
         WindowStartupLocation="CenterOwner">
 
     <Window.Resources>
+        <helpers:EnumEqualsConverter x:Key="EnumEqualsConverter"/>
+
         <DataTemplate x:Key="EnumReadableItemTemplate">
             <TextBlock
                 Text="{Binding Converter={StaticResource EnumToReadableTextConverter}}"/>
@@ -25,6 +28,58 @@
             <Setter Property="Cursor" Value="Help"/>
             <Setter Property="ToolTipService.InitialShowDelay" Value="235"/>
             <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
+        </Style>
+
+        <Style x:Key="StageSelectorButtonStyle" TargetType="RadioButton">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="0,5,8,3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#FFD3D8DF"/>
+            <Setter Property="Background" Value="#FF2A2E34"/>
+            <Setter Property="BorderBrush" Value="{StaticResource NavBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="IsHitTestVisible" Value="{Binding CanEditSaveDelete}"/>
+            <Setter Property="Focusable" Value="{Binding CanEditSaveDelete}"/>
+            <Setter Property="Opacity" Value="{DynamicResource EditableEnabledOpacity}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border
+                            x:Name="StageBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="StageBorder" Property="Background" Value="#FF343A40"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="StageBorder" Property="Background" Value="#FF2B5F46"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="#FFEFFFF6"/>
+                                <Setter TargetName="StageBorder" Property="Background" Value="#FF2F7D58"/>
+                                <Setter TargetName="StageBorder" Property="BorderBrush" Value="#FF9ECE6A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CanEditSaveDelete}" Value="False">
+                    <Setter Property="Opacity" Value="{DynamicResource EditableDisabledOpacity}"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -315,17 +370,45 @@
 
                             <TextBlock
                                 Grid.Row="2"
-                                Text="Again on review card (days)"
+                                Text="Again on review card (stage)"
                                 Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Learning stage that a review card lands on after answering again."/>
 
-                            <xceed:UIntegerUpDown
+                            <StackPanel
                                 Grid.Row="2"
                                 Grid.Column="1"
-                                Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                Value="{Binding CurrentOptions.Scheduling.AgainOnReviewStage}"
-                                Maximum="{Binding CurrentOptions.Scheduling.MaxStage}"
-                                Minimum="{Binding CurrentOptions.Scheduling.MinStage}"/>
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Left">
+
+                                <RadioButton
+                                    GroupName="AgainOnReviewStageGroup"
+                                    Content="I"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.AgainOnReviewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=I}"/>
+
+                                <RadioButton
+                                    GroupName="AgainOnReviewStageGroup"
+                                    Content="II"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.AgainOnReviewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=II}"/>
+
+                                <RadioButton
+                                    GroupName="AgainOnReviewStageGroup"
+                                    Content="III"
+                                    Margin="0,5,0,3"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.AgainOnReviewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=III}"/>
+
+                            </StackPanel>
 
                             <TextBlock
                                 Grid.Row="3"
@@ -333,13 +416,41 @@
                                 Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Learning stage that a new card lands on after answering good."/>
 
-                            <xceed:UIntegerUpDown
+                            <StackPanel
                                 Grid.Row="3"
                                 Grid.Column="1"
-                                Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                Value="{Binding CurrentOptions.Scheduling.GoodOnNewStage}"
-                                Maximum="{Binding CurrentOptions.Scheduling.MaxStage}"
-                                Minimum="{Binding CurrentOptions.Scheduling.MinStage}"/>
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Left">
+
+                                <RadioButton
+                                    GroupName="GoodOnNewStageGroup"
+                                    Content="I"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.GoodOnNewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=I}"/>
+
+                                <RadioButton
+                                    GroupName="GoodOnNewStageGroup"
+                                    Content="II"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.GoodOnNewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=II}"/>
+
+                                <RadioButton
+                                    GroupName="GoodOnNewStageGroup"
+                                    Content="III"
+                                    Margin="0,5,0,3"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.GoodOnNewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=III}"/>
+
+                            </StackPanel>
 
                             <TextBlock
                                 Grid.Row="4"
@@ -347,13 +458,41 @@
                                 Style="{StaticResource DeckOptHintStyle}"
                                 ToolTip="Learning stage that a new card lands on after answering hard."/>
 
-                            <xceed:UIntegerUpDown
+                            <StackPanel
                                 Grid.Row="4"
                                 Grid.Column="1"
-                                Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                Value="{Binding CurrentOptions.Scheduling.HardOnNewStage}"
-                                Maximum="{Binding CurrentOptions.Scheduling.MaxStage}"
-                                Minimum="{Binding CurrentOptions.Scheduling.MinStage}"/>
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Left">
+
+                                <RadioButton
+                                    GroupName="HardOnNewStageGroup"
+                                    Content="I"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.HardOnNewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=I}"/>
+
+                                <RadioButton
+                                    GroupName="HardOnNewStageGroup"
+                                    Content="II"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.HardOnNewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=II}"/>
+
+                                <RadioButton
+                                    GroupName="HardOnNewStageGroup"
+                                    Content="III"
+                                    Margin="0,5,0,3"
+                                    Style="{StaticResource StageSelectorButtonStyle}"
+                                    IsChecked="{Binding CurrentOptions.Scheduling.HardOnNewStage,
+                                                        Mode=TwoWay,
+                                                        Converter={StaticResource EnumEqualsConverter},
+                                                        ConverterParameter=III}"/>
+
+                            </StackPanel>
 
                             <TextBlock
                                 Grid.Row="5"
@@ -375,7 +514,7 @@
                                     Style="{StaticResource FlatUIntegerUpDownStyle}"
                                     Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
                                     Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
-                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.First}"/>
+                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.I}"/>
 
                                 <xceed:UIntegerUpDown
                                     Width="43.33"
@@ -384,7 +523,7 @@
                                     Style="{StaticResource FlatUIntegerUpDownStyle}"
                                     Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
                                     Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
-                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.Second}"/>
+                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.II}"/>
 
                                 <xceed:UIntegerUpDown
                                     Width="43.33"
@@ -393,7 +532,7 @@
                                     Style="{StaticResource FlatUIntegerUpDownStyle}"
                                     Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
                                     Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
-                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.Third}"/>
+                                    Value="{Binding CurrentOptions.Scheduling.LearningStages.III}"/>
 
                             </StackPanel>
 

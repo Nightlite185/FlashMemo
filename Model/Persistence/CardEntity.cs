@@ -23,7 +23,7 @@ public class CardEntity: ICard
     public DateTime? LastReviewed { get; set; }
     public TimeSpan Interval { get; set; }
     public CardState State { get; set; }
-    public int? LearningStage { get; set; }
+    public LearningStage? LearningStage { get; set; }
     #endregion
 
     #region methods

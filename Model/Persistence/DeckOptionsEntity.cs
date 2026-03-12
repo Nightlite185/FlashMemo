@@ -1,3 +1,5 @@
+using FlashMemo.Model.Domain;
+
 namespace FlashMemo.Model.Persistence;   
     
 #region enums
@@ -37,12 +39,12 @@ public class DeckOptionsEntity
         public double GoodMultiplier { get; set; }
         public double EasyMultiplier { get; set; }
         public double HardMultiplier { get; set; }
-        public List<TimeSpan> LearningStages { get; set; } = null!; // in minutes
+        public LearningStages LearningStages { get; set; } = null!;
         public int GraduateDayCount { get; set; }
         public int EasyOnNewDayCount { get; set; }
-        public int GoodOnNewStage { get; set; }
-        public int AgainOnReviewStage { get; set; }
-        public int HardOnNewStage { get; set; }
+        public LearningStage GoodOnNewStage { get; set; }
+        public LearningStage AgainOnReviewStage { get; set; }
+        public LearningStage HardOnNewStage { get; set; }
     }
     public sealed class DailyLimitsOpt
     {

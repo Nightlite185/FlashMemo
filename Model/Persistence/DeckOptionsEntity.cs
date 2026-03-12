@@ -46,9 +46,6 @@ public class DeckOptionsEntity
     }
     public sealed class DailyLimitsOpt
     {
-        /* global option (not per preset). // TODO: Later figure out how to persist this bc EF ignores static 
-        and I dont wanna create a separate table just for this. Maybe belongs in UserOptions?? */
-        // public static bool NewIgnoreReviewLimit { get; set; }
         public int DailyReviewsLimit { get; set; }
         public int DailyLessonsLimit { get; set; }
     }

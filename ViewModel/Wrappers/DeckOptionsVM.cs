@@ -10,12 +10,8 @@ public partial class DeckOptionsVM: RenameVMBase
 {
     public long Id { get; set; }
     public bool CanDelete => Id != DeckOptions.DefaultId;
-    public List<long> Decks { get; set; } = [];
-    public IReadOnlyCollection<long> AssignedDeckIds => [..Decks];
     
-    //? consider replacing this with a derived property from deck ids list on the vm.
-    [ObservableProperty] public partial int AssignedDecksCount { get; set; }
-
+    [ObservableProperty] public partial int DeckCount { get; set; }
     [ObservableProperty] public partial SortingOpt Sorting { get; set; }
     [ObservableProperty] public partial SchedulingOpt Scheduling { get; set; }
     [ObservableProperty] public partial DailyLimitsOpt DailyLimits { get; set; }

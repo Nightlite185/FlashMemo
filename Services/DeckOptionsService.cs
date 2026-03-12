@@ -56,12 +56,10 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
             .ExecuteDeleteAsync();
 
     }
-    public async Task AssignToDecks(IEnumerable<long> deckIds, long newPresetId = -1)
+    public async Task AssignToDeck(long deckId, long newPresetId)
     {
-        var db = GetDb;
-
-        await db.Decks
-            .Where(d => deckIds.Contains(d.Id))
+        await GetDb.Decks
+            .Where(d => d.Id == deckId)
             .ExecuteUpdateAsync(d => d.SetProperty(o => 
                 o.OptionsId, newPresetId));
     }

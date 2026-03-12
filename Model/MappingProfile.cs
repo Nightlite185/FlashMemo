@@ -27,13 +27,8 @@ public sealed class MappingProfile: Profile
         #endregion
 
         #region Deck options (VM <-> record)
-        CreateMap<DeckOptionsVM, DeckOptions>()
-            .ForMember(vm => vm.Decks, opt => 
-                opt.ConvertUsing(new ListToImmutableArr<long>()));
-
-        CreateMap<DeckOptions, DeckOptionsVM>()
-            .ForMember(d => d.Decks, opt =>
-                opt.ConvertUsing(new ImmutableArrToList<long>()));
+        CreateMap<DeckOptionsVM, DeckOptions>();
+        CreateMap<DeckOptions, DeckOptionsVM>();
 
         CreateMap<DeckOptionsVM.SortingOpt, DeckOptions.SortingOpt>();
         CreateMap<DeckOptionsVM.DailyLimitsOpt, DeckOptions.DailyLimitsOpt>();
@@ -50,9 +45,7 @@ public sealed class MappingProfile: Profile
         #endregion
 
         #region Deck options (entity <-> record)
-        CreateMap<DeckOptionsEntity, DeckOptions>()
-            .ForMember(x => x.Decks, opt =>
-                opt.ConvertUsing(new DeckListToIds()));
+        CreateMap<DeckOptionsEntity, DeckOptions>();
 
         CreateMap<DeckOptions, DeckOptionsEntity>()
             .ForMember(x => x.Decks, o => o.Ignore())

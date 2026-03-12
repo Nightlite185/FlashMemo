@@ -42,12 +42,6 @@ public interface ITagRepo
     Task<IEnumerable<Tag>> GetByIds(IEnumerable<long> tagIds);
 }
 
-public interface IUserOptionsService
-{
-    Task Update(long userId, UserOptions updated);
-    Task<UserOptions> GetFromUser(long userId);
-}
-
 public interface IUserRepo
 {
     Task CreateNew(UserEntity toAdd);
@@ -55,16 +49,4 @@ public interface IUserRepo
     Task<UserEntity> GetByIdAsync(long userId);
     Task Rename(long userId, string newName);
     Task Remove(long userId);
-}
-
-public interface IDeckOptionsService
-{
-    Task<DeckOptions> GetFromDeck(long deckId);
-    Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
-    Task Remove(long presetId);
-    Task Rename(string name, long id);
-    Task CreateNew(DeckOptions newRecord);
-    Task CreateNew(DeckOptionsEntity newEntity);
-    Task SaveEditedPreset(DeckOptions updatedRecord);
-    Task AssignToDecks(IEnumerable<long> deckIds, long newPresetId = -1);
 }

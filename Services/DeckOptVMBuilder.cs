@@ -29,7 +29,7 @@ public class DeckOptVMBuilder(IDbContextFactory<AppDbContext> factory, IMapper m
 
         foreach (var vm in vms)
         {
-            vm.AssignedDecksCount = countMap
+            vm.DeckCount = countMap
                 .TryGetValue(vm.Id, out var c) 
                 ? c 
                 : 0;

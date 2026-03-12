@@ -110,7 +110,7 @@
                                 TextTrimming="CharacterEllipsis">
                                 <Run Text="{Binding Name, Mode=OneWay}"/>
                                 <Run Text=" ("/>
-                                <Run Text="{Binding AssignedDecksCount, Mode=OneWay}"/>
+                                <Run Text="{Binding DeckCount, Mode=OneWay}"/>
                                 <Run Text=" decks)"/>
                             </TextBlock>
                         </DataTemplate>

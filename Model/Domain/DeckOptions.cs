@@ -15,8 +15,6 @@ public record DeckOptions
             Name = "Default",
             Id = -1,
             UserId = null,
-
-            Decks = [],
             
             Scheduling = SchedulingOpt.Default,
             DailyLimits = DailyLimitsOpt.Default,
@@ -36,7 +34,6 @@ public record DeckOptions
     public long Id { get; init; }
     public string Name { get; init; } = null!;
     public long? UserId { get; init; }
-    public ImmutableArray<long> Decks { get; init; }
     
     #region sub-options properties
     public SchedulingOpt Scheduling { get; init; } = null!;
@@ -81,6 +78,7 @@ public record DeckOptions
         public double GoodMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "good" on a it.
         public double EasyMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "easy" on a it.
         public double HardMultiplier { get; init; } //* a number that a "review" card's interval is multiplied by, after answering "hard" on a it.
+        [Obsolete("Change this to a LearningStages object; its safer from a collection bc only 3 allowed")]
         public ImmutableArray<TimeSpan> LearningStages { get; init; } //* there are 3 learning stages that cards go through before they graduate and become a "review" card (all of them are in minutes).
         public int GraduateDayCount { get; init; } //* new interval in days when graduating from learning into "review" state (by either answering "good" on the last learning stage, or "easy" or any learning stage).
         public int EasyOnNewDayCount { get; init; } //* updated interval in days, after answering "easy" on a new card.

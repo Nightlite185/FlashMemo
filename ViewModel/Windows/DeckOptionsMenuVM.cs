@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using FlashMemo.Helpers;
-using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Wrappers;
 using FlashMemo.Model.Domain;
 using AutoMapper;
@@ -11,7 +10,9 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor, Deck d, IVMEventBus bus): ObservableObject, IViewModel, IClosingAware
+public sealed partial class DeckOptionsMenuVM(
+    IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor, Deck d, IVMEventBus bus)
+    : ObservableObject, IViewModel, IClosingAware, ICloseRequest
 {
     #region public properties
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsCurrentModified), nameof(CanEditSaveDelete))]
@@ -21,6 +22,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     [ObservableProperty] public partial bool IsCreatingPreset { get; set; }
     [ObservableProperty] public partial string? NewPresetName { get; set; }
     public ObservableCollection<DeckOptionsVM> AllPresets { get; init; } = [];
+    public event Action? OnCloseRequest;
     public IEnumerable<LessonOrder> LessonOrderEnum =>
         Enum.GetValues<LessonOrder>();
 
@@ -35,8 +37,7 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
 
     public bool CanEditSaveDelete => CurrentOptions.Id != DeckOptions.DefaultId;
     public bool IsCurrentModified {
-        get
-        {
+        get {
             if (CurrentOptions.Id == DeckOptions.DefaultId)
                 return false;
 
@@ -50,11 +51,30 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
             return !snapshot.Equals(lastSaved);
         }
     }
+    #endregion
+
+    #region methods
+    internal async Task InitializeAsync()
+    {
+        AllPresets.AddRange(
+            await vmBuilder.BuildAllCounted(deck.UserId));
+
+        CurrentOptions = AllPresets.Single(
+            p => p.Id == deck.OptionsId);
+        
+        lastSaved = mapper
+            .Map<DeckOptions>(CurrentOptions);
+    }
+    private static void ThrowIfDefault(DeckOptionsVM opt)
+    {
+        if (opt.Id == DeckOptions.DefaultId) throw new InvalidOperationException(
+            "Removing or editing the default preset is forbidden.");
+    }
     public bool CanRemovePreset()
     {
         var result = DialogResult.Yes;
 
-        if (CurrentOptions.Decks.Count != 0)
+        if (CurrentOptions.DeckCount != 0)
             result = DialogService.Show(
                 "Are you sure you want to delete currently viewed preset? Every deck currently referencing this preset, will now be assigned to the default one. Do you wish to proceed?",
                 "Are you sure?",
@@ -78,28 +98,11 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         if (result is DialogResult.Yes)
             await SaveChanges();
 
+        else if (result is DialogResult.No)
+            mapper.Map(lastSaved, CurrentOptions);
+
         // only cancel clicked doesnt discard it
         return result is DialogResult.Yes or DialogResult.No;
-    }
-    #endregion
-
-    #region methods
-    internal async Task InitializeAsync()
-    {
-        AllPresets.AddRange(
-            await vmBuilder.BuildAllCounted(deck.UserId));
-
-        CurrentOptions = AllPresets.Single(
-            p => p.Id == deck.OptionsId);
-        
-        lastSaved = mapper
-            .Map<DeckOptions>(CurrentOptions);
-    }
-
-    private static void ThrowIfDefault(DeckOptionsVM opt)
-    {
-        if (opt.Id == DeckOptions.DefaultId) throw new InvalidOperationException(
-            "Removing or editing the default preset is forbidden.");
     }
     #endregion
 
@@ -124,10 +127,14 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
         var saving = mapper.Map<DeckOptions>(CurrentOptions);
 
         await deckOptService.SaveEditedPreset(saving);
-        await deckOptService.AssignToDecks([deck.Id], saving.Id);
+        
+        await deckOptService.AssignToDeck(
+            deckId: deck.Id,
+            newPresetId: saving.Id);
 
         lastSaved = saving;
         eventBus.NotifyDeckOpt();
+        OnCloseRequest?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
@@ -221,13 +228,19 @@ public sealed partial class DeckOptionsMenuVM(IMapper m, IDeckOptVMBuilder doVMB
     [RelayCommand]
     private void ChangePreset(DeckOptionsVM chosenPreset)
     {
-        //TODO: FIX: when changing presets, there are unsaved changes, I click No (dont save), it needs to revert that VM to its previous state.
-
-        CurrentOptions.AssignedDecksCount--; // decrementing previous preset's deck count
+        CurrentOptions.DeckCount--; // decrementing previous preset's deck count
+        chosenPreset.DeckCount++; // incrementing new one's
+        
         CurrentOptions = chosenPreset;
-        CurrentOptions.AssignedDecksCount++; // incrementing new one's
-
         deck.OptionsId = chosenPreset.Id;
+
+        if (AllPresets.Any(p => p.DeckCount < 0))
+            throw new InvalidOperationException(
+            "Presets cannot have deck count lower than 0");
+
+        if (CurrentOptions.DeckCount < 1)
+            throw new InvalidOperationException(
+            $"Current preset needs to have deck count of at least 1, but it was {CurrentOptions.DeckCount}.");
 
         lastSaved = mapper.Map<DeckOptions>(chosenPreset);
     }

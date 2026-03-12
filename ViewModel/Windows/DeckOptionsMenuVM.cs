@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Services;
 using System.Text.Json;
+using System.DirectoryServices.ActiveDirectory;
 
 namespace FlashMemo.ViewModel.Windows;
 
@@ -165,19 +166,21 @@ public sealed partial class DeckOptionsMenuVM(
     [RelayCommand]
     private async Task ClonePreset()
     {
-        //TODO: WiP invert the order of actions, use "with" keyword
+        //TODO: ask for discarding permission, think if its better to clone unsaved copy or only persisted one.
 
-        // var clone = CurrentOptions.CloneWithJson();
+        const string Name = "Name";
+        const string Id = "Id";
 
-        // clone.Id = IdGetter.Next();
-        // clone.Name = $"{CurrentOptions.Name} - copy";
+        var domainClone = mapper.Map<DeckOptions>(CurrentOptions, opt =>
+        {
+            opt.Items[Id] = IdGetter.Next();
+            opt.Items[Name] = $"{CurrentOptions.Name} - copy";
+        });
 
-        // await deckOptService.CreateNew(
-        //     mapper.Map<DeckOptions>(clone));
+        await deckOptService.CreateNew(domainClone);
         
-        // AllPresets.Add(clone);
-
-        throw new NotImplementedException();
+        AllPresets.Add(
+            mapper.Map<DeckOptionsVM>(domainClone));
     }
 
     [RelayCommand]

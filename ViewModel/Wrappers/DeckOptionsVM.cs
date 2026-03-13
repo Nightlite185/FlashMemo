@@ -71,7 +71,7 @@ public partial class DeckOptionsVM: RenameVMBase
     }
     public partial class DailyLimitsOpt: ObservableObject, IViewModel
     {
-        [ObservableProperty] public partial int DailyReviewsLimit { get; set; }
-        [ObservableProperty] public partial int DailyLessonsLimit { get; set; }
+        [ObservableProperty] public partial int Reviews { get; set; }
+        [ObservableProperty] public partial int Lessons { get; set; }
     }
 }

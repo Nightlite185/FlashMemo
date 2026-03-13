@@ -48,8 +48,8 @@ public class DeckOptionsEntity
     }
     public sealed class DailyLimitsOpt
     {
-        public int DailyReviewsLimit { get; set; }
-        public int DailyLessonsLimit { get; set; }
+        public int Reviews { get; set; }
+        public int Lessons { get; set; }
     }
     public sealed class SortingOpt
     {

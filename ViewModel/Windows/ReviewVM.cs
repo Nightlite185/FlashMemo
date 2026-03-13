@@ -134,6 +134,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
     private async Task ReviewAsync(Answers answer)
     {
+        var time = stopWatch.Elapsed;
         stopWatch.Reset();
 
         if (!IsCardLoaded)
@@ -147,8 +148,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         
         var reviewed = await cardService.ReviewCardAsync(
             CurrentCard!.Id,
-            updatedSchedule, answer,
-            stopWatch.Elapsed);
+            updatedSchedule,
+            answer, time);
 
         UpdateOnReview(reviewed, updatedSchedule);
         ShowNextCard();
@@ -167,8 +168,6 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     
     protected override async Task ReloadDomainAsync()
     {
-        // TODO: any changes persisted from either user or deck options should be handled, requery for all cards.
-     
         // 1. Fetch fresh entities for all session card IDs in one query
         var freshEntities = await cardRepo.GetByIds(
             allSessionCards.Select(c => c.Id));
@@ -237,7 +236,6 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     public override void OnFocusLost()
     {
         base.OnFocusLost();
-
         stopWatch.Stop();
     }
 
@@ -278,6 +276,9 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     {
         AnswerRevealed = true;
 
+        if (userOptions.TimerStopsOnReveal)
+            stopWatch.Stop();
+
         SchedulePerms = Scheduler.GetForecast(
             CurrentCard ?? throw new NullReferenceException(),
             deckOptions.Scheduling);
@@ -310,7 +311,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         if (!IsCardLoaded) throw new InvalidOperationException(
         "tried to open card editor, but no card was loaded.");
 
-        stopWatch.Stop();
+        // stopWatch.Stop();
 
         await NavigateTo(new EditCardNavRequest(
             CurrentCard!.Id, userId, this));
@@ -319,7 +320,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     [RelayCommand]
     private async Task ShowEditFromHistory(ICard card)
     {
-        stopWatch.Stop();
+        // stopWatch.Stop();
 
         await NavigateTo(new EditCardNavRequest(
             card.Id, userId, this));

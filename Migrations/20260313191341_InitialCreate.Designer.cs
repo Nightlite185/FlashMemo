@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260312194904_InitialCreate")]
+    [Migration("20260313191341_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -348,10 +348,10 @@ namespace FlashMemo.Migrations
                             b1.Property<long>("DeckOptionsEntityId")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("DailyLessonsLimit")
+                            b1.Property<int>("Lessons")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("DailyReviewsLimit")
+                            b1.Property<int>("Reviews")
                                 .HasColumnType("INTEGER");
 
                             b1.HasKey("DeckOptionsEntityId");

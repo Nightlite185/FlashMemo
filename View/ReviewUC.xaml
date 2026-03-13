@@ -47,6 +47,7 @@
                 <TextBlock
                     Grid.Column="0"
                     Text="{Binding ElapsedTime}"
+                    Visibility="{Binding TimerVisible, Mode=OneWay, Converter={StaticResource BoolToVisConverter}}"
                     Foreground="#88FFFFFF"
                     FontSize="16"
                     VerticalAlignment="Center"/>

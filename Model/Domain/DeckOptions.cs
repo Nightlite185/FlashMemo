@@ -84,19 +84,16 @@ public record DeckOptions
         #region defaults
         public static readonly DailyLimitsOpt Default = new()
         {
-            //NewIgnoreReviewLimit = DefNewIgnoreReviewLimit,
-            DailyReviewsLimit = DefDailyReviewsLimit,
-            DailyLessonsLimit = DefDailyLessonsLimit
+            Reviews = DefReviews,
+            Lessons = DefLessons
         };
-        //public const bool DefNewIgnoreReviewLimit = true;
-        public const int DefDailyReviewsLimit = 20;
-        public const int DefDailyLessonsLimit = 10;
+        public const int DefReviews = 20;
+        public const int DefLessons = 10;
         #endregion
 
         #region options
-        // public bool NewIgnoreReviewLimit { get; init; }
-        public int DailyReviewsLimit { get; init; }
-        public int DailyLessonsLimit { get; init; }
+        public int Reviews { get; init; }
+        public int Lessons { get; init; }
         #endregion
     }
     public sealed record SortingOpt

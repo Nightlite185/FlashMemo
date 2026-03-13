@@ -345,10 +345,10 @@ namespace FlashMemo.Migrations
                             b1.Property<long>("DeckOptionsEntityId")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("DailyLessonsLimit")
+                            b1.Property<int>("Lessons")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<int>("DailyReviewsLimit")
+                            b1.Property<int>("Reviews")
                                 .HasColumnType("INTEGER");
 
                             b1.HasKey("DeckOptionsEntityId");

@@ -236,7 +236,7 @@
                             <xceed:UIntegerUpDown
                                 Grid.Column="1"
                                 Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                Value="{Binding CurrentOptions.DailyLimits.DailyLessonsLimit}"/>
+                                Value="{Binding CurrentOptions.DailyLimits.Lessons}"/>
 
                             <TextBlock
                                 Grid.Row="1"
@@ -247,7 +247,7 @@
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                Value="{Binding CurrentOptions.DailyLimits.DailyReviewsLimit}"/>
+                                Value="{Binding CurrentOptions.DailyLimits.Reviews}"/>
 
                         </Grid>
 

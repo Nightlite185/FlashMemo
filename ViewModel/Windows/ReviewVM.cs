@@ -114,6 +114,9 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     }
     private void UpdateOnReview(CardEntity reviewed, ScheduleInfo schedule)
     {
+        if (CurrentCard is null) 
+            throw new NullReferenceException();
+
         if (schedule.State is CardState.Learning)
             learningPool.Add(new(reviewed));
 
@@ -122,6 +125,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
 
         else throw new InvalidOperationException(
             "Card after reviewing can't still have lesson state.");
+
+        CurrentCard.Refresh(reviewed);
 
         CardsCount.UpdateCount();
 
@@ -215,10 +220,10 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         or CtxMenuAction.Forget)
         {
             CurrentCard.IsDeleted = true;
-            ShowNextCard();
+            ReviewedCount++;
 
             CardsCount.UpdateCount();
-            ReviewedCount++;
+            ShowNextCard();
         }
     }
 

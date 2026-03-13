@@ -2,11 +2,65 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:model="clr-namespace:FlashMemo.Model.Domain"
              xmlns:vm="clr-namespace:FlashMemo.ViewModel.Windows"
              xmlns:viewmodel="clr-namespace:FlashMemo.ViewModel"
              xmlns:helpers="clr-namespace:FlashMemo.Helpers"
              Focusable="True"
              helpers:FocusBoundaryBehavior.EnableBoundaryFocusTracking="True">
+
+    <UserControl.Resources>
+        <Style x:Key="ReviewCounterTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextDecorations" Value="{x:Null}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="ReviewCounterLessonsStyle"
+               TargetType="TextBlock"
+               BasedOn="{StaticResource ReviewCounterTextStyle}">
+            <Setter Property="Foreground" Value="#E534D5FF"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentCard.State}" Value="{x:Static model:CardState.New}">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="TextDecorations" Value="Underline"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ReviewCounterLearningStyle"
+               TargetType="TextBlock"
+               BasedOn="{StaticResource ReviewCounterTextStyle}">
+            <Setter Property="Foreground" Value="#FFFF733F"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentCard.State}" Value="{x:Static model:CardState.Learning}">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="TextDecorations" Value="Underline"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ReviewCounterReviewsStyle"
+               TargetType="TextBlock"
+               BasedOn="{StaticResource ReviewCounterTextStyle}">
+            <Setter Property="Foreground" Value="#E500F95D"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentCard.State}" Value="{x:Static model:CardState.Review}">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="TextDecorations" Value="Underline"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ReviewCounterSeparatorStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#CCFFFFFF"/>
+            <Setter Property="Margin" Value="7,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
 
     <Grid Background="#FF2A2A2A"
           KeyDown="Root_KeyDown"
@@ -29,6 +83,8 @@
                 <!-- Header -->
                 <RowDefinition Height="*"/>
                 <!-- Content -->
+                <RowDefinition Height="Auto"/>
+                <!-- Counters -->
                 <RowDefinition Height="Auto"/>
                 <!-- Buttons -->
             </Grid.RowDefinitions>
@@ -122,10 +178,9 @@
 
             </Grid>
 
-
             <!-- ================= BUTTON BAR ================= -->
 
-            <Grid Grid.Row="2" Margin="20">
+            <Grid Grid.Row="3" Margin="20,0,20,20">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -144,29 +199,67 @@
                     Content="Edit"
                     Command="{Binding ShowCardEditCommand}"
                     Style="{StaticResource NavButtonStyle}"
-                    Width="78"/>
+                    Width="78"
+                    VerticalAlignment="Center"/>
 
                 <!-- CENTER ANSWERS -->
-                <StackPanel
-                    Grid.Column="0"
-                    Grid.ColumnSpan="4"
-                    Orientation="Horizontal"
+                <Grid
+                    Grid.Column="1"
                     HorizontalAlignment="Center">
 
-                    <!-- Reveal -->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0"
+                            HorizontalAlignment="Center"
+                            Padding="10,2"
+                            Margin="0,0,0,6"
+                            Background="#1AFFFFFF"
+                            CornerRadius="10">
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center">
+
+                            <TextBlock Text="{Binding CardsCount.Reviews}"
+                                       Style="{StaticResource ReviewCounterReviewsStyle}"/>
+
+                            <TextBlock Text="+"
+                                       Style="{StaticResource ReviewCounterSeparatorStyle}"/>
+
+                            <TextBlock Text="{Binding CardsCount.Learning}"
+                                       Style="{StaticResource ReviewCounterLearningStyle}"/>
+
+                            <TextBlock Text="+"
+                                       Style="{StaticResource ReviewCounterSeparatorStyle}"/>
+
+                            <TextBlock Text="{Binding CardsCount.Lessons}"
+                                       Style="{StaticResource ReviewCounterLessonsStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Reveal centered to same anchor as answer-buttons row -->
                     <Button
+                        Grid.Row="1"
                         Content="Reveal"
                         Command="{Binding RevealAnswerCommand}"
                         Style="{StaticResource NavButtonStyle}"
                         Width="78"
-                        Margin="5,0"
-                        Visibility="{Binding IsEnabled,
-                            RelativeSource={RelativeSource Self},
-                            Converter={StaticResource BoolToVisConverter}}"/>
+                        Margin="0,0,0,4"
+                        HorizontalAlignment="Center"
+                        Visibility="{Binding AnswerRevealed,
+                            Converter={StaticResource InverseBoolToVisConverter}}"/>
 
+                    <UniformGrid Grid.Row="2"
+                                 Columns="4"
+                                 HorizontalAlignment="Center"
+                                 Visibility="{Binding AnswerRevealed,
+                                    Converter={StaticResource BoolToVisConverter}}">
 
                     <!-- AGAIN -->
-                    <Grid Margin="6,0">
+                    <Grid>
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -194,7 +287,7 @@
 
 
                     <!-- HARD -->
-                    <Grid Margin="6,0">
+                    <Grid>
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -222,7 +315,7 @@
 
 
                     <!-- GOOD -->
-                    <Grid Margin="6,0">
+                    <Grid>
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -250,7 +343,7 @@
 
 
                     <!-- EASY -->
-                    <Grid Margin="6,0">
+                    <Grid>
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -276,7 +369,8 @@
 
                     </Grid>
 
-                </StackPanel>
+                    </UniformGrid>
+                </Grid>
 
                 <!-- History (RIGHT SIDE) -->
                 <Button
@@ -286,6 +380,7 @@
                     Style="{StaticResource NavButtonStyle}"
                     Width="78"
                     Margin="0,0,8,0"
+                    VerticalAlignment="Center"
                     Click="HistoryButton_Click">
 
                     <Button.ContextMenu>
@@ -313,6 +408,7 @@
                     Content="More"
                     Style="{StaticResource NavButtonStyle}"
                     Width="78"
+                    VerticalAlignment="Center"
                     Click="MoreButton_Click">
 
 

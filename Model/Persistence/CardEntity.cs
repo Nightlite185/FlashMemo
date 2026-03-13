@@ -96,6 +96,7 @@ public class CardEntity: ICard
     public void Forget()
     {
         State = CardState.New;
+        LearningStage = null;
         Due = DateTime.Now;
         LastModified = DateTime.Now;
         Interval = TimeSpan.MinValue;

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
@@ -5,11 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQueryBuilder cqb)
+public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQueryBuilder queryBuilder, IUserOptionsService userOptService)
     : DbDependentClass(factory), ICardQueryService
 {
-    private readonly ICardQueryBuilder queryBuilder = cqb;
-
     #region Public methods
     public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
     {
@@ -55,14 +54,20 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
             .SingleAsync(d => d.Id == deckId);
 
         var sortOpt = rootDeck.Options.Sorting;
+        ApplySortQuery(grouped, sortOpt);
 
-        var cards = await SortAndLimitAsync(
-            rootDeck, grouped);
-        
+        var takings = await ApplyLimitsQuery(
+            rootDeck.UserId, grouped, 
+            rootDeck.Options);
+
+        var materialized = await MaterializeQuery(grouped, takings);
+
+        ShuffleIfRandom(materialized, rootDeck.Options.Sorting);
+
         var finalCollection = MergeByState(
-            cards, sortOpt.CardStateOrder);
+            materialized, sortOpt);
 
-        return (finalCollection, (CardsCount)cards);
+        return (finalCollection, (CardsCount)materialized);
     }
     public async Task<IList<CardEntity>> GetAllFromUser(long userId)
     {
@@ -89,38 +94,21 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
     }
     #endregion
     
-    private async static Task<CardsByState> SortAndLimitAsync(Deck rootDeck, CardsByStateQ grouped)
+    #region private methods
+    private static void ApplySortQuery(CardsByStateQ cardsQ, DeckOptionsEntity.SortingOpt opt)
     {
-        var sortOpt = rootDeck.Options.Sorting;
-        var limitsOpt = rootDeck.Options.DailyLimits;
+        cardsQ.Learning = cardsQ.Learning
+            .OrderBy(c => c.Due);
 
-        var learning = await grouped.Learning
-            .OrderBy(c => c.Due)
-            .ToListAsync();
-
-        var lessons = await grouped.Lessons
-            .SortLessons(sortOpt)
-            .Take(limitsOpt.DailyLessonsLimit)
-            .ToListAsync();
+        cardsQ.Lessons = cardsQ.Lessons
+            .SortLessons(opt);
         
-        var reviews = await grouped.Reviews
-            .SortReviews(sortOpt)
-            .Take(limitsOpt.DailyReviewsLimit)
-            .ToListAsync();
-
-        lessons.ShuffleIf(sortOpt.LessonsOrder == LessonOrder.Random);
-        reviews.ShuffleIf(sortOpt.ReviewsOrder == ReviewOrder.Random);
-
-        return new()
-        {
-            Learning = learning.AsReadOnly(),
-            Lessons = lessons.AsReadOnly(),
-            Reviews = reviews.AsReadOnly()
-        };
+        cardsQ.Reviews = cardsQ.Reviews
+            .SortReviews(opt);
     }
-    private static ICollection<CardEntity> MergeByState(CardsByState cards, CardStateOrder order)
+    private static ICollection<CardEntity> MergeByState(CardsByState cards, DeckOptionsEntity.SortingOpt sortOpt)
     {
-        return order switch
+        return sortOpt.CardStateOrder switch
         {
             CardStateOrder.NewThenReviews
                 => [..cards.Learning
@@ -138,10 +126,84 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
                         .Concat(cards.Lessons)
                         .Shuffle())],
 
-            _ => throw new ArgumentException(
-                $"Invalid {nameof(CardStateOrder)} enum value: {order}")
+            _ => throw new InvalidEnumArgumentException(
+                nameof(sortOpt.CardStateOrder), (int)sortOpt.CardStateOrder, typeof(CardStateOrder))
         };
     }
+    private async Task<LessonReviewTake> ApplyLimitsQuery(long userId, CardsByStateQ cardsQ, DeckOptionsEntity deckOpt)
+    {
+        #region variables
+        var stateOrder = deckOpt.Sorting.CardStateOrder;
+
+        int reviewsCap = deckOpt.DailyLimits.Reviews;
+        int lessonsCap = deckOpt.DailyLimits.Lessons;
+
+        int reviewsTake = reviewsCap;
+        int lessonsTake = lessonsCap;
+
+        bool include = (await userOptService.GetFromUser(userId))
+            .IncludeLessonsInReviewLimit;
+        #endregion
+
+        if (include)
+        {
+            if (stateOrder is CardStateOrder.ReviewsThenNew or CardStateOrder.Mix)
+            {
+                int reviewCount = await cardsQ
+                    .Reviews.CountAsync();
+
+                int cappedReviews = Math.Min(reviewCount, reviewsTake);
+
+                lessonsTake = Math.Min(
+                    lessonsCap, Math.Max(
+                        reviewsTake - cappedReviews, 0));
+            }
+
+            else if (stateOrder is CardStateOrder.NewThenReviews)
+            {
+                int lessonCount = await cardsQ
+                    .Lessons.CountAsync();
+
+                int cappedLessons = Math.Min(lessonCount, lessonsTake);
+
+                reviewsTake = Math.Max(
+                    reviewsCap - cappedLessons, 0);
+            }
+        }
+
+        cardsQ.Reviews = cardsQ.Reviews
+            .Take(reviewsTake);
+
+        cardsQ.Lessons = cardsQ.Lessons
+            .Take(lessonsTake);
+
+        return new(lessonsTake, reviewsTake);
+    }
+    private static void ShuffleIfRandom(CardsByState cards, DeckOptionsEntity.SortingOpt sortOpt)
+    {
+        cards.Lessons.ShuffleIf(
+            sortOpt.LessonsOrder == LessonOrder.Random);
+
+        cards.Reviews.ShuffleIf(
+            sortOpt.ReviewsOrder == ReviewOrder.Random);
+    }
+    private static async Task<CardsByState> MaterializeQuery(CardsByStateQ query, LessonReviewTake takings)
+    {
+        return new()
+        {
+            Learning = await query
+                .Learning.ToListAsync(),
+
+            Lessons = (takings.LessonsTake != 0) 
+                ? await query.Lessons.ToListAsync()
+                : [],
+
+            Reviews = (takings.ReviewsTake != 0) 
+                ? await query.Reviews.ToListAsync()
+                : []
+        };
+    }
+    #endregion
 }
 public readonly struct CardsCount
 {
@@ -159,15 +221,17 @@ public readonly struct CardsCount
     public readonly int Learning { get; init; }
     public readonly int Reviews { get; init; }
 }
-public readonly struct CardsByStateQ
+public class CardsByStateQ
 {
-    public IQueryable<CardEntity> Lessons { get; init; }
-    public IQueryable<CardEntity> Learning { get; init; }
-    public IQueryable<CardEntity> Reviews { get; init; }
+    public required IQueryable<CardEntity> Lessons { get; set; }
+    public required IQueryable<CardEntity> Learning { get; set; }
+    public required IQueryable<CardEntity> Reviews { get; set; }
 }
 public readonly struct CardsByState
 {
-    public readonly IReadOnlyList<CardEntity> Lessons { get; init; }
-    public readonly IReadOnlyList<CardEntity> Learning { get; init; }
-    public readonly IReadOnlyList<CardEntity> Reviews { get; init; }
+    public readonly List<CardEntity> Lessons { get; init; }
+    public readonly List<CardEntity> Learning { get; init; }
+    public readonly List<CardEntity> Reviews { get; init; }
 }
+
+internal record struct LessonReviewTake(int LessonsTake, int ReviewsTake);

@@ -18,6 +18,9 @@ public static class Scheduler
     #region Private answer handlers
     private static ScheduleInfo ProcessHard(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
     {
+        var multiplied = card.Interval * s.HardMultiplier;
+        var oneDay = TimeSpan.FromDays(1);
+
         return card.State switch
         {
             CardState.New => new(
@@ -25,15 +28,18 @@ public static class Scheduler
                 LearningStage: s.HardOnNewStage,
                 Interval: s.LearningStages[s.HardOnNewStage]
             ),
-            
+
             CardState.Learning => new(
                 LearningStage: card.LearningStage,
                 Interval: s.LearningStages[card.LearningStage],
                 State: card.State
             ),
-            
+
             CardState.Review => new(
-                Interval: card.Interval * s.HardMultiplier,
+                Interval: (multiplied > oneDay)
+                    ? multiplied
+                    : oneDay,
+
                 State: card.State,
                 LearningStage: null
             ),

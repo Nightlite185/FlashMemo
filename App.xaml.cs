@@ -74,12 +74,12 @@ public partial class App : Application
         sc.AddSingleton<UserSelectVMF>();
         sc.AddSingleton<CardEditorVMF>();
         sc.AddSingleton<FiltersVMF>();
-        sc.AddSingleton<ManageTagsVMF>();
         sc.AddSingleton<BrowseVMF>();
         sc.AddSingleton<MainVMF>();
         sc.AddSingleton<UserOptionsMenuVMF>();
         sc.AddSingleton<ReviewVMF>();
         sc.AddSingleton<DecksVMF>();
+        sc.AddSingleton<CardTagsVMF>();
 
         // ==== SERVICES ====
         sc.AddTransient<MainWindowBootstrapper>();

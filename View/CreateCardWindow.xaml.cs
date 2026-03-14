@@ -72,11 +72,11 @@ namespace FlashMemo.View
 
             ApplyEditorDefaults();
 
-            if (VM is not ITagManagerHost host || host.TagManager is null)
-                throw new NotSupportedException($"{nameof(CreateCardVM)} should expose a non-null {nameof(ITagManagerHost.TagManager)}.");
+            if (VM is not ICardTagsVMHost host || host.CardTagsVM is null)
+                throw new NotSupportedException($"{nameof(CreateCardVM)} should expose a non-null {nameof(ICardTagsVMHost.CardTagsVM)}.");
 
             tagInputController = new(
-                host.TagManager,
+                host.CardTagsVM,
                 TagChipPanel,
                 TagInputBox,
                 TagSuggestionsPopup,

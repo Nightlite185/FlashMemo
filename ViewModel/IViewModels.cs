@@ -77,15 +77,21 @@ public interface IClosingAware
     Task<bool> CanCloseAsync();
 }
 
-public interface ITagManagerVM
+public interface ICardTagsVM
 {
     IEnumerable<TagVM> CardTags { get; }
-    Task<IEnumerable<TagVM>> GetAllExistingTagsAsync();
+    IEnumerable<TagVM> AllTags { get; }
     Task<TagVM?> AddTagAsync(string tagName);
     bool RemoveTag(long tagId);
 }
 
-public interface ITagManagerHost
+public interface ICardTagsVMHost
 {
-    ITagManagerVM? TagManager { get; }
+    ICardTagsVM CardTagsVM { get; }
+}
+
+public interface ITagManagerEventSource
+{
+    event Action<IEnumerable<TagVM>, long> TagContextChanged;
+    event Action TagContextCleared;
 }

@@ -11,7 +11,7 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.Helpers;
 
 internal sealed class TagChipInputController(
-    ITagManagerVM vm,
+    ICardTagsVM vm,
     WrapPanel chipHostPanel,
     TextBox inputBox,
     Popup suggestionsPopup,
@@ -103,8 +103,8 @@ internal sealed class TagChipInputController(
 
     private async Task ReloadAllTagsAsync()
     {
-        allTags = [.. (await vm.GetAllExistingTagsAsync())
-            .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)];
+        allTags = [.. vm.AllTags.OrderBy(t => 
+            t.Name, StringComparer.OrdinalIgnoreCase)];
     }
 
     private async Task CommitFromInputOrSuggestionAsync()
@@ -185,8 +185,8 @@ internal sealed class TagChipInputController(
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var matches = allTags
-            .Where(t => !selectedNames.Contains(t.Name.Trim()))
-            .Where(t => t.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(t => !selectedNames.Contains(t.Name.Trim()) 
+                && t.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(t => t.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase))
             .ThenBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();

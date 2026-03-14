@@ -31,7 +31,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
                 break;
 
             case CreateCardNavRequest e:
-                ShowCreateCard(e);
+                await ShowCreateCard(e);
                 await Task.CompletedTask;
                 break;
 
@@ -68,9 +68,9 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
 
         WireHelper(vm, win, e.Sender);
     }
-    private void ShowCreateCard(CreateCardNavRequest e)
+    private async Task ShowCreateCard(CreateCardNavRequest e)
     {
-        var vm = createCardVMF.Create(e.TargetDeck);
+        var vm = await createCardVMF.CreateAsync(e.TargetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();
 
         WireHelper(vm, win, e.Sender);

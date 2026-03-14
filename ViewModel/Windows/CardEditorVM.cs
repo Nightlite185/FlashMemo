@@ -12,18 +12,21 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IVMEventBus bus, IDeckRepo dr, DeckSelectVMF dsVMF)
-                                : BaseVM(bus), ICloseRequest, IPopupHost, ICtxMenuHost
+                                : BaseVM(bus), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
     public EditableCardVM Card { get; private set; } = null!;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
+    public ICardTagsVM CardTagsVM { get; private set; } = null!;
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
 
     #region methods
-    internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM) //* Factory calls this
+    internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM, ICardTagsVM ctVM) //* Factory calls this
     {
+        CardTagsVM = ctVM;
         CtxMenuVM = ccmVM;
+        
         eventBus.DomainChanged += OnDomainChanged;
 
         var card = await cardRepo.GetById(cardId) 
@@ -61,8 +64,6 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
             OnCloseRequest?.Invoke();
             return;
         }
-
-        
     } 
     private async Task ChangeDeck(IDeckMeta deck)
     {

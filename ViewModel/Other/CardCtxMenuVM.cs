@@ -12,8 +12,8 @@ namespace FlashMemo.ViewModel.Other;
 
 public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete, ShowDetails }
 
-public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF mtVMF, IPopupHost pph, 
-                                DeckSelectVMF dsVMF, IVMEventBus eventBus, long userId, ICtxMenuHost host): ObservableObject
+public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF, 
+                                IVMEventBus eventBus, long userId, ICtxMenuHost host): ObservableObject
 {
     #region ICommands
     
@@ -76,19 +76,20 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
         await ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
 
-    [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
+    [Obsolete] [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
     private async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
     {
-        ThrowIfNotOneCaptured();
+        throw new NotSupportedException();
+        // ThrowIfNotOneCaptured();
 
-        long cardId = capturedCards!
-            .Single().Id;
+        // long cardId = capturedCards!
+        //     .Single().Id;
 
-        popupHost.CurrentPopup = await manageTagsVMF.CreateAsync(
-            confirm: ChangeTags,
-            cancel: PopupCancel,
-            cardId, userId
-        );
+        // popupHost.CurrentPopup = await manageTagsVMF.CreateAsync(
+        //     confirm: ChangeTags,
+        //     cancel: PopupCancel,
+        //     cardId, userId
+        // );
     }
     [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
     private async Task ShowCardDetails()
@@ -173,7 +174,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, ManageTagsVMF 
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     private readonly IVMEventBus eventBus = eventBus;
     private readonly ICardRepo cardRepo = cr;
-    private readonly ManageTagsVMF manageTagsVMF = mtVMF;
     private readonly IPopupHost popupHost = pph;
     private readonly ICtxMenuHost ctxHost = host;
     private IReadOnlyCollection<ICardVM>? capturedCards;

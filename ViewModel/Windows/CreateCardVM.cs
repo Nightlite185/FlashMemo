@@ -13,7 +13,7 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class CreateCardVM(ITagRepo tr, ICardRepo cr, IDeckMeta targetDeck, 
 DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
-: BaseVM(bus), ICloseRequest, IPopupHost
+: BaseVM(bus), ICloseRequest, IPopupHost, ICardTagsVMHost
 {
     #region private things
     private const int HistoryCap = 10;
@@ -35,11 +35,15 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
     public partial PopupVMBase? CurrentPopup { get; set; }
 
     public Queue<CardEntity> History { get; init; } = [];
+    public ICardTagsVM CardTagsVM { get; private set; } = null!;
     #endregion
 
     #region methods
-    internal void Initialize()
-        => eventBus.DomainChanged += OnDomainChanged;
+    internal void Initialize(ICardTagsVM ctVM)
+    {
+        CardTagsVM = ctVM;
+        eventBus.DomainChanged += OnDomainChanged;
+    }
 
     private async Task ChangeDeck(IDeckMeta newDeck)
     {

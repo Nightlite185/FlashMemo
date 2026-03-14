@@ -34,12 +34,12 @@ public interface IDeckRepo
 
 public interface ITagRepo
 {
-    Task<IEnumerable<Tag>> GetFromUser(long userId);
-    Task<IEnumerable<Tag>> GetFromCard(long cardId);
-    Task AddNew(params IEnumerable<Tag> tags);
-    Task Remove(params IEnumerable<Tag> tags);
+    Task<ICollection<Tag>> GetFromUser(long userId);
+    Task<ICollection<Tag>> GetFromCard(long cardId);
+    Task CreateNew(Tag newTag);
+    Task Remove(long tagId);
     Task SaveEdited(Tag updated);
-    Task<IEnumerable<Tag>> GetByIds(IEnumerable<long> tagIds);
+    Task<Tag> GetById(long tagId);
 }
 
 public interface IUserRepo

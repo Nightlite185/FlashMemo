@@ -5,40 +5,36 @@ namespace FlashMemo.Repositories;
 
 public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ITagRepo
 {
-    public async Task<IEnumerable<Tag>> GetFromUser(long userId)
+    public async Task<ICollection<Tag>> GetFromUser(long userId)
     {
-        var db = GetDb;
-
-        return await db.Tags
+        return await GetDb.Tags
             .Where(t => t.UserId == userId)
             .AsNoTracking()
-            .ToListAsync();
+            .ToArrayAsync();
     }
-    public async Task<IEnumerable<Tag>> GetFromCard(long cardId)
+    public async Task<ICollection<Tag>> GetFromCard(long cardId)
     {
-        var db = GetDb;
-        
         // TODO: this can be improved with a separate many<->many separate cardTags table
-        var card = await db.Cards
+
+        return await GetDb.Cards
             .AsNoTracking()
             .Include(c => c.Tags)
-            .SingleAsync(c => c.Id == cardId);
-            
-        return card.Tags;
+            .Where(c => c.Id == cardId)
+            .Select(c => c.Tags)
+            .SingleAsync();
     }
-    public async Task AddNew(params IEnumerable<Tag> tags)
+    public async Task CreateNew(Tag newTag)
     {
         var db = GetDb;
 
-        await db.Tags.AddRangeAsync(tags);
+        await db.Tags.AddAsync(newTag);
         await db.SaveChangesAsync();
     }
-    public async Task Remove(params IEnumerable<Tag> tags)
+    public async Task Remove(long tagId)
     {
-        var db = GetDb;
-
-        db.Tags.RemoveRange(tags);
-        await db.SaveChangesAsync();
+        await GetDb.Tags
+            .Where(t => t.Id == tagId)
+            .ExecuteDeleteAsync();
     }
     public async Task SaveEdited(Tag updated)
     {
@@ -53,13 +49,10 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
     
         await db.SaveChangesAsync();
     }
-    public async Task<IEnumerable<Tag>> GetByIds(IEnumerable<long> tagIds)
+    public async Task<Tag> GetById(long tagId)
     {
-        var db = GetDb;
-
-        return await db.Tags
-            .Where(t => tagIds.Contains(t.Id))
+        return await GetDb.Tags
             .AsNoTracking()
-            .ToArrayAsync();
+            .SingleAsync(t => t.Id == tagId);
     }
 }

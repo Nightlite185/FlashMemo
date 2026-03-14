@@ -1,6 +1,7 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
@@ -73,4 +74,17 @@ public interface ICardsSource<TCard> where TCard: class
 public interface IClosingAware
 {
     Task<bool> CanCloseAsync();
+}
+
+public interface ITagManagerVM
+{
+    IEnumerable<TagVM> CardTags { get; }
+    Task<IEnumerable<TagVM>> GetAllExistingTagsAsync();
+    Task<TagVM?> AddTagAsync(string tagName);
+    bool RemoveTag(long tagId);
+}
+
+public interface ITagManagerHost
+{
+    ITagManagerVM? TagManager { get; }
 }

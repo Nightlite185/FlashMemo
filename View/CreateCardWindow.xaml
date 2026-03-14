@@ -85,17 +85,92 @@
                     BorderBrush="{StaticResource NavBorderBrush}" Background="#CC2A2E34">
 
                 <Grid>
-                    <TextBlock Text="Back:"
-                            Foreground="White"
-                            FontSize="18"
-                            Margin="0,0,0,8"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="Back:"
+                               Foreground="White"
+                               FontSize="18"
+                               Margin="0,0,0,8"/>
 
                     <RichTextBox x:Name="BackBox"
-                                Margin="0,28,0,0"
-                                Background="#22000000"
-                                Foreground="White"
-                                BorderThickness="0"
-                                FontSize="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=FontSize}"/>
+                                 Grid.Row="1"
+                                 Margin="0,0,0,10"
+                                 Background="#22000000"
+                                 Foreground="White"
+                                 BorderThickness="0"
+                                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=FontSize}"/>
+
+                    <Border x:Name="TagInputBorder"
+                            Grid.Row="2"
+                            Padding="8,5"
+                            CornerRadius="8"
+                            BorderThickness="1"
+                            BorderBrush="#8895A5B8"
+                            Background="#22000000">
+                        <DockPanel LastChildFill="True">
+                            <TextBlock Text="Tag:"
+                                       Margin="0,0,8,0"
+                                       Foreground="#CCD9E3F0"
+                                       VerticalAlignment="Center"
+                                       FontSize="17"/>
+
+                            <WrapPanel x:Name="TagChipPanel"
+                                       VerticalAlignment="Center">
+                                <TextBox x:Name="TagInputBox"
+                                         MinWidth="120"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Foreground="White"
+                                         FontSize="24"
+                                         CaretBrush="White"
+                                         VerticalContentAlignment="Center"/>
+                            </WrapPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <Popup x:Name="TagSuggestionsPopup"
+                           PlacementTarget="{Binding ElementName=TagInputBorder}"
+                           Placement="Top"
+                           AllowsTransparency="True"
+                           StaysOpen="True">
+                        <Border Width="{Binding ActualWidth, ElementName=TagInputBorder}"
+                                MaxHeight="190"
+                                Padding="0"
+                                CornerRadius="6"
+                                BorderThickness="1"
+                                BorderBrush="#AA9BB2CC"
+                                Background="#FF31343A">
+                            <ListBox x:Name="TagSuggestionsList"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="White"
+                                     FontSize="20"
+                                     DisplayMemberPath="Name"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#552F89FF"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Background" Value="#AA2F89FF"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                            </ListBox>
+                        </Border>
+                    </Popup>
                 </Grid>
 
             </Border>

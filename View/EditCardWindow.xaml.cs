@@ -12,6 +12,7 @@ namespace FlashMemo.View
     public partial class EditCardWindow : Window, IViewFor<CardEditorVM>
     {
         private const double EditorFontSize = 24;
+        private TagChipInputController? tagInputController;
 
         public CardEditorVM VM { get; set; } = null!;
         public EditCardWindow()
@@ -22,10 +23,22 @@ namespace FlashMemo.View
             Closing += OnWindowClosing;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             MoreButton.ContextMenu.DataContext = VM.CtxMenuVM;
             LoadEditorsFromVm();
+
+            if (VM is not ITagManagerHost host || host.TagManager is null)
+                throw new NotSupportedException($"{nameof(CardEditorVM)} should expose a non-null {nameof(ITagManagerHost.TagManager)}.");
+
+            tagInputController = new(
+                host.TagManager,
+                TagChipPanel,
+                TagInputBox,
+                TagSuggestionsPopup,
+                TagSuggestionsList);
+
+            await tagInputController.InitializeAsync();
         }
 
         public async void SaveButtonClicked(object sender, RoutedEventArgs e)
@@ -38,6 +51,9 @@ namespace FlashMemo.View
         {
             await VM.RevertChangesCommand.ExecuteAsync(null);
             LoadEditorsFromVm();
+
+            if (tagInputController is not null)
+                await tagInputController.RefreshAsync(reloadSuggestions: true);
         }
 
         public void MoreButtonClicked(object sender, RoutedEventArgs e)

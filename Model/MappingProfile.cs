@@ -3,6 +3,7 @@ using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
+using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Model;

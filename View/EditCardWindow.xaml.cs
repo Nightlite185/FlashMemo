@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
+using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 

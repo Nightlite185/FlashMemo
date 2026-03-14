@@ -9,7 +9,7 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Wrappers;
 
-namespace FlashMemo.ViewModel;
+namespace FlashMemo.ViewModel.Other;
     public sealed partial class FiltersVM(
         IDeckTreeBuilder dtb, ITagRepo tr,
         long userId): ObservableObject, IViewModel

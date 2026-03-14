@@ -6,6 +6,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;

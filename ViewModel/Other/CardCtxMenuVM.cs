@@ -8,7 +8,7 @@ using FlashMemo.Services;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Factories;
 
-namespace FlashMemo.ViewModel;
+namespace FlashMemo.ViewModel.Other;
 
 public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete, ShowDetails }
 

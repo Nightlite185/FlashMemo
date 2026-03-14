@@ -8,6 +8,7 @@ using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 using FlashMemo.Repositories;
 using FlashMemo.Model;
+using FlashMemo.ViewModel.Other;
 
 namespace FlashMemo.ViewModel.Windows;
 

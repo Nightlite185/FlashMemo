@@ -1,4 +1,6 @@
-namespace FlashMemo.ViewModel.Wrappers;
+using FlashMemo.ViewModel.Wrappers;
+
+namespace FlashMemo.ViewModel.Other;
 
 public interface ITagManagerEventSource
 {

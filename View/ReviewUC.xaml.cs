@@ -1,5 +1,6 @@
 using FlashMemo.Helpers;
 using FlashMemo.ViewModel;
+using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using System.ComponentModel;

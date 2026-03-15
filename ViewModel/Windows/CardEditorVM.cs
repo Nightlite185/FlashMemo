@@ -14,6 +14,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IVMEventBus bus, IDeckRepo dr, DeckSelectVMF dsVMF)
                                 : BaseVM(bus), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
+    public List<TagVM> Tags => Card.Tags;
     public EditableCardVM Card { get; private set; } = null!;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     public ICardTagsVM CardTagsVM { get; private set; } = null!;

@@ -6,12 +6,12 @@ namespace FlashMemo.ViewModel.Factories;
 
 public class CardTagsVMF(ITagRepo tr, IVMEventBus bus)
 {
-    public async Task<CardTagsVM> CreateAsync(long userId, ICardTagsVMHost host, ITagsSource source)
+    public async Task<CardTagsVM> CreateAsync(long userId, ICardTagsVMHost host)
     {
         CardTagsVM vm = new(
             tr, bus, userId);
 
-        await vm.InitAsync(host, source);
+        await vm.InitAsync(host);
         return vm;
     }
 }

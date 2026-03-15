@@ -87,16 +87,11 @@ public interface ICardTagsVM
 
 public interface ICardTagsVMHost
 {
-    ICardTagsVM CardTagsVM { get; }
+    List<TagVM> Tags { get; }
 }
 
 public interface ITagManagerEventSource
 {
     event Action<IEnumerable<TagVM>, long> TagContextChanged;
     event Action TagContextCleared;
-}
-
-public interface ITagsSource
-{
-    List<TagVM> Tags { get; init; }
 }

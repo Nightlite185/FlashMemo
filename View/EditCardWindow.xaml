@@ -109,7 +109,7 @@
                             BorderBrush="#8895A5B8"
                             Background="#22000000">
                         <DockPanel LastChildFill="True">
-                            <TextBlock Text="Tag:"
+                            <TextBlock Text="Tags:"
                                        Margin="0,0,8,0"
                                        Foreground="#CCD9E3F0"
                                        VerticalAlignment="Center"

@@ -11,7 +11,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CreateCardVM(ITagRepo tr, ICardRepo cr, IDeckMeta targetDeck, 
+public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, 
 DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
 : BaseVM(bus), ICloseRequest, IPopupHost, ICardTagsVMHost
 {
@@ -20,13 +20,14 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     private readonly ILastSessionService lastSession = lss;
     private readonly IDeckRepo deckRepo = repo;
-    private readonly ITagRepo tagRepo = tr;
     private readonly ICardRepo cardRepo = cr;
     #endregion
     
     #region public properties
     [ObservableProperty]
     public partial NewCardVM WipCard { get; private set; } = new();
+
+    public List<TagVM> Tags => WipCard.Tags;
     
     [ObservableProperty]
     public partial IDeckMeta CurrentDeck { get; set; } = targetDeck;
@@ -36,6 +37,7 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
 
     public Queue<CardEntity> History { get; init; } = [];
     public ICardTagsVM CardTagsVM { get; private set; } = null!;
+    public event Action? OnCloseRequest;
     #endregion
 
     #region methods
@@ -80,7 +82,7 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
     private void Close() => OnCloseRequest?.Invoke();
 
     [RelayCommand]
-    protected async Task AddCard()
+    private async Task AddCard()
     {
         var card = CardEntity.CreateNew(
             WipCard.Note.ToEntity(),
@@ -112,7 +114,5 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
         await NavigateTo(new EditCardNavRequest(
             card.Id, CurrentDeck.UserId));
     }
-
-    public event Action? OnCloseRequest;
     #endregion
 }

@@ -4,7 +4,7 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class EditableCardVM: ObservableObject, ICardVM, ITagsSource
+public partial class EditableCardVM: ObservableObject, ICardVM
 {
     /// <summary>Deck needs to be included with card, otherwise it will throw on init.</summary>
     /// <exception cref="NullReferenceException"></exception>

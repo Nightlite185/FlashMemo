@@ -9,17 +9,17 @@ public class CardEditorVMF(ICardService cs, ITagRepo tr, ICardRepo cr, CardCtxMe
 {
     public async Task<CardEditorVM> CreateAsync(long cardId, long userId)
     {
-        CardEditorVM ecVM = new(
+        CardEditorVM editorVM = new(
             cs, tr, cr, bus,
             dr, dsVMF);
 
-        var ctVM = await cardTagsVMF.CreateAsync(
-            userId, ecVM, ecVM.Card);
+        var tagsVM = await cardTagsVMF.CreateAsync(
+            userId, editorVM);
 
-        var ccm = ctxFactory.Create(
-            ecVM, ecVM, userId);
+        var ctxMenuVM = ctxFactory.Create(
+            editorVM, editorVM, userId);
 
-        await ecVM.Initialize(cardId, ccm, ctVM);
-        return ecVM;
+        await editorVM.Initialize(cardId, ctxMenuVM, tagsVM);
+        return editorVM;
     }
 }

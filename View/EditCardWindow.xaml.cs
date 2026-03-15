@@ -29,11 +29,8 @@ namespace FlashMemo.View
             MoreButton.ContextMenu.DataContext = VM.CtxMenuVM;
             LoadEditorsFromVm();
 
-            if (VM is not ICardTagsVMHost host || host.CardTagsVM is null)
-                throw new NotSupportedException($"{nameof(CardEditorVM)} should expose a non-null {nameof(ICardTagsVMHost.CardTagsVM)}.");
-
             tagInputController = new(
-                host.CardTagsVM,
+                VM.CardTagsVM,
                 TagChipPanel,
                 TagInputBox,
                 TagSuggestionsPopup,

@@ -10,15 +10,14 @@ namespace FlashMemo.ViewModel.Other;
 public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId): ObservableObject, ICardTagsVM, IViewModel
 {
     #region public properties
-    public IEnumerable<TagVM> CardTags => cardTagsSource.Tags;
+    public IEnumerable<TagVM> CardTags => host.Tags;
     public IEnumerable<TagVM> AllTags => allTags;
     #endregion
 
     #region methods
-    internal async Task InitAsync(ICardTagsVMHost host, ITagsSource source)
+    internal async Task InitAsync(ICardTagsVMHost host)
     {
         this.host = host;
-        cardTagsSource = source;
 
         var allTagVMs = (await tagRepo
             .GetFromUser(userId))
@@ -40,7 +39,7 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId): Obse
     }
     public bool RemoveTag(long tagId)
     {
-        int removed = cardTagsSource.Tags.RemoveAll(
+        int removed = host.Tags.RemoveAll(
             t => t.Id == tagId);
         
         if (removed > 1) throw new InvalidOperationException(
@@ -52,7 +51,6 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId): Obse
 
     #region private things
     private ICardTagsVMHost host = null!;
-    private ITagsSource cardTagsSource = null!;
     private readonly List<TagVM> allTags = [];
     private readonly ITagRepo tagRepo = tr;
     private readonly IVMEventBus eventBus = bus;

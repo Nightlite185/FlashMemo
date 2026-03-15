@@ -102,32 +102,6 @@ public class CardEntity: ICard
         Interval = TimeSpan.MinValue;
     }
     public void MoveToDeck(long newDeckId) => DeckId = newDeckId;
-    public void SyncTagsFrom(CardEntity other)
-    {
-        // Current tracked tag IDs
-        var myTagIds = Tags
-            .Select(t => t.Id)
-            .ToHashSet();
-
-        // Incoming tag IDs
-        var otherTagIds = other.Tags
-            .Select(t => t.Id)
-            .ToHashSet();
-
-        // Remove tags that no longer exist
-        var toRemove = Tags
-            .Where(t => !otherTagIds.Contains(t.Id))
-            .ToList();
-
-        toRemove.ForEach(t => Tags.Remove(t));
-
-        // Add new tags
-        foreach (var tag in other.Tags)
-        {
-            if (!myTagIds.Contains(tag.Id))
-                Tags.Add(new Tag(tag.Id));
-        }
-    }
     public void ReplaceTagsWith(IEnumerable<Tag> newTags)
     {
         Tags.Clear();

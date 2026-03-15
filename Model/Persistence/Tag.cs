@@ -15,11 +15,12 @@ namespace FlashMemo.Model.Persistence
         public string Name { get; set; } = null!;
         public int IntColor { get; set; }
 
-        public static Tag CreateNew(string name, int color = DefaultColor)
+        public static Tag CreateNew(string name, long userId, int color = DefaultColor)
         {
             return new()
             {
                 Id = IdGetter.Next(),
+                UserId = userId,
                 Name = name,
                 IntColor = color
             };

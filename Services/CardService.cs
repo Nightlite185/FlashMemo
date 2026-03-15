@@ -31,7 +31,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
 
         return cardEntity;
     }
-    
+
     ///<summary>Updates scalars, note, FKs, and syncs tags.<summary>
     public async Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null)
     {
@@ -48,15 +48,47 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
 
         updated.Note.MapTo(tracked.Note);
 
-        tracked.SyncTagsFrom(updated);
+        SyncTags(tracked, updated, db);
         
         var log = CardLog
             .CreateLog(tracked, action);
 
         await db.CardLogs.AddAsync(log);
 
-        if (!dbProvided) 
+        if (!dbProvided)
             await db.SaveChangesAsync();
+    }
+    private static void SyncTags(CardEntity tracked, CardEntity updated, AppDbContext db)
+    {
+        // Sync only diffs on the M:N relationship.
+        // Incoming tags can be detached/no-tracking instances, so for adds we must
+        // use entities tracked by this DbContext (or attach stubs as Unchanged).
+
+        var incomingTagIds = updated.Tags
+            .Select(t => t.Id)
+            .ToHashSet();
+
+        var currentTagIds = tracked.Tags
+            .Select(t => t.Id)
+            .ToHashSet();
+
+        var toRemove = tracked.Tags
+            .Where(t => !incomingTagIds.Contains(t.Id))
+            .ToList();
+
+        foreach (var tag in toRemove)
+            tracked.Tags.Remove(tag);
+
+        var toAddIds = incomingTagIds
+            .Where(id => !currentTagIds.Contains(id));
+
+        foreach (var tagId in toAddIds)
+        {
+            var tag = db.Tags.Local.FirstOrDefault(t => t.Id == tagId)
+                ?? db.Attach(new Tag(tagId)).Entity;
+
+            tracked.Tags.Add(tag);
+        }
     }
     
     ///<summary>Updates scalars, FKs, and syncs tags.<summary>

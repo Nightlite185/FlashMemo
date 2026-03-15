@@ -16,8 +16,8 @@ public class CreateCardVMF(ITagRepo tr, ICardRepo cr, DeckSelectVMF dsVMF, ILast
 
         var ctVM = await cardTagsVMF.CreateAsync(
             userId: targetDeck.UserId,
-            cardId: null,
-            host: vm);
+            host: vm,
+            source: vm.WipCard);
 
         vm.Initialize(ctVM);
         return vm;

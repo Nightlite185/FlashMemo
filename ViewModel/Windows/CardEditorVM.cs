@@ -29,7 +29,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
         
         eventBus.DomainChanged += OnDomainChanged;
 
-        var card = await cardRepo.GetById(cardId) 
+        var card = await cardRepo.GetById(cardId)
             ?? throw new InvalidOperationException(
                 "Tried to initialize card editor but provided card doesn't exist.");
 

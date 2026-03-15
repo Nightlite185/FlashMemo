@@ -14,7 +14,7 @@ public class CardEditorVMF(ICardService cs, ITagRepo tr, ICardRepo cr, CardCtxMe
             dr, dsVMF);
 
         var ctVM = await cardTagsVMF.CreateAsync(
-            userId, cardId, ecVM);
+            userId, ecVM, ecVM.Card);
 
         var ccm = ctxFactory.Create(
             ecVM, ecVM, userId);

@@ -1,36 +1,34 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class EditableCardVM: ObservableObject, ICardVM
+public partial class EditableCardVM: ObservableObject, ICardVM, ITagsSource
 {
     /// <summary>Deck needs to be included with card, otherwise it will throw on init.</summary>
     /// <exception cref="NullReferenceException"></exception>
     public EditableCardVM(CardEntity card)
     {
-        Tags = [..card.Tags.ToVMs()];
-        Note = card.Note.ToVM();
-        
         this.card = card;
-        Deck = TryGetDeck(card);
+        Note = card.Note.ToVM();
+
+        TryRefreshTags(card);
+        TryRefreshDeck(card);
     }
 
     public void Refresh(CardEntity updated)
     {
         card = updated;
-        Deck = TryGetDeck(updated);
         Note.Refresh(updated.Note);
 
-        Tags.Clear();
-        Tags.AddRange(updated.Tags.ToVMs());
+        TryRefreshDeck(updated);
+        TryRefreshTags(updated);
     }
 
     [ObservableProperty] public partial NoteVM Note { get; set; }
-    [ObservableProperty] public partial IDeckMeta Deck { get; private set; }
-    public ObservableCollection<TagVM> Tags { get; init; } = [];
+    [ObservableProperty] public partial IDeckMeta Deck { get; private set; } = null!;
+    public List<TagVM> Tags { get; init; } = [];
     public long Id => card.Id;
 
     public void RevertChanges()
@@ -74,10 +72,20 @@ public partial class EditableCardVM: ObservableObject, ICardVM
             && string.Equals(backContent, saved.BackContent, StringComparison.Ordinal);
     }
 
-    private static Deck TryGetDeck(CardEntity card)
+    private void TryRefreshDeck(CardEntity updated)
     {
-        return card.Deck ?? throw new NullReferenceException(
+        if (updated.Deck is null) throw new NullReferenceException(
             "Deck needs to be included with card for this to work.");
+
+        Deck = updated.Deck;
+    }
+    private void TryRefreshTags(CardEntity updated)
+    {
+        if (updated.Tags is null) throw new NullReferenceException(
+            "Tags need to be included with card to refresh them");
+
+        Tags.Clear();
+        Tags.AddRange(updated.Tags.ToVMs());
     }
 
     private CardEntity card;

@@ -95,3 +95,8 @@ public interface ITagManagerEventSource
     event Action<IEnumerable<TagVM>, long> TagContextChanged;
     event Action TagContextCleared;
 }
+
+public interface ITagsSource
+{
+    List<TagVM> Tags { get; init; }
+}

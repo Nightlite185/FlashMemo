@@ -118,7 +118,7 @@
                             <WrapPanel x:Name="TagChipPanel"
                                        VerticalAlignment="Center">
                                 <TextBox x:Name="TagInputBox"
-                                         MinWidth="120"
+                                         MinWidth="30"
                                          BorderThickness="0"
                                          Background="Transparent"
                                          Foreground="White"

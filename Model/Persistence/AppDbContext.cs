@@ -77,10 +77,20 @@ namespace FlashMemo.Model.Persistence
             });
                 
 
-            mb.Entity<Tag>()
-                .ToTable("Tags")
-                .Property(t => t.Id)
-                .ValueGeneratedNever();
+            mb.Entity<Tag>(mb =>
+            {
+                mb.ToTable("Tags");
+
+                mb.Property(t => t.Id)
+                    .ValueGeneratedNever();
+
+                mb.Property(t => t.Name)
+                    .IsRequired()
+                    .UseCollation("NOCASE"); // SQLite case-insensitive
+
+                mb.HasIndex(t => new { t.UserId, t.Name })
+                    .IsUnique();
+            });
 
             mb.Entity<CardLog>()
                 .ToTable("CardLogs")

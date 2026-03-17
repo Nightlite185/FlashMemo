@@ -28,19 +28,27 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId): Obse
     }
     public async Task<TagVM?> AddTagAsync(string tagName)
     {
-        if (host.Tags.Any(t => t.Name == tagName))
+        static bool stringEquals(string a, string b) => 
+            string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+        if (host.Tags.Any(t => stringEquals(t.Name, tagName)))
             return null;
+
+        if (allTags.SingleOrDefault(t => 
+            stringEquals(t.Name, tagName)) is TagVM exists)
+        {
+            host.Tags.Add(exists);
+            eventBus.NotifyDomain();
+
+            return exists;
+        }
 
         var tag = Tag.CreateNew(tagName, userId);
         TagVM vm = new(tag);
-        
-        host.Tags.Add(vm);
 
-        if (!allTags.Any(t => t.Name == tagName))
-        {
-            await tagRepo.CreateNew(tag);
-            allTags.Add(vm);
-        }
+        await tagRepo.CreateNew(tag);
+        allTags.Add(vm);
+        host.Tags.Add(vm);
 
         eventBus.NotifyDomain();
         return vm;

@@ -8,6 +8,8 @@ using FlashMemo.Services;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.Model;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace FlashMemo;
 public partial class App : Application
@@ -108,8 +110,15 @@ public partial class App : Application
         sc.AddSingleton<IUserRepo, UserRepo>();
 
         // ==== DB CONTEXT ====
-        sc.AddDbContext<AppDbContext>(o => 
-            o.UseSqlite($"Data Source={DbPath}"));
+        sc.AddDbContext<AppDbContext>(o =>
+        {
+            o.UseSqlite($"Data Source={DbPath}");
+            o.EnableSensitiveDataLogging();
+
+            o.LogTo(
+                log => Debug.WriteLine(log),
+                LogLevel.Information);
+        });
 
         sc.AddDbContextFactory<AppDbContext>();
 

@@ -135,6 +135,8 @@ public partial class ReviewUC : UserControl
 
     private void Root_KeyDown(object sender, KeyEventArgs e)
     {
+        if (VM.CurrentPopup is not null) return;
+        
         if (e.Key is Key.Space or Key.Enter)
         {
             if (!VM.AnswerRevealed &&

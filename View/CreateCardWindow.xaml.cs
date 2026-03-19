@@ -1,8 +1,8 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using FlashMemo.Helpers;
-using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 
@@ -19,6 +19,7 @@ namespace FlashMemo.View
 
             Loaded += OnLoaded;
             Closing += OnWindowClosing;
+            PreviewKeyDown += OnWindowPreviewKeyDown;
         }
 
         public async void AddButtonClicked(object sender, RoutedEventArgs e)
@@ -50,6 +51,9 @@ namespace FlashMemo.View
             FrontBox.Document = new();
             BackBox.Document = new();
             ApplyEditorDefaults();
+
+            FrontBox.Focus();
+            Keyboard.Focus(FrontBox);
 
             if (tagInputController is not null)
                 await tagInputController.RefreshAsync(reloadSuggestions: true);
@@ -122,5 +126,17 @@ namespace FlashMemo.View
             FrontBox.FontSize = EditorFontSize;
             BackBox.FontSize = EditorFontSize;
         }
+        private void OnWindowPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            bool ctrlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+            bool enterClicked = e.Key is Key.Enter or Key.Return;
+
+            if (ctrlPressed && enterClicked)
+            {
+                AddButtonClicked(this, new RoutedEventArgs());
+                e.Handled = true;
+            }
+        }
     }
 }
+

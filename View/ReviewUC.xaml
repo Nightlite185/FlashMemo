@@ -7,6 +7,7 @@
              xmlns:viewmodel="clr-namespace:FlashMemo.ViewModel"
              xmlns:helpers="clr-namespace:FlashMemo.Helpers"
              Focusable="True"
+             PreviewKeyDown="Root_KeyDown"
              helpers:FocusBoundaryBehavior.EnableBoundaryFocusTracking="True">
 
     <UserControl.Resources>
@@ -63,7 +64,6 @@
     </UserControl.Resources>
 
     <Grid Background="#FF2A2A2A"
-          KeyDown="Root_KeyDown"
           MouseWheel="Root_MouseWheel">
         
             <Grid.RowDefinitions>
@@ -141,6 +141,7 @@
                     <RichTextBox
                         x:Name="FrontBox"
                         IsReadOnly="True"
+                        Focusable="False"
                         BorderThickness="0"
                         Background="Transparent"
                         Foreground="White"
@@ -170,6 +171,7 @@
                     <RichTextBox
                         x:Name="BackBox"
                         IsReadOnly="True"
+                        Focusable="False"
                         BorderThickness="0"
                         Background="Transparent"
                         Foreground="White"

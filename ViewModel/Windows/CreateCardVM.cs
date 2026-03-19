@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
@@ -35,7 +36,7 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
 
-    public Queue<CardEntity> History { get; init; } = [];
+    public ObservableCollection<CardEntity> History { get; init; } = [];
     public ICardTagsVM CardTagsVM { get; private set; } = null!;
     public event Action? OnCloseRequest;
     #endregion
@@ -91,10 +92,10 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
 
         await cardRepo.AddCard(card);
 
-        History.Enqueue(card);
+        History.Add(card);
 
         if (History.Count > HistoryCap)
-            History.Dequeue();
+            History.RemoveAt(0);
 
         WipCard = new();
         eventBus.NotifyDomain();

@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace FlashMemo.Model.Domain;
 
 public enum CardState { New, Learning, Review }
@@ -50,15 +48,6 @@ public class Card: ICard
         if (State == CardState.Learning && LearningStage is null)
             throw new InvalidOperationException(
             "Card cannot be in learning state when stage is null");
-
-        if (LearningStage is not null 
-            and not Domain.LearningStage.I 
-            and not Domain.LearningStage.II 
-            and not Domain.LearningStage.III)
-        {
-            throw new InvalidEnumArgumentException(
-            $"Card's learning stage was neither null nor any of the allowed values. Current stage: {LearningStage}");
-        }
 
         if (State != CardState.Learning && LearningStage is not null)
             throw new InvalidOperationException(

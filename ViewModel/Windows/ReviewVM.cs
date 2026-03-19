@@ -9,6 +9,7 @@ using FlashMemo.ViewModel.Wrappers;
 using FlashMemo.Repositories;
 using FlashMemo.Model;
 using FlashMemo.ViewModel.Other;
+using System.Collections.ObjectModel;
 
 namespace FlashMemo.ViewModel.Windows;
 
@@ -52,7 +53,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
 
     public CardsCountVM CardsCount { get; private set; } = null!;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
-    public Queue<CardEntity> ReviewHistory { get; private init; }
+    public ObservableCollection<CardEntity> ReviewHistory { get; private init; }
     public event Func<Task>? OnDecksNavRequest;
     public IEnumerable<CardVM> Cards => allSessionCards;
     public bool TimerVisible => userOptions.ShowReviewTimer;
@@ -138,10 +139,13 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         }
 
         CardsCount.UpdateCount();
-        ReviewHistory.Enqueue(reviewed);
+
+        // compare last item's id with reviewed, to prevent unnecessary duplicates.
+        if (ReviewHistory.LastOrDefault()?.Id != reviewed.Id)
+            ReviewHistory.Add(reviewed);
 
         if (ReviewHistory.Count > HistoryCap)
-            ReviewHistory.Dequeue();
+            ReviewHistory.RemoveAt(0);
     }
     internal void UpdateTime() => ElapsedTime = 
         $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";

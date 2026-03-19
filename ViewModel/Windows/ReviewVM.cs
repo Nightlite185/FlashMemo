@@ -54,7 +54,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     public Queue<CardEntity> ReviewHistory { get; private init; }
     public event Func<Task>? OnDecksNavRequest;
-    public IEnumerable<CardVM> Cards => allSessionCards.AsEnumerable();
+    public IEnumerable<CardVM> Cards => allSessionCards;
     public bool TimerVisible => userOptions.ShowReviewTimer;
     public IDeckMeta Deck { get; init; }
     #endregion
@@ -72,7 +72,9 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         (var freshCards, var count) = await cardQuery
             .GetForStudy(Deck.Id);
 
-        this.activeCards = new (freshCards.Select(c => new CardVM(c)));
+        this.activeCards = new (freshCards
+            .Select(c => new CardVM(c)));
+
         this.CardsCount = new(count, this);
 
         allSessionCards = [..activeCards];
@@ -113,24 +115,29 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
 
         else stopWatch.Start();
     }
-    private void UpdateOnReview(CardEntity reviewed, ScheduleInfo schedule)
+    private void UpdateOnReview(CardEntity reviewed)
     {
         if (CurrentCard is null) 
-            throw new NullReferenceException();
-
-        if (schedule.State is CardState.Learning)
-            learningPool.Add(new(reviewed));
-
-        else if (schedule.State is CardState.Review)
-            ReviewedCount++;
-
-        else throw new InvalidOperationException(
-            "Card after reviewing can't still have lesson state.");
+            throw new NullReferenceException(
+            "Tried to update on review, but current card is null.");
 
         CurrentCard.Refresh(reviewed);
 
-        CardsCount.UpdateCount();
+        switch (CurrentCard.State)
+        {
+            case CardState.Learning:
+                learningPool.Add(CurrentCard);
+                break;
 
+            case CardState.Review:
+                ReviewedCount++;
+                break;
+
+            default: throw new InvalidOperationException(
+            "Card after reviewing can't still have lesson state.");
+        }
+
+        CardsCount.UpdateCount();
         ReviewHistory.Enqueue(reviewed);
 
         if (ReviewHistory.Count > HistoryCap)
@@ -157,7 +164,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
             updatedSchedule,
             answer, time);
 
-        UpdateOnReview(reviewed, updatedSchedule);
+        UpdateOnReview(reviewed);
         ShowNextCard();
     }
 
@@ -221,7 +228,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         or CtxMenuAction.Forget)
         {
             CurrentCard.IsDeleted = true;
-            ReviewedCount++;
+            ReviewedCount++; // TODO FIX: added cards when review UC was open, closed createCardWindow, progress bar broken, shows 100% even tho there are still cards.
 
             CardsCount.UpdateCount();
             ShowNextCard();

@@ -47,6 +47,8 @@ namespace FlashMemo.Model.Persistence
             {
                 mb.Property(s => s.Id)
                 .ValueGeneratedNever();
+
+                mb.OwnsOne(s => s.LastFilters);
             });
 
             mb.Entity<DeckOptionsEntity>(mb =>

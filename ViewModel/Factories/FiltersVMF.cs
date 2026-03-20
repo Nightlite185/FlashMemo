@@ -4,15 +4,17 @@ using FlashMemo.ViewModel.Other;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr)
+public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr, IVMEventBus eventBus, ILastSessionService lastSession)
 {
     private readonly IDeckTreeBuilder deckTreeBuilder = dtb;
     private readonly ITagRepo tagRepo = tr;
-    public FiltersVM Create(long userId)
+    public async Task<FiltersVM> CreateAsync(long userId)
     {
-        return new(
+        var vm = new FiltersVM(
             deckTreeBuilder, tagRepo,
-            userId
-        );
+            eventBus, lastSession, userId);
+
+        await vm.InitializeAsync();
+        return vm;
     }
 }   

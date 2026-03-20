@@ -1,3 +1,4 @@
+using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,14 @@ public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDepe
 {
     private LastSessionData data = new();
 
+    public Filters? LastFilters {
+        get => data.LastFilters;
+        set => data.LastFilters = value;
+    }
     public long? LastUserId { 
         get => data.LastLoadedUserId; 
         set => data.LastLoadedUserId = value; 
     }
-
     public long? LastDeckId { 
         get => data.LastUsedDeckId; 
         set => data.LastUsedDeckId = value; 

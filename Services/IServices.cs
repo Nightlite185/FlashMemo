@@ -68,8 +68,9 @@ public interface IUserVMBuilder
 
 public interface ILastSessionService
 {
-    public long? LastUserId { get; set; }
-    public long? LastDeckId { get; set; }
+    long? LastUserId { get; set; }
+    long? LastDeckId { get; set; }
+    Filters? LastFilters { get; set; }
 
     Task LoadAsync();
     Task SaveStateAsync();

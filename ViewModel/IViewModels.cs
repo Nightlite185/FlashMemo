@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Bases;

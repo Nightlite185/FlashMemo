@@ -47,6 +47,9 @@ public static class Extensions
     public static IEnumerable<TagVM> ToVMs(this IEnumerable<Tag> tags)
         => tags.Select(t => new TagVM(t));
 
+    public static IEnumerable<CardStateVM> ToVMs(this IEnumerable<CardState> states)
+        => states.Select(s => new CardStateVM(s));
+
     public static IEnumerable<Tag> ToEntities(this IEnumerable<TagVM> tags)
         => tags.Select(t => t.ToEntity());
 
@@ -76,5 +79,22 @@ public static class Extensions
         var json = JsonSerializer.Serialize(obj);
 
         return JsonSerializer.Deserialize<T>(json)!;
+    }
+
+    public static IEnumerable<DeckNode> Flatten(this IEnumerable<DeckNode> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            yield return node;
+            
+            foreach (var child in node.Children)
+                yield return child;
+        }
+    }
+
+    public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
+    {
+        foreach(T item in items)
+            action(item);
     }
 }

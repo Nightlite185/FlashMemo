@@ -15,11 +15,11 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
         var db = GetDb;
         IQueryable<CardEntity> baseQuery = db.Cards;
         
-        if (filters.IncludeChildrenDecks && filters.DeckId is not null)
-        {
-            baseQuery = await queryBuilder
-                .AllCardsInDeckQAsync((long)filters.DeckId, db);
-        }
+        // if (filters.IncludeChildrenDecks && filters.DeckIds is not null)
+        // {
+        //     baseQuery = await queryBuilder
+        //         .AllCardsInDeckQAsync(filters.DeckIds, db);
+        // }
             
         var filtersQuery = filters.ToExpression();
 

@@ -1,101 +1,155 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using FlashMemo.Helpers;
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Other;
-    public sealed partial class FiltersVM(
-        IDeckTreeBuilder dtb, ITagRepo tr,
-        long userId): ObservableObject, IViewModel
+
+public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo, IVMEventBus bus, 
+                                        ILastSessionService lastSession, long userId): BaseVM(bus)
+{
+    #region Public binding properties
+
+    public ObservableCollection<TagVM> Tags { get; set; } = [];
+    public ImmutableList<CardStateVM> States { get; set; } =
+        [..Enum.GetValues<CardState>().ToVMs()];
+    public ObservableCollection<DeckNode> DeckTree { get; set; } = [];
+
+    [ObservableProperty] public partial bool? IsBuried { get; set; }
+    [ObservableProperty] public partial bool? IsSuspended { get; set; }
+    [ObservableProperty] public partial bool? IsDue { get; set; }
+    [ObservableProperty] public partial bool IncludeChildrenDecks { get; set; } 
+    //* whether to recursively include all children of the chosen deck
+
+    [ObservableProperty] public partial TimeSpan? Interval { get; set; }
+    [ObservableProperty] public partial DateTime? Due { get; set; }
+    [ObservableProperty] public partial DateTime? LastReviewed { get; set; }
+    [ObservableProperty] public partial DateTime? LastModified { get; set; }
+    [ObservableProperty] public partial DateTime? Created { get; set; }
+    //? everywhere with datetime I can do like int input box with 0 meaning today,
+    //? -1 yesterday, and 1 meaning tmrw, Instead of some fancy datetime picker.
+
+    [ObservableProperty] public partial int? OverdueByDays { get; set; }
+    //* null => not chosen, 0 => due today, 1 => overdue by 1 day.
+    #endregion
+    
+    #region methods
+    public Filters TakeSnapshot()
     {
-        #region Public binding properties
-
-        [NotifyCanExecuteChangedFor(nameof(ApplyFiltersCommand))]
-        [ObservableProperty] public partial bool IsChanged { get; private set; } //? maybe this can be priv?? idk
-        public ObservableCollection<TagVM> Tags { get; set; } = [];
-        public ObservableCollection<CardStateVM> States { get; set; } = [];
-        [ObservableProperty] public partial bool? IsBuried { get; set; }
-        [ObservableProperty] public partial bool? IsSuspended { get; set; }
-        [ObservableProperty] public partial bool? IsDue { get; set; }
-        [ObservableProperty] public partial ObservableCollection<DeckNode> DeckTree { get; set; }
-        [ObservableProperty] public partial DeckNode SelectedDeck { get; set; }
-        [ObservableProperty] public partial bool IncludeChildrenDecks { get; set; } //* whether to recursively include all children of the chosen deck
-        [ObservableProperty] public partial TimeSpan? Interval { get; set; }
-        [ObservableProperty] public partial DateTime? Due { get; set; }
-        [ObservableProperty] public partial DateTime? LastReviewed { get; set; }
-        [ObservableProperty] public partial DateTime? LastModified { get; set; }
-        [ObservableProperty] public partial DateTime? Created { get; set; }
-        //? everywhere with datetime I can do like int input box with 0 meaning today,
-        //? -1 yesterday, and 1 meaning tmrw, Instead of some fancy datetime picker.
-
-        [ObservableProperty] public partial int? OverdueByDays { get; set; }
-        //* null => not chosen, 0 => due today, 1 => overdue by 1 day.
-        #endregion
-        
-        #region Icommands
-        [RelayCommand(CanExecute = nameof(IsChanged))]
-        private async Task ApplyFilters()
+        var snapshot = new Filters()
         {
-            IsChanged = false;
-            await filtrable.ApplyFiltersAsync(TakeSnapshot());
-        }
-        #endregion
-        
-        #region Methods
-        private Filters TakeSnapshot()
-        {
-            return new Filters()
-            {
-                TagIds = (ImmutableArray<long>) Tags
-                    .Where(t => t.IsSelected)
-                    .Select(t => t.Id),
+            UserId = userId,
+            
+            TagIds = [..OnlySelectedTags()],
+            States = [..OnlySelectedStates()],
+            DeckIds = [..GetDeckIds()],
 
-                States = (ImmutableArray<CardState>) States
-                    .Where(vm => vm.IsSelected)
-                    .Select(vm => vm.State),
+            IncludeChildrenDecks = IncludeChildrenDecks,
+            OverdueByDays = OverdueByDays,
+            LastModified = LastModified,
+            LastReviewed = LastReviewed,
+            IsSuspended = IsSuspended,
+            IsBuried = IsBuried,
+            Interval = Interval,
+            Created = Created,
+            IsDue = IsDue,
+            Due = Due
+        };
 
-                IncludeChildrenDecks = IncludeChildrenDecks,
-                DeckId = SelectedDeck.Id,
-                OverdueByDays = OverdueByDays,
-                LastModified = LastModified,
-                LastReviewed = LastReviewed,
-                IsSuspended = IsSuspended,
-                IsBuried = IsBuried,
-                Interval = Interval,
-                Created = Created,
-                IsDue = IsDue,
-                Due = Due
-            };
-        }
-        internal async Task InitializeAsync(IFiltrable applyFilters)
-        {
-            this.filtrable = applyFilters;
+        lastSession.LastFilters = snapshot;
 
-            // TODO: load the initial deck tree, tags, etc. & others needed in UI async. 
-        }
-        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
-        {
-            base.OnPropertyChanged(e);
-
-            if (e.PropertyName // todo refactor this
-                is not nameof(IsChanged)
-                and not nameof(Tags)
-                and not nameof(States)
-            ) 
-                IsChanged = true;
-        }
-        #endregion
-       
-        #region private things
-        private IFiltrable filtrable = null!;
-        private readonly IDeckTreeBuilder deckTB = dtb;
-        private readonly ITagRepo tagRepo = tr;
-        private long userId = userId;
-        #endregion
+        return snapshot;
     }
+    internal async Task InitializeAsync()
+    {
+        eventBus.DomainChanged += OnDomainChanged;
+
+        var last = lastSession.LastFilters 
+            ?? Filters.AllFromUser(userId);
+
+        //* marking all states from last filters as selected
+        foreach (var s in States.Where(s => last.States.Contains(s.State)))
+            s.IsSelected = true;
+
+        //* mapping all the rest from last filters
+        IsBuried = last.IsBuried;
+        IsSuspended = last.IsSuspended;
+        IsDue = last.IsDue;
+        IncludeChildrenDecks = last.IncludeChildrenDecks;
+        Interval = last.Interval;
+        Due = last.Due;
+        LastReviewed = last.LastReviewed;
+        LastModified = last.LastModified;
+        Created = last.Created;
+        OverdueByDays = last.OverdueByDays;
+
+        await ReloadDomainAsync();
+    }
+
+    //* only reloads those filters that are dynamically dependent on the current domain.
+    protected override async Task ReloadDomainAsync()
+    {
+        //* snapshotting selected ids
+        long[] selectedDecks = [..OnlySelectedDecks()];
+        long[] selectedTags = [..OnlySelectedTags()];
+
+        DeckTree.Clear();
+        Tags.Clear();
+
+        DeckTree.AddRange(await deckTB
+            .BuildAsync(userId));
+
+        Tags.AddRange((await tagRepo
+            .GetFromUser(userId))
+            .ToVMs());
+
+        //* marking all tags and decks that still exist and were selected before the reload.
+        DeckTree.Flatten()
+            .IntersectBy(selectedDecks, d => d.Id)
+            .ForEach(d => d.IsSelected = true);
+
+        Tags.IntersectBy(selectedTags, t => t.Id)
+            .ForEach(t => t.IsSelected = true);
+    }
+
+    private IEnumerable<long> GetDeckIds()
+    {
+        var selectedDecks = DeckTree
+            .Flatten()
+            .Where(d => d.IsSelected);
+            
+        return IncludeChildrenDecks
+            ? selectedDecks
+                .Flatten()     // we take all children of only the selected nodes, by flattening them again
+                .Select(d => d.Id)
+
+            : selectedDecks
+                .Select(d => d.Id); // else we take only the selected nodes
+    }
+    private IEnumerable<long> OnlySelectedDecks()
+    {
+        return DeckTree
+            .Flatten()
+            .Where(d => d.IsSelected)
+            .Select(d => d.Id);
+    }
+    private IEnumerable<long> OnlySelectedTags()
+    {
+        return Tags
+            .Where(t => t.IsSelected)
+            .Select(t => t.Id);
+    }
+    private IEnumerable<CardState> OnlySelectedStates()
+    {
+        return States
+            .Where(vm => vm.IsSelected)
+            .Select(vm => vm.State);
+    }
+    #endregion
+}

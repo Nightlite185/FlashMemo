@@ -9,21 +9,17 @@ public class BrowseVMF(ICardQueryService cqs, FiltersVMF filtersVMF,
 {
     public async Task<BrowseVM> CreateAsync(long userId)
     {
-        var filtersVM = filtersVMF.Create(userId);
+        var filtersVM = await filtersVMF
+            .CreateAsync(userId);
 
         BrowseVM bvm = new(
             cqs, filtersVM,
-            userId, bus
-        );
+            userId, bus);
 
-        var ccm = ctxFactory.Create(bvm, bvm, userId);
+        var ccm = ctxFactory.Create(
+            bvm, bvm, userId);
 
-        await filtersVM.InitializeAsync(bvm);
-        bvm.Initialize(ccm);
-
-        //* pre-filling cards in BrowseVM with all user's cards
-        var allCards = await cqs.GetAllFromUser(userId);
-        bvm.Cards.AddRange(allCards.ToVMs());
+        await bvm.InitializeAsync(ccm);
 
         return bvm;
     }

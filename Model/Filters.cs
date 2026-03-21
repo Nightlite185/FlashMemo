@@ -92,7 +92,7 @@ namespace FlashMemo.Model
         public DateTime? LastModified { get; init; }
 
         private static Filters allCards = new(){ UserId = -1 }; // only place where userid is not set. its private tho so noone can access this.
-        public static Filters AllFromUser(long userId)
+        public static Filters GetEmpty(long userId)
             => allCards with { UserId = userId };
     }
 }

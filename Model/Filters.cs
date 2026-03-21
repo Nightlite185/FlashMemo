@@ -10,9 +10,8 @@ namespace FlashMemo.Model
     {
         public Expression<Func<CardEntity, bool>> ToExpression()
         {
-            //TODO IMPORTANT: add userid on card entity and set this base query to cards that belong to given user in filters.
-
-            Expression<Func<CardEntity, bool>> query = c => true;
+            Expression<Func<CardEntity, bool>> query = c
+                => c.UserId == this.UserId;
 
             #region bool filters
             if (IsBuried is not null)

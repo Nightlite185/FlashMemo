@@ -7,6 +7,7 @@ public class CardEntity: ICard
 {
     #region Properties
     public long Id { get; set; }
+    public long UserId { get; set; }
     public Note Note { get; set; } = null!;
     public long NoteId { get; set; }
     public long DeckId { get; set; }
@@ -108,12 +109,13 @@ public class CardEntity: ICard
         Tags.AddRange(newTags);
     }
     #endregion
-    public static CardEntity CreateNew(Note note, long deckId, IEnumerable<Tag> tags)
+    public static CardEntity CreateNew(Note note, IDeckMeta deck, IEnumerable<Tag> tags)
     {
         return new()
         {
             Id = IdGetter.Next(),
-            DeckId = deckId,
+            DeckId = deck.Id,
+            UserId = deck.UserId,
 
             Created = DateTime.Now,
             Interval = TimeSpan.Zero,

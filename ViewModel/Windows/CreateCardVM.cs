@@ -87,7 +87,7 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
     {
         var card = CardEntity.CreateNew(
             WipCard.Note.ToEntity(),
-            CurrentDeck.Id,
+            CurrentDeck,
             WipCard.Tags.ToEntities());
 
         await cardRepo.AddCard(card);

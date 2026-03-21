@@ -33,20 +33,26 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
         Tags.Clear();
         Tags.AddRange(card.Tags.ToVMs());
     }
-
+    public void NotifyPropChanged(string name)
+        => OnPropertyChanged(name);
     #region Properties
     [ObservableProperty] public partial bool IsSelected { get; set; } = false;
     [ObservableProperty] public partial bool IsDeleted { get; set; } = false;
     [ObservableProperty] public partial NoteVM Note { get; set; } = null!;
     public ObservableCollection<TagVM> Tags { get; init; }
+    public string TagsDisplay => string.Join(", ", Tags.Select(tag => tag.Name));
     public int DayInterval => (int)card.Interval.TotalDays;
     public bool IsSuspended => card.IsSuspended;
     public bool IsBuried => card.IsBuried;
 
     public long Id => card.Id;
-    public TimeSpan Interval => card.Interval;
-    public CardState State => card.State;
+    public string DeckName => card.Deck.Name;
+    public DateTime? LastModified => card.LastModified;
+    public DateTime? LastReviewed => card.LastReviewed;
     public DateTime? Due => card.Due;
+    public DateTime Created => card.Created;
+    public CardState State => card.State;
+    public TimeSpan Interval => card.Interval;
     public LearningStage? LearningStage => card.LearningStage;
     #endregion
     

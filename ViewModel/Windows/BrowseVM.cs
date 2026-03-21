@@ -31,6 +31,9 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
 
     [ObservableProperty]
     public partial SortingDirection SortDir { get; set; }
+
+    [ObservableProperty]
+    public partial BrowseColumn ActiveBrowseColumn { get; set; } = BrowseColumn.Due;
     #endregion
     
     #region methods
@@ -52,7 +55,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
             .ToVMs());
     }
 
-    private void CaptureSelected()
+    private void OpenCtxMenu()
     {
         var cards = GetSelectedCards();
         
@@ -61,17 +64,56 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     }
     public async Task OnActionExecuted(CtxMenuAction action)
     {
-        switch (action)
+        if (capturedCards is null || capturedCards.Count == 0) 
+            throw new InvalidOperationException("capturedCards was empty or null");
+
+        var c = capturedCards.First();
+        string[] rescheduleProps =
+        [
+            nameof(c.State), nameof(c.Due), 
+            nameof(c.DayInterval), nameof(c.LearningStage), 
+            nameof(c.LastModified)
+        ];
+
+        string[]? propNames = action switch
         {
-            default: throw new NotImplementedException();
-        }
+            CtxMenuAction.Relocate => [nameof(c.DeckName)],
+            CtxMenuAction.Reschedule => rescheduleProps,
+            CtxMenuAction.Forget => rescheduleProps,
+            CtxMenuAction.Bury => [nameof(c.IsBuried)],
+            CtxMenuAction.Suspend => [nameof(c.IsSuspended)],
+            CtxMenuAction.Delete => [nameof(c.IsDeleted)],
+
+            _ => null
+        };
+
+        if (propNames is null) return;
+
+        foreach (var card in capturedCards)
+        foreach (string name in propNames)
+            card.NotifyPropChanged(name);
     }
     protected override async Task ReloadDomainAsync()
         => await ApplyFiltersAsync(filtersVM.CachedFilters);
+
+    public void OnColumnClicked(BrowseColumn column)
+    {
+        // TODO: Handle browse-column sorting here (re-query or re-order cards) once
+        // BrowseWindow-to-VM sorting integration is implemented end-to-end.
+    }
     #endregion
     
     #region private things
     private CardCtxMenuVM cardCtxMenu = null!;
     private IReadOnlyCollection<CardVM>? capturedCards;
     #endregion
+}
+
+public enum BrowseColumn
+{
+    NoteFrontContent, NoteBackContent,
+    Id, DeckName, Due, DayInterval,
+    LastModified, LearningStage,
+    State, IsBuried, IsSuspended,
+    NoteType, Tags, Created
 }

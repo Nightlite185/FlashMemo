@@ -189,8 +189,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         var freshEntities = await cardRepo.GetByIds(
             allSessionCards.Select(c => c.Id));
 
-        var freshById = CardQueryBuilder // TODO: test if this works
-            .ForStudy(freshEntities)
+        var freshById = freshEntities // TODO: test if this works
+            .ForStudy()
             .ToDictionary(e => e.Id);
 
         // 2. Refresh note data on all CardVMs (including deleted detection)

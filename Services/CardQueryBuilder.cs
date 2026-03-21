@@ -4,11 +4,9 @@ using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
-public class CardQueryBuilder(IDeckRepo dr): ICardQueryBuilder
+public static class CardQueryBuilder
 {
-    private readonly IDeckRepo deckRepo = dr;
-
-    public static CardsByStateQ GroupByStateQ(IQueryable<CardEntity> baseQuery)
+    public static CardsByStateQ GroupByStateQ(this IQueryable<CardEntity> baseQuery)
     {
         return new CardsByStateQ()
         {
@@ -23,7 +21,7 @@ public class CardQueryBuilder(IDeckRepo dr): ICardQueryBuilder
         };
     }
 
-    public static IQueryable<CardEntity> ForStudy(IQueryable<CardEntity> baseQuery)
+    public static IQueryable<CardEntity> ForStudy(this IQueryable<CardEntity> baseQuery)
     {
         var today = DateTime.Today;
 
@@ -32,7 +30,7 @@ public class CardQueryBuilder(IDeckRepo dr): ICardQueryBuilder
             && (!c.Due.HasValue || c.Due.Value.Date <= today));
     }
 
-    public static IEnumerable<CardEntity> ForStudy(IEnumerable<CardEntity> cards)
+    public static IEnumerable<CardEntity> ForStudy(this IEnumerable<CardEntity> cards)
     {
         var today = DateTime.Today;
 
@@ -41,9 +39,10 @@ public class CardQueryBuilder(IDeckRepo dr): ICardQueryBuilder
             && (!c.Due.HasValue || c.Due.Value.Date <= today));
     }
     
-    public async Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(long deckId, AppDbContext db)
+    public static async Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(this AppDbContext db, long deckId)
     {
-        var deckIds = await deckRepo.GetChildrenIds(deckId);
+        var deckIds = await DeckRepo
+            .GetChildrenIds(deckId, db);
 
         return db.Cards
             .AsNoTracking()

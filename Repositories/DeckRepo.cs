@@ -68,19 +68,25 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .Select(c => c.Deck)
             .SingleAsync();
     }
-    public async Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId, AppDbContext? db = null)
+    public async Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId)
     {
         return (
-            await AllDecksQuery(db ?? GetDb, userId)
+            await AllDecksQuery(GetDb, userId)
+            .ToArrayAsync())
+            .ToLookup(d => d.ParentDeckId);
+    }
+
+    public static async Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId, AppDbContext db)
+    {
+        return (
+            await AllDecksQuery(db, userId)
             .ToArrayAsync())
             .ToLookup(d => d.ParentDeckId
         );
     }
 
-    public async Task<IEnumerable<long>> GetChildrenIds(long deckId)
+    public static async Task<IEnumerable<long>> GetChildrenIds(long deckId, AppDbContext db)
     {
-        var db = GetDb;
-
         var userId = await db.Decks
             .Where(d => d.Id == deckId)
             .Select(d => d.UserId)

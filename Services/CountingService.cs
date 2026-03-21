@@ -4,45 +4,29 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQueryBuilder cqb)
+public class CountingService(IDbContextFactory<AppDbContext> factory)
 : DbDependentClass(factory), ICountingService
 {
-    private readonly ICardQueryBuilder queryBuilder = cqb;
-
     #region public methods
     public async Task<int> AllCards(long userId)
     {
-        var db = GetDb;
-
-        var userDeckIds = db.Decks
-            .Where(d => d.UserId == userId)
-            .Select(d => d.Id);
-
-        return await db.Cards
-            .Where(c => userDeckIds.Contains(c.DeckId))
+        return await GetDb.Cards
+            .Where(c => c.UserId == userId)
             .AsNoTracking()
             .CountAsync();
     }
     public async Task<int> AllDecks(long userId)
     {
-        var db = GetDb;
-
-        return await db.Decks
+        return await GetDb.Decks
             .Where(d => d.UserId == userId)
             .AsNoTracking()
             .CountAsync();
     }
     public async Task<int> AllReviewableCards(long userId)
     {
-        var db = GetDb;
-
-        var deckIdsQ = db.Decks
-            .Where(d => d.UserId == userId)
-            .Select(d => d.Id);
-
-        return await CardQueryBuilder
-            .ForStudy(db.Cards.Where(c => 
-                deckIdsQ.Contains(c.DeckId)))
+        return await GetDb.Cards
+            .Where(c => c.UserId == userId)
+            .ForStudy()
             .CountAsync();
     }
     
@@ -67,17 +51,16 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, ICardQuery
 
         foreach(long id in deckIds)
         {
-            var allCardsQuery = await queryBuilder.AllCardsInDeckQAsync(id, db);
+            var allCardsQuery = await db
+                .AllCardsInDeckQAsync(id);
 
             if (onlyForStudy)
             {
-                var today = DateTime.Today;
-
-                allCardsQuery = CardQueryBuilder
-                    .ForStudy(allCardsQuery);
+                allCardsQuery = allCardsQuery
+                    .ForStudy();
             }
                                                                             
-            var grouped = CardQueryBuilder.GroupByStateQ(allCardsQuery);
+            var grouped = allCardsQuery.GroupByStateQ();
             var counted = await CountByStateAsync(grouped);
 
             if (!result.TryAdd(id, counted))

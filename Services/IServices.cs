@@ -17,11 +17,6 @@ public interface IDeckTreeBuilder
     Task<IEnumerable<DeckNode>> BuildCountedAsync(long userId);
 }
 
-public interface ICardQueryBuilder
-{
-    Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(long deckId, AppDbContext db);
-}
-
 public interface ICountingService
 {
     ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;

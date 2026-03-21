@@ -24,8 +24,7 @@ public interface IDeckRepo
     Task<Deck?> GetById(long id);
 
     ///<returns>ILookup with key being the parent deck's Id, and value being IEnumerable of its children decks</returns>
-    Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId, AppDbContext? db = null);
-    Task<IEnumerable<long>> GetChildrenIds(long deckId);
+    Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId);
     
     ///<returns>first deck from the db. If no decks found -> null</returns>
     Task<Deck?> GetFirst(long userId);

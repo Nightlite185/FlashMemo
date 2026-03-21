@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQueryBuilder queryBuilder, IUserOptionsService userOptService)
+public class CardQueryService(IDbContextFactory<AppDbContext> factory, IUserOptionsService userOptService)
     : DbDependentClass(factory), ICardQueryService
 {
     #region Public methods
@@ -15,12 +15,6 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
         var db = GetDb;
         IQueryable<CardEntity> baseQuery = db.Cards;
         
-        // if (filters.IncludeChildrenDecks && filters.DeckIds is not null)
-        // {
-        //     baseQuery = await queryBuilder
-        //         .AllCardsInDeckQAsync(filters.DeckIds, db);
-        // }
-            
         var filtersQuery = filters.ToExpression();
 
         var cards = await baseQuery
@@ -37,16 +31,10 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
     {
         var db = GetDb;
 
-        var baseQuery = await queryBuilder
-            .AllCardsInDeckQAsync(deckId, db);
-
-        var today = DateTime.Today;
-        
-        baseQuery = CardQueryBuilder
-            .ForStudy(baseQuery);
-
-        var grouped = CardQueryBuilder
-            .GroupByStateQ(baseQuery);
+        var groupedQueries = (await db
+            .AllCardsInDeckQAsync(deckId))
+            .ForStudy()
+            .GroupByStateQ();
 
         var rootDeck = await db.Decks
             .AsNoTracking()
@@ -54,13 +42,13 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
             .SingleAsync(d => d.Id == deckId);
 
         var sortOpt = rootDeck.Options.Sorting;
-        ApplySortQuery(grouped, sortOpt);
+        ApplySortQuery(groupedQueries, sortOpt);
 
         var takings = await ApplyLimitsQuery(
-            rootDeck.UserId, grouped, 
+            rootDeck.UserId, groupedQueries, 
             rootDeck.Options);
 
-        var materialized = await MaterializeQuery(grouped, takings);
+        var materialized = await MaterializeQuery(groupedQueries, takings);
 
         ShuffleIfRandom(materialized, rootDeck.Options.Sorting);
 
@@ -71,14 +59,9 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
     }
     public async Task<IList<CardEntity>> GetAllFromUser(long userId)
     {
-        var db = GetDb;
-
-        var deckIds = db.Decks
-            .Where(d => d.UserId == userId)
-            .Select(d => d.Id);
-
-        return await db.Cards
-            .Where(c => deckIds.Contains(c.DeckId))
+        return await GetDb.Cards
+            .AsNoTracking()
+            .Where(c => c.UserId == userId)
             .Include(c => c.Deck)
             .ToListAsync();
     }
@@ -86,10 +69,11 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
     {
         var db = GetDb;
 
-        var cardsQuery = await queryBuilder
-            .AllCardsInDeckQAsync(deckId, db);
+        var cardsQuery = await db
+            .AllCardsInDeckQAsync(deckId);
 
         return await cardsQuery
+            .AsNoTracking()
             .ToListAsync();
     }
     #endregion
@@ -191,15 +175,20 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICardQuer
     {
         return new()
         {
-            Learning = await query
-                .Learning.ToListAsync(),
+            Learning = await query.Learning
+                .AsNoTracking()
+                .ToListAsync(),
 
             Lessons = (takings.LessonsTake != 0) 
-                ? await query.Lessons.ToListAsync()
+                ? await query.Lessons
+                    .AsNoTracking()
+                    .ToListAsync()
                 : [],
 
             Reviews = (takings.ReviewsTake != 0) 
-                ? await query.Reviews.ToListAsync()
+                ? await query.Reviews
+                    .AsNoTracking()
+                    .ToListAsync()
                 : []
         };
     }

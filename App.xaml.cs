@@ -92,7 +92,6 @@ public partial class App : Application
         sc.AddSingleton<ICardService, CardService>();
         sc.AddSingleton<ICardQueryService, CardQueryService>();
         sc.AddSingleton<IDeckOptVMBuilder, DeckOptVMBuilder>();
-        sc.AddSingleton<ICardQueryBuilder, CardQueryBuilder>();
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
         sc.AddSingleton<ILastSessionService, LastSessionService>();
         sc.AddSingleton<IVMEventBus, VMEventBus>();

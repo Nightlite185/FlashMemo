@@ -33,6 +33,14 @@ public static class Extensions
             col.Add(item);
     }
 
+    public static void RemoveRange<T>(this ICollection<T> col, IEnumerable<T>? toRemove)
+    {
+        if (toRemove is null) return;
+
+        foreach(var item in toRemove)
+            col.Remove(item);
+    }
+
     public static bool Any(this WindowCollection windows, Func<object, bool> predicate)
     {
         foreach (var win in windows)

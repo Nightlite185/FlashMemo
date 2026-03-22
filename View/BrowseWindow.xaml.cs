@@ -31,6 +31,8 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         Loaded += OnLoaded;
         CardsGrid.Sorting += CardsGrid_Sorting;
         CardsGrid.ColumnReordered += CardsGrid_ColumnReordered;
+        CardsGrid.SelectionChanged += CardsGrid_SelectionChanged;
+        CardsGrid.PreviewMouseRightButtonDown += CardsGrid_PreviewMouseRightButtonDown;
         CardsGrid.PreviewMouseRightButtonUp += CardsGrid_PreviewMouseRightButtonUp;
     }
 
@@ -88,11 +90,9 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
             .OrderBy(spec => spec.Order)
             .ToList();
 
-        var firstVisibleColumn = visibleSpecs.FirstOrDefault()?.Column;
-
         foreach (var spec in visibleSpecs)
         {
-            var col = CreateColumn(spec, spec.Column == firstVisibleColumn);
+            var col = CreateColumn(spec);
             CardsGrid.Columns.Add(col);
             specByColumn[col] = spec;
         }
@@ -120,7 +120,7 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
             hidden.Order = order++;
     }
 
-    private DataGridTextColumn CreateColumn(BrowseColumnSpec spec, bool isFirstVisibleColumn)
+    private DataGridTextColumn CreateColumn(BrowseColumnSpec spec)
     {
         var binding = new Binding(spec.BindingPath)
         {
@@ -140,10 +140,7 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
             SortMemberPath = spec.SortMemberPath,
             Width = spec.Width,
             MinWidth = 90,
-            ElementStyle = (Style)FindResource(
-                isFirstVisibleColumn
-                    ? "BrowseDeletedFirstColumnTextStyle"
-                    : "BrowseDeletedHiddenTextStyle")
+            ElementStyle = (Style)FindResource("BrowseCellTextStyle")
         };
     }
 
@@ -259,6 +256,56 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 
         e.Handled = true;
         OpenColumnsMenu(header);
+    }
+
+    private void CardsGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (FindAncestor<DataGridColumnHeader>(e.OriginalSource as DependencyObject) is not null)
+            return;
+
+        var row = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+        if (row?.Item is null)
+            return;
+
+        if (!row.IsSelected)
+        {
+            CardsGrid.SelectedItems.Clear();
+            row.IsSelected = true;
+        }
+    }
+
+    private void CardsContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not BrowseVM vm)
+            return;
+
+        SyncSelectionWithViewModel();
+
+        if (vm.GetSelectedCards().Count == 0 && sender is ContextMenu menu)
+        {
+            menu.IsOpen = false;
+            return;
+        }
+
+        vm.OpenCtxMenu();
+    }
+
+    private void CardsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        SyncSelectionWithViewModel();
+    }
+
+    private void SyncSelectionWithViewModel()
+    {
+        if (DataContext is not BrowseVM vm)
+            return;
+
+        var selected = CardsGrid.SelectedItems
+            .OfType<object>()
+            .ToHashSet();
+
+        foreach (var card in vm.Cards)
+            card.IsSelected = selected.Contains(card);
     }
 
     private void OpenColumnsMenu(DataGridColumnHeader header)
@@ -382,4 +429,5 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         public string? StringFormat { get; } = stringFormat;
         public IValueConverter? Converter { get; } = converter;
     }
+
 }

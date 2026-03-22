@@ -25,7 +25,6 @@ public partial class EditableCardVM: ObservableObject, ICardVM
         TryRefreshDeck(updated);
         TryRefreshTags(updated);
     }
-
     [ObservableProperty] public partial NoteVM Note { get; set; }
     [ObservableProperty] public partial IDeckMeta Deck { get; private set; } = null!;
     public List<TagVM> Tags { get; init; } = [];

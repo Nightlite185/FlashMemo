@@ -98,9 +98,9 @@ public class CardEntity: ICard
     {
         State = CardState.New;
         LearningStage = null;
-        Due = DateTime.Now;
+        Due = null;
         LastModified = DateTime.Now;
-        Interval = TimeSpan.MinValue;
+        Interval = TimeSpan.Zero;
     }
     public void MoveToDeck(long newDeckId) => DeckId = newDeckId;
     public void ReplaceTagsWith(IEnumerable<Tag> newTags)

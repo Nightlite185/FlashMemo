@@ -37,7 +37,7 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
         => OnPropertyChanged(name);
     #region Properties
     [ObservableProperty] public partial bool IsSelected { get; set; } = false;
-    [ObservableProperty] public partial bool IsDeleted { get; set; } = false;
+    [ObservableProperty] public partial bool IsInvalid { get; set; } = false;
     [ObservableProperty] public partial NoteVM Note { get; set; } = null!;
     public ObservableCollection<TagVM> Tags { get; init; }
     public string TagsDisplay => string.Join(", ", Tags.Select(tag => tag.Name));

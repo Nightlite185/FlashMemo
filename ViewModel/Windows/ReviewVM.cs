@@ -111,7 +111,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         if (CurrentCard is null)
             IsSessionFinished = true;
 
-        else if (CurrentCard.IsDeleted)
+        else if (CurrentCard.IsInvalid)
             ShowNextCard();
 
         else stopWatch.Start();
@@ -201,11 +201,11 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
                 card.Refresh(freshEntity);
             
             // Disappeared from DB entirely — treat as deleted
-            else card.IsDeleted = true;
+            else card.IsInvalid = true;
         }
 
         // 3. Recount valid initials
-        InitialCount = allSessionCards.Count(c => !c.IsDeleted);
+        InitialCount = allSessionCards.Count(c => !c.IsInvalid);
 
         // 4. Update count vm
         CardsCount.UpdateCount();
@@ -215,7 +215,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
             OnPropertyChanged(nameof(CurrentCard));
 
         // 6. If current card got nuked, move on
-        if (CurrentCard?.IsDeleted == true)
+        if (CurrentCard?.IsInvalid == true)
             ShowNextCard();
     }
 
@@ -231,7 +231,7 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         or CtxMenuAction.Delete
         or CtxMenuAction.Forget)
         {
-            CurrentCard.IsDeleted = true;
+            CurrentCard.IsInvalid = true;
             ReviewedCount++; // TODO FIX: added cards when review UC was open, closed createCardWindow, progress bar broken, shows 100% even tho there are still cards.
 
             CardsCount.UpdateCount();

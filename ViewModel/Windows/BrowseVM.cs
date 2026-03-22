@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Helpers;
@@ -21,7 +22,14 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     public partial string SearchBar { get; set; } = "";
     
     public IReadOnlyCollection<CardVM> GetSelectedCards()
-        => [..Cards.Where(vm => vm.IsSelected)];
+    {
+        var cards = Cards
+            .Where(vm => vm.IsSelected)
+            .ToImmutableArray();
+
+        capturedCards = cards;
+        return cards;
+    }
     
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
@@ -34,18 +42,19 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
 
     [ObservableProperty]
     public partial BrowseColumn ActiveBrowseColumn { get; set; } = BrowseColumn.Due;
+
+    public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     #endregion
     
     #region methods
     internal async Task InitializeAsync(CardCtxMenuVM ccm)
     {
-        cardCtxMenu = ccm;
+        CtxMenuVM = ccm;
         eventBus.DomainChanged += OnDomainChanged;
 
         await ApplyFiltersAsync(
             filtersVM.CachedFilters);
     }
-
     public async Task ApplyFiltersAsync(Filters snapshot)
     {
         Cards.Clear();
@@ -54,35 +63,29 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
             .GetCardsWhere(snapshot, SortOrder, SortDir))
             .ToVMs());
     }
-
-    private void OpenCtxMenu()
+    public void OpenCtxMenu()
     {
-        var cards = GetSelectedCards();
-        
-        capturedCards = cards;
-        cardCtxMenu.OpenMenu(cards);
+        CtxMenuVM.OpenMenu(capturedCards
+            ?? GetSelectedCards());
     }
     public async Task OnActionExecuted(CtxMenuAction action)
     {
         if (capturedCards is null || capturedCards.Count == 0) 
             throw new InvalidOperationException("capturedCards was empty or null");
 
-        var c = capturedCards.First();
-        string[] rescheduleProps =
-        [
-            nameof(c.State), nameof(c.Due), 
-            nameof(c.DayInterval), nameof(c.LearningStage), 
-            nameof(c.LastModified)
-        ];
-
-        string[]? propNames = action switch
+        if (action == CtxMenuAction.Delete)
         {
-            CtxMenuAction.Relocate => [nameof(c.DeckName)],
+            Cards.RemoveRange(capturedCards);
+            return;
+        }
+
+        ImmutableArray<string>? propNames = action switch
+        {
+            CtxMenuAction.Relocate => [nameof(CardVM.DeckName)],
             CtxMenuAction.Reschedule => rescheduleProps,
             CtxMenuAction.Forget => rescheduleProps,
-            CtxMenuAction.Bury => [nameof(c.IsBuried)],
-            CtxMenuAction.Suspend => [nameof(c.IsSuspended)],
-            CtxMenuAction.Delete => [nameof(c.IsDeleted)],
+            CtxMenuAction.Bury => [nameof(CardVM.IsBuried)],
+            CtxMenuAction.Suspend => [nameof(CardVM.IsSuspended)],
 
             _ => null
         };
@@ -95,7 +98,6 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     }
     protected override async Task ReloadDomainAsync()
         => await ApplyFiltersAsync(filtersVM.CachedFilters);
-
     public void OnColumnClicked(BrowseColumn column)
     {
         // TODO: Handle browse-column sorting here (re-query or re-order cards) once
@@ -104,8 +106,15 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     #endregion
     
     #region private things
-    private CardCtxMenuVM cardCtxMenu = null!;
     private IReadOnlyCollection<CardVM>? capturedCards;
+    private readonly static ImmutableArray<string> rescheduleProps =
+    [
+        nameof(CardVM.State),
+        nameof(CardVM.Due),
+        nameof(CardVM.DayInterval),
+        nameof(CardVM.LearningStage),
+        nameof(CardVM.LastModified)
+    ];
     #endregion
 }
 

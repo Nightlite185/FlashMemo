@@ -76,21 +76,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
         await ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
 
-    [Obsolete] [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
-    private async Task ManageTags() // ONLY VISIBLE IF ONE CARD IS SELECTED
-    {
-        throw new NotSupportedException();
-        // ThrowIfNotOneCaptured();
-
-        // long cardId = capturedCards!
-        //     .Single().Id;
-
-        // popupHost.CurrentPopup = await manageTagsVMF.CreateAsync(
-        //     confirm: ChangeTags,
-        //     cancel: PopupCancel,
-        //     cardId, userId
-        // );
-    }
     [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
     private async Task ShowCardDetails()
     {
@@ -154,15 +139,12 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
 
         await ctxHost.OnActionExecuted(CtxMenuAction.Relocate);
     }
-    private async Task ChangeTags(IEnumerable<Tag> newTags, bool globalTagsEdited)
+    private async Task ChangeTags(IEnumerable<Tag> newTags)
     {
         await ModifyCardsHelper(
             c => c.ReplaceTagsWith(newTags),
             CardAction.Modify
         );
-
-        //if (globalTagsEdited)
-            // raise event about sth modified.
 
         PopupCancel();
     }

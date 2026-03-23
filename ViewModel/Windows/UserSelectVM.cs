@@ -96,7 +96,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     {
         if (currentUserId != toLogin.Id)
         {
-            loginService.ChangeUser(toLogin.Id);
+            await loginService.ChangeUser(toLogin.Id);
             lastSession.LastUserId = toLogin.Id;
         }
 

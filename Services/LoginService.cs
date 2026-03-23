@@ -4,13 +4,13 @@ using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.Services;
 
-public class LoginService(MainVMF mVMF, MainWindowBootstrapper mwb): ILoginService
+public class LoginService(MainVMF mainVMF, MainWindowBootstrapper bootstrapper, 
+                            ICardService cardService): ILoginService
 {
-    private readonly MainWindowBootstrapper bootstrapper = mwb;
-    private readonly MainVMF mainVMF = mVMF;
-
-    public void ChangeUser(long userId)
+    public async Task ChangeUser(long userId)
     {
+        await cardService.UnburyIfNextDay();
+
         bool replacedMainVM = false;
         var newMainVM = mainVMF.Create(userId);
 

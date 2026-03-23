@@ -1,14 +1,13 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
 
 public interface ILoginService
 {
-    void ChangeUser(long userId);
+    Task ChangeUser(long userId);
 }
 
 public interface IDeckTreeBuilder
@@ -42,8 +41,10 @@ public interface ICardService
     
     ///<summary>Updates scalars and syncs tags collection. DOES NOT WORK FOR NAV PROPERTIES LIKE Deck</summary>
     Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null);
-
     Task SaveEditedCards(IEnumerable<CardEntity> updatedCards, CardAction action);
+
+    ///<summary>Unburies all cards that were buried at least 1 day ago.</summary>
+    Task UnburyIfNextDay();
 }
 
 public interface IDisplayControl

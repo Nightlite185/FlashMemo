@@ -20,6 +20,7 @@ public class CardEntity: ICard
     public DateTime Created { get; set; }
     public DateTime? LastModified { get; set; }
     public DateTime? Due { get; set; }
+    public DateTime? BuriedDate { get; set; }
     public bool IsDueToday => Due?.Date <= DateTime.Today;
     public bool IsDueNow => Due <= DateTime.Now;
     public DateTime? LastReviewed { get; set; }
@@ -44,7 +45,20 @@ public class CardEntity: ICard
         if (Due is null || !keepInterval)
             Interval = newInterval;
     }
-    public void FlipBuried() => IsBuried = !IsBuried;
+    public void FlipBuried()
+    {
+        if (IsBuried)
+        {
+            IsBuried = false;
+            BuriedDate = null;
+        }
+
+        else
+        {
+            IsBuried = true;
+            BuriedDate = DateTime.Now;
+        }
+    }
     public void FlipSuspended() => IsSuspended = !IsSuspended;
     public void Reschedule(RescheduleData data)
     {

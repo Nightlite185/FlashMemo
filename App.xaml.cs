@@ -37,6 +37,9 @@ public partial class App : Application
     
     private async Task InitUserSession()
     {
+        await sp.GetRequiredService<ICardService>()
+            .UnburyIfNextDay();
+
         var lss = sp.GetRequiredService<ILastSessionService>();
         await lss.LoadAsync();
 

@@ -101,4 +101,15 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
 
         await db.SaveChangesAsync();
     }
+    
+    public async Task UnburyIfNextDay()
+    {
+        var today = DateTime.Today;
+
+        await GetDb.Cards.Where(c => c.BuriedDate != null 
+        && c.BuriedDate.Value.Date < today)
+            .ExecuteUpdateAsync(opt => opt
+                .SetProperty(c => c.BuriedDate, (DateTime?)null)
+                .SetProperty(c => c.IsBuried, false));
+    }
 }

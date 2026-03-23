@@ -4,33 +4,44 @@ using FlashMemo.ViewModel.Bases;
 namespace FlashMemo.ViewModel.Popups;
 
 public partial class RescheduleVM
-    (Func<DateTime, bool, Task> confirm, Action cancel)
+    (Func<IRescheduleData, Task> confirm, Action cancel)
     : PopupVMBase(cancel)
 {
-    private readonly Func<DateTime, bool, Task> confirm = confirm;
+    private readonly Func<IRescheduleData, Task> confirm = confirm;
     protected override async Task Confirm()
     {
         var minDate = MinPickableDate;
 
-        var dt = DatepickerActive
-            ? (RescheduleToDate.Date < minDate
+        if (DatepickerActive)
+        {
+            var dt = (RescheduleToDate.Date < minDate)
                 ? minDate
-                : RescheduleToDate.Date)
-            : DateTime.Today.AddDays(PostponeByDays).Date;
+                : RescheduleToDate.Date;
 
-        await confirm(dt, KeepInterval);
+            await confirm(new RescheduleData(dt, KeepInterval));
+        }
+
+        else
+        {
+            await confirm(new PostponeData(
+                PostponeByDays, SinceToday, 
+                KeepInterval));
+        }
+
         Close();
     }
 
-    // TODO: make so you can choose if postpone by days SINCE today or SINCE card's DUE DATE.
-    //! For now its only postponing since today!
-
     public DateTime MinPickableDate => DateTime.Today.AddDays(1).Date;
 
-    [ObservableProperty] public partial bool DatepickerActive { get; set; } = true;
-    [ObservableProperty] public partial DateTime RescheduleToDate { get; set; } = DateTime.Today.AddDays(1).Date;
+    [ObservableProperty] public partial bool DatepickerActive { get; set; } = false;
+    [ObservableProperty] public partial DateTime RescheduleToDate { get; set; } = 
+        DateTime.Today.AddDays(1).Date;
+
     [ObservableProperty] public partial uint PostponeByDays { get; set; } = 1;
-    [ObservableProperty] public partial bool KeepInterval { get; set; }
+    [ObservableProperty] public partial bool SinceToday { get; set; } = false; 
+    // Controls whether the card's due date gets postponed in time by x days *since today* OR *since its current due date*.
+
+    [ObservableProperty] public partial bool KeepInterval { get; set; } = false;
 
     partial void OnRescheduleToDateChanged(DateTime value)
     {
@@ -55,3 +66,16 @@ public partial class RescheduleVM
             RescheduleToDate = MinPickableDate;
     }
 }
+
+public record struct RescheduleData(
+    DateTime NewDate, bool KeepInterval)
+    : IRescheduleData;
+
+public record struct PostponeData(
+    uint PostponeByDays, bool SinceToday, 
+    bool KeepInterval): IRescheduleData;
+
+public interface IRescheduleData 
+{ 
+    bool KeepInterval { get; } 
+};

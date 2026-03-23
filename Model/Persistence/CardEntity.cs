@@ -1,5 +1,6 @@
 using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
+using FlashMemo.ViewModel.Popups;
 
 namespace FlashMemo.Model.Persistence;
 
@@ -28,71 +29,50 @@ public class CardEntity: ICard
     #endregion
 
     #region methods
-    private void RescheduleHelper(DateTime newDate, bool keepInterval)
-    {
-        var now = DateTime.Now;
-        var timeFromNow = newDate - now;
-
-        if (Due.HasValue)
-        {
-            Due = newDate;
-
-            if (!keepInterval)
-                Interval += timeFromNow;
-        }
-        else
-        {
-            //* when postponing a new card, we add interval regardless of user's choice
-            //* because it would introduce bugs when a card has a due date,
-            //* state is review but interval = null
-            Interval += timeFromNow;
-        }
-    }
-    private void PostponeHelper(int moveBy, bool keepInterval)
-    {
-        var days = TimeSpan.FromDays(moveBy);
-
-        if (Due.HasValue)
-        {
-            Due = Due.Value.Add(days);
-
-            if (!keepInterval)
-                Interval += days;
-        }
-        else
-        {
-            Due = DateTime.Today.Add(days);
-            
-            //* when postponing a new card, we add interval regardless of user's choice
-            //* because it would introduce bugs when a card has a due date,
-            //* state is review but interval = null
-            Interval += days;
-        }
-    }
     private void ModifyDateHelper()
     {
         State = CardState.Review; // reschedule forces state to review, weird outcomes otherwise.
         LastModified = DateTime.Now;
         LearningStage = null;
     }
+    private void MaybeRaiseInterval(bool keepInterval, TimeSpan newInterval)
+    {
+        //* if this card was new (due == null), we add interval regardless of user's choice
+        //* because its illegal for a card to have interval of 0 
+        //* together with state == review and a due value
+
+        if (Due is null || !keepInterval)
+            Interval = newInterval;
+    }
     public void FlipBuried() => IsBuried = !IsBuried;
     public void FlipSuspended() => IsSuspended = !IsSuspended;
-    public void Reschedule(DateTime newReviewDate, bool keepInterval)
+    public void Reschedule(RescheduleData data)
     {
-        ModifyDateHelper();
-        RescheduleHelper(newReviewDate, keepInterval);
-    }
-    public void Reschedule(int daysFromNow, bool keepInterval)
-    {
-        TimeSpan days = TimeSpan.FromDays(daysFromNow);
+        var timeFromNow = 
+            data.NewDate - DateTime.Now;
 
         ModifyDateHelper();
-        RescheduleHelper(DateTime.Now + days, keepInterval);
+
+        MaybeRaiseInterval(
+            data.KeepInterval, 
+            newInterval: timeFromNow);
+
+        Due = data.NewDate;
     }
-    public void Postpone(int putOffByDays, bool keepInterval)
+    public void Postpone(PostponeData data)
     {
+        var days = TimeSpan.FromDays(
+            data.PostponeByDays);
+        
         ModifyDateHelper();
-        PostponeHelper(putOffByDays, keepInterval);
+
+        MaybeRaiseInterval(
+            data.KeepInterval, 
+            newInterval: days);
+
+        Due = (Due is null || data.SinceToday)
+            ? DateTime.Today.Add(days)
+            : Due.Value.Add(days);
     }
     public void Forget()
     {

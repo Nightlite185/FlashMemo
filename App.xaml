@@ -686,6 +686,7 @@
             <Setter Property="Padding" Value="6,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="UpdateValueOnEnterKey" Value="True"/>
+            <Setter Property="AutoSelectBehavior" Value="Never"/>
             <Setter Property="TextAlignment" Value="Left"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Margin" Value="0,5,0,3"/>
@@ -719,6 +720,7 @@
             <Setter Property="FormatString" Value="0.###"/>
             <Setter Property="Width" Value="150"/>
             <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="AutoSelectBehavior" Value="Never"/>
 
             <Style.Resources>
                 <Style TargetType="TextBox">

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using FlashMemo.ViewModel.Popups;
 
 namespace FlashMemo.View;
@@ -51,6 +52,16 @@ public partial class RescheduleUC : UserControl
 
         FocusActiveInput();
     }
+    private void Root_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source)
+            return;
+
+        if (IsDescendantOf(source, PostponeByDaysControl))
+            return;
+
+        Keyboard.ClearFocus();
+    }
 
     private void FocusActiveInput()
     {
@@ -69,5 +80,20 @@ public partial class RescheduleUC : UserControl
             PostponeByDaysControl.Focus();
             Keyboard.Focus(PostponeByDaysControl);
         });
+    }
+
+    private static bool IsDescendantOf(DependencyObject child, DependencyObject ancestor)
+    {
+        var current = child;
+
+        while (current is not null)
+        {
+            if (ReferenceEquals(current, ancestor))
+                return true;
+
+            current = VisualTreeHelper.GetParent(current) ?? LogicalTreeHelper.GetParent(current);
+        }
+
+        return false;
     }
 }

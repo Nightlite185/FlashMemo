@@ -122,10 +122,20 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
 
         eventBus.NotifyDomain();
     }
-    private async Task RescheduleCards(DateTime dt, bool keepInterval)
+    private async Task RescheduleCards(IRescheduleData data)
     {
+        Action<CardEntity> action = data switch
+        {
+            RescheduleData rd => c => c.Reschedule(rd),
+            PostponeData pd => c => c.Postpone(pd),
+
+            _ => throw new ArgumentException(
+                "provided data is neither RescheduleData nor PostponeData",
+                nameof(data))
+        };
+        
         await ModifyCardsHelper(
-            c => c.Reschedule(dt, keepInterval),
+            action,
             CardAction.Reschedule);
 
         await ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);

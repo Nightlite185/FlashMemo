@@ -13,7 +13,9 @@
         BorderBrush="{StaticResource NavBorderBrush}"
         BorderThickness="2">
 
-        <Grid>
+        <Grid
+            Background="Transparent"
+            PreviewMouseDown="Root_PreviewMouseDown">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -117,19 +119,46 @@
                     HorizontalAlignment="Left"/>
             </Grid>
 
-            <CheckBox
+            <StackPanel
                 Grid.Row="3"
-                Content="Keep interval"
-                IsChecked="{Binding KeepInterval, Mode=TwoWay}"
-                Foreground="White"
-                Margin="0,0,0,16"
-                FontSize="8.5"
-                VerticalContentAlignment="Center">
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                Margin="0,0,0,16">
 
-                <CheckBox.LayoutTransform>
-                    <ScaleTransform ScaleX="1.65" ScaleY="1.65" />
-                </CheckBox.LayoutTransform>
-            </CheckBox>
+                <CheckBox
+                    Content="Keep interval"
+                    IsChecked="{Binding KeepInterval, Mode=TwoWay}"
+                    Foreground="White"
+                    FontSize="8.5"
+                    VerticalContentAlignment="Center"
+                    Margin="0,0,26,0">
+
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.65" ScaleY="1.65" />
+                    </CheckBox.LayoutTransform>
+                </CheckBox>
+
+                <CheckBox
+                    IsChecked="{Binding SinceToday, Mode=TwoWay}"
+                    IsEnabled="{Binding DatepickerActive, 
+                        Converter= {StaticResource InverseBoolConverter}}"
+                    
+                    Foreground="White"
+                    FontSize="8.5"
+                    VerticalContentAlignment="Center">
+
+                    <CheckBox.LayoutTransform>
+                        <ScaleTransform ScaleX="1.65" ScaleY="1.65" />
+                    </CheckBox.LayoutTransform>
+
+                    <CheckBox.Content>
+                        <TextBlock
+                            Text="Since today"
+                            Cursor="Help"
+                            ToolTip="Controls whether the card's due date gets postponed in time by x days since today or since its current due date." />
+                    </CheckBox.Content>
+                </CheckBox>
+            </StackPanel>
 
             <Grid Grid.Row="4">
 

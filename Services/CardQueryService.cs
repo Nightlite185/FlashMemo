@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CardQueryService(IDbContextFactory<AppDbContext> factory, IUserOptionsService userOptService)
+public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICountingService counter)
     : DbDependentClass(factory), ICardQueryService
 {
     #region Public methods
@@ -77,8 +77,21 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IUserOpti
             .ToListAsync();
     }
     #endregion
-    
+
     #region private methods
+    private async Task<LessonReviewTake> ApplyLimitsQuery(long userId, CardsByStateQ cardsQ, DeckOptionsEntity deckOpt)
+    {
+        var takings = await counter.CalculateTakings(
+            userId, cardsQ, deckOpt);
+
+        cardsQ.Reviews = cardsQ.Reviews
+            .Take(takings.Reviews);
+
+        cardsQ.Lessons = cardsQ.Lessons
+            .Take(takings.Lessons);
+
+        return takings;
+    }
     private static void ApplySortQuery(CardsByStateQ cardsQ, DeckOptionsEntity.SortingOpt opt)
     {
         cardsQ.Learning = cardsQ.Learning
@@ -114,55 +127,6 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IUserOpti
                 nameof(sortOpt.CardStateOrder), (int)sortOpt.CardStateOrder, typeof(CardStateOrder))
         };
     }
-    private async Task<LessonReviewTake> ApplyLimitsQuery(long userId, CardsByStateQ cardsQ, DeckOptionsEntity deckOpt)
-    {
-        #region variables
-        var stateOrder = deckOpt.Sorting.CardStateOrder;
-
-        int reviewsCap = deckOpt.DailyLimits.Reviews;
-        int lessonsCap = deckOpt.DailyLimits.Lessons;
-
-        int reviewsTake = reviewsCap;
-        int lessonsTake = lessonsCap;
-
-        bool include = (await userOptService.GetFromUser(userId))
-            .IncludeLessonsInReviewLimit;
-        #endregion
-
-        if (include)
-        {
-            if (stateOrder is CardStateOrder.ReviewsThenNew or CardStateOrder.Mix)
-            {
-                int reviewCount = await cardsQ
-                    .Reviews.CountAsync();
-
-                int cappedReviews = Math.Min(reviewCount, reviewsTake);
-
-                lessonsTake = Math.Min(
-                    lessonsCap, Math.Max(
-                        reviewsTake - cappedReviews, 0));
-            }
-
-            else if (stateOrder is CardStateOrder.NewThenReviews)
-            {
-                int lessonCount = await cardsQ
-                    .Lessons.CountAsync();
-
-                int cappedLessons = Math.Min(lessonCount, lessonsTake);
-
-                reviewsTake = Math.Max(
-                    reviewsCap - cappedLessons, 0);
-            }
-        }
-
-        cardsQ.Reviews = cardsQ.Reviews
-            .Take(reviewsTake);
-
-        cardsQ.Lessons = cardsQ.Lessons
-            .Take(lessonsTake);
-
-        return new(lessonsTake, reviewsTake);
-    }
     private static void ShuffleIfRandom(CardsByState cards, DeckOptionsEntity.SortingOpt sortOpt)
     {
         cards.Lessons.ShuffleIf(
@@ -179,13 +143,13 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, IUserOpti
                 .AsNoTracking()
                 .ToListAsync(),
 
-            Lessons = (takings.LessonsTake != 0) 
+            Lessons = (takings.Lessons != 0) 
                 ? await query.Lessons
                     .AsNoTracking()
                     .ToListAsync()
                 : [],
 
-            Reviews = (takings.ReviewsTake != 0) 
+            Reviews = (takings.Reviews != 0) 
                 ? await query.Reviews
                     .AsNoTracking()
                     .ToListAsync()
@@ -223,4 +187,4 @@ public readonly struct CardsByState
     public readonly List<CardEntity> Reviews { get; init; }
 }
 
-internal record struct LessonReviewTake(int LessonsTake, int ReviewsTake);
+public record struct LessonReviewTake(int Lessons, int Reviews);

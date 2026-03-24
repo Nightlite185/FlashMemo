@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
@@ -103,12 +104,19 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
         mapper.Map(updatedRecord, tracked);
         await db.SaveChangesAsync();
     }
-
     public async Task Rename(string name, long id)
     {
         await GetDb.DeckOptions
             .Where(d => d.Id == id)
             .ExecuteUpdateAsync(opt => 
                 opt.SetProperty(d => d.Name, name));
+    }
+
+    public async Task<IDictionary<long, DeckOptionsEntity>> MappedByDeckId(long userId)
+    {
+        return await GetDb.Decks
+            .AsNoTracking()
+            .Include(d => d.Options)
+            .ToDictionaryAsync(k => k.Id, v => v.Options);
     }
 }

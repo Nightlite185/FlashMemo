@@ -20,18 +20,22 @@ public interface ICountingService
 {
     ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
     ///containing count of cards grouped by their state.</returns>
-    Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool onlyForStudy);
-    Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool onlyForStudy);
+    Task<IDictionary<long, CardsCount>> StudyableCards(long userId);
+    Task<LessonReviewTake> CalculateTakings(
+        long userId, CardsByStateQ cardsQ, DeckOptionsEntity deckOpt);
     Task<int> AllCards(long userId);
     Task<int> AllDecks(long userId);
     Task<int> AllReviewableCards(long userId);
 }
 public interface ICardQueryService
 {
-    Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir);
+    Task<IEnumerable<CardEntity>> GetCardsWhere(
+        Filters filters, CardsOrder order, SortingDirection dir);
+
     Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId);
     Task<IList<CardEntity>> GetAllFromUser(long userId);
     Task<IList<CardEntity>> GetAllFromDeck(long deckId);
+    
 }
 
 public interface ICardService
@@ -98,6 +102,7 @@ public interface IDeckOptionsService
 {
     Task<DeckOptions> GetFromDeck(long deckId);
     Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId);
+    Task<IDictionary<long, DeckOptionsEntity>> MappedByDeckId(long userId);
     Task Remove(long presetId);
     Task Rename(string name, long id);
     Task CreateNew(DeckOptions newRecord);

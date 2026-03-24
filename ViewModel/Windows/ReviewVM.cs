@@ -10,6 +10,7 @@ using FlashMemo.Repositories;
 using FlashMemo.Model;
 using FlashMemo.ViewModel.Other;
 using System.Collections.ObjectModel;
+using FlashMemo.Helpers;
 
 namespace FlashMemo.ViewModel.Windows;
 

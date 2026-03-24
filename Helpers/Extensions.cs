@@ -105,4 +105,13 @@ public static class Extensions
         foreach(T item in items)
             action(item);
     }
+
+    public static IEnumerable<CardEntity> ForStudy(this IEnumerable<CardEntity> cards)
+    {
+        var today = DateTime.Today;
+
+        return cards.Where(c =>
+            !c.IsSuspended && !c.IsBuried
+            && (!c.Due.HasValue || c.Due.Value.Date <= today));
+    }
 }

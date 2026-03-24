@@ -1,10 +1,11 @@
+using System.Collections.Immutable;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
-public static class CardQueryBuilder
+public static class QueryExtensions
 {
     public static CardsByStateQ GroupByStateQ(this IQueryable<CardEntity> baseQuery)
     {
@@ -20,7 +21,6 @@ public static class CardQueryBuilder
                 .Where(c => c.State == CardState.Review),
         };
     }
-
     public static IQueryable<CardEntity> ForStudy(this IQueryable<CardEntity> baseQuery)
     {
         var today = DateTime.Today;
@@ -29,16 +29,6 @@ public static class CardQueryBuilder
             !c.IsSuspended && !c.IsBuried
             && (!c.Due.HasValue || c.Due.Value.Date <= today));
     }
-
-    public static IEnumerable<CardEntity> ForStudy(this IEnumerable<CardEntity> cards)
-    {
-        var today = DateTime.Today;
-
-        return cards.Where(c =>
-            !c.IsSuspended && !c.IsBuried
-            && (!c.Due.HasValue || c.Due.Value.Date <= today));
-    }
-    
     public static async Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(this AppDbContext db, long deckId)
     {
         var deckIds = await DeckRepo
@@ -48,5 +38,12 @@ public static class CardQueryBuilder
             .AsNoTracking()
             .Where(c => 
                 deckIds.Contains(c.DeckId));
+    }
+    public static async Task<ICollection<long>> DeckIdsFromUser(this IQueryable<Deck> query, long userId)
+    {
+        return await query
+            .Where(d => d.UserId == userId)
+            .Select(d => d.Id)
+            .ToArrayAsync();
     }
 }

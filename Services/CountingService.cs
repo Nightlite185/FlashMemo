@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CountingService(IDbContextFactory<AppDbContext> factory)
-: DbDependentClass(factory), ICountingService
+public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptionsService deckOptService, 
+                            IUserOptionsService userOptService): DbDependentClass(factory), ICountingService
 {
-    #region public methods
     public async Task<int> AllCards(long userId)
     {
         return await GetDb.Cards
@@ -29,60 +28,82 @@ public class CountingService(IDbContextFactory<AppDbContext> factory)
             .ForStudy()
             .CountAsync();
     }
-    
-    public async Task<IDictionary<long, CardsCount>> CardsByState(long userId, bool onlyForStudy)
+    public async Task<LessonReviewTake> CalculateTakings(
+        long userId, CardsByStateQ cardsQ, DeckOptionsEntity deckOpt)
     {
-        var db = GetDb;
+        #region variables
+        var stateOrder = deckOpt.Sorting.CardStateOrder;
 
-        var deckIds = await db.Decks
-            .Where(d => d.UserId == userId)
-            .Select(d => d.Id)
-            .ToArrayAsync();
+        int reviewsCap = deckOpt.DailyLimits.Reviews;
+        int lessonsCap = deckOpt.DailyLimits.Lessons;
 
-        return await CardsByState(
-            deckIds,
-            onlyForStudy
-        );
+        int reviewCount = await cardsQ.Reviews.CountAsync();
+        int lessonCount = await cardsQ.Lessons.CountAsync();
+
+        int cappedReviews = Math.Min(reviewCount, reviewsCap);
+        int cappedLessons = Math.Min(lessonCount, lessonsCap);
+
+        bool include = (await userOptService.GetFromUser(userId))
+            .IncludeLessonsInReviewLimit;
+        #endregion
+
+        if (include)
+        {
+            if (stateOrder is CardStateOrder.ReviewsThenNew or CardStateOrder.Mix)
+            {
+                cappedLessons = Math.Min(
+                    lessonsCap, Math.Max(
+                        reviewsCap - cappedReviews, 0));
+            }
+
+            else if (stateOrder is CardStateOrder.NewThenReviews)
+            {
+                cappedReviews = Math.Max(
+                    reviewsCap - cappedLessons, 0);
+            }
+        }
+
+        return new(cappedLessons, cappedReviews);
     }
-    public async Task<IDictionary<long, CardsCount>> CardsByState(IEnumerable<long> deckIds, bool onlyForStudy)
+    public async Task<IDictionary<long, CardsCount>> StudyableCards(long userId)
     {
         var db = GetDb;
+
+        var deckIdsToOpt = await deckOptService
+            .MappedByDeckId(userId);
+
         Dictionary<long, CardsCount> result = [];
 
-        foreach(long id in deckIds)
+        foreach(var kvp in deckIdsToOpt)
         {
-            var allCardsQuery = await db
-                .AllCardsInDeckQAsync(id);
+            var grouped = (await db
+                .AllCardsInDeckQAsync(kvp.Key))
+                .ForStudy()
+                .GroupByStateQ();
 
-            if (onlyForStudy)
-            {
-                allCardsQuery = allCardsQuery
-                    .ForStudy();
-            }
-                                                                            
-            var grouped = allCardsQuery.GroupByStateQ();
-            var counted = await CountByStateAsync(grouped);
+            var counted = await CountByStateAsync(
+                grouped, userId, kvp.Value);
 
-            if (!result.TryAdd(id, counted))
-                throw new ArgumentException(
-                    "provided IEnumerable contains duplicate deck ids", 
-                    nameof(deckIds)
-                );
+            if (!result.TryAdd(kvp.Key, counted))
+                throw new InvalidOperationException(
+                "Dictionary contains duplicate deck ids");
         }
         
         return result;
     }
-    #endregion
+    
 
-    #region private helpers
-    private async static Task<CardsCount> CountByStateAsync(CardsByStateQ grouped)
+    private async Task<CardsCount> CountByStateAsync(CardsByStateQ queries, long userId, DeckOptionsEntity deckOpt)
     {
+        var takings = await CalculateTakings(
+            userId, queries, deckOpt);
+
         return new()
         {
-            Lessons = await grouped.Lessons.CountAsync(),
-            Learning = await grouped.Learning.CountAsync(),
-            Reviews = await grouped.Reviews.CountAsync()
+            Lessons = takings.Lessons,
+            Reviews = takings.Reviews,
+            Learning = await queries.Learning.CountAsync(),
         };
     }
-    #endregion
+    
 }

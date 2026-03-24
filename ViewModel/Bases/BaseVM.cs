@@ -41,6 +41,12 @@ public abstract class BaseVM(IVMEventBus bus): ObservableObject, IViewModel, INa
             await ReloadUserOptAsync();
             isUserOptDirty = false;
         }
+
+        if (isDeckOptDirty)
+        {
+            await ReloadDeckOptAsync();
+            isDeckOptDirty = false;
+        }
     }
     public virtual void OnFocusLost() => isFocused = false;
 
@@ -75,10 +81,13 @@ public abstract class BaseVM(IVMEventBus bus): ObservableObject, IViewModel, INa
     /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
     protected virtual async Task ReloadUserOptAsync() => await Task.CompletedTask;
 
+    /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
+    protected virtual async Task ReloadDeckOptAsync() => await Task.CompletedTask;
+
     protected bool isFocused = true;
     protected bool isDomainDirty;
     protected bool isUserOptDirty;
-    protected bool deckOptionsDirty;
+    protected bool isDeckOptDirty;
 
     protected readonly IVMEventBus eventBus = bus;
 }

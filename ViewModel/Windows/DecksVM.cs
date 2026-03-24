@@ -28,10 +28,12 @@ public partial class DecksVM: BaseVM, IPopupHost
     internal async Task InitAsync()
     {
         eventBus.DomainChanged += OnDomainChanged;
+        eventBus.DeckOptionsChanged += OnDeckOptChanged;
+        eventBus.UserOptionsChanged += OnUserOptChanged;
+
         await ReloadDomainAsync();
     }
     private void PopupCancel() => CurrentPopup = null;
-    
     private async Task CreateDeck(string name, DeckNode? parent = null)
     {
         Deck deck = Deck.CreateNew(
@@ -49,6 +51,9 @@ public partial class DecksVM: BaseVM, IPopupHost
         
         await deckRepo.AddNewDeck(deck);
     }
+    
+    protected override Task ReloadDeckOptAsync() => ReloadDomainAsync();
+    protected override Task ReloadUserOptAsync() => ReloadDomainAsync();
     #endregion
 
     #region ICommands

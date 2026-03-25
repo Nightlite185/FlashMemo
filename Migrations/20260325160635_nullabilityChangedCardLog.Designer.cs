@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260320220038_Filters_added_in_LastSessionData")]
-    partial class Filters_added_in_LastSessionData
+    [Migration("20260325160635_nullabilityChangedCardLog")]
+    partial class nullabilityChangedCardLog
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,6 +39,9 @@ namespace FlashMemo.Migrations
                 {
                     b.Property<long>("Id")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("BuriedDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
@@ -73,6 +76,9 @@ namespace FlashMemo.Migrations
                     b.Property<int>("State")
                         .HasColumnType("INTEGER");
 
+                    b.Property<long>("UserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DeckId");
@@ -96,7 +102,7 @@ namespace FlashMemo.Migrations
                     b.Property<TimeSpan?>("AnswerTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("CardId")
+                    b.Property<long?>("CardId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NewCardState")
@@ -105,7 +111,7 @@ namespace FlashMemo.Migrations
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("UserId")
+                    b.Property<long>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -301,12 +307,13 @@ namespace FlashMemo.Migrations
                     b.HasOne("FlashMemo.Model.Persistence.CardEntity", "Card")
                         .WithMany("CardLogs")
                         .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Card");
 

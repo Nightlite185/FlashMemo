@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FlashMemo.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class nullabilityChangedCardLog : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,21 @@ namespace FlashMemo.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false),
                     LastLoadedUserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    LastUsedDeckId = table.Column<long>(type: "INTEGER", nullable: true)
+                    LastUsedDeckId = table.Column<long>(type: "INTEGER", nullable: true),
+                    LastFilters_UserId = table.Column<long>(type: "INTEGER", nullable: true),
+                    LastFilters_IsBuried = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_IsSuspended = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_IsDue = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_TagIds = table.Column<string>(type: "TEXT", nullable: true),
+                    LastFilters_DeckIds = table.Column<string>(type: "TEXT", nullable: true),
+                    LastFilters_IncludeChildrenDecks = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_OverdueByDays = table.Column<int>(type: "INTEGER", nullable: true),
+                    LastFilters_States = table.Column<string>(type: "TEXT", nullable: true),
+                    LastFilters_Interval = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    LastFilters_Created = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastFilters_Due = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastFilters_LastReviewed = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastFilters_LastModified = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -97,7 +111,7 @@ namespace FlashMemo.Migrations
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     IntColor = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -151,6 +165,7 @@ namespace FlashMemo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     NoteId = table.Column<long>(type: "INTEGER", nullable: false),
                     DeckId = table.Column<long>(type: "INTEGER", nullable: false),
                     IsBuried = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -158,6 +173,7 @@ namespace FlashMemo.Migrations
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastModified = table.Column<DateTime>(type: "TEXT", nullable: true),
                     Due = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    BuriedDate = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastReviewed = table.Column<DateTime>(type: "TEXT", nullable: true),
                     Interval = table.Column<TimeSpan>(type: "TEXT", nullable: false),
                     State = table.Column<int>(type: "INTEGER", nullable: false),
@@ -209,8 +225,8 @@ namespace FlashMemo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false),
-                    CardId = table.Column<long>(type: "INTEGER", nullable: false),
-                    UserId = table.Column<long>(type: "INTEGER", nullable: true),
+                    CardId = table.Column<long>(type: "INTEGER", nullable: true),
+                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     Action = table.Column<int>(type: "INTEGER", nullable: false),
                     Answer = table.Column<int>(type: "INTEGER", nullable: true),
                     AnswerTime = table.Column<TimeSpan>(type: "TEXT", nullable: true),
@@ -225,12 +241,13 @@ namespace FlashMemo.Migrations
                         column: x => x.CardId,
                         principalTable: "Cards",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_CardLogs_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -279,9 +296,10 @@ namespace FlashMemo.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tags_UserId",
+                name: "IX_Tags_UserId_Name",
                 table: "Tags",
-                column: "UserId");
+                columns: new[] { "UserId", "Name" },
+                unique: true);
         }
 
         /// <inheritdoc />

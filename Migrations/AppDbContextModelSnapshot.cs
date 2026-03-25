@@ -99,7 +99,7 @@ namespace FlashMemo.Migrations
                     b.Property<TimeSpan?>("AnswerTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("CardId")
+                    b.Property<long?>("CardId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("NewCardState")
@@ -108,7 +108,7 @@ namespace FlashMemo.Migrations
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("UserId")
+                    b.Property<long>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -304,12 +304,13 @@ namespace FlashMemo.Migrations
                     b.HasOne("FlashMemo.Model.Persistence.CardEntity", "Card")
                         .WithMany("CardLogs")
                         .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FlashMemo.Model.Persistence.UserEntity", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Card");
 

@@ -109,7 +109,7 @@ namespace FlashMemo.Model.Persistence
             mb.Entity<CardLog>()
                 .HasOne(cl => cl.Card)
                 .WithMany(c => c.CardLogs)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
 
             mb.Entity<Deck>()
                 .HasOne(d => d.ParentDeck)

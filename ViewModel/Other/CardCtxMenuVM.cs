@@ -75,17 +75,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
 
         await ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
-
-    [RelayCommand(CanExecute = nameof(CanExecuteIfOneCard))]
-    private async Task ShowCardDetails()
-    {
-        ThrowIfNotOneCaptured();
-
-        // show it here
-        throw new NotImplementedException();
-        await ctxHost.OnActionExecuted(CtxMenuAction.ShowDetails);
-    }
-    
     #endregion
     
     #region methods
@@ -98,12 +87,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
         if (capturedCards is null || capturedCards.Count == 0)
             throw new InvalidOperationException(
             $"Called {calledMember}, but there are no captured cards yet.");
-    }
-    private void ThrowIfNotOneCaptured([CallerMemberName] string? caller = null)
-    {
-        if (capturedCards?.Count != 1)
-            throw new InvalidOperationException(
-            $"To execute this there needs to be only one card captured, but there was {(capturedCards is null ? "null" : capturedCards.Count)}");
     }
     private void PopupCancel()
         => popupHost.CurrentPopup = null;
@@ -142,8 +125,18 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     }
     private async Task MoveCards(IDeckMeta newDeck)
     {
+        ThrowIfNoCardsCaptured(nameof(MoveCards));
+
+        //* only take cards that arent already in that deck.
+        capturedCards = [..capturedCards!
+            .Where(c => c.DeckId != newDeck.Id)];
+
+        //* if all of them are in it -> return quickly.
+        if (capturedCards.Count == 0) 
+            return;
+
         await ModifyCardsHelper(
-            c => c.MoveToDeck(newDeck.Id),
+            c => c.MoveToDeck(newDeck.ToEntity()),
             CardAction.Relocate
         );
 
@@ -161,7 +154,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     #endregion
     
     #region private things
-    private bool CanExecuteIfOneCard => capturedCards?.Count == 1;
     private readonly ICardService cardService = cs;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     private readonly IVMEventBus eventBus = eventBus;

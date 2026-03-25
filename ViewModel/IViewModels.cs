@@ -54,6 +54,7 @@ public interface IViewModel;
 public interface ICardVM
 {
     long Id { get; }
+    long DeckId { get; }
     CardEntity ToEntity();
 }
 

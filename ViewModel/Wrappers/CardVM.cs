@@ -46,6 +46,7 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
     public bool IsBuried => card.IsBuried;
 
     public long Id => card.Id;
+    public long DeckId => card.DeckId;
     public string DeckName => card.Deck.Name;
     public DateTime? LastModified => card.LastModified;
     public DateTime? LastReviewed => card.LastReviewed;

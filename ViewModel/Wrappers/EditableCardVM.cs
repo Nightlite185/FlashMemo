@@ -29,6 +29,7 @@ public partial class EditableCardVM: ObservableObject, ICardVM
     [ObservableProperty] public partial IDeckMeta Deck { get; private set; } = null!;
     public List<TagVM> Tags { get; init; } = [];
     public long Id => card.Id;
+    public long DeckId => card.DeckId;
 
     public void RevertChanges()
     {

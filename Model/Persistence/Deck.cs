@@ -33,6 +33,7 @@ namespace FlashMemo.Model.Persistence
                 IsTemporary = false,
             };
         }
+        public Deck ToEntity() => this; // for the interface
         #endregion
 
         #region Equality, IEnumerable, and indexer boilerplate

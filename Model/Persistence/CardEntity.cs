@@ -96,7 +96,11 @@ public class CardEntity: ICard
         LastModified = DateTime.Now;
         Interval = TimeSpan.Zero;
     }
-    public void MoveToDeck(long newDeckId) => DeckId = newDeckId;
+    public void MoveToDeck(Deck newDeck)
+    {
+        Deck = newDeck;
+        DeckId = newDeck.Id;
+    }
     public void ReplaceTagsWith(IEnumerable<Tag> newTags)
     {
         Tags.Clear();

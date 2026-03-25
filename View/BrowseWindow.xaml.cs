@@ -213,7 +213,7 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 
         ApplySortToCollectionView();
         RefreshColumnHeaders();
-        NotifyVmAboutColumnClick(clickedSpec.Column);
+        // NotifyVmAboutColumnClick(clickedSpec.Column);
     }
 
     private void ApplySortToCollectionView()
@@ -349,21 +349,21 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         ApplySortToCollectionView();
     }
 
-    private void NotifyVmAboutColumnClick(BrowseColumn clickedColumn)
-    {
-        if (DataContext is not BrowseVM vm)
-            return;
+    // private void NotifyVmAboutColumnClick(BrowseColumn clickedColumn)
+    // {
+    //     if (DataContext is not BrowseVM vm)
+    //         return;
 
-        vm.ActiveBrowseColumn = clickedColumn;
-        vm.SortDir = activeSortDirection == ListSortDirection.Ascending
-            ? SortingDirection.Ascending
-            : SortingDirection.Descending;
+    //     vm.ActiveBrowseColumn = clickedColumn;
+    //     vm.SortDir = activeSortDirection == ListSortDirection.Ascending
+    //         ? SortingDirection.Ascending
+    //         : SortingDirection.Descending;
 
-        if (TryMapToCardsOrder(clickedColumn, out var order))
-            vm.SortOrder = order;
+    //     if (TryMapToCardsOrder(clickedColumn, out var order))
+    //         vm.SortOrder = order;
 
-        vm.OnColumnClicked(clickedColumn);
-    }
+    //     vm.OnColumnClicked(clickedColumn);
+    // }
 
     private static bool TryMapToCardsOrder(BrowseColumn column, out CardsOrder order)
     {

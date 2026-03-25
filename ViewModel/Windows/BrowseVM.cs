@@ -98,11 +98,11 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     }
     protected override async Task ReloadDomainAsync()
         => await ApplyFiltersAsync(filtersVM.CachedFilters);
-    public void OnColumnClicked(BrowseColumn column)
-    {
-        // TODO: Handle browse-column sorting here (re-query or re-order cards) once
-        // BrowseWindow-to-VM sorting integration is implemented end-to-end.
-    }
+        
+    // public void OnColumnClicked(BrowseColumn column)
+    // {
+    //
+    // }
     #endregion
     
     #region private things

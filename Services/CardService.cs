@@ -40,7 +40,6 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
         
         var tracked = await db.Cards
             .Include(c => c.Tags)
-            .Include(c => c.Deck)
             .SingleAsync(c => c.Id == updated.Id);
 
         db.Entry(tracked).CurrentValues

@@ -7,8 +7,8 @@ namespace FlashMemo.Model.Persistence
     public class CardLog()
     {
         public long Id { get; set; }
-        public long CardId { get; set; }
-        public long? UserId { get; set; }
+        public long? CardId { get; set; }
+        public long UserId { get; set; }
         public UserEntity User { get; set; } = null!;
         public CardEntity Card { get; set; } = null!;
         public CardAction Action { get; set; }
@@ -17,16 +17,13 @@ namespace FlashMemo.Model.Persistence
         public CardState NewCardState { get; set; }
         public DateTime TimeStamp { get; set; }
 
-        /// <summary>Deck needs to be included with card; otherwise this won't work</summary>
         public static CardLog CreateReviewLog(CardEntity card, Answers ans, TimeSpan ansTime)
         {
-            if (card.Deck is null) throw new NullReferenceException(
-                "Deck wasn't included with the card");
-
             return new()
             {
                 Id = IdGetter.Next(),
-                UserId = card.Deck.UserId,
+                UserId = card.UserId,
+                CardId = card.Id,
                 Card = card,
                 Action = CardAction.Review,
                 Answer = ans,
@@ -36,16 +33,13 @@ namespace FlashMemo.Model.Persistence
             };
         }
 
-        /// <summary>Deck needs to be included with card; otherwise this won't work</summary>
         public static CardLog CreateLog(CardEntity card, CardAction action)
         {
-            if (card.Deck is null) throw new NullReferenceException(
-                "Deck wasn't included with the card");
-
             return new()
             {
                 Id = IdGetter.Next(),
-                UserId = card.Deck.UserId,
+                UserId = card.UserId,
+                CardId = card.Id,
                 Card = card,
                 Action = action,
                 NewCardState = card.State,

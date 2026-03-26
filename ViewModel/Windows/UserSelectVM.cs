@@ -56,7 +56,17 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
         // TODO: persist user preference if they want to have this popup show or not.
         // I mean like "dont show this again" checkbox pattern
 
-        //TODO: this button only visible when the current logged user is not the one to remove.
+        if (currentUserId == toRemove.Id)
+        {
+            DialogService.Show(
+                title: "Invalid action",
+                message: "Sorry, but you can't delete the user that you're currently logged in with. Please log in to another user, then delete this one.",
+                buttons: DialogButtons.OK,
+                icon: DialogIcons.Information
+            );
+
+            return;
+        }
 
         var answer = DialogService.Show(
             title: "Are you sure?",
@@ -68,10 +78,6 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
 
         if (answer is DialogResult.No) 
             return;
-
-        if (currentUserId == toRemove.Id)
-            throw new InvalidOperationException(
-            "Cannot remove user that you're currently logged in with.");
 
         await userRepo.Remove(toRemove.Id);
         Users.Remove(toRemove);

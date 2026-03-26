@@ -18,6 +18,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     [ObservableProperty]
     public partial ObservableCollection<CardVM> Cards { get; set; } = [];
 
+
     [ObservableProperty]
     public partial string SearchBar { get; set; } = "";
     
@@ -43,6 +44,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     [ObservableProperty]
     public partial BrowseColumn ActiveBrowseColumn { get; set; } = BrowseColumn.Due;
 
+    public FiltersVM FiltersVM => filtersVM;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     #endregion
     

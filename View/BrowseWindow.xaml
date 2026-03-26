@@ -87,134 +87,401 @@
             </Setter>
         </Style>
 
+        <Style x:Key="BrowseFilterSectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#FFEAEAEA"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="BrowseFilterCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#FFE6E6E6"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="BrowseFilterTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Foreground" Value="#FFF0F0F0"/>
+            <Setter Property="Background" Value="#FF282828"/>
+            <Setter Property="BorderBrush" Value="#FF3A3A3A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="BrowseFilterDatePickerStyle" TargetType="DatePicker">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Foreground" Value="#FFF0F0F0"/>
+            <Setter Property="Background" Value="#FF282828"/>
+            <Setter Property="BorderBrush" Value="#FF3A3A3A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="BrowseFilterButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Height" Value="33"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,4"/>
+        </Style>
+
+        <Style x:Key="BrowseFilterExpanderStyle" TargetType="Expander">
+            <Setter Property="Foreground" Value="#FFEAEAEA"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Background" Value="#00000000"/>
+        </Style>
+
     </Window.Resources>
 
     <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320"
+                              MinWidth="220"
+                              MaxWidth="520"/>
+            <ColumnDefinition Width="6"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,10">
-            <Border
-                HorizontalAlignment="Center"
-                Background="#FF2A2A2A"
-                BorderBrush="#FF3A3A3A"
-                BorderThickness="1"
-                CornerRadius="6"
-                Padding="8,4"
-                Width="420">
-                <TextBox
-                    Text="{Binding SearchBar, UpdateSourceTrigger=PropertyChanged}"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Foreground="#FFE6E6E6"
-                    CaretBrush="#FFE6E6E6"
-                    FontSize="14"
-                    VerticalContentAlignment="Center"
-                    ToolTip="Search (not wired yet)"/>
-            </Border>
-        </Grid>
-
-        <Border Grid.Row="1"
+        <Border Grid.Column="0"
                 Background="#FF222222"
                 BorderBrush="#FF3A3A3A"
                 BorderThickness="1"
                 CornerRadius="6">
-            <DataGrid
-                x:Name="CardsGrid"
-                AutoGenerateColumns="False"
-                ItemsSource="{Binding Cards}"
-                IsReadOnly="True"
-                CanUserAddRows="False"
-                CanUserDeleteRows="False"
-                CanUserResizeColumns="True"
-                CanUserReorderColumns="True"
-                CanUserSortColumns="True"
-                SelectionMode="Extended"
-                SelectionUnit="FullRow"
-                GridLinesVisibility="None"
-                HeadersVisibility="Column"
-                Background="#FF202020"
-                RowBackground="#FF202020"
-                AlternatingRowBackground="#FF252525"
-                BorderThickness="0"
-                Foreground="#FFF0F0F0"
-                ColumnHeaderHeight="34"
-                ColumnHeaderStyle="{StaticResource BrowseHeaderStyle}">
-                <DataGrid.ContextMenu>
-                    <ContextMenu Opened="CardsContextMenu_Opened">
-                        <MenuItem Header="Move cards" Command="{Binding CtxMenuVM.MoveCardsCtxCommand}"/>
-                        <MenuItem Header="Reschedule" Command="{Binding CtxMenuVM.ShowRescheduleCtxCommand}"/>
-                        <MenuItem Header="Forget" Command="{Binding CtxMenuVM.ForgetCardsCtxCommand}"/>
-                        <MenuItem Header="Bury / Unbury" Command="{Binding CtxMenuVM.ToggleBuryCtxCommand}"/>
-                        <MenuItem Header="Suspend / Unsuspend" Command="{Binding CtxMenuVM.ToggleSuspendedCtxCommand}"/>
-                        <Separator/>
-                        <MenuItem Header="Delete" Command="{Binding CtxMenuVM.DeleteCardsCtxCommand}"/>
-                    </ContextMenu>
-                </DataGrid.ContextMenu>
+            <Grid x:Name="FiltersSidebarRoot">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <DataGrid.Resources>
-                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#FF2D78D4"/>
-                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFFFFFFF"/>
-                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#FF2D78D4"/>
-                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#FFFFFFFF"/>
-                </DataGrid.Resources>
+                <Border Grid.Row="0"
+                        BorderBrush="#FF3A3A3A"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,10">
+                    <TextBlock Text="Filters"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="#FFEAEAEA"/>
+                </Border>
 
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="Foreground" Value="#FFF0F0F0"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsSuspended}" Value="True">
-                                <Setter Property="Background" Value="#55FFB347"/>
-                            </DataTrigger>
+                <ScrollViewer Grid.Row="1"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="12,10,12,10">
+                    <StackPanel>
+                        <Expander Header="Decks"
+                                  IsExpanded="True"
+                                  Style="{StaticResource BrowseFilterExpanderStyle}">
+                            <StackPanel Margin="0,8,0,0">
+                                <TreeView ItemsSource="{Binding DeckTree}"
+                                          Background="Transparent"
+                                          BorderThickness="0">
+                                    <TreeView.ItemContainerStyle>
+                                        <Style TargetType="TreeViewItem"
+                                               BasedOn="{StaticResource DeckTreeItemStyle}">
+                                            <Setter Property="Padding"
+                                                    Value="0"/>
+                                        </Style>
+                                    </TreeView.ItemContainerStyle>
 
-                            <DataTrigger Binding="{Binding IsBuried}" Value="True">
-                                <Setter Property="Background" Value="#66D64545"/>
-                            </DataTrigger>
+                                    <TreeView.ItemTemplate>
+                                        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="30"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
 
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#FF2D78D4"/>
-                                <Setter Property="Foreground" Value="#FFFFFFFF"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.CellStyle>
+                                                <ToggleButton Grid.Column="0"
+                                                              Style="{StaticResource DeckExpandToggleStyle}"
+                                                              IsChecked="{Binding IsExpanded, Mode=TwoWay}"/>
 
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="Foreground" Value="#FFF0F0F0"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsSuspended}" Value="True">
-                                <Setter Property="Background" Value="#55FFB347"/>
-                            </DataTrigger>
+                                                <CheckBox Grid.Column="1"
+                                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          Content="{Binding Name}"
+                                                          VerticalAlignment="Center"
+                                                          Style="{StaticResource BrowseFilterCheckBoxStyle}"/>
+                                            </Grid>
+                                        </HierarchicalDataTemplate>
+                                    </TreeView.ItemTemplate>
+                                </TreeView>
 
-                            <DataTrigger Binding="{Binding IsBuried}" Value="True">
-                                <Setter Property="Background" Value="#66D64545"/>
-                            </DataTrigger>
+                                <CheckBox Margin="0,8,0,0"
+                                          Content="Include child decks"
+                                          IsChecked="{Binding IncludeChildrenDecks, Mode=TwoWay}"
+                                          Style="{StaticResource BrowseFilterCheckBoxStyle}"/>
+                            </StackPanel>
+                        </Expander>
 
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#FF2D78D4"/>
-                                <Setter Property="Foreground" Value="#FFFFFFFF"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.RowStyle>
-            </DataGrid>
+                        <Expander Header="Tags"
+                                  IsExpanded="True"
+                                  Style="{StaticResource BrowseFilterExpanderStyle}">
+                            <ListBox ItemsSource="{Binding Tags}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="#FFE6E6E6"
+                                     MaxHeight="200"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  Style="{StaticResource BrowseFilterCheckBoxStyle}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="10"
+                                                         Height="10"
+                                                         Margin="0,0,7,0"
+                                                         VerticalAlignment="Center">
+                                                    <Ellipse.Fill>
+                                                        <SolidColorBrush Color="{Binding Color}"/>
+                                                    </Ellipse.Fill>
+                                                </Ellipse>
+                                                <TextBlock Text="{Binding Name}"
+                                                           Foreground="#FFE6E6E6"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Expander>
+
+                        <Expander Header="Card State"
+                                  IsExpanded="True"
+                                  Style="{StaticResource BrowseFilterExpanderStyle}">
+                            <ItemsControl ItemsSource="{Binding States}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  Content="{Binding State, Converter={StaticResource EnumToReadableTextConverter}}"
+                                                  Style="{StaticResource BrowseFilterCheckBoxStyle}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Expander>
+
+                        <Expander Header="Status"
+                                  IsExpanded="True"
+                                  Style="{StaticResource BrowseFilterExpanderStyle}">
+                            <StackPanel Margin="0,8,0,0">
+                                <CheckBox Content="Due"
+                                          IsThreeState="True"
+                                          IsChecked="{Binding IsDue, Mode=TwoWay}"
+                                          Style="{StaticResource BrowseFilterCheckBoxStyle}"/>
+
+                                <CheckBox Content="Buried"
+                                          IsThreeState="True"
+                                          IsChecked="{Binding IsBuried, Mode=TwoWay}"
+                                          Style="{StaticResource BrowseFilterCheckBoxStyle}"/>
+
+                                <CheckBox Content="Suspended"
+                                          IsThreeState="True"
+                                          IsChecked="{Binding IsSuspended, Mode=TwoWay}"
+                                          Style="{StaticResource BrowseFilterCheckBoxStyle}"/>
+                            </StackPanel>
+                        </Expander>
+
+                        <Expander Header="Dates and Values"
+                                  IsExpanded="False"
+                                  Style="{StaticResource BrowseFilterExpanderStyle}">
+                            <StackPanel Margin="0,8,0,0">
+                                <TextBlock Text="Overdue By Days"
+                                           Style="{StaticResource BrowseFilterSectionHeaderStyle}"/>
+                                <TextBox Text="{Binding OverdueByDays, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                                         Style="{StaticResource BrowseFilterTextBoxStyle}"/>
+
+                                <TextBlock Text="Interval (d.hh:mm:ss)"
+                                           Style="{StaticResource BrowseFilterSectionHeaderStyle}"/>
+                                <TextBox Text="{Binding Interval, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                                         ToolTip="Example: 2.00:00:00 for 2 days"
+                                         Style="{StaticResource BrowseFilterTextBoxStyle}"/>
+
+                                <TextBlock Text="Due Date"
+                                           Style="{StaticResource BrowseFilterSectionHeaderStyle}"/>
+                                <DatePicker SelectedDate="{Binding Due, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource BrowseFilterDatePickerStyle}"/>
+
+                                <TextBlock Text="Created"
+                                           Style="{StaticResource BrowseFilterSectionHeaderStyle}"/>
+                                <DatePicker SelectedDate="{Binding Created, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource BrowseFilterDatePickerStyle}"/>
+
+                                <TextBlock Text="Last Reviewed"
+                                           Style="{StaticResource BrowseFilterSectionHeaderStyle}"/>
+                                <DatePicker SelectedDate="{Binding LastReviewed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource BrowseFilterDatePickerStyle}"/>
+
+                                <TextBlock Text="Last Modified"
+                                           Style="{StaticResource BrowseFilterSectionHeaderStyle}"/>
+                                <DatePicker SelectedDate="{Binding LastModified, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource BrowseFilterDatePickerStyle}"/>
+                            </StackPanel>
+                        </Expander>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border Grid.Row="2"
+                        BorderBrush="#FF3A3A3A"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Content="Apply"
+                                Click="ApplyFiltersButton_Click"
+                                Style="{StaticResource BrowseFilterButtonStyle}"/>
+
+                        <Button Grid.Column="2"
+                                Content="Reset"
+                                Click="ResetFiltersButton_Click"
+                                Style="{StaticResource BrowseFilterButtonStyle}"/>
+                    </Grid>
+                </Border>
+            </Grid>
         </Border>
 
-        <Grid
-            Grid.RowSpan="2"
-            Background="#80000000"
-            Visibility="{Binding CurrentPopup,
-                Converter={StaticResource NullToVisConverter}}">
-            <ContentControl
-                Content="{Binding CurrentPopup}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"/>
+        <GridSplitter Grid.Column="1"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="#FF3A3A3A"
+                      ShowsPreview="True"/>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Border HorizontalAlignment="Center"
+                        Background="#FF2A2A2A"
+                        BorderBrush="#FF3A3A3A"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="8,4"
+                        Width="420">
+                    <TextBox Text="{Binding SearchBar, UpdateSourceTrigger=PropertyChanged}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Foreground="#FFE6E6E6"
+                             CaretBrush="#FFE6E6E6"
+                             FontSize="14"
+                             VerticalContentAlignment="Center"
+                             ToolTip="Search (not wired yet)"/>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="1"
+                    Background="#FF222222"
+                    BorderBrush="#FF3A3A3A"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                <DataGrid x:Name="CardsGrid"
+                          AutoGenerateColumns="False"
+                          ItemsSource="{Binding Cards}"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeColumns="True"
+                          CanUserReorderColumns="True"
+                          CanUserSortColumns="True"
+                          SelectionMode="Extended"
+                          SelectionUnit="FullRow"
+                          GridLinesVisibility="None"
+                          HeadersVisibility="Column"
+                          Background="#FF202020"
+                          RowBackground="#FF202020"
+                          AlternatingRowBackground="#FF252525"
+                          BorderThickness="0"
+                          Foreground="#FFF0F0F0"
+                          ColumnHeaderHeight="34"
+                          ColumnHeaderStyle="{StaticResource BrowseHeaderStyle}">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu Opened="CardsContextMenu_Opened">
+                            <MenuItem Header="Move cards" Command="{Binding CtxMenuVM.MoveCardsCtxCommand}"/>
+                            <MenuItem Header="Reschedule" Command="{Binding CtxMenuVM.ShowRescheduleCtxCommand}"/>
+                            <MenuItem Header="Forget" Command="{Binding CtxMenuVM.ForgetCardsCtxCommand}"/>
+                            <MenuItem Header="Bury / Unbury" Command="{Binding CtxMenuVM.ToggleBuryCtxCommand}"/>
+                            <MenuItem Header="Suspend / Unsuspend" Command="{Binding CtxMenuVM.ToggleSuspendedCtxCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="Delete" Command="{Binding CtxMenuVM.DeleteCardsCtxCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+
+                    <DataGrid.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#FF2D78D4"/>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFFFFFFF"/>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#FF2D78D4"/>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#FFFFFFFF"/>
+                    </DataGrid.Resources>
+
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#FFF0F0F0"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSuspended}" Value="True">
+                                    <Setter Property="Background" Value="#55FFB347"/>
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding IsBuried}" Value="True">
+                                    <Setter Property="Background" Value="#66D64545"/>
+                                </DataTrigger>
+
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#FF2D78D4"/>
+                                    <Setter Property="Foreground" Value="#FFFFFFFF"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.CellStyle>
+
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#FFF0F0F0"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSuspended}" Value="True">
+                                    <Setter Property="Background" Value="#55FFB347"/>
+                                </DataTrigger>
+
+                                <DataTrigger Binding="{Binding IsBuried}" Value="True">
+                                    <Setter Property="Background" Value="#66D64545"/>
+                                </DataTrigger>
+
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#FF2D78D4"/>
+                                    <Setter Property="Foreground" Value="#FFFFFFFF"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.ColumnSpan="3"
+              Background="#80000000"
+              Visibility="{Binding CurrentPopup,
+                  Converter={StaticResource NullToVisConverter}}">
+            <ContentControl Content="{Binding CurrentPopup}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"/>
         </Grid>
     </Grid>
 </Window>

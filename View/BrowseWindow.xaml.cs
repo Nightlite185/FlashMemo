@@ -6,6 +6,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel.Wrappers;
 using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.View;
@@ -39,6 +40,7 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         EnsureInitialized();
+        BindFiltersSidebarDataContext();
     }
 
     private void EnsureInitialized()
@@ -52,9 +54,13 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         InitializeColumnSpecs();
         RebuildColumns();
         ApplySortToCollectionView();
+        BindFiltersSidebarDataContext();
 
         initialized = true;
     }
+
+    private void BindFiltersSidebarDataContext()
+        => FiltersSidebarRoot.DataContext = VM.FiltersVM;
 
     private void InitializeColumnSpecs()
     {
@@ -406,6 +412,45 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         }
 
         return null;
+    }
+
+    private async void ApplyFiltersButton_Click(object sender, RoutedEventArgs e)
+    {
+        await VM.ApplyFiltersAsync(VM.FiltersVM.TakeSnapshot());
+    }
+
+    private async void ResetFiltersButton_Click(object sender, RoutedEventArgs e)
+    {
+        var sidebarVm = VM.FiltersVM;
+
+        sidebarVm.IsBuried = null;
+        sidebarVm.IsSuspended = null;
+        sidebarVm.IsDue = null;
+        sidebarVm.IncludeChildrenDecks = true;
+        sidebarVm.Interval = null;
+        sidebarVm.Due = null;
+        sidebarVm.LastReviewed = null;
+        sidebarVm.LastModified = null;
+        sidebarVm.Created = null;
+        sidebarVm.OverdueByDays = null;
+
+        foreach (var state in sidebarVm.States)
+            state.IsSelected = false;
+
+        foreach (var tag in sidebarVm.Tags)
+            tag.IsSelected = false;
+
+        ClearDeckSelections(sidebarVm.DeckTree);
+        await VM.ApplyFiltersAsync(sidebarVm.TakeSnapshot());
+    }
+
+    private static void ClearDeckSelections(IEnumerable<DeckNode> deckNodes)
+    {
+        foreach (var deck in deckNodes)
+        {
+            deck.IsSelected = false;
+            ClearDeckSelections(deck.Children);
+        }
     }
 
     private sealed class BrowseColumnSpec(

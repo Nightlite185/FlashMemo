@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
@@ -7,6 +8,7 @@ using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FlashMemo.Helpers;
 
@@ -213,6 +215,23 @@ public class UintToTimeOnly : IValueConverter<uint, TimeOnly>
 {
     public TimeOnly Convert(uint sourceMember, ResolutionContext context)
         => new((int)sourceMember, 0);
+}
+
+public static class EFConverters
+{
+    public static ValueConverter<ImmutableList<long>, string> ImmutableLongList =>
+        new(
+            v => JsonSerializer.Serialize(v),
+            v => JsonSerializer.Deserialize<ImmutableList<long>>(v) 
+                ?? ImmutableList<long>.Empty
+        );
+
+    public static ValueConverter<ImmutableList<CardState>, string> ImmutableCardStateList =>
+        new(
+            v => JsonSerializer.Serialize(v),
+            v => JsonSerializer.Deserialize<ImmutableList<CardState>>(v) 
+                ?? ImmutableList<CardState>.Empty
+        );
 }
 
 #endregion

@@ -1,3 +1,4 @@
+using FlashMemo.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Model.Persistence
@@ -48,7 +49,17 @@ namespace FlashMemo.Model.Persistence
                 mb.Property(s => s.Id)
                 .ValueGeneratedNever();
 
-                mb.OwnsOne(s => s.LastFilters);
+                mb.OwnsOne(s => s.LastFilters, mb =>
+                {
+                    mb.Property(f => f.TagIds)
+                    .HasConversion(EFConverters.ImmutableLongList);
+                    
+                    mb.Property(f => f.DeckIds)
+                    .HasConversion(EFConverters.ImmutableLongList);
+                    
+                    mb.Property(f => f.States)
+                    .HasConversion(EFConverters.ImmutableCardStateList);
+                });
             });
 
             mb.Entity<DeckOptionsEntity>(mb =>

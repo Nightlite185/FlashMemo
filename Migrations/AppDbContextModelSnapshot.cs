@@ -480,7 +480,7 @@ namespace FlashMemo.Migrations
                             b1.Property<DateTime?>("Created")
                                 .HasColumnType("TEXT");
 
-                            b1.PrimitiveCollection<string>("DeckIds")
+                            b1.Property<string>("DeckIds")
                                 .IsRequired()
                                 .HasColumnType("TEXT");
 
@@ -511,11 +511,11 @@ namespace FlashMemo.Migrations
                             b1.Property<int?>("OverdueByDays")
                                 .HasColumnType("INTEGER");
 
-                            b1.PrimitiveCollection<string>("States")
+                            b1.Property<string>("States")
                                 .IsRequired()
                                 .HasColumnType("TEXT");
 
-                            b1.PrimitiveCollection<string>("TagIds")
+                            b1.Property<string>("TagIds")
                                 .IsRequired()
                                 .HasColumnType("TEXT");
 

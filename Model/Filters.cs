@@ -32,13 +32,13 @@ namespace FlashMemo.Model
             #endregion
             
             #region collection filters
-            if (TagIds.Count > 0)
+            if (!TagIds.IsEmpty)
                 query = query.Combine(c => 
                     TagIds.Any(t => 
                         c.Tags.Select(t => t.Id)
                         .Contains(t)));
 
-            if (States.Count > 0)
+            if (!States.IsEmpty)
                 query = query.Combine(c => States.Any(s => s == c.State));
 
             #endregion

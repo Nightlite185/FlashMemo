@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260327214046_InitialCreate")]
+    [Migration("20260328211352_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -558,6 +558,9 @@ namespace FlashMemo.Migrations
                                 .HasColumnType("TEXT");
 
                             b1.Property<bool>("IncludeLessonsInReviewLimit")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("IntervalScalingOnOverdueness")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<bool>("ShowReviewTimer")

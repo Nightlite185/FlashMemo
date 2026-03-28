@@ -55,6 +55,7 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
     public CardState State => card.State;
     public TimeSpan Interval => card.Interval;
     public LearningStage? LearningStage => card.LearningStage;
+    public int? DaysOverdue => card.DaysOverdue;
     #endregion
     
     private CardEntity card;

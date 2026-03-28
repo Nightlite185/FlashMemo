@@ -14,25 +14,11 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
+public partial class ReviewVM(
+    ICardService cardService, ICardQueryService cardQuery, long userId, IDeckMeta deck, ICardRepo cardRepo, 
+    IVMEventBus eventBus, IUserOptionsService uOptionsService, IDeckOptionsService deckOptService)
+    : BaseVM(eventBus), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
-    internal ReviewVM(ICardService cs, ICardQueryService cqs, long userId, IDeckMeta deck,
-                        DeckOptions deckOpt, ICardRepo cr, IVMEventBus bus, IUserOptionsService uos): base(bus)
-    {
-        this.userId = userId;
-        this.Deck = deck;
-        uOptionsService = uos;
-        
-        deckOptions = deckOpt;
-        cardService = cs;
-        cardQuery = cqs;
-        cardRepo = cr;
-        ReviewHistory = [];
-        learningPool = new();
-
-        stopWatch = new();
-    }
-    
     #region public properties
     
     [NotifyPropertyChangedFor(nameof(IsCardLoaded))]
@@ -54,11 +40,11 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
 
     public CardsCountVM CardsCount { get; private set; } = null!;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
-    public ObservableCollection<CardEntity> ReviewHistory { get; private init; }
+    public ObservableCollection<CardEntity> ReviewHistory { get; } = [];
     public event Func<Task>? OnDecksNavRequest;
     public IEnumerable<CardVM> Cards => allSessionCards;
     public bool TimerVisible => userOptions.ShowReviewTimer;
-    public IDeckMeta Deck { get; init; }
+    public IDeckMeta Deck { get; init; } = deck;
     #endregion
 
     #region methods
@@ -66,10 +52,14 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     {
         this.CtxMenuVM = ctxMenu;
         eventBus.DomainChanged += OnDomainChanged;
+        eventBus.DeckOptionsChanged += OnDeckOptChanged;
         eventBus.UserOptionsChanged += OnUserOptChanged;
 
         userOptions = await uOptionsService
             .GetFromUser(userId);
+
+        deckOptions = await deckOptService
+            .GetFromDeck(Deck.Id);
 
         (var freshCards, var count) = await cardQuery
             .GetForStudy(Deck.Id);
@@ -264,20 +254,21 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
 
         OnPropertyChanged(nameof(TimerVisible));
     }
+
+    protected override async Task ReloadDeckOptAsync()
+    {
+        deckOptions = await deckOptService
+            .GetFromDeck(Deck.Id);
+    }
     #endregion
 
     #region private things
-    private readonly long userId;
-    private DeckOptions deckOptions;
+    private DeckOptions deckOptions = null!;
     private UserOptions userOptions = null!;
-    private readonly IUserOptionsService uOptionsService;
-    private readonly ICardService cardService;
-    private readonly ICardQueryService cardQuery;
-    private readonly ICardRepo cardRepo;
-    private readonly LearningPool<CardVM> learningPool;
+    private readonly LearningPool<CardVM> learningPool = new();
+    private readonly Stopwatch stopWatch = new();
     private List<CardVM> allSessionCards = [];
     private Stack<CardVM> activeCards = null!;
-    private readonly Stopwatch stopWatch = null!;
     private const int HistoryCap = 10;
     
     private bool IsCardLoaded => CurrentCard is not null;
@@ -299,7 +290,8 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
 
         SchedulePerms = Scheduler.GetForecast(
             CurrentCard ?? throw new NullReferenceException(),
-            deckOptions.Scheduling);
+            deckOptions.Scheduling,
+            userOptions);
     }
     
     #region answer commands
@@ -329,8 +321,6 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
         if (!IsCardLoaded) throw new InvalidOperationException(
         "tried to open card editor, but no card was loaded.");
 
-        // stopWatch.Stop();
-
         await NavigateTo(new EditCardNavRequest(
             CurrentCard!.Id, userId, this));
     }
@@ -338,8 +328,6 @@ public partial class ReviewVM: BaseVM, IPopupHost, IFocusState, ICtxMenuHost, IC
     [RelayCommand]
     private async Task ShowEditFromHistory(ICard card)
     {
-        // stopWatch.Stop();
-
         await NavigateTo(new EditCardNavRequest(
             card.Id, userId, this));
     }

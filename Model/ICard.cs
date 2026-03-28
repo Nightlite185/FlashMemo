@@ -23,6 +23,7 @@ public interface IScheduleInfoCard
     TimeSpan Interval { get; }
     CardState State { get; }
     LearningStage? LearningStage { get; }
+    int? DaysOverdue { get; }
 }
 
 public interface ILearningPoolCard

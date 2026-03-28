@@ -62,7 +62,8 @@ namespace FlashMemo.Migrations
                     Options_DayStartTime = table.Column<TimeOnly>(type: "TEXT", nullable: false),
                     Options_ShowReviewTimer = table.Column<bool>(type: "INTEGER", nullable: false),
                     Options_TimerStopsOnReveal = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Options_IncludeLessonsInReviewLimit = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Options_IncludeLessonsInReviewLimit = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Options_IntervalScalingOnOverdueness = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

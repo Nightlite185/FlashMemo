@@ -23,6 +23,9 @@ public class CardEntity: ICard
     public DateTime? BuriedDate { get; set; }
     public bool IsDueToday => Due?.Date <= DateTime.Today;
     public bool IsDueNow => Due <= DateTime.Now;
+    public int? DaysOverdue => (Due is not null && IsDueToday)
+        ? (DateTime.Today - Due.Value.Date).Days
+        : null;
     public DateTime? LastReviewed { get; set; }
     public TimeSpan Interval { get; set; }
     public CardState State { get; set; }
@@ -106,7 +109,6 @@ public class CardEntity: ICard
         Tags.Clear();
         Tags.AddRange(newTags);
     }
-    #endregion
     public static CardEntity CreateNew(Note note, IDeckMeta deck, IEnumerable<Tag> tags)
     {
         return new()
@@ -130,4 +132,5 @@ public class CardEntity: ICard
             Note = note
         };
     }
+    #endregion
 }

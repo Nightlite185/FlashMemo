@@ -7,6 +7,7 @@ public class UserOptions
     public const bool DefShowReviewTimer = false;
     public const bool DefTimerStopsOnReveal = true;
     public const bool DefIncludeLessonsInReviewLimit = false;
+    public const bool DefIntervalScalingOnOverdueness = true;
     #endregion
    
     #region properties
@@ -14,6 +15,7 @@ public class UserOptions
     public bool ShowReviewTimer { get; set; } //* show timer or not, effective for all decks.
     public bool TimerStopsOnReveal { get; set; } //* whether timer stops on answer being revealed or actually clicking one of the answer buttons.
     public bool IncludeLessonsInReviewLimit { get; set; }
+    public bool IntervalScalingOnOverdueness { get; set; } //* whether card's interval will increase scaling off its current overdueness
     #endregion
 
     public static UserOptions CreateDefault()
@@ -23,7 +25,8 @@ public class UserOptions
             DayStartTime = DefDayStartTime,
             ShowReviewTimer = DefShowReviewTimer,
             TimerStopsOnReveal = DefTimerStopsOnReveal,
-            IncludeLessonsInReviewLimit = DefIncludeLessonsInReviewLimit
+            IncludeLessonsInReviewLimit = DefIncludeLessonsInReviewLimit,
+            IntervalScalingOnOverdueness = DefIntervalScalingOnOverdueness
         };
     }
 
@@ -36,7 +39,8 @@ public class UserOptions
         return DayStartTime.Equals(valid.DayStartTime)
             && ShowReviewTimer == valid.ShowReviewTimer
             && TimerStopsOnReveal == valid.TimerStopsOnReveal
-            && IncludeLessonsInReviewLimit == valid.IncludeLessonsInReviewLimit;
+            && IncludeLessonsInReviewLimit == valid.IncludeLessonsInReviewLimit
+            && IntervalScalingOnOverdueness == valid.IntervalScalingOnOverdueness;
     }
     
     public override int GetHashCode()
@@ -45,6 +49,7 @@ public class UserOptions
             DayStartTime, 
             ShowReviewTimer, 
             TimerStopsOnReveal, 
-            IncludeLessonsInReviewLimit);
+            IncludeLessonsInReviewLimit,
+            IntervalScalingOnOverdueness);
     }
 }

@@ -557,6 +557,9 @@ namespace FlashMemo.Migrations
                             b1.Property<bool>("IncludeLessonsInReviewLimit")
                                 .HasColumnType("INTEGER");
 
+                            b1.Property<bool>("IntervalScalingOnOverdueness")
+                                .HasColumnType("INTEGER");
+
                             b1.Property<bool>("ShowReviewTimer")
                                 .HasColumnType("INTEGER");
 

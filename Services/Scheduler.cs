@@ -1,17 +1,18 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
+using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Services;
    
 public static class Scheduler
 {
-    public static SchedulePermutations GetForecast(IScheduleInfoCard card, DeckOptions.SchedulingOpt options)
+    public static SchedulePermutations GetForecast(IScheduleInfoCard card, DeckOptions.SchedulingOpt deckOpt, UserOptions userOpt)
     {
         return new(
-            Easy: ProcessEasy(card, options),
-            Good: ProcessGood(card, options),
-            Hard: ProcessHard(card, options),
-            Again: ProcessAgain(card, options)
+            Easy: ProcessEasy(card, deckOpt, userOpt),
+            Good: ProcessGood(card, deckOpt, userOpt),
+            Hard: ProcessHard(card, deckOpt),
+            Again: ProcessAgain(card, deckOpt)
         );
     }
     
@@ -47,8 +48,16 @@ public static class Scheduler
             _ => throw new ArgumentException(InvalidStateExMessage(card), nameof(card))
         };
     }
-    private static ScheduleInfo ProcessEasy(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
+    private static ScheduleInfo ProcessEasy(IScheduleInfoCard card, DeckOptions.SchedulingOpt s, UserOptions userOpt)
     {
+        var maybeScaledIvl = card.Interval;
+
+        if (userOpt.IntervalScalingOnOverdueness
+        && card.DaysOverdue is int overdue and > 0)
+        {
+            maybeScaledIvl += TimeSpan.FromDays(overdue);
+        }
+
         return new(
             State: CardState.Review,
             LearningStage: null,
@@ -56,13 +65,21 @@ public static class Scheduler
             Interval: (card.State == CardState.New)
                 ? TimeSpan.FromDays(s.EasyOnNewDayCount)
 
-            : (card.State == CardState.Learning)
+            : (card.State == CardState.Learning) // TODO: turn this into a switch expr instead of this ternary (and init style newing everywhere, not ctor)
                 ? TimeSpan.FromDays(s.GraduateDayCount)
-                : card.Interval * s.EasyMultiplier
+                : maybeScaledIvl * s.EasyMultiplier
         );
     }
-    private static ScheduleInfo ProcessGood(IScheduleInfoCard card, DeckOptions.SchedulingOpt s)
+    private static ScheduleInfo ProcessGood(IScheduleInfoCard card, DeckOptions.SchedulingOpt s, UserOptions userOpt)
     {
+        var maybeScaledIvl = card.Interval;
+
+        if (userOpt.IntervalScalingOnOverdueness
+        && card.DaysOverdue is int overdue and > 0)
+        {
+            maybeScaledIvl += (TimeSpan.FromDays(overdue) / 2);
+        }
+
         return card.State switch
         {
             CardState.New => new(
@@ -74,7 +91,7 @@ public static class Scheduler
             CardState.Learning => ProcessGoodIfLearningStage(card, s),
 
             CardState.Review => new(
-                Interval: card.Interval * s.GoodMultiplier,
+                Interval: maybeScaledIvl * s.GoodMultiplier,
                 State: CardState.Review,
                 LearningStage: null
             ),

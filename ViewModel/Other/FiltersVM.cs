@@ -75,11 +75,7 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
         CachedFilters = lastSession.LastFilters
             ?? Filters.GetEmpty(userId);
 
-        //* marking all states from last filters as selected
-        foreach (var s in States.Where(s => CachedFilters.States.Contains(s.State)))
-            s.IsSelected = true;
-
-        //* mapping all the rest from last filters
+        //* mapping scalars from last filters
         IncludeChildrenDecks = CachedFilters.IncludeChildrenDecks;
 
         IsBuried      = CachedFilters.IsBuried;
@@ -94,6 +90,7 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
         OverdueByDays = CachedFilters.OverdueByDays;
 
         await ReloadDomainAsync();
+        MarkVMsSelected(CachedFilters);
     }
 
     //* only reloads those filters that are dynamically dependent on the current domain.
@@ -122,6 +119,20 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
             .ForEach(t => t.IsSelected = true);
     }
 
+    private void MarkVMsSelected(Filters filters)
+    {
+        //* marking decks, tags and states from previous filters as selected
+        //* (those that still exist, at least)
+        DeckTree.Flatten()
+            .IntersectBy(filters.DeckIds, d => d.Id)
+            .ForEach(d => d.IsSelected = true);
+
+        Tags.IntersectBy(filters.TagIds, t => t.Id)
+            .ForEach(t => t.IsSelected = true);
+
+        States.IntersectBy(filters.States, s => s.State)
+            .ForEach(s => s.IsSelected = true);
+    }
     private IEnumerable<long> GetDeckIds()
     {
         var selectedDecks = DeckTree

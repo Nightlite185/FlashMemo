@@ -78,10 +78,10 @@ public sealed partial class DeckOptionsMenuVM(
 
         if (CurrentOptions.DeckCount != 0)
             result = DialogService.Show(
-                "Are you sure you want to delete currently viewed preset? Every deck currently referencing this preset, will now be assigned to the default one. Do you wish to proceed?",
-                "Are you sure?",
-                DialogButtons.YesNo,
-                DialogIcons.Warning);
+                title: "Are you sure?",
+                message: "Are you sure you want to delete currently viewed preset? Every deck currently referencing this preset, will now be assigned to the default one. Do you wish to proceed?",
+                buttons: DialogButtons.YesNo,
+                icon: DialogIcons.Warning);
 
         return result is DialogResult.Yes;
     }
@@ -124,6 +124,38 @@ public sealed partial class DeckOptionsMenuVM(
         lastSaved = saving;
         eventBus.NotifyDeckOpt();
     }
+    private async Task MaybeSwitchCurrent(DeckOptionsVM newPreset)
+    {
+        if (!IsCurrentModified)
+        {
+            ChangePreset(newPreset);
+            return;
+        }
+
+        var answer = DialogService.Show(
+            title: "Unsaved changes",
+
+            message: "You have unsaved changes. "
+                + "Do you want to save current preset and switch to the newly created one? "
+                + "\"No\" will discard and switch, \"Cancel\" will not switch at all.",
+
+            buttons: DialogButtons.YesNoCancel,
+            icon: DialogIcons.Question
+        );
+
+        switch (answer)
+        {
+            case DialogResult.Yes:
+                await SaveCore();
+                ChangePreset(newPreset);
+                break;
+
+            case DialogResult.No:
+                mapper.Map(lastSaved, CurrentOptions);
+                ChangePreset(newPreset);
+                break;
+        }
+    }
     #endregion
 
     #region private things
@@ -148,8 +180,8 @@ public sealed partial class DeckOptionsMenuVM(
     {
         ThrowIfDefault(CurrentOptions);
 
-        if (!CanRemovePreset())
-            return;
+        // if (!CanRemovePreset())
+        //     return;
 
         deck.OptionsId = DeckOptions.DefaultId;
 
@@ -166,37 +198,35 @@ public sealed partial class DeckOptionsMenuVM(
     [RelayCommand]
     private async Task ClonePreset()
     {
-        //TODO: ask for discarding permission, think if its better to clone unsaved copy or only persisted one.
-
-        const string Name = "Name";
-        const string Id = "Id";
-
-        var domainClone = mapper.Map<DeckOptions>(CurrentOptions, opt =>
+        var domainClone = mapper.Map<DeckOptions>(CurrentOptions) with
         {
-            opt.Items[Id] = IdGetter.Next();
-            opt.Items[Name] = $"{CurrentOptions.Name} - copy";
-        });
+            Id = IdGetter.Next(),
+            Name = $"{CurrentOptions.Name} - copy"
+        };
 
         await deckOptService.CreateNew(domainClone);
         
-        AllPresets.Add(
-            mapper.Map<DeckOptionsVM>(domainClone));
+        var cloneVM = mapper.Map<DeckOptionsVM>(domainClone);
+        AllPresets.Add(cloneVM);
+
+        await MaybeSwitchCurrent(cloneVM);
     }
 
     [RelayCommand]
     private async Task AddNewPreset()
     {
         if (string.IsNullOrWhiteSpace(NewPresetName))
-            throw new InvalidOperationException(
-            "Can't create a new preset with name being null or whitespace.");
+            return;
 
         var newPreset = DeckOptions
             .CreateNew(NewPresetName, deck.UserId);
 
         await deckOptService.CreateNew(newPreset);
         
-        AllPresets.Add(
-            mapper.Map<DeckOptionsVM>(newPreset));
+        var newVM = mapper.Map<DeckOptionsVM>(newPreset);
+        AllPresets.Add(newVM);
+
+        await MaybeSwitchCurrent(newVM);
     }
 
     [RelayCommand]
@@ -260,6 +290,8 @@ public sealed partial class DeckOptionsMenuVM(
         
         await deckOptService.Rename(
             options.Name, options.Id);
+
+        lastSaved = mapper.Map<DeckOptions>(options);
     }
     #endregion
 }

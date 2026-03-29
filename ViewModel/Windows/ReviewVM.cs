@@ -62,7 +62,7 @@ public partial class ReviewVM(
             .GetFromDeck(Deck.Id);
 
         (var freshCards, var count) = await cardQuery
-            .GetForStudy(Deck.Id);
+            .GetForStudy(Deck.Id, userId);
 
         this.activeCards = new (freshCards
             .Select(c => new CardVM(c)));

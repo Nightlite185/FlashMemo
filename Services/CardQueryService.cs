@@ -6,16 +6,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;
 
-public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICountingService counter)
+public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICountingService counter, IUserOptionsService userOptService)
     : DbDependentClass(factory), ICardQueryService
 {
     #region Public methods
     public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
     {
         var db = GetDb;
+
+        byte offset = await userOptService
+            .GetDayStartOffset(filters.UserId);
+
         IQueryable<CardEntity> baseQuery = db.Cards;
         
-        var filtersQuery = filters.ToExpression();
+        var filtersQuery = filters.ToExpression(offset);
 
         var cards = await baseQuery
             .Where(filtersQuery)
@@ -27,13 +31,16 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
 
         return cards;
     }
-    public async Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId)
+    public async Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId, long userId) 
     {
         var db = GetDb;
 
+        byte offset = await userOptService
+            .GetDayStartOffset(userId);
+
         var groupedQueries = (await db
             .AllCardsInDeckQAsync(deckId))
-            .ForStudy()
+            .ForStudy(offset)
             .GroupByStateQ();
 
         var rootDeck = await db.Decks

@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using FlashMemo.Model.Domain;
@@ -113,5 +114,15 @@ public static class Extensions
         return cards.Where(c =>
             !c.IsSuspended && !c.IsBuried
             && (!c.Due.HasValue || c.Due.Value.Date <= today));
+    }
+    public static void ThrowInvalidOffset(this byte dayOffset, [CallerMemberName] string? caller = null)
+    {
+        const byte max = UserOptions.MaxDayStartOffset;
+
+        if (dayOffset is > max or < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(dayOffset),
+                $"Called {caller}, but {nameof(dayOffset)} needs to be a positive number, <= to {max}, but it was {dayOffset}");
+        }
     }
 }

@@ -32,7 +32,7 @@ public interface ICardQueryService
     Task<IEnumerable<CardEntity>> GetCardsWhere(
         Filters filters, CardsOrder order, SortingDirection dir);
 
-    Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId);
+    Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId, long userId);
     Task<IList<CardEntity>> GetAllFromUser(long userId);
     Task<IList<CardEntity>> GetAllFromDeck(long deckId);
     
@@ -96,6 +96,7 @@ public interface IUserOptionsService
 {
     Task Update(long userId, UserOptions updated);
     Task<UserOptions> GetFromUser(long userId);
+    Task<byte> GetDayStartOffset(long userId);
 }
 
 public interface IDeckOptionsService

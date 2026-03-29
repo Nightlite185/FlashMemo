@@ -8,7 +8,7 @@ public partial class UserOptionsVM: ObservableValidator
     [ObservableProperty]
     [NotifyDataErrorInfo]
     [Range(0, 12)]
-    public partial uint DayStartTime { get; set; }
+    public partial uint DayStartOffset { get; set; }
 
     [ObservableProperty] public partial bool ShowReviewTimer { get; set; }
     [ObservableProperty] public partial bool TimerStopsOnReveal { get; set; }

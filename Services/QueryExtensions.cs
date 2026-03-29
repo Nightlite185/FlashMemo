@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
@@ -21,13 +22,16 @@ public static class QueryExtensions
                 .Where(c => c.State == CardState.Review),
         };
     }
-    public static IQueryable<CardEntity> ForStudy(this IQueryable<CardEntity> baseQuery)
+    public static IQueryable<CardEntity> ForStudy(this IQueryable<CardEntity> baseQuery, byte dayStartOffset)
     {
-        var today = DateTime.Today;
+        dayStartOffset.ThrowInvalidOffset();
+
+        var adjustedNow = DateTime.Now
+            .AddHours(-dayStartOffset);
 
         return baseQuery.Where(c =>
-            !c.IsSuspended && !c.IsBuried
-            && (!c.Due.HasValue || c.Due.Value.Date <= today));
+            !c.IsSuspended && !c.IsBuried && (!c.Due.HasValue
+            || c.Due.Value.Date <= adjustedNow));
     }
     public static async Task<IQueryable<CardEntity>> AllCardsInDeckQAsync(this AppDbContext db, long deckId)
     {

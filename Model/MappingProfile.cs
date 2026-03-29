@@ -18,13 +18,8 @@ public sealed class MappingProfile: Profile
         CreateMap<Filters, FiltersVM>();
         CreateMap<FiltersVM, Filters>();
 
-        CreateMap<UserOptions, UserOptionsVM>()
-            .ForMember(x => x.DayStartTime, opt => 
-            opt.ConvertUsing(new TimeOnlyToUint()));
-
-        CreateMap<UserOptionsVM, UserOptions>()
-            .ForMember(x => x.DayStartTime, opt => 
-            opt.ConvertUsing(new UintToTimeOnly()));
+        CreateMap<UserOptions, UserOptionsVM>();
+        CreateMap<UserOptionsVM, UserOptions>();
         #endregion
 
         #region Deck options (VM <-> record)

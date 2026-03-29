@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260328211352_InitialCreate")]
+    [Migration("20260329184311_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -554,8 +554,8 @@ namespace FlashMemo.Migrations
                             b1.Property<long>("UserEntityId")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<TimeOnly>("DayStartTime")
-                                .HasColumnType("TEXT");
+                            b1.Property<byte>("DayStartOffset")
+                                .HasColumnType("INTEGER");
 
                             b1.Property<bool>("IncludeLessonsInReviewLimit")
                                 .HasColumnType("INTEGER");

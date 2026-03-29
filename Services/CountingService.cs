@@ -23,9 +23,12 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
     }
     public async Task<int> AllReviewableCards(long userId)
     {
+        byte offset = await userOptService
+            .GetDayStartOffset(userId);
+
         return await GetDb.Cards
             .Where(c => c.UserId == userId)
-            .ForStudy()
+            .ForStudy(offset)
             .CountAsync();
     }
     public async Task<LessonReviewTake> CalculateTakings(
@@ -69,6 +72,9 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
     {
         var db = GetDb;
 
+        byte offset = await userOptService
+            .GetDayStartOffset(userId);
+
         var deckIdsToOpt = await deckOptService
             .MappedByDeckId(userId);
 
@@ -78,7 +84,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
         {
             var grouped = (await db
                 .AllCardsInDeckQAsync(kvp.Key))
-                .ForStudy()
+                .ForStudy(offset)
                 .GroupByStateQ();
 
             var counted = await CountByStateAsync(
@@ -92,7 +98,6 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
         return result;
     }
     
-
     private async Task<CardsCount> CountByStateAsync(CardsByStateQ queries, long userId, DeckOptionsEntity deckOpt)
     {
         var takings = await CalculateTakings(
@@ -105,5 +110,4 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
             Learning = await queries.Learning.CountAsync(),
         };
     }
-    
 }

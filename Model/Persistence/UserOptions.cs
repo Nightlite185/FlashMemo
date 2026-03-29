@@ -3,15 +3,17 @@ namespace FlashMemo.Model.Persistence;
 public class UserOptions
 {
     #region defaults
-    public static readonly TimeOnly DefDayStartTime = new(0, 0);
+    public const byte DefDayStartTime = 0;
     public const bool DefShowReviewTimer = false;
     public const bool DefTimerStopsOnReveal = true;
     public const bool DefIncludeLessonsInReviewLimit = false;
     public const bool DefIntervalScalingOnOverdueness = true;
+
+    public const byte MaxDayStartOffset = 12;
     #endregion
    
     #region properties
-    public TimeOnly DayStartTime { get; set; } //* hour between 12am and 12pm after which the SRS system will consider it as the next day.
+    public byte DayStartOffset { get; set; } //* how many hours past midnight need to pass, for scheduler to consider it the next day.
     public bool ShowReviewTimer { get; set; } //* show timer or not, effective for all decks.
     public bool TimerStopsOnReveal { get; set; } //* whether timer stops on answer being revealed or actually clicking one of the answer buttons.
     public bool IncludeLessonsInReviewLimit { get; set; }
@@ -22,7 +24,7 @@ public class UserOptions
     {
         return new()
         {
-            DayStartTime = DefDayStartTime,
+            DayStartOffset = DefDayStartTime,
             ShowReviewTimer = DefShowReviewTimer,
             TimerStopsOnReveal = DefTimerStopsOnReveal,
             IncludeLessonsInReviewLimit = DefIncludeLessonsInReviewLimit,
@@ -36,7 +38,7 @@ public class UserOptions
         if (obj is not UserOptions valid)
             return false;
         
-        return DayStartTime.Equals(valid.DayStartTime)
+        return DayStartOffset.Equals(valid.DayStartOffset)
             && ShowReviewTimer == valid.ShowReviewTimer
             && TimerStopsOnReveal == valid.TimerStopsOnReveal
             && IncludeLessonsInReviewLimit == valid.IncludeLessonsInReviewLimit
@@ -46,7 +48,7 @@ public class UserOptions
     public override int GetHashCode()
     {
         return HashCode.Combine(
-            DayStartTime, 
+            DayStartOffset, 
             ShowReviewTimer, 
             TimerStopsOnReveal, 
             IncludeLessonsInReviewLimit,

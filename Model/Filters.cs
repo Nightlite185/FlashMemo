@@ -8,8 +8,10 @@ namespace FlashMemo.Model
 {
     public record Filters
     {
-        public Expression<Func<CardEntity, bool>> ToExpression()
+        public Expression<Func<CardEntity, bool>> ToExpression(byte offset)
         {
+            offset.ThrowInvalidOffset();
+
             Expression<Func<CardEntity, bool>> query = c
                 => c.UserId == this.UserId;
 
@@ -23,8 +25,14 @@ namespace FlashMemo.Model
                     c.IsSuspended == this.IsSuspended);
 
             if (IsDue is not null)
-                query = query.Combine(c => 
-                    c.Due <= DateTime.Now);
+            {
+                var adjustedNow = DateTime.Now
+                    .AddHours(-offset);
+
+                query = query.Combine(c =>
+                    c.Due.HasValue && 
+                    c.Due.Value.Date <= adjustedNow);
+            }
 
             if (!DeckIds.IsEmpty)
                 query = query.Combine(c => 

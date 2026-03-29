@@ -8,8 +8,8 @@ public class UserOptionsService(IDbContextFactory<AppDbContext> factory): DbDepe
 {
     public async Task Update(long userId, UserOptions updated)
     {
-        if (updated.DayStartTime > new TimeOnly(12, 0))
-            throw new InvalidOperationException(
+        if (updated.DayStartOffset > UserOptions.MaxDayStartOffset)
+            throw new ArgumentOutOfRangeException(nameof(updated),
             "Can't start the day after 12pm, come on!! Get up a bit earlier would you?");
 
         var db = GetDb;
@@ -28,4 +28,13 @@ public class UserOptionsService(IDbContextFactory<AppDbContext> factory): DbDepe
             .Where(u => u.Id == userId)
             .Select(u => u.Options)
             .SingleAsync();
+
+    public async Task<byte> GetDayStartOffset(long userId)
+    {
+        return await GetDb.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.Options.DayStartOffset)
+            .SingleAsync();
+    }
 }

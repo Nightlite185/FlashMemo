@@ -63,13 +63,13 @@
                     <TextBlock
                         Text="Day starts at (hour)"
                         Style="{StaticResource UserOptHintStyle}"
-                        ToolTip="Hour between 0 and 12 after which the app treats it as the next day."/>
+                        ToolTip="How many hours past midnight need to pass, for scheduler to consider it as the next day."/>
 
                     <xceed:UIntegerUpDown
                         Grid.Column="1"
                         Margin="0,6,0,6"
                         Style="{StaticResource FlatUIntegerUpDownStyle}"
-                        Value="{Binding Options.DayStartTime}"
+                        Value="{Binding Options.DayStartOffset}"
                         Minimum="0"
                         Maximum="12"
                         MaxLength="2"/>

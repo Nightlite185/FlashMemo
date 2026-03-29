@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
@@ -100,13 +101,12 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     }
     protected override async Task ReloadDomainAsync()
         => await ApplyFiltersAsync(filtersVM.CachedFilters);
-        
-    // public void OnColumnClicked(BrowseColumn column)
-    // {
-    //
-    // }
     #endregion
     
+    [RelayCommand]
+    private async Task ShowCardEditor(CardVM card) =>
+        await NavigateTo(new EditCardNavRequest(card.Id, userId));
+
     #region private things
     private IReadOnlyCollection<CardVM>? capturedCards;
     private readonly static ImmutableArray<string> rescheduleProps =

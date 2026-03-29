@@ -455,6 +455,8 @@
                         <Style TargetType="DataGridRow">
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Foreground" Value="#FFF0F0F0"/>
+                            <EventSetter Event="MouseDoubleClick"
+                                         Handler="CardsGridRow_MouseDoubleClick"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsSuspended}" Value="True">
                                     <Setter Property="Background" Value="#55FFB347"/>

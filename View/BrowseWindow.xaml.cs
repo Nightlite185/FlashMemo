@@ -300,6 +300,17 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
     {
         SyncSelectionWithViewModel();
     }
+    private async void CardsGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not DataGridRow row 
+        || row.DataContext is not CardVM card)
+        {
+            return;
+        }
+
+        await VM.ShowCardEditorCommand.ExecuteAsync(card);
+        e.Handled = true;
+    }
 
     private void SyncSelectionWithViewModel()
     {

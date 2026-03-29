@@ -23,21 +23,24 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
     public partial PopupVMBase? CurrentPopup { get; set; }
 
     #region methods
-    internal async Task Initialize(long cardId, CardCtxMenuVM ccmVM, ICardTagsVM ctVM) //* Factory calls this
+    internal async Task<bool> Initialize(long cardId, CardCtxMenuVM ccmVM, ICardTagsVM ctVM) //* Factory calls this
     {
         CardTagsVM = ctVM;
         CtxMenuVM = ccmVM;
         
         eventBus.DomainChanged += OnDomainChanged;
 
-        var card = await cardRepo.GetById(cardId)
-            ?? throw new InvalidOperationException(
-                "Tried to initialize card editor but provided card doesn't exist.");
+        var card = await cardRepo.GetById(cardId);
+
+        if (card is null)
+            return false;
 
         var tags = await tagRepo.GetFromCard(cardId);
 
         card.Tags.AddRange(tags); // snapshotting old tags
         Card = new(card);
+
+        return true;
     }
     
     public async Task OnActionExecuted(CtxMenuAction action)

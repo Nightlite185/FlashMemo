@@ -79,7 +79,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
             return;
         }
         
-        await NavigateTo(new CreateCardNavRequest(deck, this));
+        await NavigateTo(new CreateCardNavRequest(deck));
     }
 
     [RelayCommand]

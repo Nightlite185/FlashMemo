@@ -64,16 +64,31 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
     private async Task ShowEditCard(EditCardNavRequest e)
     {
         var vm = await editCardVMF.CreateAsync(e.CardId, e.UserId);
+
+        if (vm is null)
+        {
+            DialogService.Show(
+                title: "Error",
+                message: "Sorry, but the card you tried to edit doesn't exist. "
+                + "This is expected if you deleted that card beforehand.",
+                
+                buttons: DialogButtons.OK,
+                icon: DialogIcons.Error
+            );
+
+            return;
+        }
+
         var win = sp.GetRequiredService<EditCardWindow>();
 
-        WireHelper(vm, win, e.Sender);
+        WireHelper(vm, win);
     }
     private async Task ShowCreateCard(CreateCardNavRequest e)
     {
         var vm = await createCardVMF.CreateAsync(e.TargetDeck);
         var win = sp.GetRequiredService<CreateCardWindow>();
 
-        WireHelper(vm, win, e.Sender);
+        WireHelper(vm, win);
     }
 
     ///<param name="currentUserId">
@@ -106,10 +121,10 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
     #endregion
     
     #region private helpers
-    private void WireHelper<TVM>(TVM vm, Window win, BaseVM? sender = null) where TVM: class, IViewModel
+    private void WireHelper<TVM>(TVM vm, Window win) where TVM: class, IViewModel
     {
         SetDataCtx(vm, win);
-        WireEvents(vm, win, sender);
+        WireEvents(vm, win);
 
         win.ShowDialog();
     }
@@ -124,7 +139,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
         else throw new InvalidOperationException(
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TVM).Name}>");
     }
-    internal void WireEvents(IViewModel vm, Window win, BaseVM? sender = null)
+    internal void WireEvents(IViewModel vm, Window win)
     {
         if (vm is INavRequestSender nrs)
             nrs.NavRequested += NavRequestHandler;

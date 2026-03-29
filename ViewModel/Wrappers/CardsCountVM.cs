@@ -36,15 +36,10 @@ public partial class CardsCountVM: ObservableObject
     {
         Clear();
 
-        // TODO: Maybe I can optimize it later somehow.
-        // Can't take IEnumerable from PriorityQueue so I dont know how else to do this.
-
         var today = DateTime.Today;
 
-        var inPlay = source.Cards.Where(c => 
-            !c.IsInvalid &&
-            (c.State is not CardState.Review ||
-            (c.State is CardState.Review && c.Due?.Date <= today)))
+        var inPlay = source.Cards
+            .Where(c => !c.IsInvalid)
             .CountBy(c => c.State);
 
         foreach (var kvp in inPlay)

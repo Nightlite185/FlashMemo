@@ -123,6 +123,7 @@ public partial class ReviewVM(
 
             case CardState.Review:
                 ReviewedCount++;
+                CurrentCard.IsInvalid = true; // flipping IsInvalid bc now its out of play, and the CardCountVM should skip it.
                 break;
 
             default: throw new InvalidOperationException(
@@ -322,14 +323,14 @@ public partial class ReviewVM(
         "tried to open card editor, but no card was loaded.");
 
         await NavigateTo(new EditCardNavRequest(
-            CurrentCard!.Id, userId, this));
+            CurrentCard!.Id, userId));
     }
 
     [RelayCommand]
     private async Task ShowEditFromHistory(ICard card)
     {
         await NavigateTo(new EditCardNavRequest(
-            card.Id, userId, this));
+            card.Id, userId));
     }
 
     [RelayCommand]

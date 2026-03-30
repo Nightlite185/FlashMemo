@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
@@ -11,11 +10,12 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IVMEventBus bus, IDeckRepo dr, DeckSelectVMF dsVMF)
-                                : BaseVM(bus), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
+public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, IVMEventBus eventBus, 
+                                IDeckRepo deckRepo, DeckSelectVMF deckSelectVMF, EditableCardVM cardVM)
+                                : BaseVM(eventBus), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
     public List<TagVM> Tags => Card.Tags;
-    public EditableCardVM Card { get; private set; } = null!;
+    public EditableCardVM Card { get; private set; } = cardVM;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     public ICardTagsVM CardTagsVM { get; private set; } = null!;
 
@@ -23,24 +23,12 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
     public partial PopupVMBase? CurrentPopup { get; set; }
 
     #region methods
-    internal async Task<bool> Initialize(long cardId, CardCtxMenuVM ccmVM, ICardTagsVM ctVM, INoteComparer noteComparer) //* Factory calls this
+    internal void Initialize(CardCtxMenuVM ccmVM, ICardTagsVM ctVM) //* Factory calls this
     {
         CardTagsVM = ctVM;
         CtxMenuVM = ccmVM;
         
         eventBus.DomainChanged += OnDomainChanged;
-
-        var card = await cardRepo.GetById(cardId);
-
-        if (card is null)
-            return false;
-
-        var tags = await tagRepo.GetFromCard(cardId);
-
-        card.Tags.AddRange(tags); // snapshotting old tags
-        Card = new(card, noteComparer);
-
-        return true;
     }
     
     public async Task OnActionExecuted(CtxMenuAction action)
@@ -76,14 +64,6 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
         await Task.CompletedTask;
     }
     private void CancelPopup() => CurrentPopup = null;
-    #endregion
-
-    #region private things
-    private readonly ITagRepo tagRepo = tr;
-    private readonly ICardService cardService = cs;
-    private readonly ICardRepo cardRepo = cr;
-    private readonly IDeckRepo deckRepo = dr;
-    private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     #endregion
 
     #region ICommands

@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
@@ -135,7 +134,7 @@ namespace FlashMemo.View
 
         private bool IsSameAsSaved()
             => VM.Card.IsSameAsSavedNote(
-                XamlSerializer.ToXaml(FrontBox.Document),
-                XamlSerializer.ToXaml(BackBox.Document));
+                XamlSerializer.GetPlainText(FrontBox.Document),
+                XamlSerializer.GetPlainText(BackBox.Document));
     }
 }

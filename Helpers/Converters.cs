@@ -85,14 +85,9 @@ public class XamlToTextConverter : IValueConverter
 
         try
         {
-            var doc = XamlSerializer.FromXaml(xaml);
-            string text = XamlSerializer.GetPlainText(doc);
-
-            int idx = text.IndexOfAny(['\r', '\n']);
-
-            return idx >= 0
-                ? text[..idx].Trim()
-                : text.Trim();
+            return XamlSerializer
+                .GetPlainText(xaml)
+                .Trim();
         }
         
         catch

@@ -23,7 +23,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
     public partial PopupVMBase? CurrentPopup { get; set; }
 
     #region methods
-    internal async Task<bool> Initialize(long cardId, CardCtxMenuVM ccmVM, ICardTagsVM ctVM) //* Factory calls this
+    internal async Task<bool> Initialize(long cardId, CardCtxMenuVM ccmVM, ICardTagsVM ctVM, INoteComparer noteComparer) //* Factory calls this
     {
         CardTagsVM = ctVM;
         CtxMenuVM = ccmVM;
@@ -38,7 +38,7 @@ public partial class CardEditorVM(ICardService cs, ITagRepo tr, ICardRepo cr, IV
         var tags = await tagRepo.GetFromCard(cardId);
 
         card.Tags.AddRange(tags); // snapshotting old tags
-        Card = new(card);
+        Card = new(card, noteComparer);
 
         return true;
     }

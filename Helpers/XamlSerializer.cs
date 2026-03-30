@@ -23,6 +23,11 @@ public static class XamlSerializer
         return (FlowDocument)XamlReader.Load(xmlReader);
     }
 
+    public static string GetPlainText(string? xaml)
+    {
+        return GetPlainText(FromXaml(xaml ?? string.Empty));
+    }
+
     public static string GetPlainText(FlowDocument doc)
     {
         return new TextRange(

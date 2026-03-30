@@ -89,6 +89,7 @@ public partial class App : Application
         // ==== SERVICES ====
         sc.AddTransient<MainWindowBootstrapper>();
         sc.AddTransient<DisplayControlFactory>();
+        sc.AddSingleton<INoteComparer, XamlNoteComparer>();
         sc.AddSingleton<ILoginService, LoginService>();
         sc.AddSingleton<ICountingService, CountingService>();
         sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();

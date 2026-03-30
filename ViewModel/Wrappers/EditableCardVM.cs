@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
+using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
@@ -8,9 +9,11 @@ public partial class EditableCardVM: ObservableObject, ICardVM
 {
     /// <summary>Deck needs to be included with card, otherwise it will throw on init.</summary>
     /// <exception cref="NullReferenceException"></exception>
-    public EditableCardVM(CardEntity card)
+    public EditableCardVM(CardEntity card, INoteComparer noteComparer)
     {
+        this.noteComparer = noteComparer;
         this.card = card;
+
         Note = card.Note.ToVM();
 
         TryRefreshTags(card);
@@ -41,15 +44,12 @@ public partial class EditableCardVM: ObservableObject, ICardVM
 
     public void ChangeDeck(IDeckMeta newDeck) => Deck = newDeck;
 
-    public bool IsSameAsSavedNote(string frontContent, string backContent)
+    public bool IsSameAsSavedNote(string frontText, string backText)
     {
-        return Note.Type switch
-        {
-            NoteTypes.Standard => IsSameSavedStandard(frontContent, backContent),
+        var saved = noteComparer.FromModel(card.Note);
+        var edited = noteComparer.FromEditor(Note.Type, frontText, backText);
 
-            _ => throw new NotSupportedException(
-                $"Note type '{Note.Type}' is not supported yet.")
-        };
+        return noteComparer.AreEqual(saved, edited);
     }
 
     public CardEntity ToEntity()
@@ -60,16 +60,6 @@ public partial class EditableCardVM: ObservableObject, ICardVM
         card.ReplaceTagsWith(Tags.ToEntities());
 
         return card;
-    }
-
-    private bool IsSameSavedStandard(string frontContent, string backContent)
-    {
-        if (card.Note is not StandardNote saved)
-            throw new NotSupportedException(
-                $"Expected saved note to be {nameof(StandardNote)} for note type '{Note.Type}'.");
-
-        return string.Equals(frontContent, saved.FrontContent, StringComparison.Ordinal)
-            && string.Equals(backContent, saved.BackContent, StringComparison.Ordinal);
     }
 
     private void TryRefreshDeck(CardEntity updated)
@@ -89,4 +79,5 @@ public partial class EditableCardVM: ObservableObject, ICardVM
     }
 
     private CardEntity card;
+    private readonly INoteComparer noteComparer;
 }

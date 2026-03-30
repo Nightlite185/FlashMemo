@@ -111,3 +111,10 @@ public interface IDeckOptionsService
     Task SaveEditedPreset(DeckOptions updatedRecord);
     Task AssignToDeck(long deckId, long newPresetId);
 }
+
+public interface INoteComparer
+{
+    bool AreEqual(NoteComparable first, NoteComparable second);
+    NoteComparable FromModel(Note savedNote);
+    NoteComparable FromEditor(NoteTypes noteType, string frontText, string backText);
+}

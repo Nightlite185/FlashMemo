@@ -78,6 +78,8 @@ public partial class App : Application
         sc.AddSingleton<CreateCardVMF>();
         sc.AddSingleton<UserSelectVMF>();
         sc.AddSingleton<CardEditorVMF>();
+        sc.AddSingleton<EditableCardVMF>();
+        sc.AddSingleton<ActivityGridVMF>();
         sc.AddSingleton<FiltersVMF>();
         sc.AddSingleton<BrowseVMF>();
         sc.AddSingleton<MainVMF>();
@@ -94,6 +96,9 @@ public partial class App : Application
         sc.AddSingleton<ICountingService, CountingService>();
         sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();
         sc.AddSingleton<ICardService, CardService>();
+        sc.AddSingleton<IDeckOptionsService, DeckOptionsService>();
+        sc.AddSingleton<IUserOptionsService, UserOptionsService>();
+        sc.AddSingleton<IActivityVMBuilder, ActivityVMBuilder>();
         sc.AddSingleton<ICardQueryService, CardQueryService>();
         sc.AddSingleton<IDeckOptVMBuilder, DeckOptVMBuilder>();
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
@@ -105,8 +110,6 @@ public partial class App : Application
         sc.AddLogging();
 
         // ==== REPOS ====
-        sc.AddSingleton<IDeckOptionsService, DeckOptionsService>();
-        sc.AddSingleton<IUserOptionsService, UserOptionsService>();
         sc.AddSingleton<IDeckRepo, DeckRepo>();
         sc.AddSingleton<ITagRepo, TagRepo>();
         sc.AddSingleton<ICardRepo, CardRepo>();

@@ -6,23 +6,18 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class DecksVM: BaseVM, IPopupHost
+public partial class DecksVM(
+    IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder,
+    ActivityGridVM activityVM, long userId, IVMEventBus bus)
+    : BaseVM(bus), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
-
-    public DecksVM(IDeckRepo dr, IDeckTreeBuilder dtb, long userId, IVMEventBus bus): base(bus)
-    {
-        deckTreeBuilder = dtb;
-        deckRepo = dr;
-        this.userId = userId;
-
-        DeckTree = [];
-    }
 
     #region methods
     internal async Task InitAsync()
@@ -63,8 +58,10 @@ public partial class DecksVM: BaseVM, IPopupHost
     {
         DeckTree.Clear();
 
-        DeckTree.AddRange(await deckTreeBuilder
+        DeckTree.AddRange(await decksBuilder
             .BuildCountedAsync(userId));
+
+        await ActivityGrid.ReloadAsync();
     }
 
     [RelayCommand]
@@ -170,7 +167,8 @@ public partial class DecksVM: BaseVM, IPopupHost
     #endregion
 
     #region public properties
-    public ObservableCollection<DeckNode> DeckTree { get; init; }
+    public ActivityGridVM ActivityGrid { get; } = activityVM;
+    public ObservableCollection<DeckNode> DeckTree { get; } = [];
     
     [ObservableProperty]
     public partial DeckNode? SelectedDeck { get; set; }
@@ -179,11 +177,5 @@ public partial class DecksVM: BaseVM, IPopupHost
     public partial PopupVMBase? CurrentPopup { get; set; }
 
     public event Func<IDeckMeta, Task>? OnReviewNavRequest;
-    #endregion
-
-    #region private things
-    private readonly IDeckRepo deckRepo;
-    private readonly IDeckTreeBuilder deckTreeBuilder;
-    private long userId;
     #endregion
 }

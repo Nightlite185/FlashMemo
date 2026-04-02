@@ -118,3 +118,8 @@ public interface INoteComparer
     NoteComparable FromModel(Note savedNote);
     NoteComparable FromEditor(NoteTypes noteType, string frontText, string backText);
 }
+
+public interface IActivityVMBuilder
+{
+    Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId);
+}

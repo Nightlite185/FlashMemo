@@ -36,6 +36,9 @@
         <helpers:DivideDoubleConverter
             x:Key="DivideDoubleConverter"/>
 
+        <helpers:ActivityIntensityToBrushConverter
+            x:Key="ActivityIntensityToBrushConverter"/>
+
         <!-- Editable-state visuals -->
         <sys:Double x:Key="EditableEnabledOpacity">1.0</sys:Double>
         <sys:Double x:Key="EditableDisabledOpacity">0.78</sys:Double>
@@ -92,6 +95,24 @@
         <SolidColorBrush x:Key="DeckDimBrush" Color="{StaticResource DeckDimColor}" />
 
         <!--#endregion -->
+
+        <!-- Heatmap Presets -->
+        <!-- Blue preset (default for review activity) -->
+        <Color x:Key="ActivityHeatBlue0Color">#303030</Color>
+        <Color x:Key="ActivityHeatBlue1Color">#FF0A2A4A</Color>
+        <Color x:Key="ActivityHeatBlue2Color">#FF0F4C7D</Color>
+        <Color x:Key="ActivityHeatBlue3Color">#FF1772B8</Color>
+        <Color x:Key="ActivityHeatBlue4Color">#FF1E95EC</Color>
+        <Color x:Key="ActivityHeatBlue5Color">#FF4AB2FF</Color>
+        <Color x:Key="ActivityHeatBlue6Color">#FF86D0FF</Color>
+
+        <SolidColorBrush x:Key="ActivityHeatBlue0Brush" Color="{StaticResource ActivityHeatBlue0Color}" />
+        <SolidColorBrush x:Key="ActivityHeatBlue1Brush" Color="{StaticResource ActivityHeatBlue1Color}" />
+        <SolidColorBrush x:Key="ActivityHeatBlue2Brush" Color="{StaticResource ActivityHeatBlue2Color}" />
+        <SolidColorBrush x:Key="ActivityHeatBlue3Brush" Color="{StaticResource ActivityHeatBlue3Color}" />
+        <SolidColorBrush x:Key="ActivityHeatBlue4Brush" Color="{StaticResource ActivityHeatBlue4Color}" />
+        <SolidColorBrush x:Key="ActivityHeatBlue5Brush" Color="{StaticResource ActivityHeatBlue5Color}" />
+        <SolidColorBrush x:Key="ActivityHeatBlue6Brush" Color="{StaticResource ActivityHeatBlue6Color}" />
 
         <!-- ===== Create Editor colors ===== -->
         <Color x:Key="EditorFieldColor">#CC2A2E34</Color>

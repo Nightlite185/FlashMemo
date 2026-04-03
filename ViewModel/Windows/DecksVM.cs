@@ -47,8 +47,13 @@ public partial class DecksVM(
         await deckRepo.AddNewDeck(deck);
     }
     
-    protected override Task ReloadDeckOptAsync() => ReloadDomainAsync();
-    protected override Task ReloadUserOptAsync() => ReloadDomainAsync();
+    protected override async Task ReloadDeckOptAsync() 
+        => await ReloadDomainAsync();
+    protected override async Task ReloadUserOptAsync()
+    {
+        // TODO: reload user options field, and call NotifyChanged heatmap vis prop as changed.
+        await ReloadDomainAsync();
+    }
     #endregion
 
     #region ICommands
@@ -169,6 +174,7 @@ public partial class DecksVM(
     #region public properties
     public ActivityGridVM ActivityGrid { get; } = activityVM;
     public ObservableCollection<DeckNode> DeckTree { get; } = [];
+    // public bool HeatmapVisible => userOptions.ShowHeatmap; // TODO add this to options and bind vis to it
     
     [ObservableProperty]
     public partial DeckNode? SelectedDeck { get; set; }

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
@@ -164,6 +165,49 @@ public class DivideDoubleConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotImplementedException();
+}
+
+public class ActivityIntensityToBrushConverter : IValueConverter
+{
+    private static readonly Brush[] FallbackBluePalette =
+    [
+        CreateFrozenBrush("#FF17191D"),
+        CreateFrozenBrush("#FF0A2A4A"),
+        CreateFrozenBrush("#FF0F4C7D"),
+        CreateFrozenBrush("#FF1772B8"),
+        CreateFrozenBrush("#FF1E95EC"),
+        CreateFrozenBrush("#FF4AB2FF"),
+        CreateFrozenBrush("#FF86D0FF")
+    ];
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not int intensity)
+            return FallbackBluePalette[0];
+
+        intensity = Math.Clamp(intensity, 0, 6);
+
+        var presetPrefix = parameter as string;
+        if (string.IsNullOrWhiteSpace(presetPrefix))
+            presetPrefix = "ActivityHeatBlue";
+
+        string key = $"{presetPrefix}{intensity}Brush";
+
+        if (App.Current.Resources[key] is Brush configuredBrush)
+            return configuredBrush;
+
+        return FallbackBluePalette[intensity];
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+
+    private static Brush CreateFrozenBrush(string hex)
+    {
+        var brush = (SolidColorBrush)new BrushConverter().ConvertFromString(hex)!;
+        brush.Freeze();
+        return brush;
+    }
 }
 #endregion
 

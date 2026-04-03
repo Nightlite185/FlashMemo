@@ -17,12 +17,13 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                <GradientStop Color="#FF000912"/>
-                <GradientStop Color="#FF0053A0" Offset="1"/>
+                <GradientStop Color="#FF1B1B1B"/>
+                <GradientStop Color="#FF1B1B1B" Offset="1"/>
             </LinearGradientBrush>
         </Grid.Background>
         
@@ -193,9 +194,88 @@
             </TreeView.ItemTemplate>
         </TreeView>
 
+        <!-- Review heatmap -->
+        <Border
+            Grid.Row="1"
+            Margin="20,6,20,14"
+            Padding="14,12"
+            Background="#26000000"
+            BorderBrush="#2AFFFFFF"
+            BorderThickness="1"
+            CornerRadius="12">
+
+            <StackPanel>
+                <TextBlock
+                    Text="Review heatmap"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="#FFE6EDF3"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,10"/>
+
+                <ScrollViewer
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Disabled">
+
+                    <ItemsControl
+                        ItemsSource="{Binding ActivityGrid.Weeks}"
+                        HorizontalAlignment="Center">
+
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ItemsControl
+                                    ItemsSource="{Binding Days}"
+                                    Margin="1,0">
+
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Vertical"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border
+                                                Width="12"
+                                                Height="12"
+                                                Margin="1"
+                                                CornerRadius="2"
+                                                BorderThickness="1"
+                                                BorderBrush="Transparent"
+                                                Background="{Binding Intensity,
+                                                    Converter={StaticResource ActivityIntensityToBrushConverter},
+                                                    ConverterParameter=ActivityHeatBlue}">
+
+                                                <Border.ToolTip>
+                                                    <StackPanel>
+                                                        <TextBlock
+                                                            Foreground="Black"
+                                                            Text="{Binding Date, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                                        <TextBlock
+                                                            Foreground="Black"
+                                                            Text="{Binding ReviewCount, StringFormat={}{0} reviews}"/>
+                                                    </StackPanel>
+                                                </Border.ToolTip>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+
         <!-- Sync Decks Button -->
         <Button
-            Grid.Row="1"
+            Grid.Row="2"
             Content="Sync decks"
             Command="{Binding ReloadDomainCommand}"
             Style="{StaticResource NavButtonStyle}"
@@ -206,7 +286,7 @@
         
         <!-- Create Deck Button -->
         <Button
-            Grid.Row="1"
+            Grid.Row="2"
             Content="Create Deck"
             Command="{Binding ShowCreateDeckCommand}"
             Style="{StaticResource NavButtonStyle}"
@@ -217,7 +297,7 @@
 
         <!-- Popup Overlay -->
         <Grid
-            Grid.RowSpan="2"
+            Grid.RowSpan="3"
             Background="#80000000"
             Visibility="{Binding CurrentPopup,
                 Converter={StaticResource NullToVisConverter}}">

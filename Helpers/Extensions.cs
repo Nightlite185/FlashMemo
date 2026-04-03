@@ -125,4 +125,7 @@ public static class Extensions
                 $"Called {caller}, but {nameof(dayOffset)} needs to be a positive number, <= to {max}, but it was {dayOffset}");
         }
     }
+
+    public static DateOnly ToDateOnly(this DateTime dt) =>
+        DateOnly.FromDateTime(dt);
 }

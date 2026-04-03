@@ -1,4 +1,4 @@
-using System.Data;
+using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Wrappers;
@@ -11,43 +11,49 @@ public class ActivityVMBuilder(IDbContextFactory<AppDbContext> factory)
 {
     public async Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId)
     {
-        var cells = await BuildCells(GetDb, userId);
-
-        // shifting day of every log's date to nearest monday
-        // and grouping logs by that property expression.
-        // +1 because .NET default first weekday is sunday.
-
-        return cells
-            .GroupBy(c => (int)c.Date.DayOfWeek + 1) // TODO: its probably wrong, fix this
-            .Select(g => new ActivityWeekVM(g))
+        return (await BuildCells(GetDb, userId))
+            .GroupBy(c => StartOfWeekMonday(c.Date))
+            .OrderBy(g => g.Key)
+            .Select(g => new ActivityWeekVM(
+                g.OrderBy(c => c.Date)))
             .ToArray();
+    }
+
+    private static DateOnly StartOfWeekMonday(DateOnly date)
+    {
+        int daysSinceMonday =
+            ((int)date.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+
+        return date.AddDays(-daysSinceMonday);
     }
 
     private async static Task<ICollection<ActivityCellVM>> BuildCells(AppDbContext db, long userId)
     {
-        // TODO: include empty days that dont have any logged activity.
+        var today = DateTime.Today.ToDateOnly();
+        var janFirst = new DateTime(today.Year, 1, 1).ToDateOnly();
 
-        var logs = await db.CardLogs
+        var countByDate = await db.CardLogs
             .AsNoTracking()
             .Where(l => l.UserId == userId
                 && l.Action == CardAction.Review)
-            .ToArrayAsync();
-
-        var logsByDate = logs.GroupBy(l =>
-                DateOnly.FromDateTime(l.TimeStamp.Date))
-            .ToArray();
-
+            .GroupBy(l => DateOnly.FromDateTime(l.TimeStamp))
+            .ToDictionaryAsync(
+                g => g.Key, 
+                g => g.Count());
+        
         List<ActivityCellVM> cells = [];
 
-        foreach(var group in logsByDate)
+        for (DateOnly date = janFirst; date <= today; date = date.AddDays(1))
         {
-            cells.Add(new ActivityCellVM
+            int count = countByDate.GetValueOrDefault(date, 0);
+
+            cells.Add(new()
             {
-                Date = group.Key,
-                ReviewCount = group.Count()
+                Date = date,
+                ReviewCount = count
             });
         }
 
-        return [..cells.OrderBy(c => c.Date)];
+        return cells;
     }
 }

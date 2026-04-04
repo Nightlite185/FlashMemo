@@ -49,9 +49,24 @@ public partial class DecksVM(
     protected override async Task ReloadDeckOptAsync() 
         => await ReloadDomainAsync();
     protected override async Task ReloadUserOptAsync()
+        => await ReloadDomainAsync();
+    public override async Task OnFocusGained()
     {
-        // TODO: reload user options field, and call NotifyChanged heatmap vis prop as changed.
-        await ReloadDomainAsync();
+        await base.OnFocusGained();
+        await ActivityGrid.OnFocusGained();
+
+        // forwarding focus changes to ActivityGridVM too
+        // bc the focus helper only cares about the DataContext
+    }
+    public override void OnFocusLost()
+    {
+        base.OnFocusLost();
+        ActivityGrid.OnFocusLost();
+    }
+    public override void OnClosed()
+    {
+        base.OnClosed();
+        ActivityGrid.OnClosed();
     }
     #endregion
 

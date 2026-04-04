@@ -177,7 +177,7 @@ public static class FocusBoundaryBehavior
         if (!IsWindowActive(root, state))
             return false;
 
-        return IsInsideRoot(root, Keyboard.FocusedElement as DependencyObject);
+        return root.IsVisible;
     }
 
     private static bool IsInSameWindow(FrameworkElement root, DependencyObject? element, FocusTrackingState state)
@@ -264,7 +264,7 @@ public static class FocusBoundaryBehavior
 
         public void OnWindowActivated(object? sender, EventArgs e)
         {
-            var hasFocusNow = IsInsideRoot(root, Keyboard.FocusedElement as DependencyObject);
+            var hasFocusNow = ComputeHasBoundaryFocus(root, this);
             if (!hasFocusNow && RestoreBoundaryFocusOnActivate && root.IsVisible)
                 hasFocusNow = true;
 

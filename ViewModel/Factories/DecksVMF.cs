@@ -5,16 +5,16 @@ using FlashMemo.ViewModel.Windows;
 namespace FlashMemo.ViewModel.Factories;
 
 public class DecksVMF(IDeckRepo deckRepo, IDeckTreeBuilder deckBuilder, 
-                      IVMEventBus bus, ActivityGridVMF activityFactory)
+                      IVMEventBus bus, HeatmapVMF heatVMF)
 {
     public async Task<DecksVM> CreateAsync(long userId)
     {
-        var activityGrid = await activityFactory
+        var heatVM = await heatVMF
             .CreateAsync(userId);
 
         var vm = new DecksVM(
             deckRepo, deckBuilder,
-            activityGrid, userId, bus
+            heatVM, userId, bus
         );
 
         await vm.InitAsync();

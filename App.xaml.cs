@@ -79,7 +79,7 @@ public partial class App : Application
         sc.AddSingleton<UserSelectVMF>();
         sc.AddSingleton<CardEditorVMF>();
         sc.AddSingleton<EditableCardVMF>();
-        sc.AddSingleton<ActivityGridVMF>();
+        sc.AddSingleton<HeatmapVMF>();
         sc.AddSingleton<FiltersVMF>();
         sc.AddSingleton<BrowseVMF>();
         sc.AddSingleton<MainVMF>();

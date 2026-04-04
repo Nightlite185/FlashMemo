@@ -13,7 +13,7 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM(
-    IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, ActivityGridVM activityVM, 
+    IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM, 
     long userId, IVMEventBus bus) : BaseVM(bus), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
@@ -53,20 +53,20 @@ public partial class DecksVM(
     public override async Task OnFocusGained()
     {
         await base.OnFocusGained();
-        await ActivityGrid.OnFocusGained();
+        await Heatmap.OnFocusGained();
 
-        // forwarding focus changes to ActivityGridVM too
+        // forwarding focus changes to HeatmapVM too
         // bc the focus helper only cares about the DataContext
     }
     public override void OnFocusLost()
     {
         base.OnFocusLost();
-        ActivityGrid.OnFocusLost();
+        Heatmap.OnFocusLost();
     }
     public override void OnClosed()
     {
         base.OnClosed();
-        ActivityGrid.OnClosed();
+        Heatmap.OnClosed();
     }
     #endregion
 
@@ -184,7 +184,7 @@ public partial class DecksVM(
     #endregion
 
     #region public properties
-    public ActivityGridVM ActivityGrid { get; } = activityVM;
+    public HeatmapVM Heatmap { get; } = heatmapVM;
     public ObservableCollection<DeckNode> DeckTree { get; } = [];
     
     [ObservableProperty]

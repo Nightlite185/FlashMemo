@@ -203,7 +203,7 @@
             BorderBrush="#2AFFFFFF"
             BorderThickness="1"
             CornerRadius="12"
-            Visibility="{Binding ActivityGrid.HeatmapVisibility,
+            Visibility="{Binding Heatmap.HeatmapVisibility,
                 Converter={StaticResource BoolToVisConverter}}">
 
             <Grid>
@@ -223,7 +223,7 @@
                     FontWeight="Bold"
                     VerticalAlignment="Top"
                     Style="{StaticResource NavButtonStyle}"
-                    Command="{Binding ActivityGrid.ShiftYearBackCommand}"
+                    Command="{Binding Heatmap.ShiftYearBackCommand}"
                     ToolTip="Show previous year"/>
 
                 <StackPanel Grid.Column="1">
@@ -240,7 +240,7 @@
                         VerticalScrollBarVisibility="Disabled">
 
                         <ItemsControl
-                            ItemsSource="{Binding ActivityGrid.Weeks}"
+                            ItemsSource="{Binding Heatmap.Weeks}"
                             HorizontalAlignment="Center">
 
                             <ItemsControl.ItemsPanel>
@@ -310,7 +310,7 @@
                         FontWeight="SemiBold"
                         Foreground="#FFE6EDF3"
                         HorizontalAlignment="Center"
-                        Text="{Binding ActivityGrid.HeatmapYear}"/>
+                        Text="{Binding Heatmap.HeatmapYear}"/>
                 </StackPanel>
 
                 <Button
@@ -323,7 +323,7 @@
                     FontWeight="Bold"
                     VerticalAlignment="Top"
                     Style="{StaticResource NavButtonStyle}"
-                    Command="{Binding ActivityGrid.ShiftYearForwardCommand}"
+                    Command="{Binding Heatmap.ShiftYearForwardCommand}"
                     ToolTip="Show next year"/>
             </Grid>
         </Border>

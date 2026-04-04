@@ -9,7 +9,7 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Other;
 
-public partial class ActivityGridVM(IActivityVMBuilder builder, IUserOptionsService userOptService, 
+public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService userOptService, 
                                     IVMEventBus bus, long userId): BaseVM(bus)
 {
     #region private things

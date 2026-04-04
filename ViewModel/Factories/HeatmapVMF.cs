@@ -3,12 +3,12 @@ using FlashMemo.ViewModel.Other;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class ActivityGridVMF(IActivityVMBuilder builder, IUserOptionsService userOptService,
+public class HeatmapVMF(IActivityVMBuilder builder, IUserOptionsService userOptService,
                             IVMEventBus bus)
 {
-    public async Task<ActivityGridVM> CreateAsync(long userId)
+    public async Task<HeatmapVM> CreateAsync(long userId)
     {
-        var vm = new ActivityGridVM(
+        var vm = new HeatmapVM(
             builder, userOptService, 
             bus, userId);
 

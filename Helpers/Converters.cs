@@ -209,6 +209,26 @@ public class ActivityIntensityToBrushConverter : IValueConverter
         return brush;
     }
 }
+
+public class ActivityWeekToMonthLabelConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not IEnumerable<ActivityCellVM> days)
+            return string.Empty;
+
+        var monthStart = days.FirstOrDefault(d => d.Date.Day == 1);
+        if (monthStart is null)
+            return string.Empty;
+
+        string format = parameter as string ?? "MMM";
+        return monthStart.Date.ToDateTime(TimeOnly.MinValue)
+            .ToString(format, culture);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}
 #endregion
 
 #region AutoMapper converters

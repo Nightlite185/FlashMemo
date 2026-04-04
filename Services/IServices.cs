@@ -121,5 +121,5 @@ public interface INoteComparer
 
 public interface IActivityVMBuilder
 {
-    Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId);
+    Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, short year);
 }

@@ -38,6 +38,9 @@
 
         <helpers:ActivityIntensityToBrushConverter
             x:Key="ActivityIntensityToBrushConverter"/>
+        
+        <helpers:ActivityWeekToMonthLabelConverter
+            x:Key="ActivityWeekToMonthLabelConverter"/>
 
         <!-- Editable-state visuals -->
         <sys:Double x:Key="EditableEnabledOpacity">1.0</sys:Double>

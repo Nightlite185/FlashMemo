@@ -206,73 +206,126 @@
             Visibility="{Binding ActivityGrid.HeatmapVisibility,
                 Converter={StaticResource BoolToVisConverter}}">
 
-            <StackPanel>
-                <TextBlock
-                    Text="Review heatmap"
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    Grid.Column="0"
+                    Content="◀"
+                    Width="34"
+                    Height="34"
+                    Margin="0,20,10,0"
                     FontSize="16"
-                    FontWeight="SemiBold"
-                    Foreground="#FFE6EDF3"
-                    HorizontalAlignment="Center"
-                    Margin="0,0,0,10"/>
+                    FontWeight="Bold"
+                    VerticalAlignment="Top"
+                    Style="{StaticResource NavButtonStyle}"
+                    Command="{Binding ActivityGrid.ShiftYearBackCommand}"
+                    ToolTip="Show previous year"/>
 
-                <ScrollViewer
-                    HorizontalScrollBarVisibility="Auto"
-                    VerticalScrollBarVisibility="Disabled">
+                <StackPanel Grid.Column="1">
+                    <TextBlock
+                        Text="Review heatmap"
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Foreground="#FFE6EDF3"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,10"/>
 
-                    <ItemsControl
-                        ItemsSource="{Binding ActivityGrid.Weeks}"
-                        HorizontalAlignment="Center">
+                    <ScrollViewer
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Disabled">
 
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
+                        <ItemsControl
+                            ItemsSource="{Binding ActivityGrid.Weeks}"
+                            HorizontalAlignment="Center">
 
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <ItemsControl
-                                    ItemsSource="{Binding Days}"
-                                    Margin="1,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
 
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Vertical"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="1,0">
+                                        <TextBlock
+                                            Height="18"
+                                            Margin="0,0,0,4"
+                                            FontSize="11"
+                                            Foreground="#FFC9D1D9"
+                                            HorizontalAlignment="Center"
+                                            Text="{Binding Days,
+                                                Converter={StaticResource ActivityWeekToMonthLabelConverter},
+                                                ConverterParameter=MMM}"/>
 
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border
-                                                Width="12"
-                                                Height="12"
-                                                Margin="1"
-                                                CornerRadius="2"
-                                                BorderThickness="1"
-                                                BorderBrush="Transparent"
-                                                Background="{Binding Intensity,
-                                                    Converter={StaticResource ActivityIntensityToBrushConverter},
-                                                    ConverterParameter=ActivityHeatBlue}">
+                                        <ItemsControl
+                                            ItemsSource="{Binding Days}">
 
-                                                <Border.ToolTip>
-                                                    <StackPanel>
-                                                        <TextBlock
-                                                            Foreground="Black"
-                                                            Text="{Binding Date, StringFormat={}{0:yyyy-MM-dd}}"/>
-                                                        <TextBlock
-                                                            Foreground="Black"
-                                                            Text="{Binding ReviewCount, StringFormat={}{0} reviews}"/>
-                                                    </StackPanel>
-                                                </Border.ToolTip>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </StackPanel>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Vertical"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border
+                                                        Width="12"
+                                                        Height="12"
+                                                        Margin="1"
+                                                        CornerRadius="2"
+                                                        BorderThickness="1"
+                                                        BorderBrush="Transparent"
+                                                        Background="{Binding Intensity,
+                                                            Converter={StaticResource ActivityIntensityToBrushConverter},
+                                                            ConverterParameter=ActivityHeatBlue}">
+
+                                                        <Border.ToolTip>
+                                                            <StackPanel>
+                                                                <TextBlock
+                                                                    Foreground="Black"
+                                                                    Text="{Binding Date, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                                                <TextBlock
+                                                                    Foreground="Black"
+                                                                    Text="{Binding ReviewCount, StringFormat={}{0} reviews}"/>
+                                                            </StackPanel>
+                                                        </Border.ToolTip>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="#FFE6EDF3"
+                        HorizontalAlignment="Center"
+                        Text="{Binding ActivityGrid.HeatmapYear}"/>
+                </StackPanel>
+
+                <Button
+                    Grid.Column="2"
+                    Content="▶"
+                    Width="34"
+                    Height="34"
+                    Margin="10,20,0,0"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    VerticalAlignment="Top"
+                    Style="{StaticResource NavButtonStyle}"
+                    Command="{Binding ActivityGrid.ShiftYearForwardCommand}"
+                    ToolTip="Show next year"/>
+            </Grid>
         </Border>
 
         <!-- Sync Decks Button -->

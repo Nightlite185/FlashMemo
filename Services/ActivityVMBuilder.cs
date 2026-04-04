@@ -9,9 +9,9 @@ namespace FlashMemo.Services;
 public class ActivityVMBuilder(IDbContextFactory<AppDbContext> factory)
     : DbDependentClass(factory), IActivityVMBuilder
 {
-    public async Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId)
+    public async Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, short year)
     {
-        return (await BuildCells(GetDb, userId))
+        return (await BuildCells(GetDb, userId, year))
             .GroupBy(c => StartOfWeekMonday(c.Date))
             .OrderBy(g => g.Key)
             .Select(g => new ActivityWeekVM(
@@ -27,10 +27,16 @@ public class ActivityVMBuilder(IDbContextFactory<AppDbContext> factory)
         return date.AddDays(-daysSinceMonday);
     }
 
-    private async static Task<ICollection<ActivityCellVM>> BuildCells(AppDbContext db, long userId)
+    private async static Task<ICollection<ActivityCellVM>> BuildCells(AppDbContext db, long userId, short year)
     {
-        var today = DateTime.Today.ToDateOnly();
-        var janFirst = new DateTime(today.Year, 1, 1).ToDateOnly();
+        var today = DateTime.Today;
+
+        var minDay = new DateTime(year, 1, 1)
+            .ToDateOnly();
+
+        var maxDay = (year == today.Year)
+            ? today.ToDateOnly()
+            : new DateTime(year, 12, 31).ToDateOnly();
 
         var countByDate = await db.CardLogs
             .AsNoTracking()
@@ -38,12 +44,12 @@ public class ActivityVMBuilder(IDbContextFactory<AppDbContext> factory)
                 && l.Action == CardAction.Review)
             .GroupBy(l => DateOnly.FromDateTime(l.TimeStamp))
             .ToDictionaryAsync(
-                g => g.Key, 
+                g => g.Key,
                 g => g.Count());
         
         List<ActivityCellVM> cells = [];
 
-        for (DateOnly date = janFirst; date <= today; date = date.AddDays(1))
+        for (DateOnly date = minDay; date <= maxDay; date = date.AddDays(1))
         {
             int count = countByDate.GetValueOrDefault(date, 0);
 

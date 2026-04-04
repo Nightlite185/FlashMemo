@@ -58,6 +58,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock
@@ -138,6 +139,24 @@
                         Grid.Row="4"
                         Grid.Column="1"
                         IsChecked="{Binding Options.IntervalScalingOnOverdueness}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Margin="0,6,0,6">
+                        <CheckBox.LayoutTransform>
+                            <ScaleTransform ScaleX="1.65" ScaleY="1.65"/>
+                        </CheckBox.LayoutTransform>
+                    </CheckBox>
+
+                    <TextBlock
+                        Grid.Row="5"
+                        Style="{StaticResource UserOptHintStyle}"
+                        ToolTip="When enabled, review heatmap is visible on the decks screen."
+                        Text="Show review heatmap"/>
+
+                    <CheckBox
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        IsChecked="{Binding Options.ShowHeatmap}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Left"
                         Margin="0,6,0,6">

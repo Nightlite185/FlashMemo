@@ -8,6 +8,7 @@ public class UserOptions
     public const bool DefTimerStopsOnReveal = true;
     public const bool DefIncludeLessonsInReviewLimit = false;
     public const bool DefIntervalScalingOnOverdueness = true;
+    public const bool DefShowHeatmap = true;
 
     public const byte MaxDayStartOffset = 12;
     #endregion
@@ -18,6 +19,7 @@ public class UserOptions
     public bool TimerStopsOnReveal { get; set; } //* whether timer stops on answer being revealed or actually clicking one of the answer buttons.
     public bool IncludeLessonsInReviewLimit { get; set; }
     public bool IntervalScalingOnOverdueness { get; set; } //* whether card's interval will increase scaling off its current overdueness
+    public bool ShowHeatmap { get; set; } // whether to show review heatmap on DecksUC screen
     #endregion
 
     public static UserOptions CreateDefault()
@@ -28,7 +30,8 @@ public class UserOptions
             ShowReviewTimer = DefShowReviewTimer,
             TimerStopsOnReveal = DefTimerStopsOnReveal,
             IncludeLessonsInReviewLimit = DefIncludeLessonsInReviewLimit,
-            IntervalScalingOnOverdueness = DefIntervalScalingOnOverdueness
+            IntervalScalingOnOverdueness = DefIntervalScalingOnOverdueness,
+            ShowHeatmap = DefShowHeatmap
         };
     }
 
@@ -42,7 +45,8 @@ public class UserOptions
             && ShowReviewTimer == valid.ShowReviewTimer
             && TimerStopsOnReveal == valid.TimerStopsOnReveal
             && IncludeLessonsInReviewLimit == valid.IncludeLessonsInReviewLimit
-            && IntervalScalingOnOverdueness == valid.IntervalScalingOnOverdueness;
+            && IntervalScalingOnOverdueness == valid.IntervalScalingOnOverdueness
+            && ShowHeatmap == valid.ShowHeatmap;
     }
     
     public override int GetHashCode()
@@ -52,6 +56,7 @@ public class UserOptions
             ShowReviewTimer, 
             TimerStopsOnReveal, 
             IncludeLessonsInReviewLimit,
-            IntervalScalingOnOverdueness);
+            IntervalScalingOnOverdueness,
+            ShowHeatmap);
     }
 }

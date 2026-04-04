@@ -14,4 +14,5 @@ public partial class UserOptionsVM: ObservableValidator
     [ObservableProperty] public partial bool TimerStopsOnReveal { get; set; }
     [ObservableProperty] public partial bool IncludeLessonsInReviewLimit { get; set; }
     [ObservableProperty] public partial bool IntervalScalingOnOverdueness { get; set; }
+    [ObservableProperty] public partial bool ShowHeatmap { get; set; }
 }

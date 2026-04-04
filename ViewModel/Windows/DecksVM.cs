@@ -13,9 +13,8 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM(
-    IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder,
-    ActivityGridVM activityVM, long userId, IVMEventBus bus)
-    : BaseVM(bus), IPopupHost
+    IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, ActivityGridVM activityVM, 
+    long userId, IVMEventBus bus) : BaseVM(bus), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
 
@@ -65,8 +64,6 @@ public partial class DecksVM(
 
         DeckTree.AddRange(await decksBuilder
             .BuildCountedAsync(userId));
-
-        await ActivityGrid.ReloadAsync();
     }
 
     [RelayCommand]
@@ -174,7 +171,6 @@ public partial class DecksVM(
     #region public properties
     public ActivityGridVM ActivityGrid { get; } = activityVM;
     public ObservableCollection<DeckNode> DeckTree { get; } = [];
-    // public bool HeatmapVisible => userOptions.ShowHeatmap; // TODO add this to options and bind vis to it
     
     [ObservableProperty]
     public partial DeckNode? SelectedDeck { get; set; }

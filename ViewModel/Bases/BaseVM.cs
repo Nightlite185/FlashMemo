@@ -65,7 +65,7 @@ public abstract class BaseVM(IVMEventBus bus): ObservableObject, IViewModel, INa
     protected virtual void OnDeckOptChanged()
     {
         if (!isFocused)
-            isUserOptDirty = true;
+            isDeckOptDirty = true;
     }
 
     public virtual void OnClosed()

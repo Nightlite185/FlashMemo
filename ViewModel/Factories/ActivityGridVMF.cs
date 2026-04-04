@@ -3,14 +3,16 @@ using FlashMemo.ViewModel.Other;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class ActivityGridVMF(IActivityVMBuilder builder)
+public class ActivityGridVMF(IActivityVMBuilder builder, IUserOptionsService userOptService,
+                            IVMEventBus bus)
 {
     public async Task<ActivityGridVM> CreateAsync(long userId)
     {
         var vm = new ActivityGridVM(
-            builder, userId);
+            builder, userOptService, 
+            bus, userId);
 
-        await vm.ReloadAsync();
+        await vm.InitAsync();
         return vm;
     }
 }

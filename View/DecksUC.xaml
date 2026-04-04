@@ -202,7 +202,9 @@
             Background="#26000000"
             BorderBrush="#2AFFFFFF"
             BorderThickness="1"
-            CornerRadius="12">
+            CornerRadius="12"
+            Visibility="{Binding ActivityGrid.HeatmapVisibility,
+                Converter={StaticResource BoolToVisConverter}}">
 
             <StackPanel>
                 <TextBlock

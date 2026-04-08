@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
@@ -14,6 +15,19 @@ public static class Scheduler
             Hard: ProcessHard(card, deckOpt),
             Again: ProcessAgain(card, deckOpt)
         );
+    }
+
+    public static ScheduleInfo GetSchedule(IScheduleInfoCard card, DeckOptions.SchedulingOpt deckOpt, UserOptions userOpt, Answers answer)
+    {
+        return answer switch
+        {
+            Answers.Easy => ProcessEasy(card, deckOpt, userOpt),
+            Answers.Good => ProcessGood(card, deckOpt, userOpt),
+            Answers.Hard => ProcessHard(card, deckOpt),
+            Answers.Again => ProcessAgain(card, deckOpt),
+
+            _ => throw new InvalidEnumArgumentException()
+        };
     }
     
     #region Private answer handlers

@@ -128,4 +128,8 @@ public static class Extensions
 
     public static DateOnly ToDateOnly(this DateTime dt) =>
         DateOnly.FromDateTime(dt);
+    public static double NextDouble(this Random rand, double low, double high)
+    {
+        return low + (rand.NextDouble() * (high - low));
+    }
 }

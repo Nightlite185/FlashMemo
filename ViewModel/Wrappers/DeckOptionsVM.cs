@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Domain;
@@ -57,17 +58,30 @@ public partial class DeckOptionsVM: RenameVMBase
                 : SortingDirection.Ascending;
         }
     }
-    public partial class SchedulingOpt: ObservableObject, IViewModel
+    public partial class SchedulingOpt: ObservableValidator, IViewModel
     {
-        [ObservableProperty] public partial double GoodMultiplier { get; set; }
-        [ObservableProperty] public partial double EasyMultiplier { get; set; }
-        [ObservableProperty] public partial double HardMultiplier { get; set; }
+        #region multipliers
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(1d, 5d)]
+        public partial double GoodMultiplier { get; set; }
+
+
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(1d, 8d)]
+        public partial double EasyMultiplier { get; set; }
+
+
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(0.1d, 2d)]
+        public partial double HardMultiplier { get; set; }
+        #endregion
         public LearningStagesVM LearningStages { get; set; } = null!;
         [ObservableProperty] public partial LearningStage AgainOnReviewStage { get; set; }
         [ObservableProperty] public partial LearningStage GoodOnNewStage { get; set; }
         [ObservableProperty] public partial LearningStage HardOnNewStage { get; set; }
-        [ObservableProperty] public partial int GraduateDayCount { get; set; }
-        [ObservableProperty] public partial int EasyOnNewDayCount { get; set; }
+        
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 30)]
+        public partial int GraduateDayCount { get; set; }
+        
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 30)]
+        public partial int EasyOnNewDayCount { get; set; }
     }
     public partial class DailyLimitsOpt: ObservableObject, IViewModel
     {

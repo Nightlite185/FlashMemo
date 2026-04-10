@@ -8,5 +8,5 @@ public record FakeScheduleInfoCard: IScheduleInfoCard
     public TimeSpan Interval { get; init; }
     public CardState State { get; init; }
     public LearningStage? LearningStage { get; init; }
-    public int? DaysOverdue { get; init; }
+    public int? DaysOverdue { get; internal set; }
 }

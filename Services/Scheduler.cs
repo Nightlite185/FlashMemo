@@ -119,7 +119,7 @@ public static class Scheduler
     {
         LearningStage? learningStage = (card.LearningStage is LearningStage.III) // if its already last learning stage:
             ? null                     // set to null
-            : card.LearningStage + 1;  // else just add one //TODO: idk if this is gonna work, test it
+            : card.LearningStage + 1;  // else just add one
 
         CardState state = (learningStage is null)
             ? CardState.Review

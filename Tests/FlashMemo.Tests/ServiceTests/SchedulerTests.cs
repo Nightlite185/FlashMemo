@@ -4,7 +4,7 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.Tests.Fakes.Model;
 
-namespace FlashMemo.Tests.Services;
+namespace FlashMemo.Tests.ServiceTests;
 
 public class SchedulerTests
 {

@@ -12,8 +12,6 @@ public class DbSeeder(AppDbContext db, IMapper m)
 
     public async Task MigrateAndSeedAsync()
     {
-        // await db.Database.MigrateAsync();
-
         await SeedDeckOptions();
         await SeedLastSessionData();
     }
@@ -38,10 +36,5 @@ public class DbSeeder(AppDbContext db, IMapper m)
             new LastSessionData() { Id = -1 });
 
         await db.SaveChangesAsync();
-    }
-
-    private async Task SeedUserOptions()
-    {
-        throw new NotImplementedException();
     }
 }

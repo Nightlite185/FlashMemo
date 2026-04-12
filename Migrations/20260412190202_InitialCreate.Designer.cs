@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260329184311_InitialCreate")]
+    [Migration("20260412190202_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -493,8 +493,8 @@ namespace FlashMemo.Migrations
                             b1.Property<bool>("IncludeChildrenDecks")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<TimeSpan?>("Interval")
-                                .HasColumnType("TEXT");
+                            b1.Property<int?>("IntervalDays")
+                                .HasColumnType("INTEGER");
 
                             b1.Property<bool?>("IsBuried")
                                 .HasColumnType("INTEGER");
@@ -561,6 +561,9 @@ namespace FlashMemo.Migrations
                                 .HasColumnType("INTEGER");
 
                             b1.Property<bool>("IntervalScalingOnOverdueness")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ShowHeatmap")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<bool>("ShowReviewTimer")

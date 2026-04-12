@@ -29,7 +29,7 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
     [ObservableProperty] public partial bool IncludeChildrenDecks { get; set; } 
     //* whether to recursively include all children of the chosen deck
 
-    [ObservableProperty] public partial TimeSpan? Interval { get; set; }
+    [ObservableProperty] public partial int? IntervalDays { get; set; }
     [ObservableProperty] public partial DateTime? Due { get; set; }
     [ObservableProperty] public partial DateTime? LastReviewed { get; set; }
     [ObservableProperty] public partial DateTime? LastModified { get; set; }
@@ -49,7 +49,7 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
         IsSuspended = null;
         IsDue = null;
         IncludeChildrenDecks = true;
-        Interval = null;
+        IntervalDays = null;
         Due = null;
         LastReviewed = null;
         LastModified = null;
@@ -76,13 +76,16 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
             States = [..OnlySelectedStates()],
             DeckIds = [..GetDeckIds()],
 
+            IntervalDays = (IntervalDays > 0)
+                ? IntervalDays
+                : null,
+
             IncludeChildrenDecks = IncludeChildrenDecks,
             OverdueByDays = OverdueByDays,
             LastModified = LastModified,
             LastReviewed = LastReviewed,
             IsSuspended = IsSuspended,
             IsBuried = IsBuried,
-            Interval = Interval,
             Created = Created,
             IsDue = IsDue,
             Due = Due
@@ -103,15 +106,15 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
         //* mapping scalars from last filters
         IncludeChildrenDecks = CachedFilters.IncludeChildrenDecks;
 
-        IsBuried      = CachedFilters.IsBuried;
         IsSuspended   = CachedFilters.IsSuspended;
+        IsBuried      = CachedFilters.IsBuried;
         IsDue         = CachedFilters.IsDue;
 
-        Interval      = CachedFilters.Interval;
         Due           = CachedFilters.Due;
+        Created       = CachedFilters.Created;
+        IntervalDays  = CachedFilters.IntervalDays;
         LastReviewed  = CachedFilters.LastReviewed;
         LastModified  = CachedFilters.LastModified;
-        Created       = CachedFilters.Created;
         OverdueByDays = CachedFilters.OverdueByDays;
 
         await ReloadDomainAsync();

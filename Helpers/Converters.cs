@@ -61,11 +61,11 @@ public class TimeSpanHumanizer : IValueConverter
 
         var ts = si.Interval;
 
-        return ts.TotalDays switch
+        return ts.Days switch
         {
-            >= 365 => $"{(int)(ts.TotalDays / 365)} years",
-            >= 30 => $"{(int)(ts.TotalDays / 30)} months",
-            >= 1 => $"{(int)ts.TotalDays} days",
+            >= 365 => $"{ts.Days / 365 :1} years",
+            >= 30 => $"{ts.Days / 30 :1} months",
+            >= 1 => $"{ts.Days} days",
             _ => $"{(int)ts.TotalMinutes} minutes",
         };
     }

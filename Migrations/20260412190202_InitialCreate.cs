@@ -27,7 +27,7 @@ namespace FlashMemo.Migrations
                     LastFilters_IncludeChildrenDecks = table.Column<bool>(type: "INTEGER", nullable: true),
                     LastFilters_OverdueByDays = table.Column<int>(type: "INTEGER", nullable: true),
                     LastFilters_States = table.Column<string>(type: "TEXT", nullable: true),
-                    LastFilters_Interval = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    LastFilters_IntervalDays = table.Column<int>(type: "INTEGER", nullable: true),
                     LastFilters_Created = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastFilters_Due = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastFilters_LastReviewed = table.Column<DateTime>(type: "TEXT", nullable: true),
@@ -63,7 +63,8 @@ namespace FlashMemo.Migrations
                     Options_ShowReviewTimer = table.Column<bool>(type: "INTEGER", nullable: false),
                     Options_TimerStopsOnReveal = table.Column<bool>(type: "INTEGER", nullable: false),
                     Options_IncludeLessonsInReviewLimit = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Options_IntervalScalingOnOverdueness = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Options_IntervalScalingOnOverdueness = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Options_ShowHeatmap = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

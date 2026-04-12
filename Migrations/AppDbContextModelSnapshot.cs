@@ -490,8 +490,8 @@ namespace FlashMemo.Migrations
                             b1.Property<bool>("IncludeChildrenDecks")
                                 .HasColumnType("INTEGER");
 
-                            b1.Property<TimeSpan?>("Interval")
-                                .HasColumnType("TEXT");
+                            b1.Property<int?>("IntervalDays")
+                                .HasColumnType("INTEGER");
 
                             b1.Property<bool?>("IsBuried")
                                 .HasColumnType("INTEGER");

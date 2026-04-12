@@ -27,6 +27,12 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
             .Include(c => c.Deck)
             .ToListAsync();
 
+        if (filters.IntervalDays is int interval and > 0)
+        {
+            cards = [..cards.Where(c => 
+                c.Interval.Days == interval)];
+        }
+
         cards.ShuffleIf(order == CardsOrder.Random);
 
         return cards;

@@ -401,6 +401,16 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
             fVM.TakeSnapshot());
     }
 
+    private void BrowseDatePicker_DateValidationError(object sender, DatePickerDateValidationErrorEventArgs e)
+    {
+        e.ThrowException = false;
+
+        if (sender is not DatePicker picker)
+            return;
+
+        picker.ToolTip = "Invalid date";
+    }
+
     private sealed class BrowseColumnSpec(
         BrowseColumn column,
         string header,

@@ -3,6 +3,7 @@ using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Helpers;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace FlashMemo.Model
 {
@@ -52,17 +53,18 @@ namespace FlashMemo.Model
             #endregion
             
             #region Numeric filters
-            if (OverdueByDays is int days)
+            if (OverdueByDays is int days and > 0)
             {
                 var today = DateTime.Today;
+                var overdueDayStart = today.AddDays(-days);
+                var overdueDayEnd = overdueDayStart.AddDays(1);
                 
                 query = query.Combine(c =>
                     c.Due.HasValue &&
-                    (c.Due.Value.Date - today).TotalDays == days);
+                    c.Due >= overdueDayStart &&
+                    c.Due < overdueDayEnd);
             }
 
-            if (Interval is TimeSpan interval)
-                query = query.Combine(c => c.Interval.Days == interval.Days);
             #endregion
 
             #region DateTime filters
@@ -93,7 +95,7 @@ namespace FlashMemo.Model
         public bool IncludeChildrenDecks { get; init; } = true;
         public int? OverdueByDays { get; init; }
         public ImmutableList<CardState> States { get; init; } = [];
-        public TimeSpan? Interval { get; init; }
+        public int? IntervalDays { get; init; }
         public DateTime? Created { get; init; }
         public DateTime? Due { get; init; }
         public DateTime? LastReviewed { get; init; }

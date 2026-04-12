@@ -73,16 +73,6 @@ public static class Extensions
         throw new NotSupportedException("Only standard note supported for now.");
     }
     
-    public static Expression<Func<CardEntity, bool>> OnSameDay(this Expression<Func<CardEntity, bool>> expr, Func<CardEntity, DateTime?> selector, DateTime when)
-    {
-        var dayStart = when.Date;
-        var dayEnd = dayStart.AddDays(1);
-
-        return expr.Combine(c =>
-            selector(c) >= dayStart &&
-            selector(c) < dayEnd);
-    }
-
     public static T CloneWithJson<T>(this T obj)
     {
         var json = JsonSerializer.Serialize(obj);

@@ -3,7 +3,6 @@ using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Helpers;
 using System.Collections.Immutable;
-using System.Collections.Generic;
 
 namespace FlashMemo.Model
 {
@@ -70,16 +69,47 @@ namespace FlashMemo.Model
             #region DateTime filters
 
             if (Created is DateTime created)
-                query = query.OnSameDay(c => c.Created, created);
+            {
+                var dayStart = created.Date;
+                var dayEnd = dayStart.AddDays(1);
+
+                query = query.Combine(c =>
+                    c.Created >= dayStart &&
+                    c.Created < dayEnd);
+            }
 
             if (Due is DateTime due)
-                query = query.OnSameDay(c => c.Due, due);
+            {
+                var dayStart = due.Date;
+                var dayEnd = dayStart.AddDays(1);
+
+                query = query.Combine(c =>
+                    c.Due.HasValue &&
+                    c.Due >= dayStart &&
+                    c.Due < dayEnd);
+            }
 
             if (LastReviewed is DateTime lastR)
-                query = query.OnSameDay(c => c.LastReviewed, lastR);
+            {
+                var dayStart = lastR.Date;
+                var dayEnd = dayStart.AddDays(1);
+
+                query = query.Combine(c =>
+                    c.LastReviewed.HasValue &&
+                    c.LastReviewed >= dayStart &&
+                    c.LastReviewed < dayEnd);
+            }
 
             if (LastModified is DateTime lastM)
-                query = query.OnSameDay(c => c.LastModified, lastM);
+            {
+                var dayStart = lastM.Date;
+                var dayEnd = dayStart.AddDays(1);
+
+                query = query.Combine(c =>
+                    c.LastModified.HasValue &&
+                    c.LastModified >= dayStart &&
+                    c.LastModified < dayEnd);
+            }
 
             #endregion
             
@@ -101,7 +131,7 @@ namespace FlashMemo.Model
         public DateTime? LastReviewed { get; init; }
         public DateTime? LastModified { get; init; }
 
-        private static Filters allCards = new(){ UserId = -1 }; // only place where userid is not set. its private tho so noone can access this.
+        private static readonly Filters allCards = new() { UserId = -1 }; // only place where userid is not set. its private tho so noone can access this.
         public static Filters GetEmpty(long userId)
             => allCards with { UserId = userId };
     }

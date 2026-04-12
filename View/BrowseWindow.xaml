@@ -104,6 +104,7 @@
 
         <Style x:Key="BrowseFilterDatePickerStyle" TargetType="DatePicker">
             <Setter Property="Height" Value="30"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Foreground" Value="#FFF0F0F0"/>
             <Setter Property="Background" Value="#4C006BE2"/>
             <Setter Property="BorderBrush" Value="#FFB23DB3"/>

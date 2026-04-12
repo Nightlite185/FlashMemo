@@ -371,34 +371,6 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         ApplySortToCollectionView();
     }
 
-    private static bool TryMapToCardsOrder(BrowseColumn column, out CardsOrder order)
-    {
-        switch (column)
-        {
-            case BrowseColumn.Id:
-                order = CardsOrder.Id;
-                return true;
-            case BrowseColumn.Due:
-                order = CardsOrder.Due;
-                return true;
-            case BrowseColumn.DayInterval:
-                order = CardsOrder.Interval;
-                return true;
-            case BrowseColumn.LastModified:
-                order = CardsOrder.LastModified;
-                return true;
-            case BrowseColumn.State:
-                order = CardsOrder.State;
-                return true;
-            case BrowseColumn.Created:
-                order = CardsOrder.Created;
-                return true;
-            default:
-                order = default;
-                return false;
-        }
-    }
-
     private static T? FindAncestor<T>(DependencyObject? source) where T : DependencyObject
     {
         var current = source;
@@ -421,36 +393,12 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 
     private async void ResetFiltersButton_Click(object sender, RoutedEventArgs e)
     {
-        var sidebarVm = VM.FiltersVM;
+        var fVM = VM.FiltersVM;
 
-        sidebarVm.IsBuried = null;
-        sidebarVm.IsSuspended = null;
-        sidebarVm.IsDue = null;
-        sidebarVm.IncludeChildrenDecks = true;
-        sidebarVm.Interval = null;
-        sidebarVm.Due = null;
-        sidebarVm.LastReviewed = null;
-        sidebarVm.LastModified = null;
-        sidebarVm.Created = null;
-        sidebarVm.OverdueByDays = null;
-
-        foreach (var state in sidebarVm.States)
-            state.IsSelected = false;
-
-        foreach (var tag in sidebarVm.Tags)
-            tag.IsSelected = false;
-
-        ClearDeckSelections(sidebarVm.DeckTree);
-        await VM.ApplyFiltersAsync(sidebarVm.TakeSnapshot());
-    }
-
-    private static void ClearDeckSelections(IEnumerable<DeckNode> deckNodes)
-    {
-        foreach (var deck in deckNodes)
-        {
-            deck.IsSelected = false;
-            ClearDeckSelections(deck.Children);
-        }
+        fVM.ResetFiltersCommand.Execute(null);
+        
+        await VM.ApplyFiltersAsync(
+            fVM.TakeSnapshot());
     }
 
     private sealed class BrowseColumnSpec(

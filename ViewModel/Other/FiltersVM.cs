@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
@@ -39,8 +40,32 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
     [ObservableProperty] public partial int? OverdueByDays { get; set; }
     //* null => not chosen, 0 => due today, 1 => overdue by 1 day.
     #endregion
-    
+
     #region methods
+    [RelayCommand]
+    private void ResetFilters()
+    {
+        IsBuried = null;
+        IsSuspended = null;
+        IsDue = null;
+        IncludeChildrenDecks = true;
+        Interval = null;
+        Due = null;
+        LastReviewed = null;
+        LastModified = null;
+        Created = null;
+        OverdueByDays = null;
+
+        foreach (var s in States)
+            s.IsSelected = false;
+
+        foreach (var t in Tags)
+            t.IsSelected = false;
+
+        foreach (var d in DeckTree.Flatten())
+            d.IsSelected = false;
+    }
+
     public Filters TakeSnapshot()
     {
         var snapshot = new Filters()

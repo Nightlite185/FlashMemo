@@ -381,8 +381,21 @@
                              CaretBrush="#FFE6E6E6"
                              FontSize="14"
                              VerticalContentAlignment="Center"
-                             ToolTip="Search (not wired yet)"/>
+                             ToolTip="Search"/>
                 </Border>
+
+                <TextBlock HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0"
+                           FontSize="14"
+                           Foreground="#FFB8DFFF">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Selected {0} out of {1} cards.">
+                            <Binding Path="SelectedCount"/>
+                            <Binding Path="VisibleCardsCount"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
             </Grid>
 
             <Border Grid.Row="1"
@@ -392,7 +405,7 @@
                     CornerRadius="6">
                 <DataGrid x:Name="CardsGrid"
                           AutoGenerateColumns="False"
-                          ItemsSource="{Binding Cards}"
+                          ItemsSource="{Binding CardsView}"
                           IsReadOnly="True"
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"

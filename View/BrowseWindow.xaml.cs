@@ -11,6 +11,15 @@ using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.View;
 
+public enum BrowseColumn
+{
+    NoteFrontContent, NoteBackContent,
+    Id, DeckName, Due, DayInterval,
+    LastModified, LearningStage,
+    State, IsBuried, IsSuspended,
+    NoteType, Tags, Created
+}
+
 public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 {
     public BrowseVM VM { get; set; } = null!;
@@ -282,18 +291,15 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 
     private void CardsContextMenu_Opened(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not BrowseVM vm)
-            return;
-
         SyncSelectionWithViewModel();
 
-        if (vm.GetSelectedCards().Count == 0 && sender is ContextMenu menu)
+        if (VM.GetSelectedCards().Count == 0 && sender is ContextMenu menu)
         {
             menu.IsOpen = false;
             return;
         }
 
-        vm.OpenCtxMenu();
+        VM.OpenCtxMenu();
     }
 
     private void CardsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -314,15 +320,14 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 
     private void SyncSelectionWithViewModel()
     {
-        if (DataContext is not BrowseVM vm)
-            return;
-
         var selected = CardsGrid.SelectedItems
             .OfType<object>()
             .ToHashSet();
 
-        foreach (var card in vm.Cards)
-            card.IsSelected = selected.Contains(card);
+        foreach (var card in VM.CardsView)
+            (card as CardVM)!.IsSelected = selected.Contains(card);
+
+        VM.SelectedCount = selected.Count;
     }
 
     private void OpenColumnsMenu(DataGridColumnHeader header)
@@ -365,22 +370,6 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         RebuildColumns();
         ApplySortToCollectionView();
     }
-
-    // private void NotifyVmAboutColumnClick(BrowseColumn clickedColumn)
-    // {
-    //     if (DataContext is not BrowseVM vm)
-    //         return;
-
-    //     vm.ActiveBrowseColumn = clickedColumn;
-    //     vm.SortDir = activeSortDirection == ListSortDirection.Ascending
-    //         ? SortingDirection.Ascending
-    //         : SortingDirection.Descending;
-
-    //     if (TryMapToCardsOrder(clickedColumn, out var order))
-    //         vm.SortOrder = order;
-
-    //     vm.OnColumnClicked(clickedColumn);
-    // }
 
     private static bool TryMapToCardsOrder(BrowseColumn column, out CardsOrder order)
     {

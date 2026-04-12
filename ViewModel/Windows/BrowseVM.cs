@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
@@ -16,21 +17,30 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
                                         : BaseVM(bus), IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
 {
     #region Public properties
-    [ObservableProperty]
-    public partial ObservableCollection<CardVM> Cards { get; set; } = [];
+    public CollectionView CardsView { get; private set; } = null!;
+    [ObservableProperty] public partial int SelectedCount { get; set; }
+    [ObservableProperty] public partial int VisibleCardsCount { get; private set; }
+    public string SearchBar
+    {
+        get => field;
+        set
+        {
+            if (!SetProperty(ref field, value, nameof(SearchBar))) 
+                return;
 
-
-    [ObservableProperty]
-    public partial string SearchBar { get; set; } = "";
+            CardsView.Refresh();
+            UpdateVisibleCardsCount();
+        }
+    } = "";
     
     public IReadOnlyCollection<CardVM> GetSelectedCards()
     {
-        var cards = Cards
+        var selected = cards
             .Where(vm => vm.IsSelected)
             .ToImmutableArray();
 
-        capturedCards = cards;
-        return cards;
+        capturedCards = selected;
+        return selected;
     }
     
     [ObservableProperty]
@@ -41,30 +51,51 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
 
     [ObservableProperty]
     public partial SortingDirection SortDir { get; set; }
-
-    [ObservableProperty]
-    public partial BrowseColumn ActiveBrowseColumn { get; set; } = BrowseColumn.Due;
-
     public FiltersVM FiltersVM => filtersVM;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     #endregion
-    
+
     #region methods
     internal async Task InitializeAsync(CardCtxMenuVM ccm)
     {
         CtxMenuVM = ccm;
         eventBus.DomainChanged += OnDomainChanged;
 
+        CardsView = (CollectionView)new CollectionViewSource()
+            { Source = cards }.View;
+        
+        CardsView.Filter += OnFilter;
+
         await ApplyFiltersAsync(
             filtersVM.CachedFilters);
+
+        UpdateVisibleCardsCount();
     }
+
+    private bool OnFilter(object obj)
+    {
+        if (obj is not CardVM card)
+            throw new InvalidOperationException(
+            "obj from the view collection has wrong type");
+
+        var note = card.Note.ToEntity() as StandardNote
+            ?? throw new InvalidOperationException(
+            "Only standard notes allowed for now.");
+
+        return note.FrontContent.Contains(SearchBar, StringComparison.OrdinalIgnoreCase)
+            || note.BackContent .Contains(SearchBar, StringComparison.OrdinalIgnoreCase);
+    }
+
     public async Task ApplyFiltersAsync(Filters snapshot)
     {
-        Cards.Clear();
+        cards.Clear();
+        SelectedCount = 0;
         
-        Cards.AddRange((await cardQueryS
+        cards.AddRange((await cardQueryS
             .GetCardsWhere(snapshot, SortOrder, SortDir))
             .ToVMs());
+
+        UpdateVisibleCardsCount();
     }
     public void OpenCtxMenu()
     {
@@ -78,7 +109,8 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
 
         if (action == CtxMenuAction.Delete)
         {
-            Cards.RemoveRange(capturedCards);
+            cards.RemoveRange(capturedCards);
+            UpdateVisibleCardsCount();
             return;
         }
 
@@ -108,6 +140,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
         await NavigateTo(new EditCardNavRequest(card.Id, userId));
 
     #region private things
+    private readonly ObservableCollection<CardVM> cards = [];
     private IReadOnlyCollection<CardVM>? capturedCards;
     private readonly static ImmutableArray<string> rescheduleProps =
     [
@@ -117,14 +150,13 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
         nameof(CardVM.LearningStage),
         nameof(CardVM.LastModified)
     ];
-    #endregion
-}
 
-public enum BrowseColumn
-{
-    NoteFrontContent, NoteBackContent,
-    Id, DeckName, Due, DayInterval,
-    LastModified, LearningStage,
-    State, IsBuried, IsSuspended,
-    NoteType, Tags, Created
+    private void UpdateVisibleCardsCount()
+    {
+        if (CardsView.Count >= 0)
+            VisibleCardsCount = CardsView.Count;
+
+        else VisibleCardsCount = cards.Count;
+    }
+    #endregion
 }

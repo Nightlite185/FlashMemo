@@ -123,3 +123,9 @@ public interface IActivityVMBuilder
 {
     Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, short year);
 }
+
+public interface IClock
+{
+    DateTime Now { get; }
+    DateTime Today { get; }
+}

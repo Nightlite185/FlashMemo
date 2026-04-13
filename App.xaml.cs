@@ -30,7 +30,7 @@ public partial class App : Application
         this.sp = services.BuildServiceProvider();
 
         await sp.GetRequiredService<DbSeeder>()
-            .MigrateAndSeedAsync();
+            .SeedAsync();
 
         await InitUserSession();
     }

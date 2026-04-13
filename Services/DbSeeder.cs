@@ -10,7 +10,7 @@ public class DbSeeder(AppDbContext db, IMapper m)
     private readonly AppDbContext db = db;
     private readonly IMapper mapper = m;
 
-    public async Task MigrateAndSeedAsync()
+    public async Task SeedAsync()
     {
         await SeedDeckOptions();
         await SeedLastSessionData();

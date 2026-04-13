@@ -99,28 +99,28 @@ public record DeckOptions
     public sealed record SortingOpt
     {
         #region defaults
-        public const LessonOrder DefLessonSortOrder = LessonOrder.Created;
-        public const ReviewOrder DefReviewSortOrder = ReviewOrder.Due;
-        public const SortingDirection DefLessonSortDir = SortingDirection.Descending;
-        public const SortingDirection DefReviewSortDir = SortingDirection.Descending;
-        public const CardStateOrder DefCardTypeOrder = CardStateOrder.ReviewsThenNew;
+        public const LessonOrder DefLessonsOrder = LessonOrder.Created;
+        public const ReviewOrder DefReviewsOrder = ReviewOrder.Due;
+        public const SortingDirection DefLessonsSortDir = SortingDirection.Descending;
+        public const SortingDirection DefReviewsSortDir = SortingDirection.Descending;
+        public const CardStateOrder DefCardStateOrder = CardStateOrder.ReviewsThenNew;
 
         public static readonly SortingOpt Default = new()
         {
-            LessonSortOrder = DefLessonSortOrder,
-            ReviewSortOrder = DefReviewSortOrder,
-            LessonSortDir = DefLessonSortDir,
-            ReviewSortDir = DefReviewSortDir,
-            CardTypeOrder = DefCardTypeOrder
+            LessonsOrder = DefLessonsOrder,
+            ReviewsOrder = DefReviewsOrder,
+            LessonsSortDir = DefLessonsSortDir,
+            ReviewsSortDir = DefReviewsSortDir,
+            CardStateOrder = DefCardStateOrder
         };
         #endregion
 
         #region options
-        public LessonOrder LessonSortOrder { get; init; }
-        public ReviewOrder ReviewSortOrder { get; init; }
-        public SortingDirection LessonSortDir { get; init; }
-        public SortingDirection ReviewSortDir { get; init; }
-        public CardStateOrder CardTypeOrder { get; init; }
+        public LessonOrder LessonsOrder { get; init; }
+        public ReviewOrder ReviewsOrder { get; init; }
+        public SortingDirection LessonsSortDir { get; init; }
+        public SortingDirection ReviewsSortDir { get; init; }
+        public CardStateOrder CardStateOrder { get; init; }
         #endregion
     }
 }

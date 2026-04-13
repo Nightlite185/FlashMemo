@@ -15,9 +15,6 @@ public sealed class MappingProfile: Profile
         CreateMap<Card, CardEntity>();
         CreateMap<CardEntity, Card>();
 
-        CreateMap<Filters, FiltersVM>();
-        CreateMap<FiltersVM, Filters>();
-
         CreateMap<UserOptions, UserOptionsVM>();
         CreateMap<UserOptionsVM, UserOptions>();
         #endregion

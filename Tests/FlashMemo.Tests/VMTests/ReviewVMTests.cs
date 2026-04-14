@@ -13,7 +13,9 @@ namespace FlashMemo.Tests.VMTests;
 
 public class ReviewVMTests: IDisposable
 {
+    #region private things
     private const string stackName = "activeCards";
+    private readonly FakeDbFactory factory = new();
     private async Task<ReviewVM> Init()
     {
         const long userId = 7L;
@@ -82,7 +84,18 @@ public class ReviewVMTests: IDisposable
 
         db.SaveChanges();
     }
-    private readonly FakeDbFactory factory = new();
+    
+    private static async Task AnswerGood(ReviewVM vm)
+    {
+        vm.RevealAnswerCommand.Execute(null);
+        await vm.GoodAnswerCommand.ExecuteAsync(null);
+    }
+    private static async Task AnswerEasy(ReviewVM vm)
+    {
+        vm.RevealAnswerCommand.Execute(null);
+        await vm.EasyAnswerCommand.ExecuteAsync(null);
+    }
+    #endregion
 
     [Fact] public async Task LoadsCardsInCorrectOrderWithCorrectCount()
     {
@@ -145,6 +158,56 @@ public class ReviewVMTests: IDisposable
 
         result.LastReviewed.Should().NotBeNull();
         result.LastReviewed.Value.Date.Should().Be(DateTime.Today);
+    }
+
+    [Fact] public async Task KeepsCorrectCountThroughoutSession()
+    {
+        static void compareCount(ReviewVM vm, CardsCount expected)
+        {
+            vm.CardsCount.Should().BeEquivalentTo(expected, opt => 
+            opt.ComparingByMembers<CardsCount>());
+        }
+
+        var vm = await Init();
+
+        // we have 1 learning, 1 review, 1 lesson in this exact order.
+
+        var count1 = new CardsCount()
+        { Learning = 1, Lessons = 1, Reviews = 1};
+
+        var count2 = new CardsCount()
+        { Learning = 1, Lessons = 1, Reviews = 0};
+
+        var count3 = new CardsCount()
+        { Learning = 1, Lessons = 0, Reviews = 0};
+
+        var emptyCount4 = new CardsCount()
+        { Learning = 0, Lessons = 0, Reviews = 0};
+
+        vm.InitialCount.Should().Be(3);
+
+        // good on learning I -> goes to learning pool (count should include it).
+        await AnswerGood(vm);
+        compareCount(vm, count1);
+        vm.ReviewedCount.Should().Be(0);
+
+        // good on review -> out of the session.
+        await AnswerGood(vm);
+        compareCount(vm, count2);
+        vm.ReviewedCount.Should().Be(1);
+
+        // easy on new -> out of the session.
+        await AnswerEasy(vm);
+        compareCount(vm, count3);
+        vm.ReviewedCount.Should().Be(2);
+
+        // now only card left is the one from learning pool,
+        // that should be popped early bc its the last one.
+        await AnswerEasy(vm);
+        compareCount(vm, emptyCount4);
+        vm.ReviewedCount.Should().Be(3);
+
+        vm.IsSessionFinished.Should().BeTrue();
     }
 
     public void Dispose()

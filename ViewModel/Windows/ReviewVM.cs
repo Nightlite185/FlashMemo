@@ -65,7 +65,8 @@ public partial class ReviewVM(
             .GetForStudy(Deck.Id, userId);
 
         this.activeCards = new (freshCards
-            .Select(c => new CardVM(c)));
+            .Select(c => new CardVM(c))
+            .Reverse()); // reversing bc stack orders it differently.
 
         this.CardsCount = new(count, this);
 

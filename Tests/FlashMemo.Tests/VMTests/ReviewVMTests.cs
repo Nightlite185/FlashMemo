@@ -5,6 +5,7 @@ using FlashMemo.Services;
 using FlashMemo.Tests.Fakes.Model;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
+using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Moq.AutoMock;
 
@@ -12,6 +13,7 @@ namespace FlashMemo.Tests.VMTests;
 
 public class ReviewVMTests: IDisposable
 {
+    private const string stackName = "activeCards";
     private async Task<ReviewVM> Init()
     {
         const long userId = 7L;
@@ -25,19 +27,16 @@ public class ReviewVMTests: IDisposable
 
         SeedCards(deck);
 
-        var userOptService = new UserOptionsService(factory);
         var mapper = Helpers.GetMapper();
-        
-        mocker.Use<ICardService>(new CardService(factory, mapper));
-        mocker.Use<ICardQueryService>(new CardQueryService(
-            factory, new CountingService(
-                factory, new DeckOptionsService(
-                    factory, mapper),
-                userOptService), 
-            userOptService));
-        
-        mocker.Use<IUserOptionsService>(new UserOptionsService(factory));
+        UserOptionsService userOptS = new(factory);
+        DeckOptionsService deckOptS = new(factory, mapper);
+        CountingService counter = new(factory, deckOptS, userOptS);
+
+        mocker.Use<IDeckOptionsService>(deckOptS);
+        mocker.Use<IUserOptionsService>(userOptS);
         mocker.Use<ICardRepo>(new CardRepo(factory));
+        mocker.Use<ICardService>(new CardService(factory, mapper));
+        mocker.Use<ICardQueryService>(new CardQueryService(factory, counter, userOptS));
 
         var vmf = mocker.CreateInstance<ReviewVMF>();
         return await vmf.CreateAsync(userId, deck);
@@ -85,26 +84,67 @@ public class ReviewVMTests: IDisposable
     }
     private readonly FakeDbFactory factory = new();
 
-    [Fact] public async Task LoadsCardsInCorrectOrder()
+    [Fact] public async Task LoadsCardsInCorrectOrderWithCorrectCount()
     {
         var vm = await Init();
 
-        var cards = factory.CreateDbContext()
+        var DbCards = factory.CreateDbContext()
             .Cards.ToDictionary(c => c.State);
 
-        var vmCards = vm.Cards
-            .Select(c => c.ToEntity())
-            .Reverse() // reversing bc Stack<> has opposite order of what we mean in this test
-            .ToArray();
+        var stack = vm.GetPrivateField<Stack<CardVM>>(stackName);
+
+        var card1 = vm.CurrentCard?.ToEntity();
+        var card2 = stack.Pop().ToEntity();
+        var card3 = stack.Pop().ToEntity();
 
         // according to card-by-state order from default deckOptions,
         // cards in vm's stack should be in following order:
         // 1. Learning, 2. Review, 3. Lessons
 
         // we are checking order and deep equality in the same time.
-        vmCards[0].Should().BeEquivalentTo(cards[CardState.Learning]);
-        vmCards[1].Should().BeEquivalentTo(cards[CardState.Review]);
-        vmCards[2].Should().BeEquivalentTo(cards[CardState.New]);
+        card1.Should().BeEquivalentTo(DbCards[CardState.Learning]);
+        card2.Should().BeEquivalentTo(DbCards[CardState.Review]);
+        card3.Should().BeEquivalentTo(DbCards[CardState.New]);
+
+        vm.CardsCount.Should().BeEquivalentTo(new CardsCount()
+            {Learning = 1, Lessons  = 1, Reviews = 1}, 
+            opt => opt.ComparingByMembers<CardsCount>());
+    }
+
+    [Fact] public async Task ReviewsCardAndSavesCorrectly()
+    {
+        var vm = await Init();
+        var card = vm.CurrentCard;
+
+        card.Should().NotBeNull();
+
+        var expectedSchedule = Scheduler.GetSchedule(
+            card, DeckOptions.SchedulingOpt.Default, 
+            UserOptions.CreateDefault(), Answers.Good);
+
+        var expectedCard = new CardEntity()
+        {
+            State = expectedSchedule.State,
+            LearningStage = expectedSchedule.LearningStage,
+            Interval = expectedSchedule.Interval,
+        };
+
+        vm.RevealAnswerCommand.Execute(null);
+        await vm.GoodAnswerCommand.ExecuteAsync(null);
+
+        var db = factory.CreateDbContext();
+
+        var result = db.Cards.Where(c =>
+            c.State == CardState.Learning)
+            .Single();
+
+        result.Should().BeEquivalentTo(expectedCard, opt => opt
+            .Including(c => c.State)
+            .Including(c => c.LearningStage)
+            .Including(c => c.Interval));
+
+        result.LastReviewed.Should().NotBeNull();
+        result.LastReviewed.Value.Date.Should().Be(DateTime.Today);
     }
 
     public void Dispose()

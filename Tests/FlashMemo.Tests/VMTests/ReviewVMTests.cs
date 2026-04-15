@@ -7,6 +7,7 @@ using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Moq.AutoMock;
 
 namespace FlashMemo.Tests.VMTests;
@@ -14,9 +15,10 @@ namespace FlashMemo.Tests.VMTests;
 public class ReviewVMTests: IDisposable
 {
     #region private things
-    private const string stackName = "activeCards";
+    private readonly VMEventBus eventBus = new();
+    private IDeckMeta deck = null!;
     private readonly FakeDbFactory factory = new();
-    private async Task<ReviewVM> Init()
+    private async Task<ReviewVM> Init(bool seedCards = true)
     {
         const long userId = 7L;
 
@@ -25,20 +27,21 @@ public class ReviewVMTests: IDisposable
 
         await seeder.SeedDefault();
         seeder.SeedUser();
-        var deck = seeder.SeedDeck();
+        deck = seeder.SeedDeck();
 
-        SeedCards(deck);
-
+        if (seedCards)
+            SeedCards(deck);
         var mapper = Helpers.GetMapper();
         UserOptionsService userOptS = new(factory);
         DeckOptionsService deckOptS = new(factory, mapper);
         CountingService counter = new(factory, deckOptS, userOptS);
 
-        mocker.Use<IDeckOptionsService>(deckOptS);
-        mocker.Use<IUserOptionsService>(userOptS);
-        mocker.Use<ICardRepo>(new CardRepo(factory));
-        mocker.Use<ICardService>(new CardService(factory, mapper));
-        mocker.Use<ICardQueryService>(new CardQueryService(factory, counter, userOptS));
+        mocker.Use<IVMEventBus>(eventBus)
+            .Use<IDeckOptionsService>(deckOptS)
+            .Use<IUserOptionsService>(userOptS)
+            .Use<ICardRepo>(new CardRepo(factory))
+            .Use<ICardService>(new CardService(factory, mapper))
+            .Use<ICardQueryService>(new CardQueryService(factory, counter, userOptS));
 
         var vmf = mocker.CreateInstance<ReviewVMF>();
         return await vmf.CreateAsync(userId, deck);
@@ -84,7 +87,11 @@ public class ReviewVMTests: IDisposable
 
         db.SaveChanges();
     }
-    
+    private static void CompareCount(ReviewVM vm, CardsCount expected)
+    {
+        vm.CardsCount.Should().BeEquivalentTo(expected, opt => 
+        opt.ComparingByMembers<CardsCount>());
+    }
     private static async Task AnswerGood(ReviewVM vm)
     {
         vm.RevealAnswerCommand.Execute(null);
@@ -97,18 +104,16 @@ public class ReviewVMTests: IDisposable
     }
     #endregion
 
-    [Fact] public async Task LoadsCardsInCorrectOrderWithCorrectCount()
+    [Fact] public async Task LoadsCardsWithCorrectOrderAndCount()
     {
         var vm = await Init();
 
         var DbCards = factory.CreateDbContext()
             .Cards.ToDictionary(c => c.State);
 
-        var stack = vm.GetPrivateField<Stack<CardVM>>(stackName);
-
         var card1 = vm.CurrentCard?.ToEntity();
-        var card2 = stack.Pop().ToEntity();
-        var card3 = stack.Pop().ToEntity();
+        var card2 = vm.activeCards.Pop().ToEntity();
+        var card3 = vm.activeCards.Pop().ToEntity();
 
         // according to card-by-state order from default deckOptions,
         // cards in vm's stack should be in following order:
@@ -142,8 +147,7 @@ public class ReviewVMTests: IDisposable
             Interval = expectedSchedule.Interval,
         };
 
-        vm.RevealAnswerCommand.Execute(null);
-        await vm.GoodAnswerCommand.ExecuteAsync(null);
+        await AnswerGood(vm);
 
         var db = factory.CreateDbContext();
 
@@ -162,12 +166,6 @@ public class ReviewVMTests: IDisposable
 
     [Fact] public async Task KeepsCorrectCountThroughoutSession()
     {
-        static void compareCount(ReviewVM vm, CardsCount expected)
-        {
-            vm.CardsCount.Should().BeEquivalentTo(expected, opt => 
-            opt.ComparingByMembers<CardsCount>());
-        }
-
         var vm = await Init();
 
         // we have 1 learning, 1 review, 1 lesson in this exact order.
@@ -188,28 +186,87 @@ public class ReviewVMTests: IDisposable
 
         // good on learning I -> goes to learning pool (count should include it).
         await AnswerGood(vm);
-        compareCount(vm, count1);
+        CompareCount(vm, count1);
         vm.ReviewedCount.Should().Be(0);
 
         // good on review -> out of the session.
         await AnswerGood(vm);
-        compareCount(vm, count2);
+        CompareCount(vm, count2);
         vm.ReviewedCount.Should().Be(1);
 
         // easy on new -> out of the session.
         await AnswerEasy(vm);
-        compareCount(vm, count3);
+        CompareCount(vm, count3);
         vm.ReviewedCount.Should().Be(2);
 
         // now only card left is the one from learning pool,
         // that should be popped early bc its the last one.
         await AnswerEasy(vm);
-        compareCount(vm, emptyCount4);
+        CompareCount(vm, emptyCount4);
         vm.ReviewedCount.Should().Be(3);
 
         vm.IsSessionFinished.Should().BeTrue();
     }
 
+    [Fact] public async Task LoadingEmptyDeck_HandledAndSessionFinished()
+    {
+        var vm = await Init(seedCards: false);
+
+        vm.CurrentCard.Should().BeNull();
+        vm.IsSessionFinished.Should().BeTrue();
+    }
+    
+    [Fact] public async Task GracefullyHandlesDeletedCard()
+    {
+        var vm = await Init();
+
+        var expectedCount = new CardsCount()
+            {Learning = 0, Lessons = 1, Reviews = 1};
+
+        CardVM forDeletion = vm.CurrentCard!;
+
+        var db = factory.CreateDbContext();
+        db.Cards.Where(c => c.Id == forDeletion.Id)
+            .ExecuteDelete();
+
+        await vm.ReloadDomain(eventBus);
+
+        forDeletion.IsInvalid.Should().BeTrue();
+        vm.CurrentCard.Should().NotBeNull();
+        vm.CurrentCard.Id.Should().NotBe(forDeletion.Id);
+        
+        CompareCount(vm, expectedCount);
+        vm.ReviewedCount.Should().Be(0);
+        vm.InitialCount.Should().Be(2);
+    }
+    
+    [Fact] public async Task NoReactionForNewCardAddedDuringSession()
+    {
+        var vm = await Init();
+
+        var initialCards = vm.activeCards
+            .ToArray();
+
+        var db = factory.CreateDbContext();
+
+        db.Cards.Add(
+            CardEntity.CreateNew(
+                StandardNote.Create("", ""), 
+                deck, []));
+
+        db.SaveChanges();
+
+        await vm.ReloadDomain(eventBus);
+
+        vm.activeCards.Should()
+            .ContainInConsecutiveOrder(initialCards);
+        
+        CompareCount(vm, new CardsCount()
+            {Lessons = 1, Reviews = 1, Learning = 1});
+
+        vm.InitialCount.Should().Be(3);
+        vm.ReviewedCount.Should().Be(0);
+    }
     public void Dispose()
     {
         factory.Dispose();

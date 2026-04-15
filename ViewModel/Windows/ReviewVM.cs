@@ -270,7 +270,7 @@ public partial class ReviewVM(
     private readonly LearningPool<CardVM> learningPool = new();
     private readonly Stopwatch stopWatch = new();
     private List<CardVM> allSessionCards = [];
-    private Stack<CardVM> activeCards = null!;
+    internal Stack<CardVM> activeCards = null!;
     private const int HistoryCap = 10;
     
     private bool IsCardLoaded => CurrentCard is not null;

@@ -6,7 +6,7 @@ public class VMEventBus: IVMEventBus
     public event Action? UserOptionsChanged;
     public event Action? DeckOptionsChanged;
 
-    public async void NotifyDomain() => DomainChanged?.Invoke();
-    public async void NotifyUserOpt() => UserOptionsChanged?.Invoke();
-    public async void NotifyDeckOpt() => DeckOptionsChanged?.Invoke();
+    public void NotifyDomain() => DomainChanged?.Invoke();
+    public void NotifyUserOpt() => UserOptionsChanged?.Invoke();
+    public void NotifyDeckOpt() => DeckOptionsChanged?.Invoke();
 }

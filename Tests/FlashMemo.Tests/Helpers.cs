@@ -1,6 +1,8 @@
 using System.Reflection;
 using AutoMapper;
 using FlashMemo.Model;
+using FlashMemo.Services;
+using FlashMemo.ViewModel.Bases;
 using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.Tests;
@@ -24,5 +26,12 @@ public static class Helpers
             
         return (TField?)field.GetValue(from) 
             ?? throw new NullReferenceException("Couldnt get the field from object.");
+    }
+
+    public static async Task ReloadDomain(this BaseVM vm, IVMEventBus bus)
+    {
+        vm.OnFocusLost();
+        bus.NotifyDomain();
+        await vm.OnFocusGained();
     }
 }

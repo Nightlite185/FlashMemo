@@ -182,8 +182,7 @@ public partial class ReviewVM(
         var freshEntities = await cardRepo.GetByIds(
             allSessionCards.Select(c => c.Id));
 
-        var freshById = freshEntities // TODO: test if this works
-            .ForStudy()
+        var freshById = freshEntities
             .ToDictionary(e => e.Id);
 
         // 2. Refresh note data on all CardVMs (including deleted detection)
@@ -192,13 +191,14 @@ public partial class ReviewVM(
             // if found -> rehydrate it with new data
             if (freshById.TryGetValue(card.Id, out var freshEntity))
                 card.Refresh(freshEntity);
-            
-            // Disappeared from DB entirely — treat as deleted
-            else card.IsInvalid = true;
-        }
 
-        // 3. Recount valid initials
-        InitialCount = allSessionCards.Count(c => !c.IsInvalid);
+            // Disappeared from DB entirely — treat as deleted
+            else
+            {
+                card.IsInvalid = true;
+                InitialCount--;
+            }
+        }
 
         // 4. Update count vm
         CardsCount.UpdateCount();
@@ -225,7 +225,7 @@ public partial class ReviewVM(
         or CtxMenuAction.Forget)
         {
             CurrentCard.IsInvalid = true;
-            ReviewedCount++; // TODO FIX: added cards when review UC was open, closed createCardWindow, progress bar broken, shows 100% even tho there are still cards.
+            ReviewedCount++;
 
             CardsCount.UpdateCount();
             ShowNextCard();

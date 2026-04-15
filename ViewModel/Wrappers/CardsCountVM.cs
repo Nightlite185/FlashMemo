@@ -36,8 +36,6 @@ public partial class CardsCountVM: ObservableObject
     {
         Clear();
 
-        var today = DateTime.Today;
-
         var inPlay = source.Cards
             .Where(c => !c.IsInvalid)
             .CountBy(c => c.State);

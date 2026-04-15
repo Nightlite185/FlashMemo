@@ -244,28 +244,31 @@ public class ReviewVMTests: IDisposable
     {
         var vm = await Init();
 
-        var initialCards = vm.activeCards
-            .ToArray();
+        int initialCount = vm.InitialCount;
+
+        await AnswerEasy(vm);
+        await AnswerEasy(vm);
 
         var db = factory.CreateDbContext();
 
         db.Cards.Add(
             CardEntity.CreateNew(
-                StandardNote.Create("", ""), 
+                StandardNote.Create("", ""),
                 deck, []));
 
         db.SaveChanges();
 
         await vm.ReloadDomain(eventBus);
 
-        vm.activeCards.Should()
-            .ContainInConsecutiveOrder(initialCards);
+        // empty cuz we reviewed twice, and 3rd is already popped as current card.
+        vm.activeCards.Should().BeEmpty();
+        vm.CurrentCard.Should().NotBeNull();
         
         CompareCount(vm, new CardsCount()
-            {Lessons = 1, Reviews = 1, Learning = 1});
+            {Lessons = 1, Reviews = 0, Learning = 0});
 
-        vm.InitialCount.Should().Be(3);
-        vm.ReviewedCount.Should().Be(0);
+        vm.InitialCount.Should().Be(initialCount);
+        vm.ReviewedCount.Should().Be(2);
     }
     public void Dispose()
     {

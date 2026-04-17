@@ -1,15 +1,10 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Factories;
-using FlashMemo.ViewModel.Windows;
 
 namespace FlashMemo.Services;
-public class DisplayControl(IDisplayHost hostVM, DecksVMF dVMF, ReviewVMF rVMF): IDisplayControl
+public class DisplayControl(IDisplayHost host, DecksVMF decksVMF, ReviewVMF reviewVMF, StatsVMF statsVMF): IDisplayControl
 {
-    private readonly ReviewVMF reviewVMF = rVMF;
-    private readonly DecksVMF decksVMF = dVMF;
-    private readonly IDisplayHost host = hostVM;
-
     public async Task SwitchToDecks(long userId)
     {
         var vm = await decksVMF
@@ -32,9 +27,13 @@ public class DisplayControl(IDisplayHost hostVM, DecksVMF dVMF, ReviewVMF rVMF):
         host.CurrentDisplay = vm;
     }
 
-    public Task SwitchToStats(long userId)
+    public async Task SwitchToStats(long userId)
     {
-        throw new NotImplementedException();
+        var vm = await statsVMF
+            .CreateAsync(userId);
+
+        WireEvents(vm);
+        host.CurrentDisplay = vm;
     }
 
     private void WireEvents(object vm)

@@ -1,6 +1,7 @@
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
@@ -128,4 +129,13 @@ public interface IClock
 {
     DateTime Now { get; }
     DateTime Today { get; }
+}
+
+public interface IStatsQueryService
+{
+    Task<int> GetAnswerRatio(Answers answer, TimePeriod lastPeriod, long userId);
+    Task<DayOfWeek> DayWithMostReviewsInLastMonth(long userId);
+    Task<TimeSpan> AvgAnswerTimeInLastMonth(long userId);
+    Task<int> MostReviewedHourOfDayInLastMonth(long userId);
+    Task<int> TotalReviewsEver(long userId);
 }

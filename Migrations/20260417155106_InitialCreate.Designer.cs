@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260413203434_InitialCreate")]
+    [Migration("20260417155106_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -215,9 +215,6 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.Tag", b =>
                 {
                     b.Property<long>("Id")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("IntColor")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")

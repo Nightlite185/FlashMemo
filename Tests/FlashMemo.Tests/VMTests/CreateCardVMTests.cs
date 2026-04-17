@@ -55,8 +55,7 @@ public class CreateCardVMTests : IDisposable
             {
                 Name = $"tag{i}",
                 Id = i,
-                UserId = 7,
-                IntColor = 0
+                UserId = 7
             });
 
         db.Tags.AddRange(tags);

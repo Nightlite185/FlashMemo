@@ -45,8 +45,7 @@ public class ExpressionTranslationTests : IDisposable
         {
             Id = tagId,
             UserId = user.Id,
-            Name = "tag",
-            IntColor = 0
+            Name = "tag"
         };
 
         var day = new DateTime(2026, 04, 13, 0, 0, 0, DateTimeKind.Local);

@@ -64,6 +64,10 @@
             <view:ReviewUC/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type vm:StatsVM}">
+            <view:StatsUC />
+        </DataTemplate>
+
         <!-- ===== Colors ===== -->
         <!--#region Navigation bar colors -->
 

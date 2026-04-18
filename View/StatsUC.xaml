@@ -1,12 +1,614 @@
-﻿<UserControl x:Class="FlashMemo.View.StatsUC"
+<UserControl x:Class="FlashMemo.View.StatsUC"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:FlashMemo.View"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:model="clr-namespace:FlashMemo.Model.Domain"
+             xmlns:other="clr-namespace:FlashMemo.ViewModel.Other"
+             xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+             xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=windows:StatsVM}"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <x:Array x:Key="AnswerOptions" Type="{x:Type model:Answers}">
+            <x:Static Member="model:Answers.Again"/>
+            <x:Static Member="model:Answers.Hard"/>
+            <x:Static Member="model:Answers.Good"/>
+            <x:Static Member="model:Answers.Easy"/>
+        </x:Array>
+
+        <x:Array x:Key="TimePeriodOptions" Type="{x:Type other:TimePeriod}">
+            <x:Static Member="other:TimePeriod.Day"/>
+            <x:Static Member="other:TimePeriod.Week"/>
+            <x:Static Member="other:TimePeriod.Month"/>
+            <x:Static Member="other:TimePeriod.Year"/>
+        </x:Array>
+
+        <LinearGradientBrush x:Key="StatsPanelBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#CC1A202A" Offset="0"/>
+            <GradientStop Color="#CC101720" Offset="1"/>
+        </LinearGradientBrush>
+
+        <Style x:Key="StatsSurfaceStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource StatsPanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource NavBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="Padding" Value="24"/>
+        </Style>
+
+        <Style x:Key="StatsMetricCardStyle"
+               TargetType="Border"
+               BasedOn="{StaticResource StatsSurfaceStyle}">
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="CornerRadius" Value="20"/>
+        </Style>
+
+        <Style x:Key="StatsSectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="StatsBodyTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#AFC3D8EA"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="StatsMetricLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#8FB0C9DF"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="StatsMetricValueStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="30"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="StatsChipListStyle" TargetType="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+
+        <Style x:Key="StatsChipItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="0,0,10,10"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ChipBorder"
+                                Padding="14,8"
+                                CornerRadius="14"
+                                Background="#1AFFFFFF"
+                                BorderBrush="#33FFFFFF"
+                                BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ChipBorder" Property="Background" Value="#223C6A8F"/>
+                                <Setter TargetName="ChipBorder" Property="BorderBrush" Value="#707CC7FF"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ChipBorder" Property="Background" Value="#CC1F6FEB"/>
+                                <Setter TargetName="ChipBorder" Property="BorderBrush" Value="#FF7DC4FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StatsChipTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFE6EDF3"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
-            
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#FF09111A" Offset="0"/>
+                <GradientStop Color="#FF101927" Offset="0.55"/>
+                <GradientStop Color="#FF0B131D" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Canvas IsHitTestVisible="False">
+            <Ellipse Width="360"
+                     Height="360"
+                     Fill="#1E1F6FEB"
+                     Canvas.Top="-160"
+                     Canvas.Right="-110"/>
+            <Ellipse Width="280"
+                     Height="280"
+                     Fill="#140279B0"
+                     Canvas.Left="-120"
+                     Canvas.Bottom="-120"/>
+        </Canvas>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Grid Margin="28,24,28,32"
+                  MaxWidth="1180">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Style="{StaticResource StatsSurfaceStyle}"
+                        Padding="28"
+                        Margin="0,0,0,22">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="290"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Margin="0,0,28,0">
+                            <Border HorizontalAlignment="Left"
+                                    Padding="12,6"
+                                    Margin="0,0,0,14"
+                                    Background="#1AFFFFFF"
+                                    CornerRadius="999">
+                                <TextBlock Text="Study dashboard"
+                                           Foreground="#FFD6E9FA"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"/>
+                            </Border>
+
+                            <TextBlock Text="Statistics"
+                                       Style="{StaticResource StatsSectionTitleStyle}"
+                                       FontSize="34"/>
+
+                            <TextBlock Margin="0,10,0,0"
+                                       Style="{StaticResource StatsBodyTextStyle}"
+                                       FontSize="15"
+                                       Text="A compact look at lifetime volume, how fast you answer, and which answer type dominates in the period you care about."/>
+
+                            <Border Margin="0,22,0,0"
+                                    Padding="16,14"
+                                    Background="#12000000"
+                                    BorderBrush="#24FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="18">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Width="42"
+                                            Height="42"
+                                            Margin="0,0,14,0"
+                                            Background="#331E95EC"
+                                            CornerRadius="21">
+                                        <TextBlock Text="↗"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="20"
+                                                   Foreground="#FFB9E6FF"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                   Text="Snapshot focus"/>
+                                        <TextBlock Margin="0,2,0,0"
+                                                   Foreground="White"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Text="Last-month behavior plus a tunable answer ratio lens."/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <Border Grid.Column="1"
+                                Padding="22"
+                                Background="#16000000"
+                                BorderBrush="#36FFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="22">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                           Text="Total reviews ever"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Margin="0,10,0,0"
+                                           Foreground="White"
+                                           FontSize="42"
+                                           FontWeight="SemiBold"
+                                           Text="{Binding TotalReviewsEver, StringFormat={}{0:N0}}"/>
+
+                                <TextBlock Grid.Row="2"
+                                           Margin="0,10,0,0"
+                                           Style="{StaticResource StatsBodyTextStyle}"
+                                           Text="Your all-time study volume across every deck."/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <primitives:UniformGrid Grid.Row="1"
+                                        Columns="3"
+                                        Margin="0,0,0,22">
+                    <Border Style="{StaticResource StatsMetricCardStyle}"
+                            Margin="0,0,16,0">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                       Text="Average answer time"/>
+                            <TextBlock Margin="0,10,0,4"
+                                       Style="{StaticResource StatsMetricValueStyle}"
+                                       Text="{Binding AverageAnswerTimeInLastMonth, StringFormat={}{0:mm\\:ss}}"/>
+                            <TextBlock Style="{StaticResource StatsBodyTextStyle}"
+                                       Text="Average pace over the last month."/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource StatsMetricCardStyle}"
+                            Margin="0,0,16,0">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                       Text="Busiest weekday"/>
+                            <TextBlock Margin="0,10,0,4"
+                                       Style="{StaticResource StatsMetricValueStyle}"
+                                       Text="{Binding WeekDayWithMostReviewsInLastMonth, Converter={StaticResource EnumToReadableTextConverter}}"/>
+                            <TextBlock Style="{StaticResource StatsBodyTextStyle}"
+                                       Text="The weekday with the highest review volume in the last month."/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource StatsMetricCardStyle}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                       Text="Peak review hour"/>
+                            <TextBlock Margin="0,10,0,4"
+                                       Style="{StaticResource StatsMetricValueStyle}"
+                                       Text="{Binding MostReviewedHourOfDayInLastMonth, StringFormat={}{0:00}:00}"/>
+                            <TextBlock Style="{StaticResource StatsBodyTextStyle}"
+                                       Text="The hour of day when you reviewed the most cards in the last month."/>
+                        </StackPanel>
+                    </Border>
+                </primitives:UniformGrid>
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.45*"/>
+                        <ColumnDefinition Width="24"/>
+                        <ColumnDefinition Width="0.95*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0"
+                            Style="{StaticResource StatsSurfaceStyle}">
+                        <Grid DataContext="{Binding AnswerRatioVM}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource StatsSectionTitleStyle}"
+                                           Text="Answer ratio"/>
+                                <TextBlock Margin="0,8,0,0"
+                                           Style="{StaticResource StatsBodyTextStyle}"
+                                           Text="Pick an answer grade and a time window to see what share of your reviews it represents."/>
+                            </StackPanel>
+
+                            <Grid Grid.Row="1"
+                                  Margin="0,24,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                               Text="Answer type"/>
+                                    <ListBox Margin="0,10,0,0"
+                                             Style="{StaticResource StatsChipListStyle}"
+                                             ItemContainerStyle="{StaticResource StatsChipItemStyle}"
+                                             ItemsSource="{StaticResource AnswerOptions}"
+                                             SelectedItem="{Binding Answer, Mode=TwoWay}">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Style="{StaticResource StatsChipTextStyle}"
+                                                           Text="{Binding Converter={StaticResource EnumToReadableTextConverter}}"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                               Text="Window"/>
+                                    <ListBox Margin="0,10,0,0"
+                                             Style="{StaticResource StatsChipListStyle}"
+                                             ItemContainerStyle="{StaticResource StatsChipItemStyle}"
+                                             ItemsSource="{StaticResource TimePeriodOptions}"
+                                             SelectedItem="{Binding LastPeriod, Mode=TwoWay}">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Style="{StaticResource StatsChipTextStyle}"
+                                                           Text="{Binding Converter={StaticResource EnumToReadableTextConverter}}"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Grid.Row="2"
+                                    Margin="0,28,0,0"
+                                    Padding="22"
+                                    Background="#14000000"
+                                    BorderBrush="#24FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="190"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Margin="0,0,20,0">
+                                        <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                   Text="Selected share"/>
+                                        <TextBlock Margin="0,8,0,0"
+                                                   Foreground="White"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold">
+                                            <Run Text="{Binding Answer, Converter={StaticResource EnumToReadableTextConverter}}"/>
+                                            <Run Text=" answers in the last "/>
+                                            <Run Text="{Binding LastPeriod, Converter={StaticResource EnumToReadableTextConverter}}"/>
+                                        </TextBlock>
+
+                                        <ProgressBar Margin="0,18,0,0"
+                                                     Height="12"
+                                                     Maximum="100"
+                                                     Value="{Binding PercentageRatio, Mode=OneWay}"
+                                                     Background="#1AFFFFFF"
+                                                     Foreground="{StaticResource NavPressedBrush}"/>
+
+                                        <TextBlock Margin="0,10,0,0"
+                                                   Style="{StaticResource StatsBodyTextStyle}"
+                                                   Text="This percentage updates instantly when you switch answer type or time period."/>
+                                    </StackPanel>
+
+                                    <Border Grid.Column="1"
+                                            Background="#1A1F6FEB"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       Style="{StaticResource StatsMetricLabelStyle}"
+                                                       Text="Ratio"/>
+                                            <TextBlock Margin="0,8,0,0"
+                                                       HorizontalAlignment="Center"
+                                                       Foreground="White"
+                                                       FontSize="46"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding PercentageRatio, StringFormat={}{0}%}"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <Grid Grid.Row="3"
+                                  Margin="0,22,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0"
+                                        Padding="16"
+                                        Background="#12000000"
+                                        CornerRadius="18">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                   Text="Read this as"/>
+                                        <TextBlock Margin="0,8,0,0"
+                                                   Style="{StaticResource StatsBodyTextStyle}"
+                                                   Text="A quick quality signal for a chosen answer bucket. It is especially useful for checking how often Good or Again happens across different time windows."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2"
+                                        Padding="16"
+                                        Background="#12000000"
+                                        CornerRadius="18">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                   Text="Answer scale"/>
+                                        <TextBlock Margin="0,8,0,2"
+                                                   Foreground="{StaticResource DeckLearnBrush}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Text="Again and Hard point to more friction."/>
+                                        <TextBlock Margin="0,0,0,2"
+                                                   Foreground="{StaticResource DeckDueBrush}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Text="Good is the steady-state review path."/>
+                                        <TextBlock Foreground="{StaticResource DeckNewBrush}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Text="Easy means your recall felt comfortably ahead."/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Column="2">
+                        <Border Style="{StaticResource StatsSurfaceStyle}"
+                                Margin="0,0,0,22">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource StatsSectionTitleStyle}"
+                                           Text="Monthly rhythm"/>
+                                <TextBlock Margin="0,8,0,18"
+                                           Style="{StaticResource StatsBodyTextStyle}"
+                                           Text="These three callouts summarize when and how you tend to review."/>
+
+                                <Border Margin="0,0,0,12"
+                                        Padding="16"
+                                        Background="#12000000"
+                                        CornerRadius="18">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Width="12"
+                                                Height="12"
+                                                Margin="0,6,12,0"
+                                                Background="{StaticResource DeckDueBrush}"
+                                                CornerRadius="6"/>
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                       Text="Most active day"/>
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Foreground="White"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding WeekDayWithMostReviewsInLastMonth, Converter={StaticResource EnumToReadableTextConverter}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Border Margin="0,0,0,12"
+                                        Padding="16"
+                                        Background="#12000000"
+                                        CornerRadius="18">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Width="12"
+                                                Height="12"
+                                                Margin="0,6,12,0"
+                                                Background="{StaticResource DeckNewBrush}"
+                                                CornerRadius="6"/>
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                       Text="Peak hour"/>
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Foreground="White"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding MostReviewedHourOfDayInLastMonth, StringFormat={}{0:00}:00}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Border Padding="16"
+                                        Background="#12000000"
+                                        CornerRadius="18">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Width="12"
+                                                Height="12"
+                                                Margin="0,6,12,0"
+                                                Background="{StaticResource NavPressedBrush}"
+                                                CornerRadius="6"/>
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                       Text="Average pace"/>
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Foreground="White"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding AverageAnswerTimeInLastMonth, StringFormat={}{0:mm\\:ss}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource StatsSurfaceStyle}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource StatsSectionTitleStyle}"
+                                           Text="What each stat means"/>
+                                <TextBlock Margin="0,10,0,10"
+                                           Style="{StaticResource StatsBodyTextStyle}"
+                                           Text="This panel stays intentionally lightweight so the page feels readable instead of dashboard-noisy."/>
+
+                                <TextBlock Margin="0,6,0,0"
+                                           Foreground="#FFE6EDF3"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Text="Average answer time"/>
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource StatsBodyTextStyle}"
+                                           Text="How long it took you to answer reviewed cards on average during the last month."/>
+
+                                <TextBlock Margin="0,16,0,0"
+                                           Foreground="#FFE6EDF3"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Text="Busiest weekday and peak hour"/>
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource StatsBodyTextStyle}"
+                                           Text="A quick signal for when study tends to cluster, useful if you want to shape your routine around your natural review rhythm."/>
+
+                                <TextBlock Margin="0,16,0,0"
+                                           Foreground="#FFE6EDF3"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Text="Answer ratio"/>
+                                <TextBlock Margin="0,4,0,0"
+                                           Style="{StaticResource StatsBodyTextStyle}"
+                                           Text="A filterable percentage view that lets you compare how often each grade shows up over different periods."/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

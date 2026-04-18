@@ -3,14 +3,12 @@ using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.Services;
 
-public class DisplayControlFactory(DecksVMF dVMF, ReviewVMF rVMF)
+public class DisplayControlFactory(DecksVMF decksVMF, ReviewVMF reviewVMF, StatsVMF statsVMF)
 {
-    private readonly ReviewVMF reviewVMF = rVMF;
-    private readonly DecksVMF decksVMF = dVMF;
-    
     public IDisplayControl Create(IDisplayHost host)
     {
         return new DisplayControl(
-            host, decksVMF, reviewVMF);
+            host, decksVMF, 
+            reviewVMF, statsVMF);
     }
 }

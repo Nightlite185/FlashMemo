@@ -87,6 +87,7 @@ public partial class App : Application
         sc.AddSingleton<ReviewVMF>();
         sc.AddSingleton<DecksVMF>();
         sc.AddSingleton<CardTagsVMF>();
+        sc.AddSingleton<StatsVMF>();
 
         // ==== SERVICES ====
         sc.AddTransient<MainWindowBootstrapper>();
@@ -100,6 +101,7 @@ public partial class App : Application
         sc.AddSingleton<IUserOptionsService, UserOptionsService>();
         sc.AddSingleton<IActivityVMBuilder, ActivityVMBuilder>();
         sc.AddSingleton<ICardQueryService, CardQueryService>();
+        sc.AddSingleton<IStatsQueryService, StatsQueryService>();
         sc.AddSingleton<IDeckOptVMBuilder, DeckOptVMBuilder>();
         sc.AddSingleton<IUserVMBuilder, UserVMBuilder>();
         sc.AddSingleton<ILastSessionService, LastSessionService>();

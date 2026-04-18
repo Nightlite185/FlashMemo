@@ -13,7 +13,7 @@ namespace FlashMemo.Model.Persistence
         public CardEntity Card { get; set; } = null!;
         public CardAction Action { get; set; }
         public Answers? Answer { get; set; }
-        public TimeSpan? AnswerTime { get; set; }
+        public int? AnswerTimeSeconds { get; set; }
         public CardState NewCardState { get; set; }
         public DateTime TimeStamp { get; set; }
 
@@ -27,7 +27,7 @@ namespace FlashMemo.Model.Persistence
                 Card = card,
                 Action = CardAction.Review,
                 Answer = ans,
-                AnswerTime = ansTime,
+                AnswerTimeSeconds = (int)ansTime.TotalSeconds,
                 NewCardState = card.State,
                 TimeStamp = DateTime.Now,
             };

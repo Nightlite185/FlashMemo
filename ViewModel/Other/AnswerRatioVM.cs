@@ -19,10 +19,10 @@ public partial class AnswerRatioVM(long userId, IStatsQueryService statsService)
 
     #region public propeties
     [ObservableProperty]
-    public partial Answers Answer { get; private set; } = Answers.Good;
+    public partial Answers Answer { get; set; } = Answers.Good;
 
     [ObservableProperty]
-    public partial TimePeriod LastPeriod { get; private set; } = TimePeriod.Month;
+    public partial TimePeriod LastPeriod { get; set; } = TimePeriod.Month;
 
     [ObservableProperty]
     public partial int PercentageRatio { get; private set; }

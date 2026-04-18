@@ -230,7 +230,7 @@ namespace FlashMemo.Migrations
                     UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     Action = table.Column<int>(type: "INTEGER", nullable: false),
                     Answer = table.Column<int>(type: "INTEGER", nullable: true),
-                    AnswerTime = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    AnswerTimeSeconds = table.Column<int>(type: "INTEGER", nullable: true),
                     NewCardState = table.Column<int>(type: "INTEGER", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },

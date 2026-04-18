@@ -37,7 +37,7 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
         if (chosenAnsCount <= 0 || allAnsCount <= 0)
             return 0;
 
-        return chosenAnsCount / allAnsCount * 100;
+        return (int)Math.Round((double)chosenAnsCount / allAnsCount * 100);
     }
     public async Task<DayOfWeek> DayWithMostReviewsInLastMonth(long userId)
     {
@@ -49,10 +49,15 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
     }
     public async Task<TimeSpan> AvgAnswerTimeInLastMonth(long userId)
     {
-        var secondsAVG = await 
-            GetBaseQuery(GetDb, userId, MonthAgo)
-            .Where(l => l.AnswerTime.HasValue)
-            .AverageAsync(l => l.AnswerTime!.Value.Seconds);
+        var query = GetBaseQuery(GetDb, userId, MonthAgo)
+            .Where(l => l.AnswerTimeSeconds.HasValue)
+            .Select(l => l.AnswerTimeSeconds);
+
+        if (!await query.AnyAsync())
+            return TimeSpan.Zero;
+
+        double secondsAVG = await query
+            .AverageAsync() ?? 0;
 
         return TimeSpan.FromSeconds(secondsAVG);
     }

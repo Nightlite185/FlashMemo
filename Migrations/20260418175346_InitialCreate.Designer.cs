@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260417155106_InitialCreate")]
+    [Migration("20260418175346_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -99,8 +99,8 @@ namespace FlashMemo.Migrations
                     b.Property<int?>("Answer")
                         .HasColumnType("INTEGER");
 
-                    b.Property<TimeSpan?>("AnswerTime")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("AnswerTimeSeconds")
+                        .HasColumnType("INTEGER");
 
                     b.Property<long?>("CardId")
                         .HasColumnType("INTEGER");

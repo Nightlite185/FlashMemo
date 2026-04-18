@@ -96,8 +96,8 @@ namespace FlashMemo.Migrations
                     b.Property<int?>("Answer")
                         .HasColumnType("INTEGER");
 
-                    b.Property<TimeSpan?>("AnswerTime")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("AnswerTimeSeconds")
+                        .HasColumnType("INTEGER");
 
                     b.Property<long?>("CardId")
                         .HasColumnType("INTEGER");

@@ -138,4 +138,6 @@ public interface IStatsQueryService
     Task<TimeSpan> AvgAnswerTimeInLastMonth(long userId);
     Task<int> MostReviewedHourOfDayInLastMonth(long userId);
     Task<int> TotalReviewsEver(long userId);
+    Task<int> GetLongestStreak(long userId);
+    Task<int> GetCurrentStreak(long userId);
 }

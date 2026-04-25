@@ -74,6 +74,67 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
         return await GetBaseQuery(GetDb, userId)
             .CountAsync();
     }
+    public async Task<int> GetLongestStreak(long userId)
+    {
+        var reviewDays = await GetBaseQuery(GetDb, userId)
+            .Select(l => l.TimeStamp.Date)
+            .Distinct().Order()
+            .ToArrayAsync();
+
+        if (reviewDays.Length is 0 or 1)
+            return reviewDays.Length;
+
+        var previous = reviewDays[0];
+        int count = 1, longestCount = 1;
+
+        foreach(var day in reviewDays.Skip(1))
+        {
+            if (day.Equals(previous.AddDays(1)))
+                count++;
+
+            else
+            {
+                longestCount = count;
+                count = 1;
+            }
+
+            previous = day;
+        }
+
+        return Math.Max(count, longestCount);
+    }
+    public async Task<int> GetCurrentStreak(long userId)
+    {
+        var reviewDays = await GetBaseQuery(GetDb, userId)
+            .Select(l => l.TimeStamp.Date)
+            .Distinct().OrderDescending()
+            .ToArrayAsync();
+
+        if (reviewDays.Length == 0) 
+            return 0;
+
+        DateTime today = DateTime.Today,
+        yesterday = today.AddDays(-1),
+        lastReview = reviewDays[0];
+
+        if (lastReview != today
+        &&  lastReview != yesterday)
+            return 0;
+
+        var latter = lastReview;
+        int count = 1;
+
+        foreach(var day in reviewDays.Skip(1))
+        {
+            if (day.Equals(latter.AddDays(-1)))
+                count++;
+
+            else break; 
+            latter = day;
+        }
+
+        return count;
+    }
 
     private static IQueryable<CardLog> GetBaseQuery(AppDbContext db, long userId, DateTime? oldest = null)
     {

@@ -53,9 +53,6 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     [RelayCommand]
     private async Task RemoveUser(UserVM toRemove)
     {
-        // TODO: persist user preference if they want to have this popup show or not.
-        // I mean like "dont show this again" checkbox pattern
-
         if (currentUserId == toRemove.Id)
         {
             DialogService.Show(

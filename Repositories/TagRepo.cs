@@ -14,8 +14,6 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
     }
     public async Task<ICollection<Tag>> GetFromCard(long cardId)
     {
-        // TODO: this can be improved with a separate many<->many separate cardTags table
-
         return await GetDb.Cards
             .AsNoTracking()
             .Include(c => c.Tags)

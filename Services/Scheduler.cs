@@ -79,7 +79,7 @@ public static class Scheduler
             Interval: (card.State == CardState.New)
                 ? TimeSpan.FromDays(s.EasyOnNewDayCount)
 
-            : (card.State == CardState.Learning) // TODO: turn this into a switch expr instead of this ternary (and init style newing everywhere, not ctor)
+            : (card.State == CardState.Learning)
                 ? TimeSpan.FromDays(s.GraduateDayCount)
                 : maybeScaledIvl * s.EasyMultiplier
         );

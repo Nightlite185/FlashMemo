@@ -43,8 +43,8 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
         int reviewCount = await cardsQ.Reviews.CountAsync();
         int lessonCount = await cardsQ.Lessons.CountAsync();
 
-        int cappedReviews = Math.Min(reviewCount, reviewsCap);
-        int cappedLessons = Math.Min(lessonCount, lessonsCap);
+        int takenReviews = Math.Min(reviewCount, reviewsCap);
+        int takenLessons = Math.Min(lessonCount, lessonsCap);
 
         bool include = (await userOptService.GetFromUser(userId))
             .IncludeLessonsInReviewLimit;
@@ -54,19 +54,24 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
         {
             if (stateOrder is CardStateOrder.ReviewsThenNew or CardStateOrder.Mix)
             {
-                cappedLessons = Math.Min(
-                    lessonsCap, Math.Max(
-                        reviewsCap - cappedReviews, 0));
+                takenLessons = TakeFromRemainingLimit(
+                    available: takenLessons,
+                    remainingLimit: reviewsCap - takenReviews);
             }
 
             else if (stateOrder is CardStateOrder.NewThenReviews)
             {
-                cappedReviews = Math.Max(
-                    reviewsCap - cappedLessons, 0);
+                takenLessons = TakeFromRemainingLimit(
+                    available: takenLessons,
+                    remainingLimit: reviewsCap);
+
+                takenReviews = TakeFromRemainingLimit(
+                    available: takenReviews,
+                    remainingLimit: reviewsCap - takenLessons);
             }
         }
 
-        return new(cappedLessons, cappedReviews);
+        return new(takenLessons, takenReviews);
     }
     public async Task<IDictionary<long, CardsCount>> StudyableCards(long userId)
     {
@@ -110,4 +115,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
             Learning = await queries.Learning.CountAsync(),
         };
     }
+
+    private static int TakeFromRemainingLimit(int available, int remainingLimit)
+        => Math.Min(available, Math.Max(remainingLimit, 0));
 }

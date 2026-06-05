@@ -16,7 +16,7 @@ namespace FlashMemo.Model.Persistence
                 Id = IdGetter.Next(),
                 Created = DateTime.Now,
                 Name = name,
-                Options = UserOptions.CreateDefault() // Create default here
+                Options = UserOptions.CreateDefault()
             };
         }
     }

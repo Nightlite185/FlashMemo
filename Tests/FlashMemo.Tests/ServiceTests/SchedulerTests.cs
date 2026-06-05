@@ -10,7 +10,7 @@ public class SchedulerTests
 {
     private static (UserOptions userOpt, DeckOptions.SchedulingOpt deckOpt) DefaultOpt()
     {
-        return (UserOptions.CreateDefault(), 
+        return (UserOptions.CreateDefault(),
                 DeckOptions.Default.Scheduling);
     }
     private static FakeScheduleInfoCard NewCard => new()
@@ -369,8 +369,10 @@ public class SchedulerTests
     }
     [Fact] public void GoodOnReview_OverdueButOptedOut()
     {
-        (var userOpt, var deckOpt) = DefaultOpt();
-        userOpt.IntervalScalingOnOverdueness = false;
+        var deckOpt = DefaultOpt().deckOpt;
+        var userOpt = UserOptions.CreateDefault() with {
+            IntervalScalingOnOverdueness = false 
+        };
 
         var cards = RandomReviewCards(overdue: true);
 

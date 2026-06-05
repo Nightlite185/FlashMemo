@@ -1,6 +1,6 @@
 namespace FlashMemo.Model.Persistence;
 
-public class UserOptions
+public record UserOptions
 {
     #region defaults
     public const byte DefDayStartTime = 0;
@@ -14,12 +14,12 @@ public class UserOptions
     #endregion
    
     #region properties
-    public byte DayStartOffset { get; set; } //* how many hours past midnight need to pass, for scheduler to consider it the next day.
-    public bool ShowReviewTimer { get; set; } //* show timer or not, effective for all decks.
-    public bool TimerStopsOnReveal { get; set; } //* whether timer stops on answer being revealed or actually clicking one of the answer buttons.
-    public bool IncludeLessonsInReviewLimit { get; set; }
-    public bool IntervalScalingOnOverdueness { get; set; } //* whether card's interval will increase scaling off its current overdueness
-    public bool ShowHeatmap { get; set; } // whether to show review heatmap on DecksUC screen
+    public byte DayStartOffset { get; init; } //* how many hours past midnight need to pass, for scheduler to consider it the next day.
+    public bool ShowReviewTimer { get; init; } //* show timer or not, effective for all decks.
+    public bool TimerStopsOnReveal { get; init; } //* whether timer stops on answer being revealed or actually clicking one of the answer buttons.
+    public bool IncludeLessonsInReviewLimit { get; init; }
+    public bool IntervalScalingOnOverdueness { get; init; } //* whether card's interval will increase scaling off its current overdueness
+    public bool ShowHeatmap { get; init; } //* whether to show review heatmap on DecksUC screen
     #endregion
 
     public static UserOptions CreateDefault()
@@ -33,30 +33,5 @@ public class UserOptions
             IntervalScalingOnOverdueness = DefIntervalScalingOnOverdueness,
             ShowHeatmap = DefShowHeatmap
         };
-    }
-
-    //TODO: replace this with some immutable record for auto equals and hashcode at some point.
-    public override bool Equals(object? obj)
-    {
-        if (obj is not UserOptions valid)
-            return false;
-        
-        return DayStartOffset.Equals(valid.DayStartOffset)
-            && ShowReviewTimer == valid.ShowReviewTimer
-            && TimerStopsOnReveal == valid.TimerStopsOnReveal
-            && IncludeLessonsInReviewLimit == valid.IncludeLessonsInReviewLimit
-            && IntervalScalingOnOverdueness == valid.IntervalScalingOnOverdueness
-            && ShowHeatmap == valid.ShowHeatmap;
-    }
-    
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(
-            DayStartOffset, 
-            ShowReviewTimer, 
-            TimerStopsOnReveal, 
-            IncludeLessonsInReviewLimit,
-            IntervalScalingOnOverdueness,
-            ShowHeatmap);
     }
 }

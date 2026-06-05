@@ -74,7 +74,7 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
         return await GetBaseQuery(GetDb, userId)
             .CountAsync();
     }
-    public async Task<int> GetLongestStreak(long userId)
+    public async Task<int> LongestReviewStreak(long userId)
     {
         var reviewDays = await GetBaseQuery(GetDb, userId)
             .Select(l => l.TimeStamp.Date)
@@ -94,7 +94,7 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
 
             else
             {
-                longestCount = count;
+                longestCount = Math.Max(count, longestCount);
                 count = 1;
             }
 
@@ -103,7 +103,7 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
 
         return Math.Max(count, longestCount);
     }
-    public async Task<int> GetCurrentStreak(long userId)
+    public async Task<int> CurrentReviewStreak(long userId)
     {
         var reviewDays = await GetBaseQuery(GetDb, userId)
             .Select(l => l.TimeStamp.Date)

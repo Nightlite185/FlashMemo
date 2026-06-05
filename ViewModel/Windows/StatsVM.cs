@@ -21,6 +21,12 @@ public partial class StatsVM (IVMEventBus bus, long userId, AnswerRatioVM ansRat
 
         TotalReviewsEver = await statsService
             .TotalReviewsEver(userId);
+
+        CurrentStreak = await statsService
+            .CurrentReviewStreak(userId);
+
+        LongestStreak = await statsService
+            .LongestReviewStreak(userId);
     }
 
     [ObservableProperty]
@@ -34,6 +40,12 @@ public partial class StatsVM (IVMEventBus bus, long userId, AnswerRatioVM ansRat
 
     [ObservableProperty]
     public partial int TotalReviewsEver { get; private set; }
+    
+    [ObservableProperty]
+    public partial int CurrentStreak { get; private set; }
+    
+    [ObservableProperty]
+    public partial int LongestStreak { get; private set; }
 
     public AnswerRatioVM AnswerRatioVM { get; } = ansRatioVM;
 }

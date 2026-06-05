@@ -480,92 +480,65 @@
                                 Margin="0,0,0,22">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource StatsSectionTitleStyle}"
-                                           Text="Monthly rhythm"/>
+                                           Text="Review streaks"/>
                                 <TextBlock Margin="0,8,0,18"
                                            Style="{StaticResource StatsBodyTextStyle}"
-                                           Text="These three callouts summarize when and how you tend to review."/>
+                                           Text="A quick view of how consistently you keep reviews going from day to day."/>
 
-                                <Border Margin="0,0,0,12"
-                                        Padding="16"
-                                        Background="#12000000"
-                                        CornerRadius="18">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                        <Border Width="12"
-                                                Height="12"
-                                                Margin="0,6,12,0"
-                                                Background="{StaticResource DeckDueBrush}"
-                                                CornerRadius="6"/>
-
-                                        <StackPanel Grid.Column="1">
+                                    <Border Grid.Column="0"
+                                            Padding="18"
+                                            Background="#12000000"
+                                            CornerRadius="18">
+                                        <StackPanel>
                                             <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
-                                                       Text="Most active day"/>
-                                            <TextBlock Margin="0,4,0,0"
+                                                       Text="Current streak"/>
+                                            <TextBlock Margin="0,8,0,0"
                                                        Foreground="White"
-                                                       FontSize="20"
+                                                       FontSize="34"
                                                        FontWeight="SemiBold"
-                                                       Text="{Binding WeekDayWithMostReviewsInLastMonth, Converter={StaticResource EnumToReadableTextConverter}}"/>
+                                                       Text="{Binding CurrentStreak}"/>
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Style="{StaticResource StatsBodyTextStyle}"
+                                                       Text="Consecutive review days up to today or yesterday."/>
                                         </StackPanel>
-                                    </Grid>
-                                </Border>
+                                    </Border>
 
-                                <Border Margin="0,0,0,12"
-                                        Padding="16"
-                                        Background="#12000000"
-                                        CornerRadius="18">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <Border Width="12"
-                                                Height="12"
-                                                Margin="0,6,12,0"
-                                                Background="{StaticResource DeckNewBrush}"
-                                                CornerRadius="6"/>
-
-                                        <StackPanel Grid.Column="1">
+                                    <Border Grid.Column="2"
+                                            Padding="18"
+                                            Background="#12000000"
+                                            CornerRadius="18">
+                                        <StackPanel>
                                             <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
-                                                       Text="Peak hour"/>
-                                            <TextBlock Margin="0,4,0,0"
+                                                       Text="Longest streak"/>
+                                            <TextBlock Margin="0,8,0,0"
                                                        Foreground="White"
-                                                       FontSize="20"
+                                                       FontSize="34"
                                                        FontWeight="SemiBold"
-                                                       Text="{Binding MostReviewedHourOfDayInLastMonth, StringFormat={}{0:00}:00}"/>
+                                                       Text="{Binding LongestStreak}"/>
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Style="{StaticResource StatsBodyTextStyle}"
+                                                       Text="Your best uninterrupted run of review days."/>
                                         </StackPanel>
-                                    </Grid>
-                                </Border>
+                                    </Border>
+                                </Grid>
 
                                 <Border Padding="16"
                                         Background="#12000000"
                                         CornerRadius="18">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <Border Width="12"
-                                                Height="12"
-                                                Margin="0,6,12,0"
-                                                Background="{StaticResource NavPressedBrush}"
-                                                CornerRadius="6"/>
-
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
-                                                       Text="Average pace"/>
-                                            <TextBlock Margin="0,4,0,0"
-                                                       Foreground="White"
-                                                       FontSize="20"
-                                                       FontWeight="SemiBold"
-                                                       Text="{Binding AverageAnswerTimeInLastMonth, StringFormat={}{0:mm\\:ss}}"/>
-                                        </StackPanel>
-                                    </Grid>
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource StatsMetricLabelStyle}"
+                                                   Text="Why it matters"/>
+                                        <TextBlock Margin="0,8,0,0"
+                                                   Style="{StaticResource StatsBodyTextStyle}"
+                                                   Text="Streaks are less about volume and more about consistency. They help show whether your review habit survives across ordinary days, not just busy study sessions."/>
+                                    </StackPanel>
                                 </Border>
                             </StackPanel>
                         </Border>

@@ -15,7 +15,7 @@ namespace FlashMemo.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
             modelBuilder.Entity("CardEntityTag", b =>
                 {
@@ -127,9 +127,6 @@ namespace FlashMemo.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsTemporary")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -16,7 +16,6 @@ namespace FlashMemo.Model.Persistence
         public ICollection<Deck> ChildrenDecks { get; set; } = [];
         public Deck? ParentDeck { get; set; }
         public long? ParentDeckId { get; set; }
-        public bool IsTemporary { get; set; } //? idk if I should go with this or make another class inheriting this one. Theres not that much to add tho, just some diff rules.
 
         #region methods
 
@@ -30,7 +29,6 @@ namespace FlashMemo.Model.Persistence
                 UserId = userId,
                 OptionsId = -1, // default preset
                 ParentDeckId = parentId,
-                IsTemporary = false,
             };
         }
         public Deck ToEntity() => this; // for the interface

@@ -135,8 +135,7 @@ namespace FlashMemo.Migrations
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     OptionsId = table.Column<long>(type: "INTEGER", nullable: false),
-                    ParentDeckId = table.Column<long>(type: "INTEGER", nullable: true),
-                    IsTemporary = table.Column<bool>(type: "INTEGER", nullable: false)
+                    ParentDeckId = table.Column<long>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {

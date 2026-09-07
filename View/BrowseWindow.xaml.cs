@@ -5,7 +5,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Wrappers;
 using FlashMemo.ViewModel.Windows;
 
@@ -17,7 +16,7 @@ public enum BrowseColumn
     Id, DeckName, Due, DayInterval,
     LastModified, LearningStage,
     State, IsBuried, IsSuspended,
-    NoteType, Tags, Created
+    Tags, Created
 }
 
 public partial class BrowseWindow : Window, IViewFor<BrowseVM>
@@ -83,7 +82,7 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         columnSpecs.Add(new(BrowseColumn.State, "State", "State", order++, 110, converter: enumToReadableConverter, isVisible: true));
         columnSpecs.Add(new(BrowseColumn.DayInterval, "Interval (days)", "DayInterval", order++, 120, isVisible: true));
         columnSpecs.Add(new(BrowseColumn.Created, "Created", "Created", order++, 170, stringFormat: "yyyy-MM-dd HH:mm", isVisible: true));
-        columnSpecs.Add(new(BrowseColumn.NoteType, "Note type", "Note.Type", order++, 120, converter: enumToReadableConverter));
+        // columnSpecs.Add(new(BrowseColumn.NoteType, "Note type", "Note.Type", order++, 120, converter: enumToReadableConverter));
         columnSpecs.Add(new(BrowseColumn.NoteBackContent, "Back content", "Note.BackContent", order++, 260, converter: xamlToTextConverter));
         columnSpecs.Add(new(BrowseColumn.Id, "Id", "Id", order++, 120));
         columnSpecs.Add(new(BrowseColumn.LastModified, "Last modified", "LastModified", order++, 170, stringFormat: "yyyy-MM-dd HH:mm"));

@@ -11,7 +11,8 @@ public abstract class NoteVM: ObservableObject
         {
             StandardNoteVM sn => sn.ToEntity(),
 
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(
+            "Only standard note type supported for now.")
         };
     }
 

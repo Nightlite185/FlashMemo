@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260907191740_InitialCreate")]
+    [Migration("20260907200208_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

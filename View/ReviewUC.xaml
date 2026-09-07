@@ -421,7 +421,6 @@
                             <MenuItem Header="Bury" Command="{Binding ToggleBuryCtxCommand}"/>
                             <MenuItem Header="Reschedule" Command="{Binding ShowRescheduleCtxCommand}"/>
                             <MenuItem Header="Delete" Command="{Binding DeleteCardsCtxCommand}"/>
-                       <!-- <MenuItem Header="Card details" Command="{Binding showdetails}"/> -->
                         </ContextMenu>
                     </Button.ContextMenu>
 

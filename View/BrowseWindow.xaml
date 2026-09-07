@@ -248,11 +248,7 @@
                                                 <Ellipse Width="10"
                                                          Height="10"
                                                          Margin="0,0,7,0"
-                                                         VerticalAlignment="Center">
-                                                    <Ellipse.Fill>
-                                                        <SolidColorBrush Color="{Binding Color}"/>
-                                                    </Ellipse.Fill>
-                                                </Ellipse>
+                                                         VerticalAlignment="Center" />
                                                 <TextBlock Text="{Binding Name}"
                                                            Foreground="#FFE6E6E6"/>
                                             </StackPanel>

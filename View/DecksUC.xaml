@@ -328,10 +328,10 @@
             </Grid>
         </Border>
 
-        <!-- Sync Decks Button -->
+        <!-- Refresh Decks Button -->
         <Button
             Grid.Row="2"
-            Content="Sync decks"
+            Content="Refresh decks"
             Command="{Binding ReloadDomainCommand}"
             Style="{StaticResource NavButtonStyle}"
             Width="110"

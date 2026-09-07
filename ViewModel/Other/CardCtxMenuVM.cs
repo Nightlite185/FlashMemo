@@ -10,7 +10,7 @@ using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.ViewModel.Other;
 
-public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete, ShowDetails }
+public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete }
 
 public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF, 
                                 IVMEventBus eventBus, long userId, ICtxMenuHost host): ObservableObject
@@ -141,15 +141,6 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
         );
 
         await ctxHost.OnActionExecuted(CtxMenuAction.Relocate);
-    }
-    private async Task ChangeTags(IEnumerable<Tag> newTags)
-    {
-        await ModifyCardsHelper(
-            c => c.ReplaceTagsWith(newTags),
-            CardAction.Modify
-        );
-
-        PopupCancel();
     }
     #endregion
     

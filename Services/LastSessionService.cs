@@ -7,7 +7,7 @@ namespace FlashMemo.Services;
 
 public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ILastSessionService
 {
-    private LastSessionData data = new();
+    private LastSessionData data = null!;
 
     public Filters? LastFilters {
         get => data.LastFilters;

@@ -96,8 +96,8 @@ public sealed class LastSessionServiceTests : IDisposable
 
     private async Task SeedUsersAndDecksAsync()
     {
-        await new DbSeeder(factory.CreateDbContext(), Helpers.GetMapper())
-            .SeedAsync();
+        await new TestsDbSeeder(factory)
+            .SeedDefault();
 
         using var db = factory.CreateDbContext();
 

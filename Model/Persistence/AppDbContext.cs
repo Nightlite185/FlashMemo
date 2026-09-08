@@ -1,3 +1,4 @@
+using System.IO;
 using FlashMemo.Helpers;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,6 +6,11 @@ namespace FlashMemo.Model.Persistence
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
+        public static string DbDirPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "FlashMemo", "Data");
+        public static string DbPath => Path.Combine(DbDirPath, DbFileName);
+        public const string DbFileName = "flashmemo.db";
         public DbSet<DeckOptionsEntity> DeckOptions => Set<DeckOptionsEntity>();
         public DbSet<AppSessionData> AppSessionData => Set<AppSessionData>();
         public DbSet<UserSessionCache> UserSessionCaches => Set<UserSessionCache>();

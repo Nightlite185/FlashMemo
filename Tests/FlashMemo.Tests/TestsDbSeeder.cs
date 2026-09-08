@@ -1,18 +1,25 @@
-using AutoMapper;
+using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
-using FlashMemo.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Tests;
 
 public class TestsDbSeeder(IDbContextFactory<AppDbContext> factory)
 {
-    private readonly IMapper mapper = Helpers.GetMapper();
-    public async Task SeedDefault() // default deck options and last session
+    public async Task SeedDefault() // default deck options and app session
     {
-        await new DbSeeder(
-            factory.CreateDbContext(), mapper)
-            .SeedAsync();
+        await using var db = factory.CreateDbContext();
+
+        if (!await db.DeckOptions.AnyAsync(d => d.Id == DeckOptions.DefaultId))
+        {
+            db.DeckOptions.Add(Helpers.GetMapper()
+                .Map<DeckOptionsEntity>(DeckOptions.Default));
+        }
+
+        if (!await db.AppSessionData.AnyAsync())
+            db.AppSessionData.Add(new AppSessionData { Id = -1 });
+
+        await db.SaveChangesAsync();
     }
 
     public UserEntity SeedUser()

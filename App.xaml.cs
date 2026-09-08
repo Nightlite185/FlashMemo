@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using FlashMemo.View;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
 using FlashMemo.Model.Persistence;
 using Microsoft.EntityFrameworkCore;
 using FlashMemo.Services;
@@ -15,12 +14,6 @@ namespace FlashMemo;
 public partial class App : Application
 {
     private IServiceProvider sp = null!;
-    public static string DbPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "FlashMemo", "Data",
-        dbFileName
-    );
-    private const string dbFileName = "flashmemo.db";
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -122,7 +115,7 @@ public partial class App : Application
         // ==== DB CONTEXT ====
         sc.AddDbContext<AppDbContext>(o =>
         {
-            o.UseSqlite($"Data Source={DbPath}");
+            o.UseSqlite($"Data Source={AppDbContext.DbPath}");
             o.EnableSensitiveDataLogging();
 
             o.LogTo(

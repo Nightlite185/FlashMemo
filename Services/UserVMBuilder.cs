@@ -23,7 +23,7 @@ public class UserVMBuilder(IDbContextFactory<AppDbContext> factory, IUserRepo ur
     }
     public async Task<UserVM> BuildCounted(long userId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         var user = await db.Users
             .SingleAsync(u => u.Id == userId);

@@ -7,7 +7,7 @@ public class UserRepo(IDbContextFactory<AppDbContext> dbFactory): DbDependentCla
 {
     public async Task<ICollection<UserEntity>> GetAllAsync()
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         return await db.Users
             .AsNoTracking()
@@ -15,7 +15,7 @@ public class UserRepo(IDbContextFactory<AppDbContext> dbFactory): DbDependentCla
     }
     public async Task<UserEntity> GetByIdAsync(long userId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         return await db.Users
             .AsNoTracking()
@@ -23,7 +23,7 @@ public class UserRepo(IDbContextFactory<AppDbContext> dbFactory): DbDependentCla
     }
     public async Task Remove(long userId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         await db.Users
             .Where(u => u.Id == userId)
@@ -31,7 +31,7 @@ public class UserRepo(IDbContextFactory<AppDbContext> dbFactory): DbDependentCla
     }
     public async Task Rename(long userId, string newName)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         await db.Users
             .Where(u => u.Id == userId)
@@ -41,7 +41,7 @@ public class UserRepo(IDbContextFactory<AppDbContext> dbFactory): DbDependentCla
     }
     public async Task CreateNew(UserEntity toAdd)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         await db.Users.AddAsync(toAdd);
         await db.SaveChangesAsync();

@@ -12,7 +12,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
     #region Public methods
     public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         byte offset = await userOptService
             .GetDayStartOffset(filters.UserId);
@@ -39,7 +39,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
     }
     public async Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId, long userId) 
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         byte offset = await userOptService
             .GetDayStartOffset(userId);
@@ -72,7 +72,8 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
     }
     public async Task<IList<CardEntity>> GetAllFromUser(long userId)
     {
-        return await GetDb.Cards
+        await using var db = GetDb;
+        return await db.Cards
             .AsNoTracking()
             .Where(c => c.UserId == userId)
             .Include(c => c.Deck)
@@ -80,7 +81,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
     }
     public async Task<IList<CardEntity>> GetAllFromDeck(long deckId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         var cardsQuery = await db
             .AllCardsInDeckQAsync(deckId);

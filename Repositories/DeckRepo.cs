@@ -7,13 +7,15 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 {
     public async Task<Deck?> GetFirst(long userId)
     {
-        return await AllDecksQuery(GetDb, userId)
+        await using var db = GetDb;
+        return await AllDecksQuery(db, userId)
             .FirstOrDefaultAsync();
     }
     
     public async Task<IDeckMeta> GetDeckMetaById(long deckId)
     {
-        return await GetDb.Decks
+        await using var db = GetDb;
+        return await db.Decks
             .AsNoTracking()
             .Cast<IDeckMeta>()
             .SingleAsync(d => d.Id == deckId);
@@ -21,7 +23,8 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
     public async Task RenameDeck(long id, string name)
     {
-        await GetDb.Decks
+        await using var db = GetDb;
+        await db.Decks
             .Where(d => d.Id == id)
             .ExecuteUpdateAsync(opt => 
                 opt.SetProperty(d => d.Name, name));
@@ -29,7 +32,7 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
     public async Task SaveEditedDeck(Deck updated)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         var tracked = await db.Decks
             .SingleAsync(d => d.Id == updated.Id);
@@ -42,14 +45,14 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     }
     public async Task AddNewDeck(Deck deck)
     {
-        var db = GetDb;
+        await using var db = GetDb;
         
         await db.Decks.AddAsync(deck);
         await db.SaveChangesAsync();
     }
     public async Task<IReadOnlySet<long>> RemoveDeck(long deckId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
         var removedDeckIds = (await GetChildrenIds(deckId, db))
             .ToHashSet();
 
@@ -71,14 +74,16 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     }
     public async Task<Deck?> GetById(long deckId)
     {
-        return await GetDb.Decks
+        await using var db = GetDb;
+        return await db.Decks
             .AsNoTracking()
             .SingleOrDefaultAsync(d => d.Id == deckId);
     }
 
     public async Task<Deck> GetFromCard(long cardId)
     {
-        return await GetDb.Cards
+        await using var db = GetDb;
+        return await db.Cards
             .Where(c => c.Id == cardId)
             .Include(c => c.Deck)
             .Select(c => c.Deck)
@@ -86,8 +91,9 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
     }
     public async Task<ILookup<long?, Deck>> ParentIdChildrenLookup(long userId)
     {
+        await using var db = GetDb;
         return (
-            await AllDecksQuery(GetDb, userId)
+            await AllDecksQuery(db, userId)
             .ToArrayAsync())
             .ToLookup(d => d.ParentDeckId);
     }
@@ -119,7 +125,8 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
     public async Task<bool> Exists(long id)
     {
-        return await GetDb.Decks
+        await using var db = GetDb;
+        return await db.Decks
             .AnyAsync(d => d.Id == id);
     }
     

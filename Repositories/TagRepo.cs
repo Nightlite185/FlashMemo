@@ -7,14 +7,16 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
 {
     public async Task<ICollection<Tag>> GetFromUser(long userId)
     {
-        return await GetDb.Tags
+        await using var db = GetDb;
+        return await db.Tags
             .Where(t => t.UserId == userId)
             .AsNoTracking()
             .ToArrayAsync();
     }
     public async Task<ICollection<Tag>> GetFromCard(long cardId)
     {
-        return await GetDb.Cards
+        await using var db = GetDb;
+        return await db.Cards
             .AsNoTracking()
             .Include(c => c.Tags)
             .Where(c => c.Id == cardId)
@@ -23,20 +25,21 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
     }
     public async Task CreateNew(Tag newTag)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         await db.Tags.AddAsync(newTag);
         await db.SaveChangesAsync();
     }
     public async Task Remove(long tagId)
     {
-        await GetDb.Tags
+        await using var db = GetDb;
+        await db.Tags
             .Where(t => t.Id == tagId)
             .ExecuteDeleteAsync();
     }
     public async Task SaveEdited(Tag updated)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         var tracked = await db.Tags
             .SingleAsync(t => t.Id == updated.Id);
@@ -49,7 +52,8 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
     }
     public async Task<Tag> GetById(long tagId)
     {
-        return await GetDb.Tags
+        await using var db = GetDb;
+        return await db.Tags
             .AsNoTracking()
             .SingleAsync(t => t.Id == tagId);
     }

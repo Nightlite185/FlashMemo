@@ -12,7 +12,7 @@ public class DeckOptVMBuilder(IDbContextFactory<AppDbContext> factory, IMapper m
     private readonly IDeckOptionsService repo = dor;
     public async Task<ICollection<DeckOptionsVM>> BuildAllCounted(long userId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
         
         var domainOptions = await repo
             .GetAllFromUser(userId);

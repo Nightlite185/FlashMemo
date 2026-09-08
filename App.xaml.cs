@@ -13,7 +13,7 @@ using System.Diagnostics;
 namespace FlashMemo;
 public partial class App : Application
 {
-    private IServiceProvider sp = null!;
+    private ServiceProvider sp = null!;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -22,10 +22,20 @@ public partial class App : Application
         var services = ConfigureServices();
         this.sp = services.BuildServiceProvider();
 
-        await sp.GetRequiredService<DbSeeder>()
-            .SeedAsync();
+        using (var scope = sp.CreateScope())
+        {
+            await scope.ServiceProvider
+                .GetRequiredService<DbSeeder>()
+                .SeedAsync();
+        }
 
         await InitUserSession();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        sp?.Dispose();
+        base.OnExit(e);
     }
     
     private async Task InitUserSession()

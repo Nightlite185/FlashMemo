@@ -11,7 +11,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
     
     public async Task<CardEntity> ReviewCardAsync(long cardId, ScheduleInfo scheduleInfo, Answers answer, TimeSpan answerTime)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         var cardEntity = await db.Cards
             .Include(c => c.Deck)
@@ -35,9 +35,19 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
     ///<summary>Updates scalars, note, FKs, and syncs tags.<summary>
     public async Task SaveEditedCard(CardEntity updated, CardAction action, AppDbContext? db = null)
     {
-        bool dbProvided = db is not null;
-        db ??= GetDb;
-        
+        if (db is null)
+        {
+            using var ownedDb = GetDb;
+            await SaveEditedCardCore(updated, action, ownedDb);
+            await ownedDb.SaveChangesAsync();
+            return;
+        }
+
+        await SaveEditedCardCore(updated, action, db);
+    }
+
+    private async Task SaveEditedCardCore(CardEntity updated, CardAction action, AppDbContext db)
+    {
         var tracked = await db.Cards
             .Include(c => c.Tags)
             .SingleAsync(c => c.Id == updated.Id);
@@ -53,9 +63,6 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
             .CreateLog(tracked, action);
 
         await db.CardLogs.AddAsync(log);
-
-        if (!dbProvided)
-            await db.SaveChangesAsync();
     }
     private static void SyncTags(CardEntity tracked, CardEntity updated, AppDbContext db)
     {
@@ -93,7 +100,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
     ///<summary>Updates scalars, FKs, and syncs tags.<summary>
     public async Task SaveEditedCards(IEnumerable<CardEntity> updatedCards, CardAction action)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         foreach (var card in updatedCards)
             await SaveEditedCard(card, action, db);
@@ -105,7 +112,8 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
     {
         var today = DateTime.Today;
 
-        await GetDb.Cards.Where(c => c.BuriedDate != null 
+        await using var db = GetDb;
+        await db.Cards.Where(c => c.BuriedDate != null
         && c.BuriedDate.Value.Date < today)
             .ExecuteUpdateAsync(opt => opt
                 .SetProperty(c => c.BuriedDate, (DateTime?)null)

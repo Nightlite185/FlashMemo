@@ -11,7 +11,8 @@ public class ActivityVMBuilder(IDbContextFactory<AppDbContext> factory)
 {
     public async Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, short year)
     {
-        return (await BuildCells(GetDb, userId, year))
+        await using var db = GetDb;
+        return (await BuildCells(db, userId, year))
             .GroupBy(c => StartOfWeekMonday(c.Date))
             .OrderBy(g => g.Key)
             .Select(g => new ActivityWeekVM(

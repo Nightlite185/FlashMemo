@@ -9,14 +9,16 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
 {
     public async Task<int> AllCards(long userId)
     {
-        return await GetDb.Cards
+        await using var db = GetDb;
+        return await db.Cards
             .Where(c => c.UserId == userId)
             .AsNoTracking()
             .CountAsync();
     }
     public async Task<int> AllDecks(long userId)
     {
-        return await GetDb.Decks
+        await using var db = GetDb;
+        return await db.Decks
             .Where(d => d.UserId == userId)
             .AsNoTracking()
             .CountAsync();
@@ -26,7 +28,8 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
         byte offset = await userOptService
             .GetDayStartOffset(userId);
 
-        return await GetDb.Cards
+        await using var db = GetDb;
+        return await db.Cards
             .Where(c => c.UserId == userId)
             .ForStudy(offset)
             .CountAsync();
@@ -75,7 +78,7 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
     }
     public async Task<IDictionary<long, CardsCount>> StudyableCards(long userId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         byte offset = await userOptService
             .GetDayStartOffset(userId);

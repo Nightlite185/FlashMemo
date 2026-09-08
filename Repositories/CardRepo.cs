@@ -7,14 +7,15 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 {
     public async Task DeleteCards(IEnumerable<long> cardIds)
     {
-        await GetDb.Cards
+        await using var db = GetDb;
+        await db.Cards
             .Where(c => cardIds.Contains(c.Id))
             .ExecuteDeleteAsync();
     }
 
     public async Task AddCard(CardEntity card)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         await AttachTags(card, db);
 
@@ -48,13 +49,20 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         }
     }
 
-    public async Task<CardEntity?> GetById(long cardId) => await GetDb.Cards
-        .Include(c => c.Deck)
-        .SingleOrDefaultAsync(c => c.Id == cardId);
+    public async Task<CardEntity?> GetById(long cardId)
+    {
+        await using var db = GetDb;
+        return await db.Cards
+            .Include(c => c.Deck)
+            .SingleOrDefaultAsync(c => c.Id == cardId);
+    }
 
-    public async Task<IEnumerable<CardEntity>> GetByIds(IEnumerable<long> cardIds) 
-        => await GetDb.Cards
-        .Include(c => c.Deck)
-        .Where(c => cardIds.Contains(c.Id))
-        .ToArrayAsync();
+    public async Task<IEnumerable<CardEntity>> GetByIds(IEnumerable<long> cardIds)
+    {
+        await using var db = GetDb;
+        return await db.Cards
+            .Include(c => c.Deck)
+            .Where(c => cardIds.Contains(c.Id))
+            .ToArrayAsync();
+    }
 }

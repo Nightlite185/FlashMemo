@@ -13,7 +13,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
 
     public async Task<DeckOptions> GetFromDeck(long deckId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         var entity = await db.Decks
             .AsNoTracking()
@@ -26,7 +26,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
     }
     public async Task<IEnumerable<DeckOptions>> GetAllFromUser(long userId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         var options = await db.DeckOptions
             .AsNoTracking()
@@ -43,7 +43,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
         if (presetId == -1) throw new InvalidOperationException(
             "Cannot delete default deck options preset.");
 
-        var db = GetDb;
+        await using var db = GetDb;
 
         //* replacing all references to removed preset's id with -1 (default one).
         await db.Decks
@@ -59,7 +59,8 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
     }
     public async Task AssignToDeck(long deckId, long newPresetId)
     {
-        await GetDb.Decks
+        await using var db = GetDb;
+        await db.Decks
             .Where(d => d.Id == deckId)
             .ExecuteUpdateAsync(d => d.SetProperty(o => 
                 o.OptionsId, newPresetId));
@@ -83,7 +84,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
             @"Cannot add new deck options preset with id -1,
             as it's reserved for the default preset only.");
 
-        var db = GetDb;
+        await using var db = GetDb;
 
         await db.DeckOptions.AddAsync(newEntity);
         await db.SaveChangesAsync();
@@ -94,7 +95,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
             @"Cannot edit deck options with id -1,
             as default preset is read-only");
 
-        var db = GetDb;
+        await using var db = GetDb;
 
         var tracked = await db.DeckOptions
             .SingleAsync(o => o.Id == updatedRecord.Id);
@@ -106,7 +107,8 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
     }
     public async Task Rename(string name, long id)
     {
-        await GetDb.DeckOptions
+        await using var db = GetDb;
+        await db.DeckOptions
             .Where(d => d.Id == id)
             .ExecuteUpdateAsync(opt => 
                 opt.SetProperty(d => d.Name, name));
@@ -114,7 +116,8 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
 
     public async Task<IDictionary<long, DeckOptionsEntity>> MappedByDeckId(long userId)
     {
-        return await GetDb.Decks
+        await using var db = GetDb;
+        return await db.Decks
             .AsNoTracking()
             .Include(d => d.Options)
             .ToDictionaryAsync(k => k.Id, v => v.Options);

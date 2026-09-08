@@ -12,7 +12,7 @@ public class UserOptionsService(IDbContextFactory<AppDbContext> factory): DbDepe
             throw new ArgumentOutOfRangeException(nameof(updated),
             "Can't start the day after 12pm, come on!! Get up a bit earlier would you?");
 
-        var db = GetDb;
+        await using var db = GetDb;
 
         var user = await db.Users
             .SingleAsync(u => u.Id == userId);
@@ -23,15 +23,19 @@ public class UserOptionsService(IDbContextFactory<AppDbContext> factory): DbDepe
     }
 
     public async Task<UserOptions> GetFromUser(long userId)
-        => await GetDb.Users
+    {
+        await using var db = GetDb;
+        return await db.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
             .Select(u => u.Options)
             .SingleAsync();
+    }
 
     public async Task<byte> GetDayStartOffset(long userId)
     {
-        return await GetDb.Users
+        await using var db = GetDb;
+        return await db.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
             .Select(u => u.Options.DayStartOffset)

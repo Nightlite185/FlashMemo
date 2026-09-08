@@ -21,11 +21,14 @@ public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDepe
     }
 
     public async Task LoadAppSessionAsync()
-        => appSession = await GetDb.AppSessionData.SingleAsync();
+    {
+        await using var db = GetDb;
+        appSession = await db.AppSessionData.SingleAsync();
+    }
 
     public async Task LoadUserCacheAsync(long userId)
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         userCache = await db.UserSessionCaches
             .SingleOrDefaultAsync(cache => cache.UserId == userId);
@@ -57,7 +60,7 @@ public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDepe
 
     public async Task SaveStateAsync()
     {
-        var db = GetDb;
+        await using var db = GetDb;
 
         db.AppSessionData.Update(appSession);
 
@@ -73,7 +76,7 @@ public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDepe
 
     private async Task SaveAppSessionAsync()
     {
-        var db = GetDb;
+        await using var db = GetDb;
         db.AppSessionData.Update(appSession);
         await db.SaveChangesAsync();
     }

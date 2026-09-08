@@ -41,7 +41,7 @@ public partial class App : Application
             .UnburyIfNextDay();
 
         var lss = sp.GetRequiredService<ILastSessionService>();
-        await lss.LoadAsync();
+        await lss.LoadAppSessionAsync();
 
         if (lss.LastUserId is null)
         {
@@ -51,6 +51,8 @@ public partial class App : Application
 
         else
         {
+            await lss.LoadUserCacheAsync((long)lss.LastUserId);
+
             var mainVM = sp.GetRequiredService<MainVMF>()
                 .Create((long)lss.LastUserId);
             

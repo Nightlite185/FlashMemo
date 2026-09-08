@@ -80,7 +80,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
         Users.Remove(toRemove);
 
         if (lastSession.LastUserId == toRemove.Id)
-            lastSession.LastUserId = null;
+            await lastSession.ClearLastUserAsync();
     }
 
     [RelayCommand]
@@ -100,7 +100,6 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
         if (currentUserId != toLogin.Id)
         {
             await loginService.ChangeUser(toLogin.Id);
-            lastSession.LastUserId = toLogin.Id;
         }
 
         OnCloseRequest?.Invoke();

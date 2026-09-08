@@ -6,7 +6,8 @@ namespace FlashMemo.Model.Persistence
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<DeckOptionsEntity> DeckOptions => Set<DeckOptionsEntity>();
-        public DbSet<LastSessionData> LastSessionData => Set<LastSessionData>();
+        public DbSet<AppSessionData> AppSessionData => Set<AppSessionData>();
+        public DbSet<UserSessionCache> UserSessionCaches => Set<UserSessionCache>();
         public DbSet<CardEntity> Cards => Set<CardEntity>();
         public DbSet<UserEntity> Users => Set<UserEntity>();
         public DbSet<CardLog> CardLogs => Set<CardLog>();
@@ -44,10 +45,39 @@ namespace FlashMemo.Model.Persistence
             });
                 
 
-            mb.Entity<LastSessionData>(mb =>
+            mb.Entity<AppSessionData>(mb =>
             {
                 mb.Property(s => s.Id)
                 .ValueGeneratedNever();
+
+                mb.HasOne<UserEntity>()
+                    .WithMany()
+                    .HasForeignKey(s => s.LastLoadedUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            mb.Entity<UserSessionCache>(mb =>
+            {
+                mb.HasKey(s => s.UserId);
+
+                mb.HasOne<UserEntity>()
+                    .WithOne()
+                    .HasForeignKey<UserSessionCache>(s => s.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                mb.HasOne<Deck>()
+                    .WithOne()
+                    .HasForeignKey<UserSessionCache>(s => new
+                    {
+                        s.UserId,
+                        s.LastUsedDeckId
+                    })
+                    .HasPrincipalKey<Deck>(d => new
+                    {
+                        d.UserId,
+                        LastUsedDeckId = d.Id
+                    })
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 mb.OwnsOne(s => s.LastFilters, mb =>
                 {

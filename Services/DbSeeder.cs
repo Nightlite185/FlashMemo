@@ -13,7 +13,7 @@ public class DbSeeder(AppDbContext db, IMapper m)
     public async Task SeedAsync()
     {
         await SeedDeckOptions();
-        await SeedLastSessionData();
+        await SeedAppSessionData();
     }
 
     private async Task SeedDeckOptions()
@@ -27,13 +27,13 @@ public class DbSeeder(AppDbContext db, IMapper m)
         await db.DeckOptions.AddAsync(entity);
         await db.SaveChangesAsync();
     }
-    private async Task SeedLastSessionData()
+    private async Task SeedAppSessionData()
     {
-        if (await db.LastSessionData.AnyAsync())
+        if (await db.AppSessionData.AnyAsync())
             return;
 
-        await db.LastSessionData.AddAsync(
-            new LastSessionData() { Id = -1 });
+        await db.AppSessionData.AddAsync(
+            new AppSessionData() { Id = -1 });
 
         await db.SaveChangesAsync();
     }

@@ -47,11 +47,27 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         await db.Decks.AddAsync(deck);
         await db.SaveChangesAsync();
     }
-    public async Task RemoveDeck(long deckId)
+    public async Task<IReadOnlySet<long>> RemoveDeck(long deckId)
     {
-        await GetDb.Decks
+        var db = GetDb;
+        var removedDeckIds = (await GetChildrenIds(deckId, db))
+            .ToHashSet();
+
+        await using var transaction = await db.Database
+            .BeginTransactionAsync();
+
+        await db.UserSessionCaches
+            .Where(cache => cache.LastUsedDeckId.HasValue
+                && removedDeckIds.Contains(cache.LastUsedDeckId.Value))
+            .ExecuteUpdateAsync(update => update
+                .SetProperty(cache => cache.LastUsedDeckId, (long?)null));
+
+        await db.Decks
             .Where(d => d.Id == deckId)
             .ExecuteDeleteAsync();
+
+        await transaction.CommitAsync();
+        return removedDeckIds;
     }
     public async Task<Deck?> GetById(long deckId)
     {

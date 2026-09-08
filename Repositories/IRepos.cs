@@ -19,7 +19,7 @@ public interface IDeckRepo
     Task RenameDeck(long id, string name);
     Task<bool> Exists(long id);
     Task AddNewDeck(Deck deck);
-    Task RemoveDeck(long deckId);
+    Task<IReadOnlySet<long>> RemoveDeck(long deckId);
     Task<Deck> GetFromCard(long cardId);
     Task<Deck?> GetById(long id);
 

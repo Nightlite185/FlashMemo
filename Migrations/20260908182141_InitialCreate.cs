@@ -12,33 +12,6 @@ namespace FlashMemo.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "LastSessionData",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false),
-                    LastLoadedUserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    LastUsedDeckId = table.Column<long>(type: "INTEGER", nullable: true),
-                    LastFilters_UserId = table.Column<long>(type: "INTEGER", nullable: true),
-                    LastFilters_IsBuried = table.Column<bool>(type: "INTEGER", nullable: true),
-                    LastFilters_IsSuspended = table.Column<bool>(type: "INTEGER", nullable: true),
-                    LastFilters_IsDue = table.Column<bool>(type: "INTEGER", nullable: true),
-                    LastFilters_TagIds = table.Column<string>(type: "TEXT", nullable: true),
-                    LastFilters_DeckIds = table.Column<string>(type: "TEXT", nullable: true),
-                    LastFilters_IncludeChildrenDecks = table.Column<bool>(type: "INTEGER", nullable: true),
-                    LastFilters_OverdueByDays = table.Column<int>(type: "INTEGER", nullable: true),
-                    LastFilters_States = table.Column<string>(type: "TEXT", nullable: true),
-                    LastFilters_IntervalDays = table.Column<int>(type: "INTEGER", nullable: true),
-                    LastFilters_Created = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastFilters_Due = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastFilters_LastReviewed = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastFilters_LastModified = table.Column<DateTime>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_LastSessionData", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Notes",
                 columns: table => new
                 {
@@ -69,6 +42,24 @@ namespace FlashMemo.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AppSessionData",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    LastLoadedUserId = table.Column<long>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AppSessionData", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AppSessionData_Users_LastLoadedUserId",
+                        column: x => x.LastLoadedUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -140,6 +131,7 @@ namespace FlashMemo.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Decks", x => x.Id);
+                    table.UniqueConstraint("AK_Decks_UserId_Id", x => new { x.UserId, x.Id });
                     table.ForeignKey(
                         name: "FK_Decks_DeckOptions_OptionsId",
                         column: x => x.OptionsId,
@@ -192,6 +184,44 @@ namespace FlashMemo.Migrations
                         name: "FK_Cards_Notes_NoteId",
                         column: x => x.NoteId,
                         principalTable: "Notes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserSessionCaches",
+                columns: table => new
+                {
+                    UserId = table.Column<long>(type: "INTEGER", nullable: false),
+                    LastUsedDeckId = table.Column<long>(type: "INTEGER", nullable: true),
+                    LastFilters_UserId = table.Column<long>(type: "INTEGER", nullable: true),
+                    LastFilters_IsBuried = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_IsSuspended = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_IsDue = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_TagIds = table.Column<string>(type: "TEXT", nullable: true),
+                    LastFilters_DeckIds = table.Column<string>(type: "TEXT", nullable: true),
+                    LastFilters_IncludeChildrenDecks = table.Column<bool>(type: "INTEGER", nullable: true),
+                    LastFilters_OverdueByDays = table.Column<int>(type: "INTEGER", nullable: true),
+                    LastFilters_States = table.Column<string>(type: "TEXT", nullable: true),
+                    LastFilters_IntervalDays = table.Column<int>(type: "INTEGER", nullable: true),
+                    LastFilters_Created = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastFilters_Due = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastFilters_LastReviewed = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastFilters_LastModified = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserSessionCaches", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_UserSessionCaches_Decks_UserId_LastUsedDeckId",
+                        columns: x => new { x.UserId, x.LastUsedDeckId },
+                        principalTable: "Decks",
+                        principalColumns: new[] { "UserId", "Id" },
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserSessionCaches_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -251,6 +281,11 @@ namespace FlashMemo.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_AppSessionData_LastLoadedUserId",
+                table: "AppSessionData",
+                column: "LastLoadedUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CardEntityTag_TagsId",
                 table: "CardEntityTag",
                 column: "TagsId");
@@ -291,14 +326,15 @@ namespace FlashMemo.Migrations
                 column: "ParentDeckId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Decks_UserId",
-                table: "Decks",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tags_UserId_Name",
                 table: "Tags",
                 columns: new[] { "UserId", "Name" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserSessionCaches_UserId_LastUsedDeckId",
+                table: "UserSessionCaches",
+                columns: new[] { "UserId", "LastUsedDeckId" },
                 unique: true);
         }
 
@@ -306,13 +342,16 @@ namespace FlashMemo.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AppSessionData");
+
+            migrationBuilder.DropTable(
                 name: "CardEntityTag");
 
             migrationBuilder.DropTable(
                 name: "CardLogs");
 
             migrationBuilder.DropTable(
-                name: "LastSessionData");
+                name: "UserSessionCaches");
 
             migrationBuilder.DropTable(
                 name: "Tags");

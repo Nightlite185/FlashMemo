@@ -14,7 +14,7 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM(
     IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM, 
-    long userId, IVMEventBus bus) : BaseVM(bus), IPopupHost
+    ILastSessionService lastSession, long userId, IVMEventBus bus) : BaseVM(bus), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
 
@@ -102,12 +102,18 @@ public partial class DecksVM(
     [RelayCommand]
     private async Task RemoveDeck(DeckNode deck)
     {
+        var removedDeckIds = await deckRepo.RemoveDeck(deck.Id);
+
+        if (lastSession.LastDeckId is long lastDeckId
+            && removedDeckIds.Contains(lastDeckId))
+        {
+            lastSession.LastDeckId = null;
+        }
+
         if (deck.Parent is DeckNode parent)
             parent.RemoveChild(deck);
 
         else DeckTree.Remove(deck);
-
-        await deckRepo.RemoveDeck(deck.Id);
     }
 
     [RelayCommand]

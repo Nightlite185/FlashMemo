@@ -5,10 +5,13 @@ using FlashMemo.ViewModel.Factories;
 namespace FlashMemo.Services;
 
 public class LoginService(MainVMF mainVMF, MainWindowBootstrapper bootstrapper, 
-                            ICardService cardService): ILoginService
+                            ICardService cardService, ILastSessionService lastSession): ILoginService
 {
     public async Task ChangeUser(long userId)
     {
+        await lastSession.SaveStateAsync();
+        await lastSession.LoadUserCacheAsync(userId);
+        await lastSession.SetLastUserAsync(userId);
         await cardService.UnburyIfNextDay();
 
         bool replacedMainVM = false;

@@ -8,16 +8,26 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class StatsVM (IVMEventBus bus, long userId, AnswerRatioVM ansRatioVM, 
                                 IStatsQueryService statsService) : BaseVM(bus)
 {
+    private const string NotAvailable = "N/A";
+
     internal async Task InitAsync()
     {
-        WeekDayWithMostReviewsInLastMonth = await statsService
-            .DayWithMostReviewsInLastMonth(userId);
+        WeekDayWithMostReviewsInLastMonth = (await statsService
+            .DayWithMostReviewsInLastMonth(userId)) is DayOfWeek d
+                ? d.ToString()
+                : NotAvailable;
 
-        AverageAnswerTimeInLastMonth = await statsService
-            .AvgAnswerTimeInLastMonth(userId);
+        var ts = await statsService.AvgAnswerTimeInLastMonth(userId);
 
-        MostReviewedHourOfDayInLastMonth = await statsService
-            .MostReviewedHourOfDayInLastMonth(userId);
+        AverageAnswerTimeInLastMonth = (ts == TimeSpan.MinValue)
+            ? NotAvailable
+            : FormatDuration(ts);
+
+        int hr = await statsService.MostReviewedHourOfDayInLastMonth(userId);
+
+        MostReviewedHourOfDayInLastMonth = hr == int.MinValue
+            ? NotAvailable
+            : $"{hr:00}:00";
 
         TotalReviewsEver = await statsService
             .TotalReviewsEver(userId);
@@ -29,14 +39,21 @@ public partial class StatsVM (IVMEventBus bus, long userId, AnswerRatioVM ansRat
             .LongestReviewStreak(userId);
     }
 
-    [ObservableProperty]
-    public partial TimeSpan AverageAnswerTimeInLastMonth { get; private set; }
+    private static string FormatDuration(TimeSpan duration)
+    {
+        return duration.TotalHours >= 1
+            ? $"{(int)duration.TotalHours:00}:{duration.Minutes:00}:{duration.Seconds:00}"
+            : $"{(int)duration.TotalMinutes:00}:{duration.Seconds:00}";
+    }
 
     [ObservableProperty]
-    public partial DayOfWeek WeekDayWithMostReviewsInLastMonth { get; private set; }
+    public partial string AverageAnswerTimeInLastMonth { get; private set; } = NotAvailable;
 
     [ObservableProperty]
-    public partial int MostReviewedHourOfDayInLastMonth { get; private set; }
+    public partial string WeekDayWithMostReviewsInLastMonth { get; private set; } = NotAvailable;
+
+    [ObservableProperty]
+    public partial string MostReviewedHourOfDayInLastMonth { get; private set; } = NotAvailable;
 
     [ObservableProperty]
     public partial int TotalReviewsEver { get; private set; }

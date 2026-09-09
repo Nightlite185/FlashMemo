@@ -39,34 +39,51 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
 
         return (int)Math.Round((double)chosenAnsCount / allAnsCount * 100);
     }
-    public async Task<DayOfWeek> DayWithMostReviewsInLastMonth(long userId)
+
+    // Returns null when there is no review data in the period.
+    public async Task<DayOfWeek?> DayWithMostReviewsInLastMonth(long userId)
     {
         await using var db = GetDb;
-        return await GetBaseQuery(db, userId, MonthAgo)
+        var query = GetBaseQuery(db, userId, MonthAgo);
+
+        if (!await query.AnyAsync())
+            return null;
+
+        return await query
             .GroupBy(l => l.TimeStamp.DayOfWeek)
             .OrderByDescending(g => g.Count())
             .Select(g => g.Key)
             .FirstOrDefaultAsync();
     }
+
+    // Returns TimeSpan.MinValue when there is no answer-time data in the period.
     public async Task<TimeSpan> AvgAnswerTimeInLastMonth(long userId)
     {
         await using var db = GetDb;
+
         var query = GetBaseQuery(db, userId, MonthAgo)
             .Where(l => l.AnswerTimeSeconds.HasValue)
             .Select(l => l.AnswerTimeSeconds);
 
         if (!await query.AnyAsync())
-            return TimeSpan.Zero;
+            return TimeSpan.MinValue;
 
         double secondsAVG = await query
             .AverageAsync() ?? 0;
 
         return TimeSpan.FromSeconds(secondsAVG);
     }
+
+    // Returns int.MinValue when there is no review data in the period.
     public async Task<int> MostReviewedHourOfDayInLastMonth(long userId)
     {
         await using var db = GetDb;
-        return await GetBaseQuery(db, userId, MonthAgo)
+        var query = GetBaseQuery(db, userId, MonthAgo);
+
+        if (!await query.AnyAsync())
+            return int.MinValue;
+
+        return await query
             .GroupBy(l => l.TimeStamp.Hour)
             .OrderByDescending(g => g.Count())
             .Select(g => g.Key)
@@ -75,12 +92,14 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
     public async Task<int> TotalReviewsEver(long userId)
     {
         await using var db = GetDb;
+
         return await GetBaseQuery(db, userId)
             .CountAsync();
     }
     public async Task<int> LongestReviewStreak(long userId)
     {
         await using var db = GetDb;
+
         var reviewDays = await GetBaseQuery(db, userId)
             .Select(l => l.TimeStamp.Date)
             .Distinct().Order()
@@ -111,6 +130,7 @@ public class StatsQueryService(IDbContextFactory<AppDbContext> factory)
     public async Task<int> CurrentReviewStreak(long userId)
     {
         await using var db = GetDb;
+
         var reviewDays = await GetBaseQuery(db, userId)
             .Select(l => l.TimeStamp.Date)
             .Distinct().OrderDescending()

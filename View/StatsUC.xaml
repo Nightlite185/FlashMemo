@@ -261,7 +261,7 @@
                                        Text="Average answer time"/>
                             <TextBlock Margin="0,10,0,4"
                                        Style="{StaticResource StatsMetricValueStyle}"
-                                       Text="{Binding AverageAnswerTimeInLastMonth, StringFormat={}{0:mm\\:ss}}"/>
+                                       Text="{Binding AverageAnswerTimeInLastMonth}"/>
                             <TextBlock Style="{StaticResource StatsBodyTextStyle}"
                                        Text="Average pace over the last month."/>
                         </StackPanel>
@@ -274,7 +274,7 @@
                                        Text="Busiest weekday"/>
                             <TextBlock Margin="0,10,0,4"
                                        Style="{StaticResource StatsMetricValueStyle}"
-                                       Text="{Binding WeekDayWithMostReviewsInLastMonth, Converter={StaticResource EnumToReadableTextConverter}}"/>
+                                       Text="{Binding WeekDayWithMostReviewsInLastMonth}"/>
                             <TextBlock Style="{StaticResource StatsBodyTextStyle}"
                                        Text="The weekday with the highest review volume in the last month."/>
                         </StackPanel>
@@ -286,7 +286,7 @@
                                        Text="Peak review hour"/>
                             <TextBlock Margin="0,10,0,4"
                                        Style="{StaticResource StatsMetricValueStyle}"
-                                       Text="{Binding MostReviewedHourOfDayInLastMonth, StringFormat={}{0:00}:00}"/>
+                                       Text="{Binding MostReviewedHourOfDayInLastMonth}"/>
                             <TextBlock Style="{StaticResource StatsBodyTextStyle}"
                                        Text="The hour of day when you reviewed the most cards in the last month."/>
                         </StackPanel>

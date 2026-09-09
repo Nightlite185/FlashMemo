@@ -137,7 +137,7 @@ public interface IClock
 public interface IStatsQueryService
 {
     Task<int> GetAnswerRatio(Answers answer, TimePeriod lastPeriod, long userId);
-    Task<DayOfWeek> DayWithMostReviewsInLastMonth(long userId);
+    Task<DayOfWeek?> DayWithMostReviewsInLastMonth(long userId);
     Task<TimeSpan> AvgAnswerTimeInLastMonth(long userId);
     Task<int> MostReviewedHourOfDayInLastMonth(long userId);
     Task<int> TotalReviewsEver(long userId);

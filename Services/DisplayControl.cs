@@ -10,9 +10,10 @@ public class DisplayControl(IDisplayHost host, DecksVMF decksVMF, ReviewVMF revi
         var vm = await decksVMF
             .CreateAsync(userId);
         
-        vm.OnReviewNavRequest += deck => SwitchToReview(userId, deck);
-        
+        UnplugHostEvents();
         WireEvents(vm);
+        vm.OnReviewNavRequest += deck => SwitchToReview(userId, deck);
+
         host.CurrentDisplay = vm;
     }
 
@@ -21,9 +22,10 @@ public class DisplayControl(IDisplayHost host, DecksVMF decksVMF, ReviewVMF revi
         var vm = await reviewVMF
             .CreateAsync(userId, deck);
 
+        UnplugHostEvents();
+        WireEvents(vm);
         vm.OnDecksNavRequest += () => SwitchToDecks(userId);
 
-        WireEvents(vm);
         host.CurrentDisplay = vm;
     }
 
@@ -32,7 +34,9 @@ public class DisplayControl(IDisplayHost host, DecksVMF decksVMF, ReviewVMF revi
         var vm = await statsVMF
             .CreateAsync(userId);
 
+        UnplugHostEvents();
         WireEvents(vm);
+
         host.CurrentDisplay = vm;
     }
 
@@ -40,5 +44,11 @@ public class DisplayControl(IDisplayHost host, DecksVMF decksVMF, ReviewVMF revi
     {
         if (vm is INavRequestSender navVM && host is INavRequestSender parent)
             parent.RegisterNavBubbling(navVM);
+    }
+
+    private void UnplugHostEvents()
+    {
+        if (host.CurrentDisplay is IClosedHandler ch)
+            ch.OnClosed();
     }
 }

@@ -34,9 +34,6 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
     [ObservableProperty] public partial DateTime? LastReviewed { get; set; }
     [ObservableProperty] public partial DateTime? LastModified { get; set; }
     [ObservableProperty] public partial DateTime? Created { get; set; }
-    //? everywhere with datetime I can do like int input box with 0 meaning today,
-    //? -1 yesterday, and 1 meaning tmrw, Instead of some fancy datetime picker.
-
     [ObservableProperty] public partial int? OverdueByDays { get; set; }
     //* null => not chosen, 0 => due today, 1 => overdue by 1 day.
     #endregion

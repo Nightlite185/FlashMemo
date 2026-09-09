@@ -7,21 +7,10 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel;
 
-public interface IAsyncVMFactory<TVM> where TVM: IViewModel
-{
-    Task<TVM> CreateAsync();
-}
-
-public interface IVMFactory<TVM> where TVM: IViewModel
-{
-    TVM Create();
-}
-
 public interface ICloseRequest
 {
     public event Action? OnCloseRequest;
 }
-
 
 public interface INavRequestSender
 {
@@ -90,10 +79,4 @@ public interface ICardTagsVM
 public interface ICardTagsVMHost
 {
     List<TagVM> Tags { get; }
-}
-
-public interface ITagManagerEventSource
-{
-    event Action<IEnumerable<TagVM>, long> TagContextChanged;
-    event Action TagContextCleared;
 }

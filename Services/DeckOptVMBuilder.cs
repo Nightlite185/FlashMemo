@@ -14,27 +14,25 @@ public class DeckOptVMBuilder(IDbContextFactory<AppDbContext> factory, IMapper m
     {
         await using var db = GetDb;
         
-        var domainOptions = await repo
-            .GetAllFromUser(userId);
-
-        var vms = domainOptions
+        var presetVMs = (await repo
+            .GetAllFromUser(userId))
             .Select(mapper.Map<DeckOptionsVM>)
             .ToArray();
 
         var countMap = await db.Decks
+            .Where(d => d.UserId == userId)
             .GroupBy(d => d.OptionsId)
             .ToDictionaryAsync(
-                k => k.Key, 
-                v => v.Count());
+                g => g.Key,
+                g => g.Count());
 
-        foreach (var vm in vms)
+        foreach (var vm in presetVMs)
         {
             vm.DeckCount = countMap
                 .TryGetValue(vm.Id, out var c) 
-                ? c 
-                : 0;
+                    ? c : 0;
         }
 
-        return vms;
+        return presetVMs;
     }
 }

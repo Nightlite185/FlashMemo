@@ -1,5 +1,3 @@
-using FlashMemo.Helpers;
-
 namespace FlashMemo.Model.Persistence
 {
     public class UserEntity
@@ -13,7 +11,6 @@ namespace FlashMemo.Model.Persistence
         {
             return new()
             {
-                Id = IdGetter.Next(),
                 Created = DateTime.Now,
                 Name = name,
                 Options = UserOptions.CreateDefault()

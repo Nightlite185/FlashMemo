@@ -65,7 +65,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
             .ExecuteUpdateAsync(d => d.SetProperty(o => 
                 o.OptionsId, newPresetId));
     }
-    public async Task CreateNew(DeckOptions newRecord)
+    public async Task<DeckOptions> CreateNew(DeckOptions newRecord)
     {
         if (newRecord.Id == -1) throw new InvalidOperationException(
             @"Cannot add new deck options preset with id -1,
@@ -76,9 +76,11 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
 
         mapper.Map(newRecord, newEntity);
 
-        await CreateNew(newEntity);
+        newEntity = await CreateNew(newEntity);
+        newRecord.Id = newEntity.Id;
+        return newRecord;
     }
-    public async Task CreateNew(DeckOptionsEntity newEntity)
+    public async Task<DeckOptionsEntity> CreateNew(DeckOptionsEntity newEntity)
     {
         if (newEntity.Id == -1) throw new InvalidOperationException(
             @"Cannot add new deck options preset with id -1,
@@ -88,6 +90,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
 
         await db.DeckOptions.AddAsync(newEntity);
         await db.SaveChangesAsync();
+        return newEntity;
     }
     public async Task SaveEditedPreset(DeckOptions updatedRecord)
     {

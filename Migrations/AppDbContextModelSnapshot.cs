@@ -35,6 +35,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.AppSessionData", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<long?>("LastLoadedUserId")
@@ -50,6 +51,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardEntity", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("BuriedDate")
@@ -103,6 +105,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.CardLog", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Action")
@@ -138,6 +141,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.Deck", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Created")
@@ -168,6 +172,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.DeckOptionsEntity", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -187,6 +192,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.Note", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("NoteType")
@@ -206,6 +212,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.Tag", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -227,6 +234,7 @@ namespace FlashMemo.Migrations
             modelBuilder.Entity("FlashMemo.Model.Persistence.UserEntity", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Created")

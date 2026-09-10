@@ -15,7 +15,8 @@ namespace FlashMemo.Migrations
                 name: "Notes",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     NoteType = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
                     FrontContent = table.Column<string>(type: "TEXT", nullable: true),
                     BackContent = table.Column<string>(type: "TEXT", nullable: true)
@@ -29,7 +30,8 @@ namespace FlashMemo.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Options_DayStartOffset = table.Column<byte>(type: "INTEGER", nullable: false),
@@ -48,7 +50,8 @@ namespace FlashMemo.Migrations
                 name: "AppSessionData",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     LastLoadedUserId = table.Column<long>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
@@ -66,7 +69,8 @@ namespace FlashMemo.Migrations
                 name: "DeckOptions",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     UserId = table.Column<long>(type: "INTEGER", nullable: true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Scheduling_GoodMultiplier = table.Column<double>(type: "REAL", nullable: false),
@@ -102,7 +106,8 @@ namespace FlashMemo.Migrations
                 name: "Tags",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE")
                 },
@@ -121,7 +126,8 @@ namespace FlashMemo.Migrations
                 name: "Decks",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UserId = table.Column<long>(type: "INTEGER", nullable: false),
@@ -156,7 +162,8 @@ namespace FlashMemo.Migrations
                 name: "Cards",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     NoteId = table.Column<long>(type: "INTEGER", nullable: false),
                     DeckId = table.Column<long>(type: "INTEGER", nullable: false),
@@ -254,7 +261,8 @@ namespace FlashMemo.Migrations
                 name: "CardLogs",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false),
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     CardId = table.Column<long>(type: "INTEGER", nullable: true),
                     UserId = table.Column<long>(type: "INTEGER", nullable: false),
                     Action = table.Column<int>(type: "INTEGER", nullable: false),

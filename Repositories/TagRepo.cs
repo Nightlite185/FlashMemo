@@ -23,12 +23,13 @@ public class TagRepo(IDbContextFactory<AppDbContext> factory): DbDependentClass(
             .Select(c => c.Tags)
             .SingleAsync();
     }
-    public async Task CreateNew(Tag newTag)
+    public async Task<Tag> CreateNew(Tag newTag)
     {
         await using var db = GetDb;
 
         await db.Tags.AddAsync(newTag);
         await db.SaveChangesAsync();
+        return newTag;
     }
     public async Task Remove(long tagId)
     {

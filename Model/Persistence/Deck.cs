@@ -1,6 +1,4 @@
 using System.Collections;
-using FlashMemo.Helpers;
-
 namespace FlashMemo.Model.Persistence
 {
     public class Deck: IEnumerable<CardEntity>, IEquatable<Deck>, IDeckMeta
@@ -23,7 +21,6 @@ namespace FlashMemo.Model.Persistence
         {
             return new()
             {
-                Id = IdGetter.Next(),
                 Name = name,
                 Created = DateTime.Now,
                 UserId = userId,

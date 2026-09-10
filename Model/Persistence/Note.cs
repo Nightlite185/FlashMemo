@@ -1,5 +1,3 @@
-using FlashMemo.Helpers;
-
 namespace FlashMemo.Model.Persistence;
 
 public enum NoteTypes { Standard }
@@ -35,8 +33,6 @@ public class StandardNote: Note
     {
         return new()
         {
-            Id = IdGetter.Next(),
-            
             FrontContent = front,
             BackContent = back
         };

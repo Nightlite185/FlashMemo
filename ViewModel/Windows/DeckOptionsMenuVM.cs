@@ -200,11 +200,11 @@ public sealed partial class DeckOptionsMenuVM(
     {
         var domainClone = mapper.Map<DeckOptions>(CurrentOptions) with
         {
-            Id = IdGetter.Next(),
+            Id = 0,
             Name = $"{CurrentOptions.Name} - copy"
         };
 
-        await deckOptService.CreateNew(domainClone);
+        domainClone = await deckOptService.CreateNew(domainClone);
         
         var cloneVM = mapper.Map<DeckOptionsVM>(domainClone);
         AllPresets.Add(cloneVM);
@@ -221,7 +221,7 @@ public sealed partial class DeckOptionsMenuVM(
         var newPreset = DeckOptions
             .CreateNew(NewPresetName, deck.UserId);
 
-        await deckOptService.CreateNew(newPreset);
+        newPreset = await deckOptService.CreateNew(newPreset);
         
         var newVM = mapper.Map<DeckOptionsVM>(newPreset);
         AllPresets.Add(newVM);

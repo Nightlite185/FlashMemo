@@ -31,20 +31,14 @@ namespace FlashMemo.Model.Persistence
 
         private static void DefineTables(ModelBuilder mb)
         {
-            mb.Entity<CardEntity>(mb =>
-            {
-                mb.ToTable("Cards")
-                    .Property(c => c.Id)
-                    .ValueGeneratedNever();
-            });
+            mb.Entity<CardEntity>()
+                .ToTable("Cards");
 
             mb.Entity<Note>(mb =>
             {
                 mb.HasKey(n => n.Id);
 
-                mb.ToTable("Notes")
-                    .Property(n => n.Id)
-                    .ValueGeneratedNever();
+                mb.ToTable("Notes");
                     
                 mb.HasDiscriminator<string>("NoteType")
                     .HasValue<StandardNote>("Standard");
@@ -53,9 +47,6 @@ namespace FlashMemo.Model.Persistence
 
             mb.Entity<AppSessionData>(mb =>
             {
-                mb.Property(s => s.Id)
-                .ValueGeneratedNever();
-
                 mb.HasOne<UserEntity>()
                     .WithMany()
                     .HasForeignKey(s => s.LastLoadedUserId)
@@ -100,9 +91,7 @@ namespace FlashMemo.Model.Persistence
 
             mb.Entity<DeckOptionsEntity>(mb =>
             {
-                mb.ToTable("DeckOptions")
-                .Property(c => c.Id)
-                .ValueGeneratedNever();
+                mb.ToTable("DeckOptions");
 
                 mb.OwnsOne(d => d.Scheduling)
                     .OwnsOne(s => s.LearningStages);
@@ -112,16 +101,11 @@ namespace FlashMemo.Model.Persistence
             });
 
             mb.Entity<Deck>()
-                .ToTable("Decks")
-                .Property(d => d.Id)
-                .ValueGeneratedNever();
+                .ToTable("Decks");
 
             mb.Entity<UserEntity>(mb =>
             {
-                mb.ToTable("Users")
-                .Property(u => u.Id)
-                .ValueGeneratedNever();
-
+                mb.ToTable("Users");
                 mb.OwnsOne(u => u.Options);
             });
                 
@@ -129,9 +113,6 @@ namespace FlashMemo.Model.Persistence
             mb.Entity<Tag>(mb =>
             {
                 mb.ToTable("Tags");
-
-                mb.Property(t => t.Id)
-                    .ValueGeneratedNever();
 
                 mb.Property(t => t.Name)
                     .IsRequired()
@@ -142,9 +123,7 @@ namespace FlashMemo.Model.Persistence
             });
 
             mb.Entity<CardLog>()
-                .ToTable("CardLogs")
-                .Property(cl => cl.Id)
-                .ValueGeneratedNever();
+                .ToTable("CardLogs");
         }
         private static void ConfigureDeletion(ModelBuilder mb)
         {

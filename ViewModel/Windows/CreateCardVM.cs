@@ -90,7 +90,7 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
             CurrentDeck,
             WipCard.Tags.ToEntities());
 
-        await cardRepo.AddCard(card);
+        card = await cardRepo.AddCard(card);
 
         History.Add(card);
 

@@ -43,12 +43,13 @@ public sealed class DeckRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
         await db.SaveChangesAsync();
     }
-    public async Task AddNewDeck(Deck deck)
+    public async Task<Deck> AddNewDeck(Deck deck)
     {
         await using var db = GetDb;
         
         await db.Decks.AddAsync(deck);
         await db.SaveChangesAsync();
+        return deck;
     }
     public async Task<IReadOnlySet<long>> RemoveDeck(long deckId)
     {

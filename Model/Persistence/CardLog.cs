@@ -1,4 +1,3 @@
-using FlashMemo.Helpers;
 using FlashMemo.Model.Domain;
 
 namespace FlashMemo.Model.Persistence
@@ -21,7 +20,6 @@ namespace FlashMemo.Model.Persistence
         {
             return new()
             {
-                Id = IdGetter.Next(),
                 UserId = card.UserId,
                 CardId = card.Id,
                 Card = card,
@@ -37,7 +35,6 @@ namespace FlashMemo.Model.Persistence
         {
             return new()
             {
-                Id = IdGetter.Next(),
                 UserId = card.UserId,
                 CardId = card.Id,
                 Card = card,

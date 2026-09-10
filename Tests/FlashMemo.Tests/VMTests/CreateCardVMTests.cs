@@ -54,7 +54,7 @@ public class CreateCardVMTests : IDisposable
             tags.Add(new Tag()
             {
                 Name = $"tag{i}",
-                Id = i,
+                Id = i + 1,
                 UserId = 7
             });
 
@@ -92,6 +92,8 @@ public class CreateCardVMTests : IDisposable
             .SingleOrDefault();
 
         AssertionHelper(resultCard, expectedCard, expectedNote!);
+        resultCard!.Id.Should().BePositive();
+        resultCard.Note.Id.Should().BePositive();
     }
 
     [Fact] public async Task AddingNewCardWithTags()

@@ -1,5 +1,3 @@
-using FlashMemo.Helpers;
-
 namespace FlashMemo.Model.Persistence
 {
     public class Tag
@@ -16,7 +14,6 @@ namespace FlashMemo.Model.Persistence
         {
             return new()
             {
-                Id = IdGetter.Next(),
                 UserId = userId,
                 Name = name,
             };

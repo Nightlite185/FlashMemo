@@ -110,8 +110,8 @@ public interface IDeckOptionsService
     Task<IDictionary<long, DeckOptionsEntity>> MappedByDeckId(long userId);
     Task Remove(long presetId);
     Task Rename(string name, long id);
-    Task CreateNew(DeckOptions newRecord);
-    Task CreateNew(DeckOptionsEntity newEntity);
+    Task<DeckOptions> CreateNew(DeckOptions newRecord);
+    Task<DeckOptionsEntity> CreateNew(DeckOptionsEntity newEntity);
     Task SaveEditedPreset(DeckOptions updatedRecord);
     Task AssignToDeck(long deckId, long newPresetId);
 }

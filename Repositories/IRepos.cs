@@ -6,7 +6,7 @@ namespace FlashMemo.Repositories;
 public interface ICardRepo
 {
     Task DeleteCards(IEnumerable<long> cardIds);
-    Task AddCard(CardEntity card);
+    Task<CardEntity> AddCard(CardEntity card);
     /// <summary>Includes Deck nav property with it.</summary>
     Task<CardEntity?> GetById(long cardId);
     Task<IEnumerable<CardEntity>> GetByIds(IEnumerable<long> cardIds);
@@ -18,7 +18,7 @@ public interface IDeckRepo
     Task SaveEditedDeck(Deck updated);
     Task RenameDeck(long id, string name);
     Task<bool> Exists(long id);
-    Task AddNewDeck(Deck deck);
+    Task<Deck> AddNewDeck(Deck deck);
     Task<IReadOnlySet<long>> RemoveDeck(long deckId);
     Task<Deck> GetFromCard(long cardId);
     Task<Deck?> GetById(long id);
@@ -35,7 +35,7 @@ public interface ITagRepo
 {
     Task<ICollection<Tag>> GetFromUser(long userId);
     Task<ICollection<Tag>> GetFromCard(long cardId);
-    Task CreateNew(Tag newTag);
+    Task<Tag> CreateNew(Tag newTag);
     Task Remove(long tagId);
     Task SaveEdited(Tag updated);
     Task<Tag> GetById(long tagId);
@@ -43,7 +43,7 @@ public interface ITagRepo
 
 public interface IUserRepo
 {
-    Task CreateNew(UserEntity toAdd);
+    Task<UserEntity> CreateNew(UserEntity toAdd);
     Task<ICollection<UserEntity>> GetAllAsync();
     Task<UserEntity> GetByIdAsync(long userId);
     Task Rename(long userId, string newName);

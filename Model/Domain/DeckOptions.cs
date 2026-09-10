@@ -1,4 +1,3 @@
-using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model.Domain;
@@ -24,13 +23,13 @@ public record DeckOptions
     {
         return Default with
         { 
-            Id = IdGetter.Next(), 
+            Id = 0,
             Name = name, 
             UserId = userId
         };
     }
 
-    public long Id { get; init; }
+    public long Id { get; internal set; }
     public string Name { get; init; } = null!;
     public long? UserId { get; init; }
     

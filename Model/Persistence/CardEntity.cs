@@ -113,7 +113,6 @@ public class CardEntity: ICard
     {
         return new()
         {
-            Id = IdGetter.Next(),
             DeckId = deck.Id,
             UserId = deck.UserId,
 

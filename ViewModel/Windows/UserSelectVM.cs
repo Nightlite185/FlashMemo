@@ -87,9 +87,8 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     private async Task CreateUser(string name)
     {
         var user = UserEntity.Create(name);
+        user = await userRepo.CreateNew(user);
         var vm = userVMBuilder.BuildUncounted(user);
-
-        await userRepo.CreateNew(user);
         
         Users.Add(vm);
     }

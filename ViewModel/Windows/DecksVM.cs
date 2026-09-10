@@ -32,6 +32,8 @@ public partial class DecksVM(
     {
         Deck deck = Deck.CreateNew(
             name, userId, parent?.Id);
+
+        deck = await deckRepo.AddNewDeck(deck);
         
         DeckNode node = new(
             deck: deck,
@@ -42,8 +44,6 @@ public partial class DecksVM(
             parent.AddChild(node);
 
         else DeckTree.Add(node);
-        
-        await deckRepo.AddNewDeck(deck);
     }
     
     protected override async Task ReloadDeckOptAsync() 

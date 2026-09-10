@@ -39,11 +39,12 @@ public class UserRepo(IDbContextFactory<AppDbContext> dbFactory): DbDependentCla
                 u => u.Name, newName
             ));
     }
-    public async Task CreateNew(UserEntity toAdd)
+    public async Task<UserEntity> CreateNew(UserEntity toAdd)
     {
         await using var db = GetDb;
 
         await db.Users.AddAsync(toAdd);
         await db.SaveChangesAsync();
+        return toAdd;
     }
 }

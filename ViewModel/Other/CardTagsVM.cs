@@ -44,9 +44,8 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId): Obse
         }
 
         var tag = Tag.CreateNew(tagName, userId);
+        tag = await tagRepo.CreateNew(tag);
         TagVM vm = new(tag);
-
-        await tagRepo.CreateNew(tag);
         allTags.Add(vm);
         host.Tags.Add(vm);
 

@@ -13,7 +13,7 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
             .ExecuteDeleteAsync();
     }
 
-    public async Task AddCard(CardEntity card)
+    public async Task<CardEntity> AddCard(CardEntity card)
     {
         await using var db = GetDb;
 
@@ -21,6 +21,7 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
 
         await db.Cards.AddAsync(card);
         await db.SaveChangesAsync();
+        return card;
     }
 
     private async Task AttachTags(CardEntity card, AppDbContext db)

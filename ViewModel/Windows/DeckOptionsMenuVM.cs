@@ -7,13 +7,12 @@ using FlashMemo.Model.Persistence;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Services;
-using System.Text.Json;
-using System.DirectoryServices.ActiveDirectory;
 
 namespace FlashMemo.ViewModel.Windows;
 
 public sealed partial class DeckOptionsMenuVM(
-    IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor, Deck d, IVMEventBus bus)
+    IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor,
+    IUserOptionsService userOptionsService, Deck d, IVMEventBus bus)
     : ObservableObject, IViewModel, IClosingAware, ICloseRequest
 {
     #region public properties
@@ -72,16 +71,21 @@ public sealed partial class DeckOptionsMenuVM(
         if (opt.Id == DeckOptions.DefaultId) throw new InvalidOperationException(
             "Removing or editing the default preset is forbidden.");
     }
-    public bool CanRemovePreset()
+    public async Task<bool> CanRemovePreset()
     {
-        var result = DialogResult.Yes;
+        var userOptions = await userOptionsService
+            .GetFromUser(deck.UserId);
 
-        if (CurrentOptions.DeckCount != 0)
-            result = DialogService.Show(
-                title: "Are you sure?",
-                message: "Are you sure you want to delete currently viewed preset? Every deck currently referencing this preset, will now be assigned to the default one. Do you wish to proceed?",
-                buttons: DialogButtons.YesNo,
-                icon: DialogIcons.Warning);
+        if (!userOptions.ConfirmPresetDeletion)
+            return true;
+
+        var result = DialogService.Show(
+            title: "Delete preset?",
+            message: $"Are you sure you want to permanently delete '{CurrentOptions.Name}'?"
+                + " Every deck currently using this preset will be assigned to the default preset."
+                + DialogService.DeleteConfirmationSettingsHint,
+            buttons: DialogButtons.YesNo,
+            icon: DialogIcons.Warning);
 
         return result is DialogResult.Yes;
     }
@@ -180,15 +184,15 @@ public sealed partial class DeckOptionsMenuVM(
     {
         ThrowIfDefault(CurrentOptions);
 
-        // if (!CanRemovePreset())
-        //     return;
+        if (!await CanRemovePreset())
+            return;
 
         deck.OptionsId = DeckOptions.DefaultId;
 
         AllPresets.Remove(CurrentOptions);
         await deckOptService.Remove(CurrentOptions.Id);
 
-        CurrentOptions = AllPresets.Single(o => 
+        CurrentOptions = AllPresets.Single(o =>
             o.Id == DeckOptions.DefaultId);
 
         lastSaved = mapper.Map<DeckOptions>(CurrentOptions);

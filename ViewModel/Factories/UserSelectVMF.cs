@@ -6,7 +6,8 @@ using FlashMemo.View;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls, ILastSessionService lss)
+public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls,
+                           ILastSessionService lss, IUserOptionsService userOptionsService)
 {
     private readonly IUserRepo userRepo = ur;
     private readonly ILastSessionService lastSession = lss;
@@ -29,12 +30,13 @@ public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls, 
             windows.Any(w => w is MainWindow))
         {
             throw new InvalidOperationException(
-            "MainWindow is instantiated, and you didn't provide currentUserId");
+            "MainWindow is instantiated, but user id provided is null.");
         }
         
         var vm = new UserSelectVM(
             userRepo, userVMBuilder, 
-            loginService, lastSession, currentUserId);
+            loginService, lastSession,
+            userOptionsService, currentUserId);
     
         vm.Users.AddRange(
             await userVMBuilder.BuildAllCounted());

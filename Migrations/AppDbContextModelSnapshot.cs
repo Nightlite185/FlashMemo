@@ -511,6 +511,18 @@ namespace FlashMemo.Migrations
                             b1.Property<long>("UserEntityId")
                                 .HasColumnType("INTEGER");
 
+                            b1.Property<bool>("ConfirmCardDeletion")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ConfirmDeckDeletion")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ConfirmPresetDeletion")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ConfirmUserDeletion")
+                                .HasColumnType("INTEGER");
+
                             b1.Property<byte>("DayStartOffset")
                                 .HasColumnType("INTEGER");
 

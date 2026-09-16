@@ -39,7 +39,11 @@ namespace FlashMemo.Migrations
                     Options_TimerStopsOnReveal = table.Column<bool>(type: "INTEGER", nullable: false),
                     Options_IncludeLessonsInReviewLimit = table.Column<bool>(type: "INTEGER", nullable: false),
                     Options_IntervalScalingOnOverdueness = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Options_ShowHeatmap = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Options_ShowHeatmap = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Options_ConfirmCardDeletion = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Options_ConfirmDeckDeletion = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Options_ConfirmPresetDeletion = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Options_ConfirmUserDeletion = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

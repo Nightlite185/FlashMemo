@@ -10,12 +10,15 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
 {
-    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls, ILastSessionService lss, long? currentUserId = null)
+    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls,
+                        ILastSessionService lss, IUserOptionsService uos,
+                        long? currentUserId = null)
     {
         userRepo = ur;
         loginService = ls;
         lastSession = lss;
         userVMBuilder = uvmb;
+        userOptionsService = uos;
         this.currentUserId = currentUserId;
         NewUsernameField = "";
     }
@@ -39,6 +42,7 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     private readonly IUserRepo userRepo;
     private readonly IUserVMBuilder userVMBuilder;
     private readonly ILoginService loginService;
+    private readonly IUserOptionsService userOptionsService;
     private readonly long? currentUserId;
     #endregion
     
@@ -65,16 +69,25 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
             return;
         }
 
-        var answer = DialogService.Show(
-            title: "Are you sure?",
-            message: "Are you sure you want to delete this user? This action can't be undone, and will delete every deck, card, etc. related with this user! Do you still wish to proceed?",
+        var preferenceOwnerId = currentUserId ?? toRemove.Id;
+        bool shouldConfirm = (await userOptionsService
+            .GetFromUser(preferenceOwnerId))
+            .ConfirmUserDeletion;
 
-            buttons: DialogButtons.YesNo,
-            icon: DialogIcons.Warning
-        );
+        if (shouldConfirm)
+        {
+            var answer = DialogService.Show(
+                title: "Delete user?",
+                message: $"Are you sure you want to permanently delete '{toRemove.Name}'? "
+                    + "This will also delete every deck, card, preset, tag, and review record "
+                    + "owned by this user. This action can't be undone."
+                    + DialogService.DeleteConfirmationSettingsHint,
+                buttons: DialogButtons.YesNo,
+                icon: DialogIcons.Warning);
 
-        if (answer is DialogResult.No) 
-            return;
+            if (answer is DialogResult.No)
+                return;
+        }
 
         await userRepo.Remove(toRemove.Id);
         Users.Remove(toRemove);

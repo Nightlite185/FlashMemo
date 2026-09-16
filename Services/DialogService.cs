@@ -28,6 +28,9 @@ public enum DialogResult
 
 public static class DialogService
 {
+    public const string DeleteConfirmationSettingsHint =
+        "\n\n(If you don't want to see this pop-up again, turn it off in User Options.)";
+
     private static MessageBoxButton ConvertButtonType(DialogButtons db)
     {
         return db switch

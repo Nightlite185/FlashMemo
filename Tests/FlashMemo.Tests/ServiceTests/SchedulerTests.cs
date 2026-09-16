@@ -297,10 +297,15 @@ public class SchedulerTests
 
         foreach(var card in cards)
         {
+            var multiplied = card.Interval * deckOpt.HardMultiplier;
+            var oneDay = TimeSpan.FromDays(1);
+
             var expected = new ScheduleInfo()
             {
                 State = CardState.Review,
-                Interval = card.Interval * deckOpt.HardMultiplier,
+                Interval = multiplied > oneDay
+                    ? multiplied
+                    : oneDay,
                 LearningStage = null
             };
             var result = Scheduler.GetSchedule(

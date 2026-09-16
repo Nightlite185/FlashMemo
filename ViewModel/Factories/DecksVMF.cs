@@ -6,7 +6,8 @@ namespace FlashMemo.ViewModel.Factories;
 
 public class DecksVMF(IDeckRepo deckRepo, IDeckTreeBuilder deckBuilder, 
                       IVMEventBus bus, HeatmapVMF heatVMF,
-                      ILastSessionService lastSession)
+                      ILastSessionService lastSession,
+                      IUserOptionsService userOptionsService)
 {
     public async Task<DecksVM> CreateAsync(long userId)
     {
@@ -16,7 +17,7 @@ public class DecksVMF(IDeckRepo deckRepo, IDeckTreeBuilder deckBuilder,
         var vm = new DecksVM(
             deckRepo, deckBuilder,
             heatVM, lastSession,
-            userId, bus
+            userOptionsService, userId, bus
         );
 
         await vm.InitAsync();

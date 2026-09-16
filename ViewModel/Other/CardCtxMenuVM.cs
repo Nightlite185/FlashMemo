@@ -13,7 +13,8 @@ namespace FlashMemo.ViewModel.Other;
 public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete }
 
 public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF, 
-                                IVMEventBus eventBus, long userId, ICtxMenuHost host): ObservableObject
+                                IVMEventBus eventBus, IUserOptionsService userOptionsService,
+                                long userId, ICtxMenuHost host): ObservableObject
 {
     #region ICommands
     
@@ -68,11 +69,32 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     {
         ThrowIfNoCardsCaptured(nameof(DeleteCardsCtxCommand));
 
-        var ids = capturedCards!.Select(c => c.Id);
+        var cardCount = capturedCards!.Count;
+        var userOptions = await userOptionsService
+            .GetFromUser(userId);
 
-        await cardRepo.DeleteCards(ids);
+        if (userOptions.ConfirmCardDeletion)
+        {
+            var subject = cardCount == 1
+                ? "this card"
+                : $"these {cardCount} cards";
+
+            var answer = DialogService.Show(
+                title: cardCount == 1 ? "Delete card?" : "Delete cards?",
+                message: $"Are you sure you want to permanently delete {subject}? "
+                    + "This action can't be undone."
+                    + DialogService.DeleteConfirmationSettingsHint,
+                buttons: DialogButtons.YesNo,
+                icon: DialogIcons.Warning);
+
+            if (answer is DialogResult.No)
+                return;
+        }
+
+        await cardRepo.DeleteCards(
+            capturedCards.Select(c => c.Id));
+
         eventBus.NotifyDomain();
-
         await ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
     #endregion
@@ -148,6 +170,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     private readonly ICardService cardService = cs;
     private readonly DeckSelectVMF deckSelectVMF = dsVMF;
     private readonly IVMEventBus eventBus = eventBus;
+    private readonly IUserOptionsService userOptionsService = userOptionsService;
     private readonly ICardRepo cardRepo = cr;
     private readonly IPopupHost popupHost = pph;
     private readonly ICtxMenuHost ctxHost = host;

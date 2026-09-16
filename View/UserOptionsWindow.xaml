@@ -59,6 +59,12 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock
@@ -157,6 +163,94 @@
                         Grid.Row="5"
                         Grid.Column="1"
                         IsChecked="{Binding Options.ShowHeatmap}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Margin="0,6,0,6">
+                        <CheckBox.LayoutTransform>
+                            <ScaleTransform ScaleX="1.65" ScaleY="1.65"/>
+                        </CheckBox.LayoutTransform>
+                    </CheckBox>
+
+                    <Border
+                        Grid.Row="6"
+                        Grid.ColumnSpan="2"
+                        BorderBrush="#44FFFFFF"
+                        BorderThickness="0,1,0,0"
+                        Margin="0,22,0,14"/>
+
+                    <TextBlock
+                        Grid.Row="7"
+                        Grid.ColumnSpan="2"
+                        Text="Deletion confirmations"
+                        Foreground="White"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Margin="0,0,0,8"/>
+
+                    <TextBlock
+                        Grid.Row="8"
+                        Text="Confirm card deletion"
+                        Style="{StaticResource UserOptHintStyle}"
+                        ToolTip="Ask before permanently deleting one or more cards."/>
+
+                    <CheckBox
+                        Grid.Row="8"
+                        Grid.Column="1"
+                        IsChecked="{Binding Options.ConfirmCardDeletion}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Margin="0,6,0,6">
+                        <CheckBox.LayoutTransform>
+                            <ScaleTransform ScaleX="1.65" ScaleY="1.65"/>
+                        </CheckBox.LayoutTransform>
+                    </CheckBox>
+
+                    <TextBlock
+                        Grid.Row="9"
+                        Text="Confirm deck deletion"
+                        Style="{StaticResource UserOptHintStyle}"
+                        ToolTip="Ask before permanently deleting a deck, its subdecks, and their cards."/>
+
+                    <CheckBox
+                        Grid.Row="9"
+                        Grid.Column="1"
+                        IsChecked="{Binding Options.ConfirmDeckDeletion}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Margin="0,6,0,6">
+                        <CheckBox.LayoutTransform>
+                            <ScaleTransform ScaleX="1.65" ScaleY="1.65"/>
+                        </CheckBox.LayoutTransform>
+                    </CheckBox>
+
+                    <TextBlock
+                        Grid.Row="10"
+                        Text="Confirm preset deletion"
+                        Style="{StaticResource UserOptHintStyle}"
+                        ToolTip="Ask before permanently deleting a deck-options preset."/>
+
+                    <CheckBox
+                        Grid.Row="10"
+                        Grid.Column="1"
+                        IsChecked="{Binding Options.ConfirmPresetDeletion}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Margin="0,6,0,6">
+                        <CheckBox.LayoutTransform>
+                            <ScaleTransform ScaleX="1.65" ScaleY="1.65"/>
+                        </CheckBox.LayoutTransform>
+                    </CheckBox>
+
+                    <TextBlock
+                        Grid.Row="11"
+                        Text="Confirm user deletion"
+                        Style="{StaticResource UserOptHintStyle}"
+                        ToolTip="Ask before permanently deleting a user and all of their data."/>
+
+                    <CheckBox
+                        Grid.Row="11"
+                        Grid.Column="1"
+                        IsChecked="{Binding Options.ConfirmUserDeletion}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Left"
                         Margin="0,6,0,6">

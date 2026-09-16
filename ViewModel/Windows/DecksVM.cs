@@ -14,7 +14,8 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM(
     IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM, 
-    ILastSessionService lastSession, long userId, IVMEventBus bus) : BaseVM(bus), IPopupHost
+    ILastSessionService lastSession, IUserOptionsService userOptionsService,
+    long userId, IVMEventBus bus) : BaseVM(bus), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
 
@@ -102,6 +103,24 @@ public partial class DecksVM(
     [RelayCommand]
     private async Task RemoveDeck(DeckNode deck)
     {
+        var userOptions = await userOptionsService
+            .GetFromUser(userId);
+
+        if (userOptions.ConfirmDeckDeletion)
+        {
+            var answer = DialogService.Show(
+                title: "Delete deck?",
+                message: $"Are you sure you want to permanently delete '{deck.Name}'? "
+                    + "This will also delete all of its subdecks and every card contained "
+                    + "in this deck or any of those subdecks. This action can't be undone."
+                    + DialogService.DeleteConfirmationSettingsHint,
+                buttons: DialogButtons.YesNo,
+                icon: DialogIcons.Warning);
+
+            if (answer is DialogResult.No)
+                return;
+        }
+
         var removedDeckIds = await deckRepo.RemoveDeck(deck.Id);
 
         if (lastSession.LastDeckId is long lastDeckId

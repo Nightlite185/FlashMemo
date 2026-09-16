@@ -9,6 +9,10 @@ public record UserOptions
     public const bool DefIncludeLessonsInReviewLimit = false;
     public const bool DefIntervalScalingOnOverdueness = true;
     public const bool DefShowHeatmap = true;
+    public const bool DefConfirmCardDeletion = true;
+    public const bool DefConfirmDeckDeletion = true;
+    public const bool DefConfirmPresetDeletion = true;
+    public const bool DefConfirmUserDeletion = true;
 
     public const byte MaxDayStartOffset = 12;
     #endregion
@@ -20,6 +24,10 @@ public record UserOptions
     public bool IncludeLessonsInReviewLimit { get; init; }
     public bool IntervalScalingOnOverdueness { get; init; } //* whether card's interval will increase scaling off its current overdueness
     public bool ShowHeatmap { get; init; } //* whether to show review heatmap on DecksUC screen
+    public bool ConfirmCardDeletion { get; init; }
+    public bool ConfirmDeckDeletion { get; init; }
+    public bool ConfirmPresetDeletion { get; init; }
+    public bool ConfirmUserDeletion { get; init; }
     #endregion
 
     public static UserOptions CreateDefault()
@@ -31,7 +39,11 @@ public record UserOptions
             TimerStopsOnReveal = DefTimerStopsOnReveal,
             IncludeLessonsInReviewLimit = DefIncludeLessonsInReviewLimit,
             IntervalScalingOnOverdueness = DefIntervalScalingOnOverdueness,
-            ShowHeatmap = DefShowHeatmap
+            ShowHeatmap = DefShowHeatmap,
+            ConfirmCardDeletion = DefConfirmCardDeletion,
+            ConfirmDeckDeletion = DefConfirmDeckDeletion,
+            ConfirmPresetDeletion = DefConfirmPresetDeletion,
+            ConfirmUserDeletion = DefConfirmUserDeletion
         };
     }
 }

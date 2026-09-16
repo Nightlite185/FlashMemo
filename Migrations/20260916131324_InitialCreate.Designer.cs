@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashMemo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260910142331_InitialCreate")]
+    [Migration("20260916131324_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -512,6 +512,18 @@ namespace FlashMemo.Migrations
                     b.OwnsOne("FlashMemo.Model.Persistence.UserOptions", "Options", b1 =>
                         {
                             b1.Property<long>("UserEntityId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ConfirmCardDeletion")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ConfirmDeckDeletion")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ConfirmPresetDeletion")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<bool>("ConfirmUserDeletion")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<byte>("DayStartOffset")

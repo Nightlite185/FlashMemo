@@ -15,4 +15,8 @@ public partial class UserOptionsVM: ObservableValidator
     [ObservableProperty] public partial bool IncludeLessonsInReviewLimit { get; set; }
     [ObservableProperty] public partial bool IntervalScalingOnOverdueness { get; set; }
     [ObservableProperty] public partial bool ShowHeatmap { get; set; }
+    [ObservableProperty] public partial bool ConfirmCardDeletion { get; set; }
+    [ObservableProperty] public partial bool ConfirmDeckDeletion { get; set; }
+    [ObservableProperty] public partial bool ConfirmPresetDeletion { get; set; }
+    [ObservableProperty] public partial bool ConfirmUserDeletion { get; set; }
 }

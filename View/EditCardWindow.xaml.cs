@@ -30,6 +30,7 @@ namespace FlashMemo.View
 
             tagInputController = new(
                 VM.CardTagsVM,
+                TagInputBorder,
                 TagChipPanel,
                 TagInputBox,
                 TagSuggestionsPopup,

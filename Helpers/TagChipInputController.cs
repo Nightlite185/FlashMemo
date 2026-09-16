@@ -12,6 +12,7 @@ namespace FlashMemo.Helpers;
 
 internal sealed class TagChipInputController(
     ICardTagsVM vm,
+    Border inputBorder,
     WrapPanel chipHostPanel,
     TextBox inputBox,
     Popup suggestionsPopup,
@@ -26,6 +27,8 @@ internal sealed class TagChipInputController(
 
     public async Task InitializeAsync()
     {
+        inputBorder.MouseLeftButtonDown += OnInputBorderMouseLeftButtonDown;
+        inputBorder.MouseMove += OnInputBorderMouseMove;
         inputBox.TextChanged += OnInputTextChanged;
         inputBox.PreviewKeyDown += OnInputPreviewKeyDown;
         inputBox.LostKeyboardFocus += OnInputLostKeyboardFocus;
@@ -36,6 +39,56 @@ internal sealed class TagChipInputController(
         ResetDisplayFromVm();
         RebuildChips();
     }
+
+    private void OnInputBorderMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source)
+            return;
+
+        inputBorder.Cursor = IsInsideTagChip(source) ||
+                             source is TextBlock && !IsInside(source, inputBox)
+            ? Cursors.Arrow
+            : Cursors.IBeam;
+    }
+
+    private void OnInputBorderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source ||
+            IsInside(source, inputBox) ||
+            IsInsideTagChip(source))
+        {
+            return;
+        }
+
+        inputBox.Focus();
+    }
+
+    private static bool IsInside(DependencyObject source, DependencyObject ancestor)
+    {
+        for (var current = source; current is not null; current = GetParent(current))
+        {
+            if (ReferenceEquals(current, ancestor))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsInsideTagChip(DependencyObject source)
+    {
+        for (var current = source; current is not null; current = GetParent(current))
+        {
+            if (current is Border { Tag: TagVM })
+                return true;
+        }
+
+        return false;
+    }
+
+    private static DependencyObject? GetParent(DependencyObject element)
+        => element is Visual or System.Windows.Media.Media3D.Visual3D
+            ? VisualTreeHelper.GetParent(element)
+            : LogicalTreeHelper.GetParent(element);
 
     public async Task RefreshAsync(bool reloadSuggestions = false)
     {

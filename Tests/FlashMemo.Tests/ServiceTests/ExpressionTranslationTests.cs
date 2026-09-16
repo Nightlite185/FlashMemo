@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using FlashMemo.Helpers;
+using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Tests.Fakes.Model;
@@ -106,22 +106,19 @@ public class ExpressionTranslationTests : IDisposable
         long tagId,
         DateTime day)
     {
-        var dayStart = day.Date;
-        var dayEnd = dayStart.AddDays(1);
-
-        Expression<Func<CardEntity, bool>> query = c => c.UserId == userId;
-
-        query = query.Combine(c => !c.IsBuried);
-        query = query.Combine(c => !c.IsSuspended);
-        query = query.Combine(c => c.DeckId == deckId);
-        query = query.Combine(c => c.State == CardState.Review);
-        query = query.Combine(c => c.Created >= dayStart && c.Created < dayEnd);
-        query = query.Combine(c => c.Due >= dayStart && c.Due.Value < dayEnd);
-        query = query.Combine(c => c.LastReviewed >= dayStart && c.LastReviewed.Value < dayEnd);
-        query = query.Combine(c => c.LastModified >= dayStart && c.LastModified.Value < dayEnd);
-        query = query.Combine(c => c.Tags.Select(t => t.Id).Contains(tagId));
-
-        return query;
+        return new Filters
+        {
+            UserId = userId,
+            IsBuried = false,
+            IsSuspended = false,
+            DeckIds = [deckId],
+            TagIds = [tagId],
+            States = [CardState.Review],
+            Created = day,
+            Due = day,
+            LastReviewed = day,
+            LastModified = day
+        }.ToExpression(offset: 0);
     }
 
     public void Dispose()

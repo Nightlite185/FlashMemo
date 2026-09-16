@@ -7,7 +7,7 @@
         xmlns:vm="clr-namespace:FlashMemo.ViewModel.Windows"
         xmlns:wrapperVMs="clr-namespace:FlashMemo.ViewModel.Wrappers" d:DataContext="{d:DesignInstance Type=vm:UserSelectVM}"
         mc:Ignorable="d"
-        Title="UserSelectWindow"
+        Title="Choose user"
         Width="700"
         Height="450"
         WindowStartupLocation="CenterScreen"

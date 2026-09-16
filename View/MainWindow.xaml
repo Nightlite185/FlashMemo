@@ -7,7 +7,7 @@
     xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" 
     d:DataContext="{d:DesignInstance Type=windows:MainVM}"
     mc:Ignorable="d"
-    Title="MainWindow" 
+    Title="FlashMemo"
     Height="500"
     Width="800"
     MinHeight="480"

@@ -4,30 +4,23 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class CardsCountVM: ObservableObject
+public partial class CardsCountVM(ICardsSource<CardVM> source): ObservableObject
 {
-    private ICardsSource<CardVM> source;
-
     public CardsCountVM(CardsCount cc, ICardsSource<CardVM> source)
+        : this(source)
     {
-        this.source = source;
-
         Lessons = cc.Lessons;
         Learning = cc.Learning;
         Reviews = cc.Reviews;
     }
     public CardsCountVM(CardsByState cbs, ICardsSource<CardVM> source)
+        : this(source)
     {
-        this.source = source;
-
         Lessons = cbs.Lessons.Count;
         Learning = cbs.Learning.Count;
         Reviews = cbs.Reviews.Count;
     }
 
-    public CardsCountVM(ICardsSource<CardVM> source)
-        => this.source = source;
-    
     [ObservableProperty] public partial int Lessons { get; set; }
     [ObservableProperty] public partial int Learning { get; set; }
     [ObservableProperty] public partial int Reviews { get; set; }

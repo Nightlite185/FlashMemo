@@ -249,15 +249,8 @@ public static class FocusBoundaryBehavior
             vm.OnFocusLost();
     }
 
-    private sealed class FocusTrackingState
+    private sealed class FocusTrackingState(FrameworkElement root)
     {
-        private readonly FrameworkElement root;
-
-        public FocusTrackingState(FrameworkElement root)
-        {
-            this.root = root;
-        }
-
         public bool HasBoundaryFocus { get; set; }
         public bool RestoreBoundaryFocusOnActivate { get; set; }
         public Window? Window { get; set; }

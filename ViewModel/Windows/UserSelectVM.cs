@@ -8,21 +8,15 @@ using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
+public partial class UserSelectVM(
+    IUserRepo userRepo,
+    IUserVMBuilder userVMBuilder,
+    ILoginService loginService,
+    ILastSessionService lastSession,
+    IUserOptionsService userOptionsService,
+    long? currentUserId = null
+    ): ObservableObject, IViewModel, ICloseRequest
 {
-    public UserSelectVM(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls,
-                        ILastSessionService lss, IUserOptionsService uos,
-                        long? currentUserId = null)
-    {
-        userRepo = ur;
-        loginService = ls;
-        lastSession = lss;
-        userVMBuilder = uvmb;
-        userOptionsService = uos;
-        this.currentUserId = currentUserId;
-        NewUsernameField = "";
-    }
-
     public bool IsNameAvailable(string name)
         => !Users.Any(u => u.Name == name);
 
@@ -30,22 +24,13 @@ public partial class UserSelectVM: ObservableObject, IViewModel, ICloseRequest
     public ObservableCollection<UserVM> Users { get; init; } = [];
 
     [ObservableProperty]
-    public partial string NewUsernameField { get; set; }
+    public partial string NewUsernameField { get; set; } = "";
     
     [ObservableProperty]
     public partial UserVM? SelectedUser { get; set; }
     public event Action? OnCloseRequest;
     #endregion
 
-    #region private things
-    private readonly ILastSessionService lastSession;
-    private readonly IUserRepo userRepo;
-    private readonly IUserVMBuilder userVMBuilder;
-    private readonly ILoginService loginService;
-    private readonly IUserOptionsService userOptionsService;
-    private readonly long? currentUserId;
-    #endregion
-    
     #region ICommands
     [RelayCommand]
     private async Task RenameUser(UserVM user)

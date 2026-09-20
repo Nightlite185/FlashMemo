@@ -444,7 +444,7 @@
                 HorizontalAlignment="Center">
 
                 <TextBlock
-                    Text="Congrats!! You finished all your reviews!! 🎉🎉🎉"
+                    Text="Congrats, you finished all your reviews! 🎉"
                     FontSize="36"
                     Foreground="White"
                     Margin="0,0,0,16"

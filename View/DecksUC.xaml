@@ -27,49 +27,123 @@
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!-- Empty message -->
-        <TextBlock
-            Grid.Row="0"
-            Text="You dont have any decks. Time to create one!"
-            FontSize="26"
-            FontWeight="SemiBold"
-            Foreground="White"
-            Opacity="0.7"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock.Style>
-                <Style TargetType="TextBlock">
-                    <Setter Property="Visibility" Value="Collapsed"/>
+            <!-- Deck table header / count legend -->
+            <Border
+                Grid.Row="0"
+                Margin="0,8,0,2"
+                Padding="8,0,8,6"
+                BorderBrush="#3DFFFFFF"
+                BorderThickness="0,0,0,1">
 
-                    <Style.Triggers>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DeckTree.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
 
-                        <!-- Show when DeckTree.Count == 0 -->
-                        <DataTrigger
-                            Binding="{Binding DeckTree.Count}"
-                            Value="0">
-                            <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="34"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="32"/>
+                    </Grid.ColumnDefinitions>
 
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="Deck name"
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Foreground="{StaticResource DeckDimBrush}"
+                        VerticalAlignment="Center"/>
 
-        </TextBlock>
+                    <Border Grid.Column="2">
+                        <TextBlock
+                            Text="New"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="{StaticResource DeckNewBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"/>
+                    </Border>
 
+                    <Border Grid.Column="3">
+                        <TextBlock
+                            Text="Learning"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="{StaticResource DeckLearnBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"/>
+                    </Border>
 
-        <!-- Deck list -->
-        <TreeView
-            Name="DeckTree"
-            Grid.Row="0"
-            ItemsSource="{Binding DeckTree}"
-            SelectedItemChanged="DeckTree_SelectedChanged"
-            KeyDown="DeckTree_KeyDown"
-            dd:DragDrop.IsDragSource="True"
-            dd:DragDrop.IsDropTarget="True"
-            dd:DragDrop.DropHandler="{Binding ElementName=Root}"
-            Background="Transparent"
-            BorderThickness="0">
+                    <Border Grid.Column="4">
+                        <TextBlock
+                            Text="Review"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="{StaticResource DeckDueBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Empty message -->
+            <TextBlock
+                Grid.RowSpan="2"
+                Text="You dont have any decks. Time to create one!"
+                FontSize="26"
+                FontWeight="SemiBold"
+                Foreground="White"
+                Opacity="0.7"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+
+                            <!-- Show when DeckTree.Count == 0 -->
+                            <DataTrigger
+                                Binding="{Binding DeckTree.Count}"
+                                Value="0">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <!-- Deck list -->
+            <TreeView
+                Name="DeckTree"
+                Grid.Row="1"
+                ItemsSource="{Binding DeckTree}"
+                SelectedItemChanged="DeckTree_SelectedChanged"
+                KeyDown="DeckTree_KeyDown"
+                dd:DragDrop.IsDragSource="True"
+                dd:DragDrop.IsDropTarget="True"
+                dd:DragDrop.DropHandler="{Binding ElementName=Root}"
+                Background="Transparent"
+                BorderThickness="0"
+                VerticalAlignment="Top">
 
             <TreeView.ItemContainerStyle>
                 <Style
@@ -90,9 +164,9 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="34" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="60" />
-                            <ColumnDefinition Width="60" />
-                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="80" />
                             <ColumnDefinition Width="32" />
                         </Grid.ColumnDefinitions>
 
@@ -130,26 +204,32 @@
                                 IsVisibleChanged="RenameBox_IsVisibleChanged"/>
                         </Grid>
 
-                        <TextBlock
-                            Grid.Column="2"
-                            Text="{Binding LessonsCount}"
-                            FontSize="18"
-                            Foreground="{StaticResource DeckNewBrush}"
-                            HorizontalAlignment="Center"/>
+                        <Border Grid.Column="2">
+                            <TextBlock
+                                Text="{Binding LessonsCount}"
+                                FontSize="18"
+                                Foreground="{StaticResource DeckNewBrush}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
 
-                        <TextBlock
-                            Grid.Column="3"
-                            Text="{Binding LearningCount}"
-                            FontSize="18"
-                            Foreground="{StaticResource DeckLearnBrush}"
-                            HorizontalAlignment="Center"/>
+                        <Border Grid.Column="3">
+                            <TextBlock
+                                Text="{Binding LearningCount}"
+                                FontSize="18"
+                                Foreground="{StaticResource DeckLearnBrush}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
 
-                        <TextBlock
-                            Grid.Column="4"
-                            Text="{Binding ReviewsCount}"
-                            FontSize="18"
-                            Foreground="{StaticResource DeckDueBrush}"
-                            HorizontalAlignment="Center"/>
+                        <Border Grid.Column="4">
+                            <TextBlock
+                                Text="{Binding ReviewsCount}"
+                                FontSize="18"
+                                Foreground="{StaticResource DeckDueBrush}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
 
                         <Button
                             Grid.Column="5"
@@ -191,8 +271,77 @@
                         </Button>
                     </Grid>
                 </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <!-- Continuous separators through the header -->
+            <Grid
+                Grid.Row="0"
+                Panel.ZIndex="1"
+                Margin="8,8,8,0"
+                IsHitTestVisible="False">
+
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DeckTree.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="32"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="2" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+                <Border Grid.Column="3" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+                <Border Grid.Column="4" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+                <Border Grid.Column="5" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+            </Grid>
+
+            <!-- Continue the separators only through the rendered deck rows -->
+            <Grid
+                Grid.Row="1"
+                Panel.ZIndex="1"
+                Height="{Binding ActualHeight, ElementName=DeckTree}"
+                Margin="8,0,8,0"
+                VerticalAlignment="Top"
+                IsHitTestVisible="False">
+
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DeckTree.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="32"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="2" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+                <Border Grid.Column="3" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+                <Border Grid.Column="4" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+                <Border Grid.Column="5" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
+            </Grid>
+        </Grid>
 
         <!-- Review heatmap -->
         <Border

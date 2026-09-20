@@ -8,6 +8,8 @@ public partial class ActivityCellVM: ObservableObject
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(Intensity))]
     public required partial int ReviewCount { get; set; }
     public required DateOnly Date { get; init; }
+    public int WeekdayIndex =>
+        ((int)Date.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
     public int Intensity => ReviewCount switch
     {
             0 => 0,

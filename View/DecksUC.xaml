@@ -251,25 +251,50 @@
 
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Margin="1,0">
-                                        <TextBlock
-                                            Height="18"
-                                            Margin="0,0,0,4"
-                                            FontSize="11"
-                                            Foreground="#FFC9D1D9"
-                                            HorizontalAlignment="Center"
-                                            Text="{Binding Days,
-                                                Converter={StaticResource ActivityWeekToMonthLabelConverter},
-                                                ConverterParameter=MMM}"/>
+                                    <Grid Width="16">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="22"/>
+                                            <RowDefinition Height="98"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- A Canvas lets the label extend over neighboring weeks
+                                             without changing this week's fixed width. -->
+                                        <Canvas Height="18">
+                                            <TextBlock
+                                                FontSize="11"
+                                                Foreground="#FFC9D1D9"
+                                                Text="{Binding Days,
+                                                    Converter={StaticResource ActivityWeekToMonthLabelConverter},
+                                                    ConverterParameter=MMM}"/>
+                                        </Canvas>
 
                                         <ItemsControl
+                                            Grid.Row="1"
                                             ItemsSource="{Binding Days}">
 
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Vertical"/>
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="14"/>
+                                                            <RowDefinition Height="14"/>
+                                                            <RowDefinition Height="14"/>
+                                                            <RowDefinition Height="14"/>
+                                                            <RowDefinition Height="14"/>
+                                                            <RowDefinition Height="14"/>
+                                                            <RowDefinition Height="14"/>
+                                                        </Grid.RowDefinitions>
+                                                    </Grid>
                                                 </ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
+
+                                            <ItemsControl.ItemContainerStyle>
+                                                <Style TargetType="ContentPresenter">
+                                                    <Setter
+                                                        Property="Grid.Row"
+                                                        Value="{Binding WeekdayIndex}"/>
+                                                </Style>
+                                            </ItemsControl.ItemContainerStyle>
 
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
@@ -279,10 +304,21 @@
                                                         Margin="1"
                                                         CornerRadius="2"
                                                         BorderThickness="1"
-                                                        BorderBrush="Transparent"
+                                                        ToolTipService.InitialShowDelay="0"
                                                         Background="{Binding Intensity,
                                                             Converter={StaticResource ActivityIntensityToBrushConverter},
                                                             ConverterParameter=ActivityHeatBlue}">
+
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="BorderBrush" Value="White"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
 
                                                         <Border.ToolTip>
                                                             <StackPanel>
@@ -298,7 +334,7 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                    </StackPanel>
+                                    </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>

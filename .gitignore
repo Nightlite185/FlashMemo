@@ -10,6 +10,9 @@
 *.userosscache
 *.sln.docstates
 
+# logo frames
+Assets/Branding/IconFrames
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

@@ -25,6 +25,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
             .Where(filtersQuery)
             .SortAnyCards(order, dir)
             .Include(c => c.Deck)
+            .Include(c => c.Tags)
             .ToListAsync();
 
         if (filters.IntervalDays is int interval and > 0)

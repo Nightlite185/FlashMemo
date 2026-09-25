@@ -4,6 +4,10 @@ FlashMemo is an offline Windows desktop application for creating and reviewing f
 
 The project explores the engineering behind a complete desktop product: domain-focused scheduling logic, persistent local data, multi-user state, responsive MVVM navigation, and automated tests around the most important workflows.
 
+![Review workflow](Assets/Screenshots/review.png)
+
+*Review cards with clear answer choices and a preview of the resulting interval.*
+
 ## Inspiration
 
 FlashMemo is inspired by Anki's approach to spaced repetition. Its scheduling implementation, desktop architecture, interface, and supporting features were developed independently for this project.
@@ -23,6 +27,43 @@ FlashMemo is inspired by Anki's approach to spaced repetition. Its scheduling im
 - Track study activity through a yearly heatmap, review streaks, answer ratios, average answer time, and review-volume statistics.
 - Maintain independent local profiles, preferences, and session state for multiple users.
 - Store all data locally in SQLite and apply EF Core migrations automatically on startup.
+
+## Interface
+
+### Organize knowledge hierarchically
+
+Group cards into nested decks and use parent decks to study an entire subject at once.
+
+![Nested deck organization and review heatmap](Assets/Screenshots/homepage.png)
+
+### Find and manage cards
+
+Search, sort, and filter cards by deck, tag, state, status, dates, and interval. Browse also supports bulk operations such as moving, rescheduling, burying, suspending, and deleting cards. Columns can be shown, hidden, resized, reordered, and sorted.
+
+![Card browser with filters](Assets/Screenshots/browse.png)
+
+### Create formatted cards
+
+Create rich front-and-back notes, organize them with reusable tags, and choose their destination deck.
+
+![Rich card editor](Assets/Screenshots/create_card.png)
+
+### Track study progress
+
+Review lifetime activity, answer behavior, study pace, peak hours, and streaks from the statistics dashboard.
+
+![Study statistics dashboard](Assets/Screenshots/stats.png)
+
+### Configure the scheduler
+
+Each deck can use a reusable preset controlling daily limits, learning stages, interval multipliers, and card ordering.
+
+<details>
+<summary>View deck scheduling options</summary>
+
+![Deck scheduling options](Assets/Screenshots/deck_options.png)
+
+</details>
 
 ## Engineering highlights
 
@@ -50,16 +91,16 @@ FlashMemo is inspired by Anki's approach to spaced repetition. Its scheduling im
 
 ```text
 FlashMemo/
-|- Model/
-|  |- Domain/          # Scheduling rules and domain types
-|  `- Persistence/     # EF Core entities and DbContext
-|- Repositories/       # Data-access abstractions and implementations
-|- Services/           # Application logic, queries, navigation, and statistics
-|- ViewModel/           # Window, popup, wrapper, and factory view models
-|- View/                # WPF windows and user controls
-|- Helpers/             # UI behaviors, converters, and shared utilities
-|- Migrations/          # EF Core database migrations
-`- Tests/               # Unit and SQLite-backed integration tests
+├── Model/
+│   ├── Domain/          # Scheduling rules and domain types
+│   └── Persistence/     # EF Core entities and DbContext
+├── Repositories/        # Data-access abstractions and implementations
+├── Services/            # Application logic, queries, navigation, and statistics
+├── ViewModel/           # Window, popup, wrapper, and factory view models
+├── View/                # WPF windows and user controls
+├── Helpers/             # UI behaviors, converters, and shared utilities
+├── Migrations/          # EF Core database migrations
+└── Tests/               # Unit and SQLite-backed integration tests
 ```
 
 ## Getting started
@@ -90,11 +131,11 @@ No account, cloud service, or external database is required.
 dotnet test FlashMemo.sln --configuration Release
 ```
 
-The current suite contains **57 passing tests** covering scheduling behavior, EF Core query translation, daily review limits, statistics, database initialization, session isolation, and card creation/review workflows.
+The test suite covers scheduling behavior, EF Core query translation, daily review limits, statistics, database initialization, session isolation, and card creation/review workflows, and filtering.
 
 ## Current scope
 
-FlashMemo currently supports standard front/back notes and is designed for offline, single-device use. The application is being prepared for its first packaged v1.0 release; the current source can be built and run directly with the .NET SDK.
+FlashMemo v1.0 supports standard front/back notes and is designed for offline, single-device use.
 
 ## What this project demonstrates
 

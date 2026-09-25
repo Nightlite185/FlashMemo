@@ -7,6 +7,9 @@ The project explores the engineering behind a complete desktop product: domain-f
 ![Review workflow](Assets/Screenshots/review.png)
 
 *Review cards with clear answer choices and a preview of the resulting interval.*
+## Download
+
+[Download the latest FlashMemo release](https://github.com/Nightlite185/FlashMemo/releases/latest)
 
 ## Inspiration
 

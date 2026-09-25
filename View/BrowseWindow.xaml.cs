@@ -51,6 +51,19 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         BindFiltersSidebarDataContext();
     }
 
+    private void BrowseWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!SearchTextBox.IsKeyboardFocusWithin ||
+            e.OriginalSource is not DependencyObject source ||
+            ReferenceEquals(source, SearchTextBox) ||
+            SearchTextBox.IsAncestorOf(source))
+        {
+            return;
+        }
+
+        Keyboard.ClearFocus();
+    }
+
     private void EnsureInitialized()
     {
         if (initialized)

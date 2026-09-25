@@ -10,7 +10,8 @@
         Width="1200"
         MinHeight="450"
         MinWidth="850"
-        Background="#FF1E1E1E">
+        Background="#FF1E1E1E"
+        PreviewMouseDown="BrowseWindow_PreviewMouseDown">
 
     <Window.Resources>
         <Style x:Key="BrowseCellTextStyle" TargetType="TextBlock">
@@ -390,14 +391,38 @@
                         CornerRadius="6"
                         Padding="8,4"
                         Width="420">
-                    <TextBox Text="{Binding SearchBar, UpdateSourceTrigger=PropertyChanged}"
-                             Background="Transparent"
-                             BorderThickness="0"
-                             Foreground="#FFE6E6E6"
-                             CaretBrush="#FFE6E6E6"
-                             FontSize="14"
-                             VerticalContentAlignment="Center"
-                             ToolTip="Search"/>
+                    <Grid>
+                        <TextBox x:Name="SearchTextBox"
+                                 Text="{Binding SearchBar, UpdateSourceTrigger=PropertyChanged}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Foreground="#FFE6E6E6"
+                                 CaretBrush="#FFE6E6E6"
+                                 FontSize="14"
+                                 VerticalContentAlignment="Center"
+                                 ToolTip="Search"/>
+
+                        <TextBlock Text="Search cards…"
+                                   Foreground="#FF888888"
+                                   FontSize="14"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Text, ElementName=SearchTextBox}" Value=""/>
+                                                <Condition Binding="{Binding IsKeyboardFocusWithin, ElementName=SearchTextBox}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </Border>
 
                 <TextBlock HorizontalAlignment="Right"

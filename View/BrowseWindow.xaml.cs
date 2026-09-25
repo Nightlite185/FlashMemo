@@ -278,11 +278,22 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 
     private void CardsGrid_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (FindAncestor<DataGridColumnHeader>(e.OriginalSource as DependencyObject) is not DataGridColumnHeader header)
+        var source = e.OriginalSource as DependencyObject;
+        var header = FindAncestor<DataGridColumnHeader>(source);
+
+        if (header is not null)
+        {
+            e.Handled = true;
+            OpenColumnsMenu(header, PlacementMode.Bottom);
+            return;
+        }
+
+        var pointerPosition = e.GetPosition(CardsGrid);
+        if (pointerPosition.Y < 0 || pointerPosition.Y > CardsGrid.ColumnHeaderHeight)
             return;
 
         e.Handled = true;
-        OpenColumnsMenu(header);
+        OpenColumnsMenu(CardsGrid, PlacementMode.MousePoint);
     }
 
     private void CardsGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -342,12 +353,12 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         VM.SelectedCount = selected.Count;
     }
 
-    private void OpenColumnsMenu(DataGridColumnHeader header)
+    private void OpenColumnsMenu(FrameworkElement placementTarget, PlacementMode placement)
     {
         var menu = new ContextMenu
         {
-            PlacementTarget = header,
-            Placement = PlacementMode.Bottom
+            PlacementTarget = placementTarget,
+            Placement = placement
         };
 
         foreach (var spec in columnSpecs.OrderBy(spec => spec.Order))
@@ -362,7 +373,6 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
             menu.Items.Add(item);
         }
 
-        header.ContextMenu = menu;
         menu.IsOpen = true;
     }
 

@@ -82,13 +82,20 @@ public static class Extensions
 
     public static IEnumerable<DeckNode> Flatten(this IEnumerable<DeckNode> nodes)
     {
-        foreach (var node in nodes)
+        var result = new List<DeckNode>();
+
+        foreach(var node in nodes)
+            FlattenHelper(node);
+
+        void FlattenHelper(DeckNode node)
         {
-            yield return node;
+            result.Add(node);
             
-            foreach (var child in node.Children)
-                yield return child;
+            foreach(var c in node.Children)
+                FlattenHelper(c);
         }
+
+        return result;
     }
 
     public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)

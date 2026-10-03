@@ -197,4 +197,9 @@ public partial class DecksUC: UserControl, IDropTarget
         request = new DecksVM.DeckReparentRequest(draggedDeck, targetDeck);
         return true;
     }
+
+    // TODO: multiple decks selectable at once.
+    // TODO: When right-clicking on a deck, it shows its ctx menu just like when clicking on the options icon on the right.
+    // TODO: Add export ctx menu option and wire it with a popup connected with a fresh instance of ExportVM.
+    // TODO: When multiple decks selected and right-clicking -> only delete and export options are shown.
 }

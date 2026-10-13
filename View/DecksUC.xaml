@@ -137,6 +137,7 @@
                 Grid.Row="1"
                 ItemsSource="{Binding DeckTree}"
                 SelectedItemChanged="DeckTree_SelectedChanged"
+                PreviewMouseLeftButtonDown="DeckTree_PreviewMouseLeftButtonDown"
                 KeyDown="DeckTree_KeyDown"
                 dd:DragDrop.IsDragSource="True"
                 dd:DragDrop.IsDropTarget="True"
@@ -149,6 +150,10 @@
                 <Style
                     TargetType="TreeViewItem"
                     BasedOn="{StaticResource DeckTreeItemStyle}">
+
+                    <Setter
+                        Property="helpers:TreeViewSelection.IsMultiSelected"
+                        Value="{Binding IsSelected}"/>
 
                     <EventSetter
                         Event="MouseDoubleClick"

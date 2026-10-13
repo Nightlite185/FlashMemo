@@ -54,21 +54,37 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
     [RelayCommand]
     private async Task ShowCreateCard()
     {
-        IDeckMeta deck; // declare deck variable
-        
-        // first we try getting deck from DecksVM if its active
-        if (CurrentDisplay is DecksVM vm && vm.SelectedDeck is IDeckMeta meta)
-            deck = meta;
+        IDeckMeta? deck = null;
 
-        // else: try from last used cached deck
-        else if (lastSession.LastDeckId is long id)
+        // First try the active deck selection. Creating a card has one target,
+        // so an ambiguous multi-selection must be resolved by the user.
+        if (CurrentDisplay is DecksVM vm)
+        {
+            int count = vm.SelectedDecks.Count;
+
+            if (count > 1)
+            {
+                DialogService.Show(
+                title: "Choose one deck",
+                message: "Select exactly one deck before creating a card.",
+                buttons: DialogButtons.OK,
+                icon: DialogIcons.Information);
+
+                return;
+            }
+
+            else if (count == 1)
+                deck = vm.SelectedDecks[0];
+        }
+
+        // Otherwise, try the last used cached deck.
+        if (deck is null && lastSession.LastDeckId is long id)
             deck = await deckRepo.GetDeckMetaById(id);
 
-        // finally, just get first (oldest) deck from db with current user's id
-        else if (await deckRepo.GetFirst(UserId) is IDeckMeta first)
-            deck = first;
+        // Finally, get the first (oldest) deck for the current user.
+        deck ??= await deckRepo.GetFirst(UserId);
 
-        else
+        if (deck is null)
         {
             DialogService.Show(
                 title: "No decks yet",

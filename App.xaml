@@ -344,6 +344,13 @@
                                     Value="#402A82DA"/>
                             </Trigger>
 
+                            <Trigger Property="helpers:TreeViewSelection.IsMultiSelected" Value="True">
+                                <Setter
+                                    TargetName="Row"
+                                    Property="Background"
+                                    Value="#402A82DA"/>
+                            </Trigger>
+
                             <Trigger Property="IsExpanded" Value="True">
                                 <Setter
                                     TargetName="ChildrenHost"

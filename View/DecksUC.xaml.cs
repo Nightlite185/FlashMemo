@@ -10,6 +10,9 @@ using FlashMemo.ViewModel.Wrappers;
 namespace FlashMemo.View;
 public partial class DecksUC: UserControl, IDropTarget
 {
+    private DeckNode? selectionAnchor;
+    private bool isPointerSelection;
+
     public DecksUC()
     {
         InitializeComponent();
@@ -34,12 +37,70 @@ public partial class DecksUC: UserControl, IDropTarget
 
     private void DeckTree_SelectedChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
-        if (sender is TreeView treeView &&
-            treeView.DataContext is DecksVM vm &&
-            e.NewValue is DeckNode selected)
+        if (isPointerSelection ||
+            sender is not TreeView treeView ||
+            treeView.DataContext is not DecksVM vm ||
+            e.NewValue is not DeckNode selected)
+            return;
+
+        vm.SelectDecks([selected]);
+        selectionAnchor = selected;
+    }
+
+    private void DeckTree_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not TreeView treeView ||
+            treeView.DataContext is not DecksVM vm ||
+            e.OriginalSource is not DependencyObject source)
+            return;
+
+        TreeViewItem? item = FindAncestor<TreeViewItem>(source);
+
+        if (item?.DataContext is not DeckNode deck)
         {
-            vm.SelectedDeck = selected;
+            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) == ModifierKeys.None)
+            {
+                vm.ClearSelection();
+                selectionAnchor = null;
+            }
+
+            return;
         }
+
+        if (IsInsideButtonBase(source) || IsInsideTextBox(source))
+            return;
+
+        isPointerSelection = true;
+
+        bool isControlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+        bool isShiftPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+
+        if (isShiftPressed && selectionAnchor is not null)
+        {
+            vm.SelectDecks(
+                GetVisibleRange(vm.DeckTree, selectionAnchor, deck),
+                preserveExisting: isControlPressed);
+        }
+        else if (isControlPressed)
+        {
+            bool isBeingDeselected = deck.IsSelected;
+            vm.ToggleDeckSelection(deck);
+
+            // Prevent TreeView's built-in single selection from leaving a
+            // deselected item visually selected.
+            if (isBeingDeselected)
+            {
+                item.IsSelected = false;
+                e.Handled = true;
+            }
+        }
+        else
+        {
+            vm.SelectDecks([deck]);
+        }
+
+        selectionAnchor = deck;
+        Dispatcher.BeginInvoke(() => isPointerSelection = false);
     }
 
     private void DeckCtxButton_Click(object sender, RoutedEventArgs e)
@@ -107,14 +168,24 @@ public partial class DecksUC: UserControl, IDropTarget
 
     private void DeckTree_KeyDown(object sender, KeyEventArgs e)
     {
+        if (DataContext is not DecksVM vm)
+            return;
+
+        if (e.Key == Key.A && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            vm.SelectDecks(GetVisibleDecks(vm.DeckTree));
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key != Key.F2 ||
-            DataContext is not DecksVM vm ||
-            vm.SelectedDeck is not DeckNode selectedDeck ||
-            selectedDeck.IsRenaming)
+            vm.SelectedDecks.Count != 1 ||
+            vm.SelectedDecks[0].IsRenaming)
         {
             return;
         }
 
+        DeckNode selectedDeck = vm.SelectedDecks[0];
         selectedDeck.BeginRenameCommand.Execute(null);
         e.Handled = true;
     }
@@ -160,6 +231,52 @@ public partial class DecksUC: UserControl, IDropTarget
         return false;
     }
 
+    private static T? FindAncestor<T>(DependencyObject source) where T : DependencyObject
+    {
+        DependencyObject? current = source;
+
+        while (current is not null)
+        {
+            if (current is T match)
+                return match;
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<DeckNode> GetVisibleRange(
+        IEnumerable<DeckNode> roots,
+        DeckNode first,
+        DeckNode second)
+    {
+        List<DeckNode> visibleDecks = [.. GetVisibleDecks(roots)];
+        int firstIndex = visibleDecks.IndexOf(first);
+        int secondIndex = visibleDecks.IndexOf(second);
+
+        if (firstIndex < 0 || secondIndex < 0)
+            return [second];
+
+        int start = Math.Min(firstIndex, secondIndex);
+        int count = Math.Abs(firstIndex - secondIndex) + 1;
+        return visibleDecks.GetRange(start, count);
+    }
+
+    private static IEnumerable<DeckNode> GetVisibleDecks(IEnumerable<DeckNode> nodes)
+    {
+        foreach (DeckNode node in nodes)
+        {
+            yield return node;
+
+            if (!node.IsExpanded)
+                continue;
+
+            foreach (DeckNode child in GetVisibleDecks(node.Children))
+                yield return child;
+        }
+    }
+
     void IDropTarget.DragOver(IDropInfo dropInfo)
     {
         if (!TryCreateReparentRequest(dropInfo, out DecksVM.DeckReparentRequest? request) ||
@@ -198,8 +315,6 @@ public partial class DecksUC: UserControl, IDropTarget
         return true;
     }
 
-    // TODO: multiple decks selectable at once.
-    // TODO: When right-clicking on a deck, it shows its ctx menu just like when clicking on the options icon on the right.
+    // TODO: When right-clicking on a deck, it shows its ctx menu just like when clicking on the options icon on the right (multiple decks selected -> only delete and export options are shown).
     // TODO: Add export ctx menu option and wire it with a popup connected with a fresh instance of ExportVM.
-    // TODO: When multiple decks selected and right-clicking -> only delete and export options are shown.
 }

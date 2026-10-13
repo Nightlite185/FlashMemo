@@ -85,17 +85,30 @@ public static class Extensions
         var result = new List<DeckNode>();
 
         foreach(var node in nodes)
-            FlattenHelper(node);
-
-        void FlattenHelper(DeckNode node)
-        {
-            result.Add(node);
-            
-            foreach(var c in node.Children)
-                FlattenHelper(c);
-        }
+            FlattenHelper(node, result);
 
         return result;
+    }
+
+    public static IEnumerable<DeckNode> Flatten(this DeckNode node)
+    {
+        if (node.Children.Count == 0)
+            return [node];
+
+        List<DeckNode> res = [node];
+
+        foreach(var child in node.Children)
+            FlattenHelper(child, res);
+
+        return res;
+    }
+
+    private static void FlattenHelper(DeckNode node, List<DeckNode> result)
+    {
+        result.Add(node);
+
+        foreach(var c in node.Children)
+            FlattenHelper(c, result);
     }
 
     public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)

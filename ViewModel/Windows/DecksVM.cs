@@ -76,6 +76,7 @@ public partial class DecksVM(
     [RelayCommand]
     protected override async Task ReloadDomainAsync()
     {
+        ClearSelection();
         DeckTree.Clear();
 
         DeckTree.AddRange(await decksBuilder
@@ -129,6 +130,8 @@ public partial class DecksVM(
             lastSession.LastDeckId = null;
         }
 
+        DeselectDecks(deck.Flatten());
+
         if (deck.Parent is DeckNode parent)
             parent.RemoveChild(deck);
 
@@ -172,7 +175,7 @@ public partial class DecksVM(
         await deckRepo.SaveEditedDeck(deck.ToEntity());
     }
 
-    private bool CanReparentDeck(DeckReparentRequest? request)
+    private static bool CanReparentDeck(DeckReparentRequest? request)
     {
         if (request?.Deck is not DeckNode deck)
             return false;
@@ -208,12 +211,105 @@ public partial class DecksVM(
 
     #endregion
 
+    #region selection // TODO: possibly to replace with a lib or encapsulate this into separate class.
+
+    public void SelectDecks(IEnumerable<DeckNode> decks, bool preserveExisting = false)
+    {
+        DeckNode[] requestedDecks = decks
+            .Distinct()
+            .ToArray();
+
+        if (!preserveExisting)
+        {
+            HashSet<DeckNode> requestedSet = requestedDecks.ToHashSet();
+
+            foreach (DeckNode deck in selectedDeckSet)
+                if (!requestedSet.Contains(deck))
+                    deck.IsSelected = false;
+
+            foreach (DeckNode deck in requestedDecks)
+                deck.IsSelected = true;
+
+            selectedDeckSet.Clear();
+            selectedDeckSet.UnionWith(requestedSet);
+            SynchronizeSelectedDecks(requestedDecks);
+            return;
+        }
+
+        foreach (DeckNode deck in requestedDecks)
+        {
+            if (!selectedDeckSet.Add(deck))
+                continue;
+
+            deck.IsSelected = true;
+            selectedDecks.Add(deck);
+        }
+    }
+
+    public void ToggleDeckSelection(DeckNode deck)
+    {
+        if (selectedDeckSet.Remove(deck))
+        {
+            deck.IsSelected = false;
+            selectedDecks.Remove(deck);
+            return;
+        }
+
+        selectedDeckSet.Add(deck);
+        deck.IsSelected = true;
+        selectedDecks.Add(deck);
+    }
+
+    public void ClearSelection()
+    {
+        foreach (DeckNode deck in selectedDeckSet)
+            deck.IsSelected = false;
+
+        selectedDeckSet.Clear();
+        selectedDecks.Clear();
+    }
+
+    private void DeselectDecks(IEnumerable<DeckNode> decks)
+    {
+        bool selectionChanged = false;
+
+        foreach (DeckNode deck in decks)
+        {
+            if (!selectedDeckSet.Remove(deck))
+                continue;
+
+            deck.IsSelected = false;
+            selectionChanged = true;
+        }
+
+        if (!selectionChanged)
+            return;
+
+        SynchronizeSelectedDecks(
+            selectedDecks.Where(selectedDeckSet.Contains).ToArray());
+    }
+
+    private void SynchronizeSelectedDecks(IReadOnlyList<DeckNode> decks)
+    {
+        if (selectedDecks.SequenceEqual(decks))
+            return;
+
+        selectedDecks.Clear();
+
+        foreach (DeckNode deck in decks)
+            selectedDecks.Add(deck);
+    }
+
+    #endregion
+
     #region public properties
     public HeatmapVM Heatmap { get; } = heatmapVM;
     public ObservableCollection<DeckNode> DeckTree { get; } = [];
-    
-    [ObservableProperty]
-    public partial DeckNode? SelectedDeck { get; set; }
+    private readonly ObservableCollection<DeckNode> selectedDecks = [];
+    private readonly HashSet<DeckNode> selectedDeckSet = [];
+    private ReadOnlyObservableCollection<DeckNode>? selectedDecksView;
+    public ReadOnlyObservableCollection<DeckNode> SelectedDecks
+        => selectedDecksView ??= new(selectedDecks);
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }

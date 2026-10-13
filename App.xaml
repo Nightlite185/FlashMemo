@@ -60,6 +60,10 @@
             <view:RescheduleUC/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type popups:ExportVM}">
+            <view:ExportUC/>
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type vm:ReviewVM}">
             <view:ReviewUC/>
         </DataTemplate>

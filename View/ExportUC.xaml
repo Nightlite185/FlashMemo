@@ -1,0 +1,206 @@
+<UserControl x:Class="FlashMemo.View.ExportUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:popups="clr-namespace:FlashMemo.ViewModel.Popups"
+             d:DataContext="{d:DesignInstance Type=popups:ExportVM}"
+             PreviewKeyDown="Root_PreviewKeyDown"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <Style x:Key="ExportLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#F0F3F6"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="ExportHintStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#9DA7B3"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="ExportTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Background" Value="#2A2E34"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="SelectionBrush" Value="#8054B9FF"/>
+            <Setter Property="BorderBrush" Value="#4A525C"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="ExportComboBoxStyle"
+               TargetType="ComboBox"
+               BasedOn="{StaticResource DarkAlwaysEnabledComboBox}">
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="IsHitTestVisible" Value="True"/>
+            <Setter Property="Focusable" Value="True"/>
+        </Style>
+
+        <Style x:Key="ExportSectionStyle" TargetType="Border">
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="Background" Value="#25292E"/>
+            <Setter Property="BorderBrush" Value="#343A40"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="9"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Width="540"
+            Padding="22"
+            Background="#FF1E1E1E"
+            BorderBrush="{StaticResource NavBorderBrush}"
+            BorderThickness="2"
+            CornerRadius="14">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                <TextBlock Text="Export cards"
+                           Foreground="White"
+                           FontSize="23"
+                           FontWeight="SemiBold"/>
+                <TextBlock Margin="0,5,0,0"
+                           Style="{StaticResource ExportHintStyle}"
+                           Text="Choose the output format and how each card is written to the file."/>
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    Margin="0,0,0,12"
+                    Style="{StaticResource ExportSectionStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="210"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="File format"
+                                   Style="{StaticResource ExportLabelStyle}"/>
+                        <TextBlock Style="{StaticResource ExportHintStyle}"
+                                   Text="Select the format for the exported file."/>
+                    </StackPanel>
+
+                    <ComboBox Grid.Column="1"
+                              Style="{StaticResource ExportComboBoxStyle}"
+                              SelectedValue="{Binding Format, Mode=TwoWay}"
+                              SelectedValuePath="Tag">
+                        <ComboBoxItem Content="Plain text (.txt)"
+                                      Tag="{x:Static popups:ExportFormat.Txt}"/>
+                        <ComboBoxItem Content="CSV (.csv)"
+                                      Tag="{x:Static popups:ExportFormat.Csv}"/>
+                        <ComboBoxItem Content="FlashMemo (.fmnote)"
+                                      Tag="{x:Static popups:ExportFormat.FMNote}"/>
+                    </ComboBox>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="2"
+                    Margin="0,0,0,12"
+                    Style="{StaticResource ExportSectionStyle}">
+                <StackPanel>
+                    <TextBlock Text="Save to"
+                               Style="{StaticResource ExportLabelStyle}"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="ExportPathTextBox"
+                                 Grid.Column="0"
+                                 Style="{StaticResource ExportTextBoxStyle}"
+                                 Text="{Binding ExportPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <Button Grid.Column="1"
+                                Width="92"
+                                Height="38"
+                                Margin="10,0,0,0"
+                                Padding="8,4"
+                                Content="Browse…"
+                                Click="BrowseButton_Click"
+                                Style="{StaticResource NavButtonStyle}"/>
+                    </Grid>
+
+                    <TextBlock Margin="0,7,0,0"
+                               Style="{StaticResource ExportHintStyle}"
+                               Text="Pick a filename and location, or enter a full path."/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="3"
+                    Margin="0,0,0,20"
+                    Style="{StaticResource ExportSectionStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Field separator"
+                                   Style="{StaticResource ExportLabelStyle}"/>
+                        <TextBox Style="{StaticResource ExportTextBoxStyle}"
+                                 Text="{Binding FieldSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Margin="0,7,0,0"
+                                   Style="{StaticResource ExportHintStyle}"
+                                   Text="Inserted between the front and back."/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Between notes"
+                                   Style="{StaticResource ExportLabelStyle}"/>
+                        <ComboBox Style="{StaticResource ExportComboBoxStyle}"
+                                  SelectedValue="{Binding NoteSep, Mode=TwoWay}"
+                                  SelectedValuePath="Tag">
+                            <ComboBoxItem Content="New line"
+                                          Tag="{x:Static popups:NoteSeparator.Enter}"/>
+                            <ComboBoxItem Content="Tab"
+                                          Tag="{x:Static popups:NoteSeparator.Tab}"/>
+                            <ComboBoxItem Content="Space"
+                                          Tag="{x:Static popups:NoteSeparator.Space}"/>
+                        </ComboBox>
+                        <TextBlock Margin="0,7,0,0"
+                                   Style="{StaticResource ExportHintStyle}"
+                                   Text="Inserted after every exported note."/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        Width="100"
+                        Content="Cancel"
+                        Command="{Binding CloseCommand}"
+                        Style="{StaticResource NavButtonStyle}"/>
+
+                <Button Grid.Column="2"
+                        Width="110"
+                        Content="Export"
+                        Command="{Binding ConfirmCommand}"
+                        Style="{StaticResource NavButtonStyle}"/>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

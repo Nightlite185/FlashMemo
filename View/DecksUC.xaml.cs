@@ -105,11 +105,47 @@ public partial class DecksUC: UserControl, IDropTarget
 
     private void DeckCtxButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button btn || btn.ContextMenu is null)
+        if (sender is not Button button ||
+            FindAncestor<TreeViewItem>(button) is not TreeViewItem item ||
+            item.DataContext is not DeckNode deck ||
+            DataContext is not DecksVM vm ||
+            item.ContextMenu is not ContextMenu menu)
             return;
 
-        btn.ContextMenu.PlacementTarget = btn;
-        btn.ContextMenu.IsOpen = true;
+        PrepareContextSelection(item, deck, vm);
+        menu.PlacementTarget = item;
+        menu.IsOpen = true;
+    }
+
+    private void TreeViewItem_PreviewMouseRightButtonDown(
+        object sender,
+        MouseButtonEventArgs e)
+    {
+        if (sender is not TreeViewItem item ||
+            e.OriginalSource is not DependencyObject source ||
+            !ReferenceEquals(FindAncestor<TreeViewItem>(source), item) ||
+            item.DataContext is not DeckNode deck ||
+            DataContext is not DecksVM vm)
+            return;
+
+        PrepareContextSelection(item, deck, vm);
+
+        if (item.ContextMenu is ContextMenu menu)
+            menu.PlacementTarget = item;
+    }
+
+    private void PrepareContextSelection(
+        TreeViewItem item,
+        DeckNode deck,
+        DecksVM vm)
+    {
+        if (!deck.IsSelected)
+            vm.SelectDecks([deck]);
+
+        isPointerSelection = true;
+        item.IsSelected = true;
+        selectionAnchor = deck;
+        Dispatcher.BeginInvoke(() => isPointerSelection = false);
     }
 
     private async void RenameBox_KeyDown(object sender, KeyEventArgs e)
@@ -315,6 +351,5 @@ public partial class DecksUC: UserControl, IDropTarget
         return true;
     }
 
-    // TODO: When right-clicking on a deck, it shows its ctx menu just like when clicking on the options icon on the right (multiple decks selected -> only delete and export options are shown).
     // TODO: Add export ctx menu option and wire it with a popup connected with a fresh instance of ExportVM.
 }

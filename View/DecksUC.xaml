@@ -155,9 +155,95 @@
                         Property="helpers:TreeViewSelection.IsMultiSelected"
                         Value="{Binding IsSelected}"/>
 
+                    <Setter
+                        Property="Tag"
+                        Value="{Binding DataContext,
+                            RelativeSource={RelativeSource AncestorType=TreeView}}"/>
+
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu
+                                Placement="MousePoint"
+                                DataContext="{Binding PlacementTarget.Tag,
+                                    RelativeSource={RelativeSource Self}}">
+
+                                <ContextMenu.Resources>
+                                    <Style
+                                        x:Key="SingleDeckMenuItemStyle"
+                                        TargetType="MenuItem">
+
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                                        <Style.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding DataContext.SelectedDecks.Count,
+                                                    RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                Value="1">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContextMenu.Resources>
+
+                                <MenuItem
+                                    Header="Rename"
+                                    Style="{StaticResource SingleDeckMenuItemStyle}"
+                                    Command="{Binding PlacementTarget.DataContext.BeginRenameCommand,
+                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                <MenuItem
+                                    Header="Options"
+                                    Style="{StaticResource SingleDeckMenuItemStyle}"
+                                    Command="{Binding DataContext.ShowDeckOptionsCommand,
+                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding PlacementTarget.DataContext,
+                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                <MenuItem
+                                    Header="Create sub-deck"
+                                    Style="{StaticResource SingleDeckMenuItemStyle}"
+                                    Command="{Binding DataContext.ShowCreateDeckCommand,
+                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding PlacementTarget.DataContext,
+                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                <Separator>
+                                    <Separator.Style>
+                                        <Style TargetType="Separator">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger
+                                                    Binding="{Binding DataContext.SelectedDecks.Count,
+                                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                    Value="1">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Separator.Style>
+                                </Separator>
+
+                                <MenuItem
+                                    Header="Export"
+                                    IsEnabled="False"/>
+
+                                <MenuItem
+                                    Header="Delete"
+                                    Command="{Binding DataContext.RemoveDeckCommand,
+                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding DataContext.SelectedDecks,
+                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+
                     <EventSetter
                         Event="MouseDoubleClick"
                         Handler="TreeViewItem_DoubleClick"/>
+
+                    <EventSetter
+                        Event="PreviewMouseRightButtonDown"
+                        Handler="TreeViewItem_PreviewMouseRightButtonDown"/>
 
                 </Style>
             </TreeView.ItemContainerStyle>
@@ -247,32 +333,6 @@
                                     RelativeSource="{RelativeSource AncestorType=TreeViewItem}"
                                     Converter="{StaticResource BoolToVisConverter}"/>
                             </Button.Visibility>
-
-                            <Button.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem
-                                        Header="Rename"
-                                        Command="{Binding PlacementTarget.DataContext.BeginRenameCommand, 
-                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-
-                                    <MenuItem
-                                        Header="Options"
-                                        Command="{Binding DataContext.ShowDeckOptionsCommand, Source={x:Reference Root}}"
-                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-
-                                    <MenuItem
-                                        Header="Create sub-deck"
-                                        Command="{Binding DataContext.ShowCreateDeckCommand, Source={x:Reference Root}}"
-                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                    <Separator/>
-
-                                    <MenuItem
-                                        Header="Delete"
-                                        Command="{Binding DataContext.RemoveDeckCommand, Source={x:Reference Root}}"
-                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                </ContextMenu>
-                            </Button.ContextMenu>
-
                         </Button>
                     </Grid>
                 </HierarchicalDataTemplate>

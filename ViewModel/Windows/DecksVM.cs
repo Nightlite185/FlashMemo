@@ -102,18 +102,33 @@ public partial class DecksVM(
     }
 
     [RelayCommand]
-    private async Task RemoveDeck(DeckNode deck)
+    private async Task RemoveDeck(IReadOnlyCollection<DeckNode> decks)
     {
+        if (decks.Count == 0)
+            return;
+
+        var selectedSet = decks.ToHashSet();
+        var selectedRoots = selectedSet
+            .Where(deck => !HasSelectedAncestor(deck, selectedSet))
+            .ToArray();
+
         var userOptions = await userOptionsService
             .GetFromUser(userId);
 
         if (userOptions.ConfirmDeckDeletion)
         {
-            var answer = DialogService.Show(
-                title: "Delete deck?",
-                message: $"Are you sure you want to permanently delete '{deck.Name}'? "
+            string message = (decks.Count == 1)
+                ? $"Are you sure you want to permanently delete '{decks.First().Name}'? "
                     + "This will also delete all of its subdecks and every card contained "
-                    + "in this deck or any of those subdecks. This action can't be undone."
+                    + "in this deck or any of those subdecks."
+                : $"Are you sure you want to permanently delete {decks.Count} selected decks? "
+                    + "This will also delete all of their subdecks and every card contained "
+                    + "in the selected decks or any of their subdecks.";
+
+            var answer = DialogService.Show(
+                title: decks.Count == 1 ? "Delete deck?" : "Delete decks?",
+                message: message
+                    + " This action can't be undone."
                     + DialogService.DeleteConfirmationSettingsHint,
                 buttons: DialogButtons.YesNo,
                 icon: DialogIcons.Warning);
@@ -122,20 +137,23 @@ public partial class DecksVM(
                 return;
         }
 
-        var removedDeckIds = await deckRepo.RemoveDeck(deck.Id);
-
-        if (lastSession.LastDeckId is long lastDeckId
-            && removedDeckIds.Contains(lastDeckId))
+        foreach (DeckNode deck in selectedRoots)
         {
-            lastSession.LastDeckId = null;
+            var removedDeckIds = await deckRepo.RemoveDeck(deck.Id);
+
+            if (lastSession.LastDeckId is long lastDeckId
+                && removedDeckIds.Contains(lastDeckId))
+            {
+                lastSession.LastDeckId = null;
+            }
+
+            DeselectDecks(deck.Flatten());
+
+            if (deck.Parent is DeckNode parent)
+                parent.RemoveChild(deck);
+
+            else DeckTree.Remove(deck);
         }
-
-        DeselectDecks(deck.Flatten());
-
-        if (deck.Parent is DeckNode parent)
-            parent.RemoveChild(deck);
-
-        else DeckTree.Remove(deck);
     }
 
     [RelayCommand]
@@ -211,7 +229,7 @@ public partial class DecksVM(
 
     #endregion
 
-    #region selection // TODO: possibly to replace with a lib or encapsulate this into separate class.
+    #region temp selection glue // TODO: to replace with a lib or encapsulate this into separate class.
 
     public void SelectDecks(IEnumerable<DeckNode> decks, bool preserveExisting = false)
     {
@@ -298,6 +316,23 @@ public partial class DecksVM(
 
         foreach (DeckNode deck in decks)
             selectedDecks.Add(deck);
+    }
+
+    private static bool HasSelectedAncestor(
+        DeckNode deck,
+        IReadOnlySet<DeckNode> selectedDecks)
+    {
+        DeckNode? ancestor = deck.Parent;
+
+        while (ancestor is not null)
+        {
+            if (selectedDecks.Contains(ancestor))
+                return true;
+
+            ancestor = ancestor.Parent;
+        }
+
+        return false;
     }
 
     #endregion

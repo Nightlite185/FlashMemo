@@ -77,6 +77,7 @@ public partial class App : Application
         sc.AddTransient<DeckOptionsWindow>();
         
         // ==== VM FACTORIES ====
+        sc.AddSingleton<ExportVMF>();
         sc.AddSingleton<DeckOptionsMenuVMF>();
         sc.AddSingleton<DeckSelectVMF>();
         sc.AddSingleton<CardCtxMenuVMF>();

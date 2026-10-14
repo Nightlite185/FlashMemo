@@ -225,7 +225,8 @@
 
                                 <MenuItem
                                     Header="Export"
-                                    IsEnabled="False"/>
+                                    IsEnabled="True"
+                                    Command="{Binding ShowExportMenuCommand}"/>
 
                                 <MenuItem
                                     Header="Delete"

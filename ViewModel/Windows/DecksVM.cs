@@ -6,6 +6,7 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
@@ -15,7 +16,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class DecksVM(
     IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM, 
     ILastSessionService lastSession, IUserOptionsService userOptionsService,
-    long userId, IVMEventBus bus) : BaseVM(bus), IPopupHost
+    long userId, IVMEventBus bus, ExportVMF exportVMF) : BaseVM(bus), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
 
@@ -99,6 +100,24 @@ public partial class DecksVM(
     {
         if (deck is not null)
             await NavigateTo(new DeckOptionsNavRequest(deck.Id));
+    }
+
+    [RelayCommand]
+    private void ShowExportMenu()
+    {
+        var decks = selectedDecks
+            .Flatten()
+            .Select(d => d.Id)
+            .Distinct();
+
+        if (selectedDecks.Count == 0) 
+            throw new InvalidOperationException(
+            "Tried to export decks, but none are selected.");
+
+        CurrentPopup = exportVMF.Create(
+            userId,
+            decks,
+            PopupCancel);
     }
 
     [RelayCommand]
@@ -337,7 +356,7 @@ public partial class DecksVM(
 
     #endregion
 
-    #region public properties
+    #region properties & fields
     public HeatmapVM Heatmap { get; } = heatmapVM;
     public ObservableCollection<DeckNode> DeckTree { get; } = [];
     private readonly ObservableCollection<DeckNode> selectedDecks = [];

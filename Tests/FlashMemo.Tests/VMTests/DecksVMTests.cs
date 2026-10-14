@@ -1,6 +1,7 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
@@ -78,6 +79,7 @@ public class DecksVMTests
             Mock.Of<ILastSessionService>(),
             userOptions.Object,
             1,
+            null!,
             null!);
 
         DeckNode parent = CreateDeck(1);
@@ -101,7 +103,7 @@ public class DecksVMTests
     }
 
     private static DecksVM CreateViewModel()
-        => new(null!, null!, null!, null!, null!, 1, null!);
+        => new(null!, null!, null!, null!, null!, 1, null!, null!);
 
     private static DeckNode CreateDeck(long id)
         => new(

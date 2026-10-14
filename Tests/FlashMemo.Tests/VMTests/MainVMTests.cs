@@ -33,7 +33,7 @@ public class MainVMTests
             userId)
         {
             CurrentDisplay = new DecksVM(
-                null!, null!, null!, null!, null!, userId, null!)
+                null!, null!, null!, null!, null!, userId, null!, null!)
         };
 
         NavigationRequest? navigation = null;

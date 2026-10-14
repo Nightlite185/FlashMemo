@@ -4,11 +4,53 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:popups="clr-namespace:FlashMemo.ViewModel.Popups"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              d:DataContext="{d:DesignInstance Type=popups:ExportVM}"
              PreviewKeyDown="Root_PreviewKeyDown"
              mc:Ignorable="d">
 
     <UserControl.Resources>
+        <ObjectDataProvider x:Key="ExportFormats"
+                            MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="popups:ExportFormat"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="NoteSeparators"
+                            MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="popups:NoteSeparator"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <DataTemplate x:Key="EnumOptionTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource EnumToReadableTextConverter}}"/>
+        </DataTemplate>
+
+        <ControlTemplate x:Key="ExportValidationErrorTemplate">
+            <Border BorderBrush="#FF8080" BorderThickness="1.5" CornerRadius="2">
+                <AdornedElementPlaceholder/>
+            </Border>
+        </ControlTemplate>
+
+        <DataTemplate x:Key="ExportValidationMessageTemplate">
+            <TextBlock Text="{Binding ErrorContent}" Foreground="#FF8080"
+                       FontSize="12" TextWrapping="Wrap"/>
+        </DataTemplate>
+
+        <Style x:Key="ExportValidationMessagesStyle" TargetType="ItemsControl">
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="ItemTemplate" Value="{StaticResource ExportValidationMessageTemplate}"/>
+            <Style.Triggers>
+                <Trigger Property="HasItems" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="ExportLabelStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#F0F3F6"/>
             <Setter Property="FontSize" Value="14"/>
@@ -23,6 +65,7 @@
         </Style>
 
         <Style x:Key="ExportTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Validation.ErrorTemplate" Value="{StaticResource ExportValidationErrorTemplate}"/>
             <Setter Property="Height" Value="38"/>
             <Setter Property="Padding" Value="10,5"/>
             <Setter Property="Background" Value="#2A2E34"/>
@@ -38,6 +81,7 @@
         <Style x:Key="ExportComboBoxStyle"
                TargetType="ComboBox"
                BasedOn="{StaticResource DarkAlwaysEnabledComboBox}">
+            <Setter Property="Validation.ErrorTemplate" Value="{StaticResource ExportValidationErrorTemplate}"/>
             <Setter Property="Height" Value="38"/>
             <Setter Property="IsHitTestVisible" Value="True"/>
             <Setter Property="Focusable" Value="True"/>
@@ -94,17 +138,15 @@
                                    Text="Select the format for the exported file."/>
                     </StackPanel>
 
-                    <ComboBox Grid.Column="1"
-                              Style="{StaticResource ExportComboBoxStyle}"
-                              SelectedValue="{Binding Format, Mode=TwoWay}"
-                              SelectedValuePath="Tag">
-                        <ComboBoxItem Content="Plain text (.txt)"
-                                      Tag="{x:Static popups:ExportFormat.Txt}"/>
-                        <ComboBoxItem Content="CSV (.csv)"
-                                      Tag="{x:Static popups:ExportFormat.Csv}"/>
-                        <ComboBoxItem Content="FlashMemo (.fmnote)"
-                                      Tag="{x:Static popups:ExportFormat.FMNote}"/>
-                    </ComboBox>
+                    <StackPanel Grid.Column="1">
+                        <ComboBox x:Name="FormatComboBox"
+                                  Style="{StaticResource ExportComboBoxStyle}"
+                                  ItemsSource="{Binding Source={StaticResource ExportFormats}}"
+                                  ItemTemplate="{StaticResource EnumOptionTemplate}"
+                                  SelectedItem="{Binding Format, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}"/>
+                        <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                      ItemsSource="{Binding ElementName=FormatComboBox, Path=(Validation.Errors)}"/>
+                    </StackPanel>
                 </Grid>
             </Border>
 
@@ -124,7 +166,7 @@
                         <TextBox x:Name="ExportPathTextBox"
                                  Grid.Column="0"
                                  Style="{StaticResource ExportTextBoxStyle}"
-                                 Text="{Binding ExportPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Text="{Binding ExportPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
 
                         <Button Grid.Column="1"
                                 Width="92"
@@ -136,6 +178,8 @@
                                 Style="{StaticResource NavButtonStyle}"/>
                     </Grid>
 
+                    <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                  ItemsSource="{Binding ElementName=ExportPathTextBox, Path=(Validation.Errors)}"/>
                     <TextBlock Margin="0,7,0,0"
                                Style="{StaticResource ExportHintStyle}"
                                Text="Pick a filename and location, or enter a full path."/>
@@ -155,8 +199,10 @@
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Field separator"
                                    Style="{StaticResource ExportLabelStyle}"/>
-                        <TextBox Style="{StaticResource ExportTextBoxStyle}"
-                                 Text="{Binding FieldSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox x:Name="FieldSeparatorTextBox" Style="{StaticResource ExportTextBoxStyle}"
+                                 Text="{Binding FieldSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                        <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                      ItemsSource="{Binding ElementName=FieldSeparatorTextBox, Path=(Validation.Errors)}"/>
                         <TextBlock Margin="0,7,0,0"
                                    Style="{StaticResource ExportHintStyle}"
                                    Text="Inserted between the front and back."/>
@@ -165,16 +211,12 @@
                     <StackPanel Grid.Column="2">
                         <TextBlock Text="Between notes"
                                    Style="{StaticResource ExportLabelStyle}"/>
-                        <ComboBox Style="{StaticResource ExportComboBoxStyle}"
-                                  SelectedValue="{Binding NoteSep, Mode=TwoWay}"
-                                  SelectedValuePath="Tag">
-                            <ComboBoxItem Content="New line"
-                                          Tag="{x:Static popups:NoteSeparator.Enter}"/>
-                            <ComboBoxItem Content="Tab"
-                                          Tag="{x:Static popups:NoteSeparator.Tab}"/>
-                            <ComboBoxItem Content="Space"
-                                          Tag="{x:Static popups:NoteSeparator.Space}"/>
-                        </ComboBox>
+                        <ComboBox x:Name="NoteSeparatorComboBox" Style="{StaticResource ExportComboBoxStyle}"
+                                  ItemsSource="{Binding Source={StaticResource NoteSeparators}}"
+                                  ItemTemplate="{StaticResource EnumOptionTemplate}"
+                                  SelectedItem="{Binding NoteSep, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}"/>
+                        <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                      ItemsSource="{Binding ElementName=NoteSeparatorComboBox, Path=(Validation.Errors)}"/>
                         <TextBlock Margin="0,7,0,0"
                                    Style="{StaticResource ExportHintStyle}"
                                    Text="Inserted after every exported note."/>

@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace FlashMemo.ViewModel.Bases;
 
 public abstract partial class PopupVMBase
-    (Action cancel): ObservableObject
+    (Action cancel): ObservableValidator
 {
     private readonly Action cancel = cancel;
 
@@ -14,5 +14,5 @@ public abstract partial class PopupVMBase
     [RelayCommand(CanExecute = nameof(CanConfirm))]
     protected abstract Task Confirm();
 
-    protected virtual bool CanConfirm => true;
+    protected virtual bool CanConfirm => !this.HasErrors;
 }

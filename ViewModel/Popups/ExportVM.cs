@@ -1,79 +1,154 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Bases;
 using Microsoft.VisualBasic.FileIO;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public enum ExportFormat { Txt, Csv, FMNote }
-public enum NoteSeparator { Tab, Enter, Space }
+public enum ExportFormat { txt } // csv, FMExp
+public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 
 public partial class ExportVM(
     long userId, ICardQueryService cardQService,
-    INoteSerializer ser, IEnumerable<long>? deckIds = null) // if deckIds is null -> we export everything from the user.
-    : ObservableObject, IViewModel
+    INoteSerializer ser, Action cancel, IEnumerable<long>? deckIds = null) // if deckIds is null -> we export everything from the user.
+    : PopupVMBase(cancel), IViewModel
 {
-    [ObservableProperty]
-    public partial ExportFormat Format { get; set; } = ExportFormat.Txt;
+    #region public properties
+    [ObservableProperty] [NotifyDataErrorInfo]
+    [CustomValidation(typeof(ExportVM), nameof(ValidateFormat))]
+    public partial ExportFormat Format { get; set; } = ExportFormat.txt;
 
-    [ObservableProperty]
-    public partial string ExportPath { get; set; } = SpecialDirectories.MyDocuments;
+    [ObservableProperty] [NotifyDataErrorInfo]
+    [Required(ErrorMessage = "Choose a file to export to.")]
+    [CustomValidation(typeof(ExportVM), nameof(ValidateExportPath))]
+    public partial string ExportPath { get; set; } = Path.Combine(SpecialDirectories.MyDocuments, $"{DateTime.Today:dd.MM.yyyy} FM export.txt");
 
-    [ObservableProperty]
+    [ObservableProperty] [NotifyDataErrorInfo]
+    [Required(AllowEmptyStrings = true, ErrorMessage = "Enter a field separator.")]
+    [MinLength(1, ErrorMessage = "Enter a field separator.")]
+    [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
     public partial string FieldSeparator { get; set; } = " - ";
 
-    [ObservableProperty]
+    [ObservableProperty] [NotifyDataErrorInfo]
+    [CustomValidation(typeof(ExportVM), nameof(ValidateNoteSeparator))]
+    [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
     public partial NoteSeparator NoteSep { get; set; } = NoteSeparator.Enter;
+    #endregion
 
-    [RelayCommand] // returns whether succeeded or not, and an exception if one was thrown.
-    public async Task<(bool, Exception?)> Export ()
+    internal void Validate() => ValidateAllProperties();
+
+    partial void OnFormatChanged(ExportFormat value)
+        => ValidateProperty(ExportPath, nameof(ExportPath));
+
+    partial void OnFieldSeparatorChanged(string value)
+        => ValidateProperty(NoteSep, nameof(NoteSep));
+
+    partial void OnNoteSepChanged(NoteSeparator value)
+        => ValidateProperty(FieldSeparator, nameof(FieldSeparator));
+
+    public static ValidationResult? ValidateFormat(ExportFormat value, ValidationContext context)
+        => value == ExportFormat.txt
+            ? ValidationResult.Success
+            : new ValidationResult("Choose a supported export format.");
+
+    public static ValidationResult? ValidateNoteSeparator(NoteSeparator value, ValidationContext context)
+        => Enum.IsDefined(value)
+            ? ValidationResult.Success
+            : new ValidationResult("Choose a note separator.");
+
+    public static ValidationResult? ValidateSeparators(object? value, ValidationContext context)
     {
+        var vm = (ExportVM)context.ObjectInstance;
+        return Enum.IsDefined(vm.NoteSep) && vm.FieldSeparator == ToChar(vm.NoteSep).ToString()
+            ? new ValidationResult("Field and note separators must be different.")
+            : ValidationResult.Success;
+    }
+
+    public static ValidationResult? ValidateExportPath(string? value, ValidationContext context)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return ValidationResult.Success; // Required supplies the error.
+
+        if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+            return new ValidationResult("Enter a valid file path.");
+
+        string fileName = Path.GetFileName(value);
+        if (string.IsNullOrWhiteSpace(fileName) || Directory.Exists(value)
+            || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            return new ValidationResult("Choose a filename, not a folder, with valid characters.");
+
+        var vm = (ExportVM)context.ObjectInstance;
+        if (vm.Format == ExportFormat.txt
+            && !string.Equals(Path.GetExtension(value), ".txt", StringComparison.OrdinalIgnoreCase))
+            return new ValidationResult("The text export filename must end in .txt.");
+
+        return ValidationResult.Success;
+    }
+
+    protected override async Task Confirm()
+    {
+        ValidateAllProperties();
+        if (HasErrors)
+            return;
+
+        // TODO: main window should have bigger min size or *make export popup scrollable* OR BOTH
+        // TODO: this returns early UNTIL IMPLEMENTED
+        if (Format is not ExportFormat.txt)
+            return;
+
+        char noteSep = ToChar(NoteSep);
+        var sb = new StringBuilder();
+
+        var cards = (deckIds is not null)
+            ? await cardQService.GetCardsWhere(
+                new Filters() { UserId = userId, DeckIds = [.. deckIds], IncludeChildrenDecks = true},
+                CardsOrder.Created, SortingDirection.Ascending)
+
+            : await cardQService.GetAllFromUser(userId);
+
+        var notes = ser.Serialize(
+            cards.Select(c => c.Note));
+
+        foreach (var note in notes)
+        {
+            if (note is not StandardNote sn)
+                throw new NotSupportedException(
+                "Only standard notes supported at the moment.");
+
+            string entry = sn.FrontContent + FieldSeparator
+                + sn.BackContent + noteSep;
+
+            sb.Append(entry);
+        }
+
         try
         {
-            var cards = (deckIds is not null)
-                ? await cardQService.GetCardsWhere(
-                    new Filters() { UserId = userId, DeckIds = [.. deckIds.Distinct()] },
-                    CardsOrder.Created, SortingDirection.Ascending)
-
-                : await cardQService.GetAllFromUser(userId);
-
-            var notes = ser.Serialize(
-                cards.Select(c => c.Note));
-
-            await using var writer = File.CreateText(ExportPath);
-            char noteSep = ToString(NoteSep);
-
-            foreach (var note in notes)
-            {
-                if (note is not StandardNote sn)
-                    throw new NotSupportedException(
-                    "Only standard notes supported at the moment.");
-
-                string entry = sn.FrontContent + FieldSeparator
-                    + sn.BackContent + noteSep;
-
-                await writer.WriteAsync(entry);
-            }
+            await File.WriteAllTextAsync(
+                path: ExportPath,
+                contents: sb.ToString());
         }
 
         catch (Exception e)
         {
-            return (false, e);
+            File.Delete(ExportPath);
+            // TODO: bubble it to the caller.
         }
 
-        return (true, null);
+        Close();
     }
-
-    private static char ToString(NoteSeparator sep)
+    private static char ToChar(NoteSeparator sep)
     {
         return sep switch
         {
             NoteSeparator.Tab => '\t',
             NoteSeparator.Enter => '\n',
+            NoteSeparator.SemiColon => ';',
             NoteSeparator.Space => ' ',
 
             _ => throw new InvalidEnumArgumentException("note separator has invalid value")

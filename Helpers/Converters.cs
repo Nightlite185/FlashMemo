@@ -8,6 +8,7 @@ using System.Windows.Media;
 using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -113,6 +114,10 @@ public partial class EnumToReadableTextConverter : IValueConverter
             return string.Empty;
 
         var enumText = value.ToString() ?? string.Empty;
+
+        if (value is ExportFormat) 
+            return value.ToString()!;
+        
         if (enumText.Length == 0)
             return string.Empty;
 

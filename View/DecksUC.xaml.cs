@@ -350,6 +350,4 @@ public partial class DecksUC: UserControl, IDropTarget
         request = new DecksVM.DeckReparentRequest(draggedDeck, targetDeck);
         return true;
     }
-
-    // TODO: Add export ctx menu option and wire it with a popup connected with a fresh instance of ExportVM.
 }

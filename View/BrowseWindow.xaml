@@ -357,7 +357,7 @@
 
                         <Button Grid.Column="0"
                                 Content="Apply"
-                                Click="ApplyFiltersButton_Click"
+                                Command="{Binding DataContext.ApplyFiltersCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                 Style="{StaticResource BrowseFilterButtonStyle}"/>
 
                         <Button Grid.Column="2"

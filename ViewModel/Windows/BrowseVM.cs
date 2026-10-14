@@ -86,11 +86,13 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
             || note.BackContent .Contains(SearchBar, StringComparison.OrdinalIgnoreCase);
     }
 
-    public async Task ApplyFiltersAsync(Filters snapshot)
+    [RelayCommand]
+    public async Task ApplyFiltersAsync(Filters? snapshot = null)
     {
+        snapshot ??= filtersVM.TakeSnapshot(); // take fresh snapshot by default if filters arent given; this is used in browse xaml bc its a parameterless command
         cards.Clear();
         SelectedCount = 0;
-        
+
         cards.AddRange((await cardQueryS
             .GetCardsWhere(snapshot, SortOrder, SortDir))
             .ToVMs());

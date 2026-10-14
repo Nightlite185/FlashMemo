@@ -408,11 +408,6 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
         return null;
     }
 
-    private async void ApplyFiltersButton_Click(object sender, RoutedEventArgs e)
-    {
-        await VM.ApplyFiltersAsync(VM.FiltersVM.TakeSnapshot());
-    }
-
     private async void ResetFiltersButton_Click(object sender, RoutedEventArgs e)
     {
         var fVM = VM.FiltersVM;

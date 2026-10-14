@@ -58,7 +58,6 @@ DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
     }
     private void ClosePopup() => CurrentPopup = null;
     
-    // TODO: test this, cant yet since all windows are dialogs for now.
     protected override async Task ReloadDomainAsync()
     {
         if (await deckRepo.Exists(CurrentDeck.Id))

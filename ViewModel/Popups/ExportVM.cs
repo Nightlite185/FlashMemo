@@ -41,6 +41,7 @@ public partial class ExportVM(
     public partial NoteSeparator NoteSep { get; set; } = NoteSeparator.Enter;
     #endregion
 
+    #region validation stuff
     internal void Validate() => ValidateAllProperties();
 
     partial void OnFormatChanged(ExportFormat value)
@@ -90,7 +91,7 @@ public partial class ExportVM(
 
         return ValidationResult.Success;
     }
-
+    #endregion
     protected override async Task Confirm()
     {
         ValidateAllProperties();
@@ -104,6 +105,22 @@ public partial class ExportVM(
 
         char noteSep = ToChar(NoteSep);
         var sb = new StringBuilder();
+        string? dir = Path.GetDirectoryName(ExportPath);
+
+        if (dir is null)
+        {
+            DialogService.Show(
+            title: "Failed to export content.",
+            message: "Given path is invalid, please use another one.",
+            buttons: DialogButtons.OK,
+            icon: DialogIcons.Error);
+            
+            return;
+        }
+
+        string fileName = Path.GetFileName(ExportPath);
+        string tempWrite = Path.Combine(dir,
+            $"FlashMemo-{Guid.NewGuid():N}.tmp");
 
         var cards = (deckIds is not null)
             ? await cardQService.GetCardsWhere(
@@ -127,20 +144,36 @@ public partial class ExportVM(
             sb.Append(entry);
         }
 
-        try
-        {
-            await File.WriteAllTextAsync(
-                path: ExportPath,
-                contents: sb.ToString());
-        }
+        string expContent = sb.ToString();
+        var ans = DialogResult.Retry;
 
-        catch (Exception e)
+        while (ans is DialogResult.Retry or DialogResult.TryAgain)
         {
-            File.Delete(ExportPath);
-            // TODO: bubble it to the caller.
-        }
+            try
+            {
+                await File.WriteAllTextAsync(
+                    path: tempWrite,
+                    contents: expContent);
 
-        Close();
+                // TODO: consider situation where there already is a file with {fileName} name. RenameFile then throws.
+
+                FileSystem.RenameFile(tempWrite, fileName);
+                ans = DialogResult.None;
+                Close();
+            }
+
+            catch (Exception e)
+            {
+                ans = DialogService.Show(
+                    title: "Failed to export content.", 
+                    message: $"Error: {e.Message}",
+                    buttons: DialogButtons.RetryCancel,
+                    icon: DialogIcons.Error);
+
+                try { File.Delete(tempWrite); }
+                catch { }
+            }
+        }
     }
     private static char ToChar(NoteSeparator sep)
     {

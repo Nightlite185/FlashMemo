@@ -34,5 +34,4 @@ public static class XamlSerializer
             doc.ContentStart,
             doc.ContentEnd).Text.Trim();
     }
-
 }

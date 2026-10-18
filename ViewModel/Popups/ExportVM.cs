@@ -99,8 +99,8 @@ public partial class ExportVM(
             return;
 
         // TODO: main window should have bigger min size or *make export popup scrollable* OR BOTH
-        // TODO: this returns early UNTIL IMPLEMENTED
-        if (Format is not ExportFormat.txt)
+        
+        if (Format is not ExportFormat.txt) // TODO: delete this line when implemented more formats
             return;
 
         char noteSep = ToChar(NoteSep);
@@ -122,15 +122,34 @@ public partial class ExportVM(
         string tempWrite = Path.Combine(dir,
             $"FlashMemo-{Guid.NewGuid():N}.tmp");
 
-        var cards = (deckIds is not null)
-            ? await cardQService.GetCardsWhere(
-                new Filters() { UserId = userId, DeckIds = [.. deckIds], IncludeChildrenDecks = true},
-                CardsOrder.Created, SortingDirection.Ascending)
+        ICollection<Note> notes;
 
-            : await cardQService.GetAllFromUser(userId);
+        try
+        {
+            var cards = (deckIds is not null)
+                ? await cardQService.GetCardsWhere(
+                    new Filters() 
+                    { 
+                        UserId = userId, 
+                        DeckIds = [.. deckIds], 
+                        IncludeChildrenDecks = true
+                    },
+                    CardsOrder.Created, 
+                    SortingDirection.Ascending)
 
-        var notes = ser.Serialize(
-            cards.Select(c => c.Note));
+                : await cardQService.GetAllFromUser(userId);
+
+            notes = ser.Serialize(
+                cards.Select(c => c.Note));
+        }
+
+        catch
+        {
+            DialogService.ShowError(
+                "Something went wrong while preparing content to export. Try again later.");
+
+            return;
+        }
 
         foreach (var note in notes)
         {
@@ -155,9 +174,7 @@ public partial class ExportVM(
                     path: tempWrite,
                     contents: expContent);
 
-                // TODO: consider situation where there already is a file with {fileName} name. RenameFile then throws.
-
-                FileSystem.RenameFile(tempWrite, fileName);
+                File.Move(tempWrite, fileName, overwrite: true);
                 ans = DialogResult.None;
                 Close();
             }

@@ -87,8 +87,12 @@ public static class DialogService
         var btn = ConvertButtonType(buttons);
         var img = ConvertIconType(icon);
 
-        var result = MessageBox.Show(message, title, btn, img);
+        var result = MessageBox.Show(
+            message, title, btn, img);
 
         return ConvertResultType(result);
     }
+
+    public static DialogResult ShowError(string message, DialogButtons buttons = DialogButtons.OK)
+        => Show("Error", message, buttons, DialogIcons.Error);
 } 

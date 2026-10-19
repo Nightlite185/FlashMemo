@@ -3,149 +3,84 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using GongSolutions.Wpf.DragDrop;
+using System.Windows.Media.Animation;
+using Syncfusion.UI.Xaml.TreeView;
+using Syncfusion.UI.Xaml.TreeView.Engine;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
+using System.Collections.ObjectModel;
 
 namespace FlashMemo.View;
-public partial class DecksUC: UserControl, IDropTarget
+public partial class DecksUC: UserControl
 {
-    private DeckNode? selectionAnchor;
-    private bool isPointerSelection;
-
     public DecksUC()
     {
         InitializeComponent();
     }
 
-    private void TreeViewItem_DoubleClick(object sender, MouseButtonEventArgs e)
+    private void DeckTreeItem_Loaded(object sender, RoutedEventArgs e)
     {
-        if (e.OriginalSource is DependencyObject source 
-        && IsInsideButtonBase(source))
-        {
-            e.Handled = true;
+        if (sender is not Syncfusion.UI.Xaml.TreeView.TreeViewItem item)
             return;
+
+        // Syncfusion hard-codes both hover and drop colours in its default template.
+        if (item.Template.FindName("PART_HoverBorder", item) is Border hover)
+        {
+            hover.SetResourceReference(Border.BackgroundProperty, "DeckRowHoverBrush");
         }
 
-        if (sender is not TreeViewItem item
-        || item.DataContext is not DeckNode deck
-        || this.DataContext is not DecksVM vm)
+        if (item.Template.FindName("ROOT", item) is FrameworkElement root)
+        {
+            var dropState = VisualStateManager.GetVisualStateGroups(root)
+                .OfType<VisualStateGroup>()
+                .SelectMany(group => group.States.OfType<VisualState>())
+                .FirstOrDefault(state => state.Name == "DropAsChild");
+
+            if (dropState is not null)
+                dropState.Storyboard = (Storyboard)DeckTree.FindResource("DeckDropTargetStoryboard");
+        }
+    }
+
+    private void DeckRow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2 ||
+            e.OriginalSource is not DependencyObject source ||
+            FindAncestor<ButtonBase>(source) is not null ||
+            FindAncestor<TextBox>(source) is not null ||
+            sender is not FrameworkElement { DataContext: DeckNode deck } ||
+            DataContext is not DecksVM vm)
             return;
 
         vm.ShowReviewCommand.Execute(deck);
-    }
-
-    private void DeckTree_SelectedChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-    {
-        if (isPointerSelection ||
-            sender is not TreeView treeView ||
-            treeView.DataContext is not DecksVM vm ||
-            e.NewValue is not DeckNode selected)
-            return;
-
-        vm.SelectDecks([selected]);
-        selectionAnchor = selected;
-    }
-
-    private void DeckTree_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is not TreeView treeView ||
-            treeView.DataContext is not DecksVM vm ||
-            e.OriginalSource is not DependencyObject source)
-            return;
-
-        TreeViewItem? item = FindAncestor<TreeViewItem>(source);
-
-        if (item?.DataContext is not DeckNode deck)
-        {
-            if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) == ModifierKeys.None)
-            {
-                vm.ClearSelection();
-                selectionAnchor = null;
-            }
-
-            return;
-        }
-
-        if (IsInsideButtonBase(source) || IsInsideTextBox(source))
-            return;
-
-        isPointerSelection = true;
-
-        bool isControlPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-        bool isShiftPressed = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
-
-        if (isShiftPressed && selectionAnchor is not null)
-        {
-            vm.SelectDecks(
-                GetVisibleRange(vm.DeckTree, selectionAnchor, deck),
-                preserveExisting: isControlPressed);
-        }
-        else if (isControlPressed)
-        {
-            bool isBeingDeselected = deck.IsSelected;
-            vm.ToggleDeckSelection(deck);
-
-            // Prevent TreeView's built-in single selection from leaving a
-            // deselected item visually selected.
-            if (isBeingDeselected)
-            {
-                item.IsSelected = false;
-                e.Handled = true;
-            }
-        }
-        else
-        {
-            vm.SelectDecks([deck]);
-        }
-
-        selectionAnchor = deck;
-        Dispatcher.BeginInvoke(() => isPointerSelection = false);
+        e.Handled = true;
     }
 
     private void DeckCtxButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button button ||
-            FindAncestor<TreeViewItem>(button) is not TreeViewItem item ||
-            item.DataContext is not DeckNode deck ||
-            DataContext is not DecksVM vm ||
-            item.ContextMenu is not ContextMenu menu)
+        if (sender is not Button { Parent: Grid row } ||
+            row.DataContext is not DeckNode deck ||
+            row.ContextMenu is not ContextMenu menu)
             return;
 
-        PrepareContextSelection(item, deck, vm);
-        menu.PlacementTarget = item;
+        PrepareContextSelection(deck);
+        menu.PlacementTarget = row;
         menu.IsOpen = true;
     }
 
-    private void TreeViewItem_PreviewMouseRightButtonDown(
-        object sender,
-        MouseButtonEventArgs e)
+    private void DeckRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not TreeViewItem item ||
-            e.OriginalSource is not DependencyObject source ||
-            !ReferenceEquals(FindAncestor<TreeViewItem>(source), item) ||
-            item.DataContext is not DeckNode deck ||
-            DataContext is not DecksVM vm)
-            return;
-
-        PrepareContextSelection(item, deck, vm);
-
-        if (item.ContextMenu is ContextMenu menu)
-            menu.PlacementTarget = item;
+        if (sender is FrameworkElement { DataContext: DeckNode deck })
+            PrepareContextSelection(deck);
     }
 
-    private void PrepareContextSelection(
-        TreeViewItem item,
-        DeckNode deck,
-        DecksVM vm)
+    private void PrepareContextSelection(DeckNode deck)
     {
-        if (!deck.IsSelected)
-            vm.SelectDecks([deck]);
+        // Opening a selected row's menu preserves the whole multi-selection.
+        if (DeckTree.SelectedItems.Contains(deck))
+            return;
 
-        isPointerSelection = true;
-        item.IsSelected = true;
-        selectionAnchor = deck;
-        Dispatcher.BeginInvoke(() => isPointerSelection = false);
+        DeckTree.SelectedItems.Clear();
+        DeckTree.SelectedItems.Add(deck);
     }
 
     private async void RenameBox_KeyDown(object sender, KeyEventArgs e)
@@ -207,21 +142,13 @@ public partial class DecksUC: UserControl, IDropTarget
         if (DataContext is not DecksVM vm)
             return;
 
-        if (e.Key == Key.A && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-        {
-            vm.SelectDecks(GetVisibleDecks(vm.DeckTree));
-            e.Handled = true;
-            return;
-        }
-
         if (e.Key != Key.F2 ||
             vm.SelectedDecks.Count != 1 ||
-            vm.SelectedDecks[0].IsRenaming)
+            vm.SelectedDecks[0] is not DeckNode { IsRenaming: false } selectedDeck)
         {
             return;
         }
 
-        DeckNode selectedDeck = vm.SelectedDecks[0];
         selectedDeck.BeginRenameCommand.Execute(null);
         e.Handled = true;
     }
@@ -229,42 +156,12 @@ public partial class DecksUC: UserControl, IDropTarget
     private void Root_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.OriginalSource is DependencyObject source &&
-            IsInsideTextBox(source))
+            FindAncestor<TextBox>(source) is not null)
         {
             return;
         }
 
         Keyboard.ClearFocus();
-    }
-
-    private static bool IsInsideTextBox(DependencyObject source)
-    {
-        DependencyObject? current = source;
-
-        while (current is not null)
-        {
-            if (current is TextBox)
-                return true;
-
-            current = VisualTreeHelper.GetParent(current);
-        }
-
-        return false;
-    }
-
-    private static bool IsInsideButtonBase(DependencyObject source)
-    {
-        DependencyObject? current = source;
-
-        while (current is not null)
-        {
-            if (current is ButtonBase)
-                return true;
-
-            current = VisualTreeHelper.GetParent(current);
-        }
-
-        return false;
     }
 
     private static T? FindAncestor<T>(DependencyObject source) where T : DependencyObject
@@ -282,72 +179,65 @@ public partial class DecksUC: UserControl, IDropTarget
         return null;
     }
 
-    private static IEnumerable<DeckNode> GetVisibleRange(
-        IEnumerable<DeckNode> roots,
-        DeckNode first,
-        DeckNode second)
+    private void DeckTree_ItemDragStarting(object sender, TreeViewItemDragStartingEventArgs e)
     {
-        List<DeckNode> visibleDecks = [.. GetVisibleDecks(roots)];
-        int firstIndex = visibleDecks.IndexOf(first);
-        int secondIndex = visibleDecks.IndexOf(second);
-
-        if (firstIndex < 0 || secondIndex < 0)
-            return [second];
-
-        int start = Math.Min(firstIndex, secondIndex);
-        int count = Math.Abs(firstIndex - secondIndex) + 1;
-        return visibleDecks.GetRange(start, count);
+        // Reparenting currently moves one deck (including its subtree) at a time.
+        e.Cancel = e.DraggingNodes.Count != 1;
     }
 
-    private static IEnumerable<DeckNode> GetVisibleDecks(IEnumerable<DeckNode> nodes)
+    private void DeckTree_ItemDragOver(object sender, TreeViewItemDragOverEventArgs e)
     {
-        foreach (DeckNode node in nodes)
+        var request = CreateReparentRequest(e.DraggingNodes, e.TargetNode);
+        e.DropPosition = ReferenceEquals(e.DragSource, DeckTree) &&
+            DataContext is DecksVM vm &&
+            vm.ReparentDeckCommand.CanExecute(request)
+                ? e.TargetNode is null ? DropPosition.DropHere : DropPosition.DropAsChild
+                : DropPosition.None;
+    }
+
+    // syncfusion's drag event handler, works for dropping on other decks.
+    private async void DeckTree_ItemDropping(object sender, TreeViewItemDroppingEventArgs e)
+    {
+        e.Handled = true;
+        var request = CreateReparentRequest(e.DraggingNodes, e.TargetNode);
+
+        if (ReferenceEquals(e.DragSource, DeckTree) &&
+            DataContext is DecksVM vm &&
+            vm.ReparentDeckCommand.CanExecute(request))
         {
-            yield return node;
-
-            if (!node.IsExpanded)
-                continue;
-
-            foreach (DeckNode child in GetVisibleDecks(node.Children))
-                yield return child;
+            await vm.ReparentDeckCommand.ExecuteAsync(request);
         }
     }
 
-    void IDropTarget.DragOver(IDropInfo dropInfo)
+    // wpf's drag event handler. Only for dropping in empty space; moving to root.
+    private async void DeckTree_Drop(object sender, DragEventArgs e)
     {
-        if (!TryCreateReparentRequest(dropInfo, out DecksVM.DeckReparentRequest? request) ||
-            DataContext is not DecksVM vm ||
-            !vm.ReparentDeckCommand.CanExecute(request))
-        {
-            dropInfo.Effects = DragDropEffects.None;
+        // A row drop can change the layout before bubbling here. Its original
+        // source still identifies it as a row drop, even if hit-testing no longer does.
+        if (e.OriginalSource is DependencyObject source &&
+            FindAncestor<Syncfusion.UI.Xaml.TreeView.TreeViewItem>(source) is not null)
             return;
-        }
 
-        dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-        dropInfo.Effects = DragDropEffects.Move;
-    }
-
-    async void IDropTarget.Drop(IDropInfo dropInfo)
-    {
-        if (!TryCreateReparentRequest(dropInfo, out DecksVM.DeckReparentRequest? request) ||
-            DataContext is not DecksVM vm ||
-            !vm.ReparentDeckCommand.CanExecute(request))
-        {
+        if (DeckTree.GetNodeAt(e.GetPosition(DeckTree)) is not null ||
+            !ReferenceEquals(e.Data.GetData("Source"), DeckTree) ||
+            e.Data.GetData("Nodes") is not ObservableCollection<TreeViewNode> nodes ||
+            DataContext is not DecksVM vm)
             return;
-        }
 
+        var request = CreateReparentRequest(nodes, targetNode: null);
+        if (!vm.ReparentDeckCommand.CanExecute(request))
+            return;
+
+        e.Handled = true;
+        e.Effects = DragDropEffects.Move;
         await vm.ReparentDeckCommand.ExecuteAsync(request);
     }
 
-    private static bool TryCreateReparentRequest(IDropInfo dropInfo, out DecksVM.DeckReparentRequest? request)
+    private static DecksVM.DeckReparentRequest? CreateReparentRequest(
+        ObservableCollection<TreeViewNode>? draggingNodes, TreeViewNode? targetNode)
     {
-        request = null;
-
-        if (dropInfo.Data is not DeckNode draggedDeck)
-            return false;
-
-        DeckNode? targetDeck = dropInfo.TargetItem as DeckNode;
-        request = new DecksVM.DeckReparentRequest(draggedDeck, targetDeck);
-        return true;
+        return draggingNodes?.Count == 1 && draggingNodes[0].Content is DeckNode deck
+            ? new(deck, targetNode?.Content as DeckNode)
+            : null;
     }
 }

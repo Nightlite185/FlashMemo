@@ -9,6 +9,8 @@ using FlashMemo.ViewModel.Factories;
 using FlashMemo.Model;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.IO;
+using Syncfusion.Licensing;
 
 namespace FlashMemo;
 public partial class App : Application
@@ -17,6 +19,7 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        await CheckLicenses();
         base.OnStartup(e);
 
         var services = ConfigureServices();
@@ -62,6 +65,18 @@ public partial class App : Application
             sp.GetRequiredService<MainWindowBootstrapper>()
                 .SetupMainWindow(mainVM);
         }
+    }
+    private static async Task CheckLicenses()
+    {
+        await using var stream = ResourceAssembly
+            .GetManifestResourceStream("FlashMemo.SyncfusionLicense")
+                ?? throw new InvalidOperationException(
+                "Syncfusion license is missing.");
+
+        using var reader = new StreamReader(stream);
+
+        SyncfusionLicenseProvider.RegisterLicense(
+            (await reader.ReadToEndAsync()).Trim());
     }
     private static ServiceCollection ConfigureServices()
     {
@@ -128,7 +143,7 @@ public partial class App : Application
         sc.AddDbContext<AppDbContext>(o =>
         {
             o.UseSqlite($"Data Source={AppDbContext.DbPath}");
-            o.EnableSensitiveDataLogging();
+            o.EnableSensitiveDataLogging(); // TODO: remove for the release build
 
             o.LogTo(
                 log => Debug.WriteLine(log),

@@ -20,10 +20,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SyncfusionLicense.txt" 
+                      LogicalName="FlashMemo.SyncfusionLicense" 
+                      Condition="Exists('SyncfusionLicense.txt')" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="5.1.2" />
-    <PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
       <PrivateAssets>all</PrivateAssets>
@@ -35,6 +40,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Syncfusion.Licensing" Version="35.1.40" />
+    <PackageReference Include="Syncfusion.SfTreeView.WPF" Version="35.1.40" />
   </ItemGroup>
 
 </Project>

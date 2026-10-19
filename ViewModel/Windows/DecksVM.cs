@@ -77,7 +77,7 @@ public partial class DecksVM(
     [RelayCommand]
     protected override async Task ReloadDomainAsync()
     {
-        ClearSelection();
+        SelectedDecks.Clear();
         DeckTree.Clear();
 
         DeckTree.AddRange(await decksBuilder
@@ -105,12 +105,12 @@ public partial class DecksVM(
     [RelayCommand]
     private void ShowExportMenu()
     {
-        var decks = selectedDecks
+        var decks = SelectedDecks.Cast<DeckNode>()
             .Flatten()
             .Select(d => d.Id)
             .Distinct();
 
-        if (selectedDecks.Count == 0) 
+        if (SelectedDecks.Count == 0)
             throw new InvalidOperationException(
             "Tried to export decks, but none are selected.");
 
@@ -121,9 +121,12 @@ public partial class DecksVM(
     }
 
     [RelayCommand]
-    private async Task RemoveDeck(IReadOnlyCollection<DeckNode> decks)
+    private async Task RemoveDeck()
     {
-        if (decks.Count == 0)
+        // Snapshot before awaiting: the tree updates selection as nodes are removed.
+        DeckNode[] decks = [.. SelectedDecks.Cast<DeckNode>()];
+
+        if (decks.Length == 0)
             return;
 
         var selectedSet = decks.ToHashSet();
@@ -136,16 +139,16 @@ public partial class DecksVM(
 
         if (userOptions.ConfirmDeckDeletion)
         {
-            string message = (decks.Count == 1)
-                ? $"Are you sure you want to permanently delete '{decks.First().Name}'? "
+            string message = (decks.Length == 1)
+                ? $"Are you sure you want to permanently delete '{decks[0].Name}'? "
                     + "This will also delete all of its subdecks and every card contained "
                     + "in this deck or any of those subdecks."
-                : $"Are you sure you want to permanently delete {decks.Count} selected decks? "
+                : $"Are you sure you want to permanently delete {decks.Length} selected decks? "
                     + "This will also delete all of their subdecks and every card contained "
                     + "in the selected decks or any of their subdecks.";
 
             var answer = DialogService.Show(
-                title: decks.Count == 1 ? "Delete deck?" : "Delete decks?",
+                title: decks.Length == 1 ? "Delete deck?" : "Delete decks?",
                 message: message
                     + " This action can't be undone."
                     + DialogService.DeleteConfirmationSettingsHint,
@@ -166,7 +169,8 @@ public partial class DecksVM(
                 lastSession.LastDeckId = null;
             }
 
-            DeselectDecks(deck.Flatten());
+            foreach (DeckNode removedDeck in deck.Flatten())
+                SelectedDecks.Remove(removedDeck);
 
             if (deck.Parent is DeckNode parent)
                 parent.RemoveChild(deck);
@@ -248,95 +252,6 @@ public partial class DecksVM(
 
     #endregion
 
-    #region temp selection glue // TODO: to replace with a lib or encapsulate this into separate class.
-
-    public void SelectDecks(IEnumerable<DeckNode> decks, bool preserveExisting = false)
-    {
-        DeckNode[] requestedDecks = decks
-            .Distinct()
-            .ToArray();
-
-        if (!preserveExisting)
-        {
-            HashSet<DeckNode> requestedSet = requestedDecks.ToHashSet();
-
-            foreach (DeckNode deck in selectedDeckSet)
-                if (!requestedSet.Contains(deck))
-                    deck.IsSelected = false;
-
-            foreach (DeckNode deck in requestedDecks)
-                deck.IsSelected = true;
-
-            selectedDeckSet.Clear();
-            selectedDeckSet.UnionWith(requestedSet);
-            SynchronizeSelectedDecks(requestedDecks);
-            return;
-        }
-
-        foreach (DeckNode deck in requestedDecks)
-        {
-            if (!selectedDeckSet.Add(deck))
-                continue;
-
-            deck.IsSelected = true;
-            selectedDecks.Add(deck);
-        }
-    }
-
-    public void ToggleDeckSelection(DeckNode deck)
-    {
-        if (selectedDeckSet.Remove(deck))
-        {
-            deck.IsSelected = false;
-            selectedDecks.Remove(deck);
-            return;
-        }
-
-        selectedDeckSet.Add(deck);
-        deck.IsSelected = true;
-        selectedDecks.Add(deck);
-    }
-
-    public void ClearSelection()
-    {
-        foreach (DeckNode deck in selectedDeckSet)
-            deck.IsSelected = false;
-
-        selectedDeckSet.Clear();
-        selectedDecks.Clear();
-    }
-
-    private void DeselectDecks(IEnumerable<DeckNode> decks)
-    {
-        bool selectionChanged = false;
-
-        foreach (DeckNode deck in decks)
-        {
-            if (!selectedDeckSet.Remove(deck))
-                continue;
-
-            deck.IsSelected = false;
-            selectionChanged = true;
-        }
-
-        if (!selectionChanged)
-            return;
-
-        SynchronizeSelectedDecks(
-            selectedDecks.Where(selectedDeckSet.Contains).ToArray());
-    }
-
-    private void SynchronizeSelectedDecks(IReadOnlyList<DeckNode> decks)
-    {
-        if (selectedDecks.SequenceEqual(decks))
-            return;
-
-        selectedDecks.Clear();
-
-        foreach (DeckNode deck in decks)
-            selectedDecks.Add(deck);
-    }
-
     private static bool HasSelectedAncestor(
         DeckNode deck,
         IReadOnlySet<DeckNode> selectedDecks)
@@ -354,16 +269,11 @@ public partial class DecksVM(
         return false;
     }
 
-    #endregion
-
     #region properties & fields
     public HeatmapVM Heatmap { get; } = heatmapVM;
     public ObservableCollection<DeckNode> DeckTree { get; } = [];
-    private readonly ObservableCollection<DeckNode> selectedDecks = [];
-    private readonly HashSet<DeckNode> selectedDeckSet = [];
-    private ReadOnlyObservableCollection<DeckNode>? selectedDecksView;
-    public ReadOnlyObservableCollection<DeckNode> SelectedDecks
-        => selectedDecksView ??= new(selectedDecks);
+    // SfTreeView.SelectedItems requires ObservableCollection<object>.
+    public ObservableCollection<object> SelectedDecks { get; } = [];
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }

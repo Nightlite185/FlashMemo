@@ -1,7 +1,6 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
-using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
@@ -12,48 +11,32 @@ namespace FlashMemo.Tests.VMTests;
 public class DecksVMTests
 {
     [Fact]
-    public void SelectDecks_ReplacesSelectionAndSynchronizesDeckState()
+    public async Task ReloadDomain_ClearsSelectionBeforeReplacingTree()
     {
-        DecksVM vm = CreateViewModel();
-        DeckNode first = CreateDeck(1);
-        DeckNode second = CreateDeck(2);
+        DeckNode oldDeck = CreateDeck(1);
+        DeckNode newDeck = CreateDeck(2);
+        var builder = new Mock<IDeckTreeBuilder>();
+        builder.Setup(service => service.BuildCountedAsync(1))
+            .ReturnsAsync(new[] { newDeck });
+        var vm = new DecksVM(null!, builder.Object, null!, null!, null!, 1, null!, null!);
+        vm.DeckTree.Add(oldDeck);
+        vm.SelectedDecks.Add(oldDeck);
 
-        vm.SelectDecks([first]);
-        vm.SelectDecks([second]);
+        await vm.ReloadDomainCommand.ExecuteAsync(null);
 
-        vm.SelectedDecks.Should().Equal(second);
-        first.IsSelected.Should().BeFalse();
-        second.IsSelected.Should().BeTrue();
+        vm.SelectedDecks.Should().BeEmpty();
+        vm.DeckTree.Should().Equal(newDeck);
     }
 
     [Fact]
-    public void SelectDecks_WhenPreservingExisting_AddsToSelection()
+    public async Task RemoveDecks_WithNoSelection_DoesNothing()
     {
-        DecksVM vm = CreateViewModel();
-        DeckNode first = CreateDeck(1);
-        DeckNode second = CreateDeck(2);
+        var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!);
 
-        vm.SelectDecks([first]);
-        vm.SelectDecks([second], preserveExisting: true);
+        await vm.RemoveDeckCommand.ExecuteAsync(null);
 
-        vm.SelectedDecks.Should().Equal(first, second);
-        first.IsSelected.Should().BeTrue();
-        second.IsSelected.Should().BeTrue();
-    }
-
-    [Fact]
-    public void ToggleDeckSelection_RemovesAnAlreadySelectedDeck()
-    {
-        DecksVM vm = CreateViewModel();
-        DeckNode first = CreateDeck(1);
-        DeckNode second = CreateDeck(2);
-        vm.SelectDecks([first, second]);
-
-        vm.ToggleDeckSelection(first);
-
-        vm.SelectedDecks.Should().Equal(second);
-        first.IsSelected.Should().BeFalse();
-        second.IsSelected.Should().BeTrue();
+        repo.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -88,22 +71,18 @@ public class DecksVMTests
         parent.AddChild(child);
         vm.DeckTree.Add(parent);
         vm.DeckTree.Add(otherRoot);
-        vm.SelectDecks([parent, child, otherRoot]);
+        vm.SelectedDecks.Add(parent);
+        vm.SelectedDecks.Add(child);
+        vm.SelectedDecks.Add(otherRoot);
 
-        await vm.RemoveDeckCommand.ExecuteAsync(vm.SelectedDecks);
+        await vm.RemoveDeckCommand.ExecuteAsync(null);
 
         deckRepo.Verify(repo => repo.RemoveDeck(1), Times.Once);
         deckRepo.Verify(repo => repo.RemoveDeck(2), Times.Never);
         deckRepo.Verify(repo => repo.RemoveDeck(3), Times.Once);
         vm.DeckTree.Should().BeEmpty();
         vm.SelectedDecks.Should().BeEmpty();
-        parent.IsSelected.Should().BeFalse();
-        child.IsSelected.Should().BeFalse();
-        otherRoot.IsSelected.Should().BeFalse();
     }
-
-    private static DecksVM CreateViewModel()
-        => new(null!, null!, null!, null!, null!, 1, null!, null!);
 
     private static DeckNode CreateDeck(long id)
         => new(

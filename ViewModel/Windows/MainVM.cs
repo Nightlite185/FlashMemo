@@ -74,7 +74,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
             }
 
             else if (count == 1)
-                deck = vm.SelectedDecks[0];
+                deck = (IDeckMeta)vm.SelectedDecks[0];
         }
 
         // Otherwise, try the last used cached deck.

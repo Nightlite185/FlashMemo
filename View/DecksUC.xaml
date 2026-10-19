@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FlashMemo.View" 
              xmlns:windows="clr-namespace:FlashMemo.ViewModel.Windows" 
-             xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+             xmlns:wrappers="clr-namespace:FlashMemo.ViewModel.Wrappers"
              xmlns:helpers="clr-namespace:FlashMemo.Helpers"
              x:Name="Root"
              helpers:FocusBoundaryBehavior.EnableBoundaryFocusTracking="True"
@@ -132,85 +133,139 @@
             </TextBlock>
 
             <!-- Deck list -->
-            <TreeView
+            <syncfusion:SfTreeView
                 Name="DeckTree"
                 Grid.Row="1"
                 ItemsSource="{Binding DeckTree}"
-                SelectedItemChanged="DeckTree_SelectedChanged"
-                PreviewMouseLeftButtonDown="DeckTree_PreviewMouseLeftButtonDown"
+                SelectedItems="{Binding SelectedDecks, Mode=OneWay}"
+                SelectionMode="Extended"
+                FullRowSelect="True"
+                ItemHeight="52"
+                Indentation="20"
+                ExpanderWidth="34"
+                SelectionBackgroundColor="#402A82DA"
+                FocusBorderColor="Transparent"
                 KeyDown="DeckTree_KeyDown"
-                dd:DragDrop.IsDragSource="True"
-                dd:DragDrop.IsDropTarget="True"
-                dd:DragDrop.DropHandler="{Binding ElementName=Root}"
+                AllowDragging="True"
+                AllowDrop="True"
+                ItemDragStarting="DeckTree_ItemDragStarting"
+                ItemDragOver="DeckTree_ItemDragOver"
+                ItemDropping="DeckTree_ItemDropping"
+                Drop="DeckTree_Drop"
                 Background="Transparent"
+                Foreground="{StaticResource DeckTextBrush}"
                 BorderThickness="0"
-                VerticalAlignment="Top">
+                Margin="8,0"
+                VerticalAlignment="Stretch">
 
-            <TreeView.ItemContainerStyle>
-                <Style
-                    TargetType="TreeViewItem"
-                    BasedOn="{StaticResource DeckTreeItemStyle}">
+                <syncfusion:SfTreeView.Resources>
+                    <Style TargetType="syncfusion:TreeViewItem">
+                        <EventSetter Event="Loaded" Handler="DeckTreeItem_Loaded"/>
+                    </Style>
+                    <Storyboard x:Key="DeckDropTargetStoryboard">
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BorderContent" Storyboard.TargetProperty="Background">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource DeckRowHoverBrush}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BorderContent" Storyboard.TargetProperty="BorderBrush">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource DeckRowHoverBrush}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PART_ExpanderView" Storyboard.TargetProperty="Background">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource DeckRowHoverBrush}"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </syncfusion:SfTreeView.Resources>
 
-                    <Setter
-                        Property="helpers:TreeViewSelection.IsMultiSelected"
-                        Value="{Binding IsSelected}"/>
-
-                    <Setter
-                        Property="Tag"
-                        Value="{Binding DataContext,
-                            RelativeSource={RelativeSource AncestorType=TreeView}}"/>
-
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu
-                                Placement="MousePoint"
-                                DataContext="{Binding PlacementTarget.Tag,
-                                    RelativeSource={RelativeSource Self}}">
-
-                                <ContextMenu.Resources>
-                                    <Style
-                                        x:Key="SingleDeckMenuItemStyle"
-                                        TargetType="MenuItem">
-
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-
+                <syncfusion:SfTreeView.ExpanderTemplate>
+                    <DataTemplate>
+                        <Grid Background="Transparent" Cursor="Hand">
+                            <Path
+                                Width="6" Height="10"
+                                Data="M 0,0 L 5,5 L 0,10"
+                                Stretch="Uniform"
+                                StrokeThickness="1.5"
+                                StrokeStartLineCap="Round"
+                                StrokeEndLineCap="Round"
+                                StrokeLineJoin="Round"
+                                RenderTransformOrigin="0.5,0.5">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Stroke" Value="#FF9AA5B1"/>
                                         <Style.Triggers>
-                                            <DataTrigger
-                                                Binding="{Binding DataContext.SelectedDecks.Count,
-                                                    RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                Value="1">
-                                                <Setter Property="Visibility" Value="Visible"/>
+                                            <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                <Setter Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <RotateTransform Angle="90"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                                                <Setter Property="Stroke" Value="#FFE6EDF3"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </ContextMenu.Resources>
+                                </Path.Style>
+                            </Path>
+                        </Grid>
+                    </DataTemplate>
+                </syncfusion:SfTreeView.ExpanderTemplate>
 
-                                <MenuItem
-                                    Header="Rename"
-                                    Style="{StaticResource SingleDeckMenuItemStyle}"
-                                    Command="{Binding PlacementTarget.DataContext.BeginRenameCommand,
-                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                <syncfusion:SfTreeView.DragPreviewTemplate>
+                    <DataTemplate>
+                        <Grid Width="36" Height="28" IsHitTestVisible="False">
+                            <Rectangle
+                                Margin="4"
+                                RadiusX="3" RadiusY="3"
+                                Fill="#482A3C4F"
+                                Stroke="#B0BCCCDC"
+                                StrokeThickness="1.5"
+                                StrokeDashArray="3,2">
+                                <Rectangle.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
+                                                    Storyboard.TargetProperty="StrokeDashOffset"
+                                                    From="0" To="10"
+                                                    Duration="0:0:1"
+                                                    RepeatBehavior="Forever"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Rectangle.Triggers>
+                            </Rectangle>
+                        </Grid>
+                    </DataTemplate>
+                </syncfusion:SfTreeView.DragPreviewTemplate>
 
-                                <MenuItem
-                                    Header="Options"
-                                    Style="{StaticResource SingleDeckMenuItemStyle}"
-                                    Command="{Binding DataContext.ShowDeckOptionsCommand,
-                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                    CommandParameter="{Binding PlacementTarget.DataContext,
-                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                <syncfusion:SfTreeView.HierarchyPropertyDescriptors>
+                    <syncfusion:HierarchyPropertyDescriptor
+                        TargetType="{x:Type wrappers:DeckNode}"
+                        ChildPropertyName="Children"
+                        IsExpandedPropertyName="IsExpanded"/>
+                </syncfusion:SfTreeView.HierarchyPropertyDescriptors>
 
-                                <MenuItem
-                                    Header="Create sub-deck"
-                                    Style="{StaticResource SingleDeckMenuItemStyle}"
-                                    Command="{Binding DataContext.ShowCreateDeckCommand,
-                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                    CommandParameter="{Binding PlacementTarget.DataContext,
-                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                <syncfusion:SfTreeView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid
+                            Height="{Binding ItemHeight, RelativeSource={RelativeSource AncestorType=syncfusion:SfTreeView}}"
+                            Margin="-4,0"
+                            Background="Transparent"
+                            Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=syncfusion:SfTreeView}}"
+                            MouseLeftButtonDown="DeckRow_MouseLeftButtonDown"
+                            PreviewMouseRightButtonDown="DeckRow_PreviewMouseRightButtonDown">
+                            <Grid.ContextMenu>
+                                <ContextMenu
+                                    Placement="MousePoint"
+                                    DataContext="{Binding PlacementTarget.Tag,
+                                        RelativeSource={RelativeSource Self}}">
 
-                                <Separator>
-                                    <Separator.Style>
-                                        <Style TargetType="Separator">
+                                    <ContextMenu.Resources>
+                                        <Style
+                                            x:Key="SingleDeckMenuItemStyle"
+                                            TargetType="MenuItem">
+
                                             <Setter Property="Visibility" Value="Collapsed"/>
+
                                             <Style.Triggers>
                                                 <DataTrigger
                                                     Binding="{Binding DataContext.SelectedDecks.Count,
@@ -220,125 +275,139 @@
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </Separator.Style>
-                                </Separator>
+                                    </ContextMenu.Resources>
 
-                                <MenuItem
-                                    Header="Export"
-                                    IsEnabled="True"
-                                    Command="{Binding ShowExportMenuCommand}"/>
+                                    <MenuItem
+                                        Header="Rename"
+                                        Style="{StaticResource SingleDeckMenuItemStyle}"
+                                        Command="{Binding PlacementTarget.DataContext.BeginRenameCommand,
+                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
 
-                                <MenuItem
-                                    Header="Delete"
-                                    Command="{Binding DataContext.RemoveDeckCommand,
-                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                    CommandParameter="{Binding DataContext.SelectedDecks,
-                                        RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
+                                    <MenuItem
+                                        Header="Options"
+                                        Style="{StaticResource SingleDeckMenuItemStyle}"
+                                        Command="{Binding DataContext.ShowDeckOptionsCommand,
+                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                        CommandParameter="{Binding PlacementTarget.DataContext,
+                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
 
-                    <EventSetter
-                        Event="MouseDoubleClick"
-                        Handler="TreeViewItem_DoubleClick"/>
+                                    <MenuItem
+                                        Header="Create sub-deck"
+                                        Style="{StaticResource SingleDeckMenuItemStyle}"
+                                        Command="{Binding DataContext.ShowCreateDeckCommand,
+                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                        CommandParameter="{Binding PlacementTarget.DataContext,
+                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
 
-                    <EventSetter
-                        Event="PreviewMouseRightButtonDown"
-                        Handler="TreeViewItem_PreviewMouseRightButtonDown"/>
+                                    <Separator>
+                                        <Separator.Style>
+                                            <Style TargetType="Separator">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger
+                                                        Binding="{Binding DataContext.SelectedDecks.Count,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                        Value="1">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Separator.Style>
+                                    </Separator>
 
-                </Style>
-            </TreeView.ItemContainerStyle>
+                                    <MenuItem
+                                        Header="Export"
+                                        IsEnabled="True"
+                                        Command="{Binding ShowExportMenuCommand}"/>
 
+                                    <MenuItem
+                                        Header="Delete"
+                                        Command="{Binding DataContext.RemoveDeckCommand,
+                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="32" />
+                            </Grid.ColumnDefinitions>
 
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="34" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="32" />
-                        </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <TextBlock
+                                    Text="{Binding Name}"
+                                    FontSize="18"
+                                    FontWeight="DemiBold"
+                                    Foreground="{StaticResource DeckTextBrush}"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding IsRenaming,
+                                                Converter={StaticResource InverseBoolToVisConverter}}"/>
 
-                        <ToggleButton
-                            Grid.Column="0"
-                            Style="{StaticResource DeckExpandToggleStyle}"
-                            IsChecked="{Binding IsExpanded, Mode=TwoWay}"/>
+                                <TextBox
+                                    Text="{Binding TempName, UpdateSourceTrigger=PropertyChanged}"
+                                    FontSize="18"
+                                    Height="30"
+                                    Width="300"
+                                    Background="Transparent"
+                                    Foreground="White"
+                                    CaretBrush="White"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"
+                                    HorizontalAlignment="Left"
+                                    Visibility="{Binding IsRenaming,
+                                                Converter={StaticResource BoolToVisConverter}}"
+                                    KeyDown="RenameBox_KeyDown"
+                                    LostFocus="RenameBox_LostFocus"
+                                    LostKeyboardFocus="RenameBox_LostFocus"
+                                    IsVisibleChanged="RenameBox_IsVisibleChanged"/>
+                            </Grid>
 
-                        <Grid Grid.Column="1">
-                            <TextBlock
-                                Text="{Binding Name}"
-                                FontSize="18"
-                                FontWeight="DemiBold"
-                                Foreground="{StaticResource DeckTextBrush}"
-                                VerticalAlignment="Center"
-                                Visibility="{Binding IsRenaming,
-                                            Converter={StaticResource InverseBoolToVisConverter}}"/>
+                            <Border Grid.Column="1" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0">
+                                <TextBlock
+                                    Text="{Binding LessonsCount}"
+                                    FontSize="18"
+                                    Foreground="{StaticResource DeckNewBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            </Border>
 
-                            <TextBox
-                                Text="{Binding TempName, UpdateSourceTrigger=PropertyChanged}"
-                                FontSize="18"
-                                Height="30"
-                                Width="300"
-                                Background="Transparent"
-                                Foreground="White"
-                                CaretBrush="White"
-                                VerticalContentAlignment="Center"
-                                HorizontalContentAlignment="Left"
-                                HorizontalAlignment="Left"
-                                Visibility="{Binding IsRenaming,
-                                            Converter={StaticResource BoolToVisConverter}}"
-                                KeyDown="RenameBox_KeyDown"
-                                LostFocus="RenameBox_LostFocus"
-                                LostKeyboardFocus="RenameBox_LostFocus"
-                                IsVisibleChanged="RenameBox_IsVisibleChanged"/>
+                            <Border Grid.Column="2" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0">
+                                <TextBlock
+                                    Text="{Binding LearningCount}"
+                                    FontSize="18"
+                                    Foreground="{StaticResource DeckLearnBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            </Border>
+
+                            <Border Grid.Column="3" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0">
+                                <TextBlock
+                                    Text="{Binding ReviewsCount}"
+                                    FontSize="18"
+                                    Foreground="{StaticResource DeckDueBrush}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            </Border>
+
+                            <Border Grid.Column="4" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0" IsHitTestVisible="False"/>
+
+                            <Button
+                                Grid.Column="4"
+                                Content="⚙"
+                                Style="{StaticResource DeckOptionsButtonStyle}"
+                                Click="DeckCtxButton_Click">
+                                <Button.Visibility>
+                                    <Binding
+                                        Path="IsMouseOver"
+                                        RelativeSource="{RelativeSource AncestorType=syncfusion:TreeViewItem}"
+                                        Converter="{StaticResource BoolToVisConverter}"/>
+                                </Button.Visibility>
+                            </Button>
                         </Grid>
-
-                        <Border Grid.Column="2">
-                            <TextBlock
-                                Text="{Binding LessonsCount}"
-                                FontSize="18"
-                                Foreground="{StaticResource DeckNewBrush}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
-                        </Border>
-
-                        <Border Grid.Column="3">
-                            <TextBlock
-                                Text="{Binding LearningCount}"
-                                FontSize="18"
-                                Foreground="{StaticResource DeckLearnBrush}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
-                        </Border>
-
-                        <Border Grid.Column="4">
-                            <TextBlock
-                                Text="{Binding ReviewsCount}"
-                                FontSize="18"
-                                Foreground="{StaticResource DeckDueBrush}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
-                        </Border>
-
-                        <Button
-                            Grid.Column="5"
-                            Content="⚙"
-                            Style="{StaticResource DeckOptionsButtonStyle}"
-                            Click="DeckCtxButton_Click">
-                            <Button.Visibility>
-                                <Binding
-                                    Path="IsMouseOver"
-                                    RelativeSource="{RelativeSource AncestorType=TreeViewItem}"
-                                    Converter="{StaticResource BoolToVisConverter}"/>
-                            </Button.Visibility>
-                        </Button>
-                    </Grid>
-                </HierarchicalDataTemplate>
-                </TreeView.ItemTemplate>
-            </TreeView>
+                    </DataTemplate>
+                </syncfusion:SfTreeView.ItemTemplate>
+            </syncfusion:SfTreeView>
 
             <!-- Continuous separators through the header -->
             <Grid
@@ -373,40 +442,6 @@
                 <Border Grid.Column="5" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
             </Grid>
 
-            <!-- Continue the separators only through the rendered deck rows -->
-            <Grid
-                Grid.Row="1"
-                Panel.ZIndex="1"
-                Height="{Binding ActualHeight, ElementName=DeckTree}"
-                Margin="8,0,8,0"
-                VerticalAlignment="Top"
-                IsHitTestVisible="False">
-
-                <Grid.Style>
-                    <Style TargetType="Grid">
-                        <Setter Property="Visibility" Value="Visible"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding DeckTree.Count}" Value="0">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Grid.Style>
-
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="34"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="32"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="2" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
-                <Border Grid.Column="3" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
-                <Border Grid.Column="4" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
-                <Border Grid.Column="5" BorderBrush="#3DFFFFFF" BorderThickness="1,0,0,0"/>
-            </Grid>
         </Grid>
 
         <!-- Review heatmap -->

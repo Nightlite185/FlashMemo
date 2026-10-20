@@ -93,6 +93,9 @@ public static class DialogService
         return ConvertResultType(result);
     }
 
-    public static DialogResult ShowError(string message, DialogButtons buttons = DialogButtons.OK)
-        => Show("Error", message, buttons, DialogIcons.Error);
+    public static DialogResult ShowError(string message, string title = "Error", DialogButtons buttons = DialogButtons.OK)
+        => Show(title: title, 
+                message: message, 
+                buttons: buttons, 
+                icon: DialogIcons.Error);
 } 

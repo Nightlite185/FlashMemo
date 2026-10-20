@@ -1,17 +1,24 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CsvHelper;
+using FlashMemo.Helpers;
 using FlashMemo.Model;
+using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Wrappers;
 using Microsoft.VisualBasic.FileIO;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public enum ExportFormat { txt } // csv, FMExp
+public enum ExportFormat { txt, csv }
 public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 
 public partial class ExportVM(
@@ -33,12 +40,29 @@ public partial class ExportVM(
     [Required(AllowEmptyStrings = true, ErrorMessage = "Enter a field separator.")]
     [MinLength(1, ErrorMessage = "Enter a field separator.")]
     [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
-    public partial string FieldSeparator { get; set; } = " - ";
+    public partial string FieldSeparator { get; set; } = " - "; // TODO: only visible in UI with txt format chosen.
 
     [ObservableProperty] [NotifyDataErrorInfo]
     [CustomValidation(typeof(ExportVM), nameof(ValidateNoteSeparator))]
     [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
-    public partial NoteSeparator NoteSep { get; set; } = NoteSeparator.Enter;
+    public partial NoteSeparator NoteSep { get; set; } = NoteSeparator.Enter; // TODO: only visible in UI with txt format chosen.
+    
+    public ObservableCollection<CsvColumnOptionVM> CsvColumns { get; init; } = // TODO; only visible in UI with csv format chosen
+    [
+        new("Front content", x => x.FrontContent, true),
+        new("Back content", x => x.BackContent, true),
+        new("Deck", x => x.Deck, true),
+        new("Due date", x => x.DueDate, true),
+        new("Tags", x => x.Tags),
+        new("Interval days", x => x.IntervalDays),
+        new("State", x => x.State),
+        new("Suspended?", x => x.IsSuspended),
+        new("Buried?", x => x.IsBuried),
+        new("Learning stage", x => x.LearningStage),
+        new("Created date", x => x.CreatedDate),
+        new("Last modified", x => x.Tags),
+        new("Last reviewed", x => x.Tags),
+    ];
     #endregion
 
     #region validation stuff
@@ -54,7 +78,7 @@ public partial class ExportVM(
         => ValidateProperty(FieldSeparator, nameof(FieldSeparator));
 
     public static ValidationResult? ValidateFormat(ExportFormat value, ValidationContext context)
-        => value == ExportFormat.txt
+        => value is ExportFormat.txt or ExportFormat.csv
             ? ValidationResult.Success
             : new ValidationResult("Choose a supported export format.");
 
@@ -92,41 +116,31 @@ public partial class ExportVM(
         return ValidationResult.Success;
     }
     #endregion
+    
+    #region methods
     protected override async Task Confirm()
     {
+        // TODO: main window should have bigger min size or *make export popup scrollable* OR BOTH
         ValidateAllProperties();
         if (HasErrors)
             return;
-
-        // TODO: main window should have bigger min size or *make export popup scrollable* OR BOTH
         
-        if (Format is not ExportFormat.txt) // TODO: delete this line when implemented more formats
-            return;
-
-        char noteSep = ToChar(NoteSep);
-        var sb = new StringBuilder();
         string? dir = Path.GetDirectoryName(ExportPath);
 
         if (dir is null)
         {
-            DialogService.Show(
-            title: "Failed to export content.",
-            message: "Given path is invalid, please use another one.",
-            buttons: DialogButtons.OK,
-            icon: DialogIcons.Error);
+            DialogService.ShowError(
+                title: "Failed to export content.",
+                message: "Given path is invalid, please use another one.");
             
             return;
         }
 
-        string fileName = Path.GetFileName(ExportPath);
-        string tempWrite = Path.Combine(dir,
-            $"FlashMemo-{Guid.NewGuid():N}.tmp");
-
-        ICollection<Note> notes;
+        ICollection<CardEntity> cards;
 
         try
         {
-            var cards = (deckIds is not null)
+            cards = (deckIds is not null)
                 ? await cardQService.GetCardsWhere(
                     new Filters() 
                     { 
@@ -139,8 +153,21 @@ public partial class ExportVM(
 
                 : await cardQService.GetAllFromUser(userId);
 
-            notes = ser.Serialize(
-                cards.Select(c => c.Note));
+            if (cards.Count == 0)
+            {
+                DialogService.Show(
+                title: "No cards to export.",
+                message: "Could not find any cards in this deck to export. " 
+                + "Please select another deck or create some cards.",
+
+                buttons: DialogButtons.OK,
+                icon: DialogIcons.Information);
+
+                Close();
+                return;
+            }
+
+            ser.Serialize(cards);
         }
 
         catch
@@ -150,6 +177,22 @@ public partial class ExportVM(
 
             return;
         }
+
+        string expContent = Format switch
+        {
+            ExportFormat.txt => PrepareTxt([..cards.Select(c => c.Note)]),
+            ExportFormat.csv => await PrepareCsv(cards),
+
+            _ => throw new NotSupportedException($"{Format} not supported")
+        };
+        
+        await ExportToFile(expContent, dir);
+    }
+
+    private string PrepareTxt(ICollection<Note> notes)
+    {
+        char noteSep = ToChar(NoteSep);
+        var sb = new StringBuilder();
 
         foreach (var note in notes)
         {
@@ -162,10 +205,29 @@ public partial class ExportVM(
 
             sb.Append(entry);
         }
+    
+        return sb.ToString();
+    }
+    private static async Task<string> PrepareCsv(ICollection<CardEntity> cards)
+    {
+        await using var strWriter = new StringWriter();
+        await using var csv = new CsvWriter(strWriter, CultureInfo.InvariantCulture);
+        csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("N/A");
 
-        string expContent = sb.ToString();
+        var mappedDTOs = cards.Select(c => new CsvExportDTO(c));
+        
+        csv.Context.RegisterClassMap<CardCsvMap>();
+        csv.WriteRecords(mappedDTOs);
+        csv.Flush();
+        return strWriter.ToString();
+    }
+    private async Task ExportToFile(string expContent, string expDirectory)
+    {
         var ans = DialogResult.Retry;
-
+        string fileName = Path.GetFileName(ExportPath);
+        string tempWrite = Path.Combine(expDirectory,
+            $"FlashMemo-{Guid.NewGuid():N}.tmp");
+        
         while (ans is DialogResult.Retry or DialogResult.TryAgain)
         {
             try
@@ -192,6 +254,17 @@ public partial class ExportVM(
             }
         }
     }
+
+    [RelayCommand]
+    private void ResetCsvColumns()
+    {
+        foreach (var col in CsvColumns)
+        {
+            if (col.IsDefault)
+                col.IsSelected = true;
+        }
+    }
+
     private static char ToChar(NoteSeparator sep)
     {
         return sep switch
@@ -204,4 +277,5 @@ public partial class ExportVM(
             _ => throw new InvalidEnumArgumentException("note separator has invalid value")
         };
     }
+    #endregion
 }

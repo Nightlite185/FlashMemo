@@ -10,7 +10,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
     : DbDependentClass(factory), ICardQueryService
 {
     #region Public methods
-    public async Task<IEnumerable<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
+    public async Task<ICollection<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
     {
         await using var db = GetDb;
 

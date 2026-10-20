@@ -30,7 +30,7 @@ public interface ICountingService
 }
 public interface ICardQueryService
 {
-    Task<IEnumerable<CardEntity>> GetCardsWhere(
+    Task<ICollection<CardEntity>> GetCardsWhere(
         Filters filters, CardsOrder order, SortingDirection dir);
 
     Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId, long userId);

@@ -9,6 +9,8 @@ namespace FlashMemo.Model.Persistence
         public UserEntity User { get; set; } = null!;
         public ICollection<CardEntity> Cards { get; set; } = [];
         public string Name { get; set; } = null!;
+
+        public override string ToString() => Name;
         
         public static Tag CreateNew(string name, long userId)
         {

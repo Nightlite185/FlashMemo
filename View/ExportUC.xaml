@@ -10,6 +10,12 @@
              mc:Ignorable="d">
 
     <UserControl.Resources>
+        <CollectionViewSource x:Key="CsvColumnGroups" Source="{Binding CsvColumns}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="IsDefault"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+
         <ObjectDataProvider x:Key="ExportFormats"
                             MethodName="GetValues"
                             ObjectType="{x:Type sys:Enum}">
@@ -94,6 +100,66 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="9"/>
         </Style>
+
+        <Style x:Key="CsvActionButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="70"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Focusable" Value="True"/>
+        </Style>
+
+        <DataTemplate x:Key="CsvColumnTemplate">
+            <CheckBox Content="{Binding Name}"
+                      IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      Foreground="{StaticResource NavTextBrush}"
+                      FontSize="13" MinHeight="28" Margin="0,0,8,0"
+                      VerticalContentAlignment="Center" Cursor="Hand">
+                <CheckBox.Template>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="OptionBorder" Background="Transparent"
+                                CornerRadius="5" Padding="4,3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="CheckBorder" Width="16" Height="16"
+                                        CornerRadius="4" Background="{StaticResource NavBgBrush}"
+                                        BorderBrush="#687582" BorderThickness="1"
+                                        VerticalAlignment="Center">
+                                    <Path x:Name="CheckMark" Visibility="Collapsed"
+                                          Data="M 3,7 L 6,10 L 12,3" Stroke="White"
+                                          StrokeThickness="1.7" StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"/>
+                                </Border>
+                                <ContentPresenter Grid.Column="1" Margin="7,0,0,0"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBorder" Property="Background" Value="{StaticResource NavPressedBrush}"/>
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{StaticResource NavBorderBrush}"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="OptionBorder" Property="Background" Value="{StaticResource NavHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#8EC9FF"/>
+                                <Setter TargetName="CheckBorder" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </CheckBox.Template>
+            </CheckBox>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Border Width="540"
@@ -103,146 +169,226 @@
             BorderThickness="2"
             CornerRadius="14">
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Grid Margin="0,0,4,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,18">
-                <TextBlock Text="Export cards"
-                           Foreground="White"
-                           FontSize="23"
-                           FontWeight="SemiBold"/>
-                <TextBlock Margin="0,5,0,0"
-                           Style="{StaticResource ExportHintStyle}"
-                           Text="Choose the output format and how each card is written to the file."/>
-            </StackPanel>
+                <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                    <TextBlock Text="Export cards"
+                               Foreground="White"
+                               FontSize="23"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Margin="0,5,0,0"
+                               Style="{StaticResource ExportHintStyle}"
+                               Text="Choose the output format and how each card is written to the file."/>
+                </StackPanel>
 
-            <Border Grid.Row="1"
-                    Margin="0,0,0,12"
-                    Style="{StaticResource ExportSectionStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="210"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                        <TextBlock Text="File format"
-                                   Style="{StaticResource ExportLabelStyle}"/>
-                        <TextBlock Style="{StaticResource ExportHintStyle}"
-                                   Text="Select the format for the exported file."/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="1">
-                        <ComboBox x:Name="FormatComboBox"
-                                  Style="{StaticResource ExportComboBoxStyle}"
-                                  ItemsSource="{Binding Source={StaticResource ExportFormats}}"
-                                  ItemTemplate="{StaticResource EnumOptionTemplate}"
-                                  SelectedItem="{Binding Format, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}"/>
-                        <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
-                                      ItemsSource="{Binding ElementName=FormatComboBox, Path=(Validation.Errors)}"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <Border Grid.Row="2"
-                    Margin="0,0,0,12"
-                    Style="{StaticResource ExportSectionStyle}">
-                <StackPanel>
-                    <TextBlock Text="Save to"
-                               Style="{StaticResource ExportLabelStyle}"/>
-
+                <Border Grid.Row="1"
+                        Margin="0,0,0,12"
+                        Style="{StaticResource ExportSectionStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="210"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox x:Name="ExportPathTextBox"
-                                 Grid.Column="0"
-                                 Style="{StaticResource ExportTextBoxStyle}"
-                                 Text="{Binding ExportPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                        <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                            <TextBlock Text="File format"
+                                       Style="{StaticResource ExportLabelStyle}"/>
+                            <TextBlock Style="{StaticResource ExportHintStyle}"
+                                       Text="Select the format for the exported file."/>
+                        </StackPanel>
 
-                        <Button Grid.Column="1"
-                                Width="92"
-                                Height="38"
-                                Margin="10,0,0,0"
-                                Padding="8,4"
-                                Content="Browse…"
-                                Click="BrowseButton_Click"
-                                Style="{StaticResource NavButtonStyle}"/>
+                        <StackPanel Grid.Column="1">
+                            <ComboBox x:Name="FormatComboBox"
+                                      Style="{StaticResource ExportComboBoxStyle}"
+                                      ItemsSource="{Binding Source={StaticResource ExportFormats}}"
+                                      ItemTemplate="{StaticResource EnumOptionTemplate}"
+                                      SelectedItem="{Binding Format, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}"/>
+                            <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                          ItemsSource="{Binding ElementName=FormatComboBox, Path=(Validation.Errors)}"/>
+                        </StackPanel>
                     </Grid>
+                </Border>
 
-                    <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
-                                  ItemsSource="{Binding ElementName=ExportPathTextBox, Path=(Validation.Errors)}"/>
-                    <TextBlock Margin="0,7,0,0"
-                               Style="{StaticResource ExportHintStyle}"
-                               Text="Pick a filename and location, or enter a full path."/>
-                </StackPanel>
-            </Border>
+                <Border Grid.Row="2"
+                        Margin="0,0,0,12"
+                        Style="{StaticResource ExportSectionStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Save to"
+                                   Style="{StaticResource ExportLabelStyle}"/>
 
-            <Border Grid.Row="3"
-                    Margin="0,0,0,20"
-                    Style="{StaticResource ExportSectionStyle}">
-                <Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox x:Name="ExportPathTextBox"
+                                     Grid.Column="0"
+                                     Style="{StaticResource ExportTextBoxStyle}"
+                                     Text="{Binding ExportPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+
+                            <Button Grid.Column="1"
+                                    Width="92"
+                                    Height="38"
+                                    Margin="10,0,0,0"
+                                    Padding="8,4"
+                                    Content="Browse…"
+                                    Click="BrowseButton_Click"
+                                    Style="{StaticResource NavButtonStyle}"/>
+                        </Grid>
+
+                        <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                      ItemsSource="{Binding ElementName=ExportPathTextBox, Path=(Validation.Errors)}"/>
+                        <TextBlock Margin="0,7,0,0"
+                                   Style="{StaticResource ExportHintStyle}"
+                                   Text="Pick a filename and location, or enter a full path."/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="3"
+                        Margin="0,0,0,20">
+                    <Border.Style>
+                        <Style TargetType="Border" BasedOn="{StaticResource ExportSectionStyle}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:ExportFormat.txt}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Field separator"
+                                       Style="{StaticResource ExportLabelStyle}"/>
+                            <TextBox x:Name="FieldSeparatorTextBox" Style="{StaticResource ExportTextBoxStyle}"
+                                     Text="{Binding FieldSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                            <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                          ItemsSource="{Binding ElementName=FieldSeparatorTextBox, Path=(Validation.Errors)}"/>
+                            <TextBlock Margin="0,7,0,0"
+                                       Style="{StaticResource ExportHintStyle}"
+                                       Text="Inserted between the front and back."/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Between notes"
+                                       Style="{StaticResource ExportLabelStyle}"/>
+                            <ComboBox x:Name="NoteSeparatorComboBox" Style="{StaticResource ExportComboBoxStyle}"
+                                      ItemsSource="{Binding Source={StaticResource NoteSeparators}}"
+                                      ItemTemplate="{StaticResource EnumOptionTemplate}"
+                                      SelectedItem="{Binding NoteSep, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}"/>
+                            <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
+                                          ItemsSource="{Binding ElementName=NoteSeparatorComboBox, Path=(Validation.Errors)}"/>
+                            <TextBlock Margin="0,7,0,0"
+                                       Style="{StaticResource ExportHintStyle}"
+                                       Text="Inserted after every exported note."/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="3" Margin="0,0,0,16">
+                    <Border.Style>
+                        <Style TargetType="Border" BasedOn="{StaticResource ExportSectionStyle}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:ExportFormat.csv}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="CSV columns" Style="{StaticResource ExportLabelStyle}"/>
+                                <TextBlock Text="Choose which properties to include."
+                                           Style="{StaticResource ExportHintStyle}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                        VerticalAlignment="Top" Margin="10,0,0,0">
+                                <Button Content="Select all" MinWidth="82" Margin="0,0,8,0"
+                                        Command="{Binding SelectAllCsvColumnsCommand}"
+                                        Style="{StaticResource CsvActionButtonStyle}"/>
+                                <Button Content="Reset"
+                                        Command="{Binding ResetCsvColumnsCommand}"
+                                        Style="{StaticResource CsvActionButtonStyle}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Source={StaticResource CsvColumnGroups}}"
+                                      ItemTemplate="{StaticResource CsvColumnTemplate}">
+                            <ItemsControl.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#343A40" BorderThickness="0,1,0,0"
+                                                    Padding="0,9,0,4" Margin="0,9,0,0">
+                                                <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="#9DA7B3">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="ADDITIONAL COLUMNS"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Name}" Value="True">
+                                                                    <Setter Property="Text" Value="DEFAULT COLUMNS"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                    <GroupStyle.Panel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="2"/>
+                                        </ItemsPanelTemplate>
+                                    </GroupStyle.Panel>
+                                </GroupStyle>
+                            </ItemsControl.GroupStyle>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </Border>
+
+                <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="16"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Field separator"
-                                   Style="{StaticResource ExportLabelStyle}"/>
-                        <TextBox x:Name="FieldSeparatorTextBox" Style="{StaticResource ExportTextBoxStyle}"
-                                 Text="{Binding FieldSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
-                        <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
-                                      ItemsSource="{Binding ElementName=FieldSeparatorTextBox, Path=(Validation.Errors)}"/>
-                        <TextBlock Margin="0,7,0,0"
-                                   Style="{StaticResource ExportHintStyle}"
-                                   Text="Inserted between the front and back."/>
-                    </StackPanel>
+                    <Button Grid.Column="0"
+                            Width="100"
+                            Content="Cancel"
+                            Command="{Binding CloseCommand}"
+                            Style="{StaticResource NavButtonStyle}"/>
 
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Between notes"
-                                   Style="{StaticResource ExportLabelStyle}"/>
-                        <ComboBox x:Name="NoteSeparatorComboBox" Style="{StaticResource ExportComboBoxStyle}"
-                                  ItemsSource="{Binding Source={StaticResource NoteSeparators}}"
-                                  ItemTemplate="{StaticResource EnumOptionTemplate}"
-                                  SelectedItem="{Binding NoteSep, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}"/>
-                        <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
-                                      ItemsSource="{Binding ElementName=NoteSeparatorComboBox, Path=(Validation.Errors)}"/>
-                        <TextBlock Margin="0,7,0,0"
-                                   Style="{StaticResource ExportHintStyle}"
-                                   Text="Inserted after every exported note."/>
-                    </StackPanel>
+                    <Button Grid.Column="2"
+                            Width="110"
+                            Content="Export"
+                            Command="{Binding ConfirmCommand}"
+                            Style="{StaticResource NavButtonStyle}"/>
                 </Grid>
-            </Border>
-
-            <Grid Grid.Row="4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <Button Grid.Column="0"
-                        Width="100"
-                        Content="Cancel"
-                        Command="{Binding CloseCommand}"
-                        Style="{StaticResource NavButtonStyle}"/>
-
-                <Button Grid.Column="2"
-                        Width="110"
-                        Content="Export"
-                        Command="{Binding ConfirmCommand}"
-                        Style="{StaticResource NavButtonStyle}"/>
             </Grid>
-        </Grid>
+        </ScrollViewer>
     </Border>
 </UserControl>

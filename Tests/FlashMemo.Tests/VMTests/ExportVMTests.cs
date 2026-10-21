@@ -112,7 +112,7 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void ChangingFormat_RevalidatesTheExtension()
+    public void ChangingFormat_UpdatesTheExtensionAndClearsUnsupportedFormatErrors()
     {
         var vm = CreateViewModel();
         vm.Format = (ExportFormat)99;
@@ -124,12 +124,67 @@ public class ExportVMTests
         vm.Format = ExportFormat.txt;
 
         vm.GetErrors(nameof(ExportVM.Format)).Should().BeEmpty();
-        vm.GetErrors(nameof(ExportVM.ExportPath)).Should().NotBeEmpty();
+        Path.GetExtension(vm.ExportPath).Should().Be(".txt");
+        vm.GetErrors(nameof(ExportVM.ExportPath)).Should().BeEmpty();
 
         vm.ExportPath = Path.Combine(Path.GetTempPath(), "export.txt");
 
         vm.HasErrors.Should().BeFalse();
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void SwitchingFormats_PreservesOptionsAndOnlyValidatesVisibleSeparators()
+    {
+        var vm = CreateViewModel();
+        vm.FieldSeparator = ";";
+        vm.NoteSep = NoteSeparator.SemiColon;
+        vm.HasErrors.Should().BeTrue();
+        var tags = vm.CsvColumns.Single(col => col.Name == "Tags");
+        tags.IsSelected = true;
+
+        vm.Format = ExportFormat.csv;
+
+        Path.GetExtension(vm.ExportPath).Should().Be(".csv");
+        vm.HasErrors.Should().BeFalse();
+        vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
+
+        vm.Format = ExportFormat.txt;
+
+        vm.FieldSeparator.Should().Be(";");
+        vm.NoteSep.Should().Be(NoteSeparator.SemiColon);
+        vm.HasErrors.Should().BeTrue();
+        tags.IsSelected.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CsvFormat_DoesNotRequireATextFieldSeparator()
+    {
+        var vm = CreateViewModel();
+        vm.FieldSeparator = "";
+        vm.Format = ExportFormat.csv;
+        vm.Validate();
+
+        vm.HasErrors.Should().BeFalse();
+
+        vm.Format = ExportFormat.txt;
+
+        vm.GetErrors(nameof(ExportVM.FieldSeparator)).Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void ResetCsvColumns_RestoresDefaultsAfterSelectingAll()
+    {
+        var vm = CreateViewModel();
+        vm.CsvColumns.Where(col => col.IsDefault).Select(col => col.Name)
+            .Should().Equal("Front content", "Back content", "Deck", "Due date");
+
+        vm.SelectAllCsvColumnsCommand.Execute(null);
+        vm.CsvColumns.Should().OnlyContain(col => col.IsSelected);
+
+        vm.ResetCsvColumnsCommand.Execute(null);
+
+        vm.CsvColumns.Should().OnlyContain(col => col.IsSelected == col.IsDefault);
     }
 
     [Fact]

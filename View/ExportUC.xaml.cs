@@ -22,6 +22,7 @@ public partial class ExportUC : UserControl
         var (filter, extension) = vm.Format switch
         {
             ExportFormat.txt => ("Text files (*.txt)|*.txt|All files (*.*)|*.*", ".txt"),
+            ExportFormat.csv => ("CSV files (*.csv)|*.csv|All files (*.*)|*.*", ".csv"),
             _ => ("All files (*.*)|*.*", string.Empty)
         };
 

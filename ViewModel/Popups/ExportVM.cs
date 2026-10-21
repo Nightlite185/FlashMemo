@@ -37,17 +37,16 @@ public partial class ExportVM(
     public partial string ExportPath { get; set; } = Path.Combine(SpecialDirectories.MyDocuments, $"{DateTime.Today:dd.MM.yyyy} FM export.txt");
 
     [ObservableProperty] [NotifyDataErrorInfo]
-    [Required(AllowEmptyStrings = true, ErrorMessage = "Enter a field separator.")]
-    [MinLength(1, ErrorMessage = "Enter a field separator.")]
+    [CustomValidation(typeof(ExportVM), nameof(ValidateFieldSeparator))]
     [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
-    public partial string FieldSeparator { get; set; } = " - "; // TODO: only visible in UI with txt format chosen.
+    public partial string FieldSeparator { get; set; } = " - ";
 
     [ObservableProperty] [NotifyDataErrorInfo]
     [CustomValidation(typeof(ExportVM), nameof(ValidateNoteSeparator))]
     [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
-    public partial NoteSeparator NoteSep { get; set; } = NoteSeparator.Enter; // TODO: only visible in UI with txt format chosen.
+    public partial NoteSeparator NoteSep { get; set; } = NoteSeparator.Enter;
     
-    public ObservableCollection<CsvColumnOptionVM> CsvColumns { get; init; } = // TODO; only visible in UI with csv format chosen
+    public ObservableCollection<CsvColumnOptionVM> CsvColumns { get; init; } =
     [
         new("Front content", x => x.FrontContent, true),
         new("Back content", x => x.BackContent, true),
@@ -69,7 +68,14 @@ public partial class ExportVM(
     internal void Validate() => ValidateAllProperties();
 
     partial void OnFormatChanged(ExportFormat value)
-        => ValidateProperty(ExportPath, nameof(ExportPath));
+    {
+        if (value is ExportFormat.txt or ExportFormat.csv && !string.IsNullOrWhiteSpace(ExportPath))
+            ExportPath = Path.ChangeExtension(ExportPath, $".{value}");
+
+        ValidateProperty(ExportPath, nameof(ExportPath));
+        ValidateProperty(FieldSeparator, nameof(FieldSeparator));
+        ValidateProperty(NoteSep, nameof(NoteSep));
+    }
 
     partial void OnFieldSeparatorChanged(string value)
         => ValidateProperty(NoteSep, nameof(NoteSep));
@@ -83,14 +89,20 @@ public partial class ExportVM(
             : new ValidationResult("Choose a supported export format.");
 
     public static ValidationResult? ValidateNoteSeparator(NoteSeparator value, ValidationContext context)
-        => Enum.IsDefined(value)
+        => ((ExportVM)context.ObjectInstance).Format != ExportFormat.txt || Enum.IsDefined(value)
             ? ValidationResult.Success
             : new ValidationResult("Choose a note separator.");
+
+    public static ValidationResult? ValidateFieldSeparator(string? value, ValidationContext context)
+        => ((ExportVM)context.ObjectInstance).Format != ExportFormat.txt || !string.IsNullOrEmpty(value)
+            ? ValidationResult.Success
+            : new ValidationResult("Enter a field separator.");
 
     public static ValidationResult? ValidateSeparators(object? value, ValidationContext context)
     {
         var vm = (ExportVM)context.ObjectInstance;
-        return Enum.IsDefined(vm.NoteSep) && vm.FieldSeparator == ToChar(vm.NoteSep).ToString()
+        return vm.Format == ExportFormat.txt && Enum.IsDefined(vm.NoteSep)
+            && vm.FieldSeparator == ToChar(vm.NoteSep).ToString()
             ? new ValidationResult("Field and note separators must be different.")
             : ValidationResult.Success;
     }
@@ -98,7 +110,7 @@ public partial class ExportVM(
     public static ValidationResult? ValidateExportPath(string? value, ValidationContext context)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return ValidationResult.Success; // Required supplies the error.
+            return ValidationResult.Success; // empty path already handled by [Required] attribute; no more to add.
 
         if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
             return new ValidationResult("Enter a valid file path.");
@@ -120,10 +132,15 @@ public partial class ExportVM(
     #region methods
     protected override async Task Confirm()
     {
-        // TODO: main window should have bigger min size or *make export popup scrollable* OR BOTH
         ValidateAllProperties();
         if (HasErrors)
             return;
+
+        if (Format == ExportFormat.csv && !CsvColumns.Any(col => col.IsSelected))
+        {
+            DialogService.ShowError("Select at least one column to export.");
+            return;
+        }
         
         string? dir = Path.GetDirectoryName(ExportPath);
 
@@ -208,7 +225,7 @@ public partial class ExportVM(
     
         return sb.ToString();
     }
-    private static async Task<string> PrepareCsv(ICollection<(CardEntity card, Note note)> cards)
+    private async Task<string> PrepareCsv(ICollection<(CardEntity card, Note note)> cards)
     {
         await using var strWriter = new StringWriter();
         await using var csv = new CsvWriter(strWriter, CultureInfo.InvariantCulture);
@@ -217,7 +234,7 @@ public partial class ExportVM(
         var mappedDTOs = cards.Select(
             p => new CsvExportDTO(p.card, p.note));
         
-        csv.Context.RegisterClassMap<CardCsvMap>();
+        csv.Context.RegisterClassMap(new CardCsvMap(CsvColumns));
         csv.WriteRecords(mappedDTOs);
         csv.Flush();
         
@@ -262,7 +279,16 @@ public partial class ExportVM(
     {
         foreach (var col in CsvColumns)
         {
-            if (col.IsDefault)
+            col.IsSelected = col.IsDefault;
+        }
+    }
+
+    [RelayCommand]
+    private void SelectAllCsvColumns()
+    {
+        foreach (var col in CsvColumns)
+        {
+            if (!col.IsSelected)
                 col.IsSelected = true;
         }
     }

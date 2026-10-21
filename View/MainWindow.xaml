@@ -8,9 +8,9 @@
     d:DataContext="{d:DesignInstance Type=windows:MainVM}"
     mc:Ignorable="d"
     Title="FlashMemo"
-    Height="500"
+    Height="650"
     Width="800"
-    MinHeight="480"
+    MinHeight="650"
     MinWidth="780">
 
     <Grid>

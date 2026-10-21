@@ -237,7 +237,6 @@ public partial class ExportVM(
     private async Task ExportToFile(string expContent, string expDirectory)
     {
         var ans = DialogResult.Retry;
-        string fileName = Path.GetFileName(ExportPath);
         string tempWrite = Path.Combine(expDirectory,
             $"FlashMemo-{Guid.NewGuid():N}.tmp");
         
@@ -249,7 +248,7 @@ public partial class ExportVM(
                     path: tempWrite,
                     contents: expContent);
 
-                File.Move(tempWrite, fileName, overwrite: true);
+                File.Move(tempWrite, ExportPath, overwrite: true);
                 ans = DialogResult.None;
                 Close();
             }

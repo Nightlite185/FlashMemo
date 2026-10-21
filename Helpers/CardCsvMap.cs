@@ -11,7 +11,8 @@ public sealed class CardCsvMap : ClassMap<CsvExportDTO>
         foreach(var col in cols)
         {
             if (col.IsSelected)
-                Map(c => col.PropSelector(c)).Name(col.Name);
+                Map(expression: col.PropSelector)
+                .Name(col.Name);
         }
     }
 }

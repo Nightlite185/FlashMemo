@@ -5,25 +5,30 @@ namespace FlashMemo.Services;
 
 public interface INoteSerializer
 {
-    /// <summary>
-    /// WARNING: this mutates card.Note for every given card, serializes it in place.
-    /// </summary>
-    public void Serialize(IEnumerable<CardEntity> cards);
+    public ICollection<(CardEntity card, Note note)> Serialize(IEnumerable<CardEntity> cards);
 }
 
 public class XamlNoteSerializer: INoteSerializer
 {
-    
-    public void Serialize(IEnumerable<CardEntity> cards)
+    public ICollection<(CardEntity card, Note note)> Serialize(IEnumerable<CardEntity> cards)
     {
+        var pairs = new List<(CardEntity, Note)>();
+
         foreach(var card in cards)
         {
             if (card.Note is not StandardNote sn)
                 throw new NotSupportedException(
                 "Only standard notes supported at the moment.");
 
-            sn.FrontContent = XamlSerializer.GetPlainText(sn.FrontContent);
-            sn.BackContent = XamlSerializer.GetPlainText(sn.BackContent);
+            var note = new StandardNote
+            {
+                FrontContent = XamlSerializer.GetPlainText(sn.FrontContent),
+                BackContent = XamlSerializer.GetPlainText(sn.BackContent)
+            };
+
+            pairs.Add((card, note));
         };
+
+        return pairs;
     }
 }

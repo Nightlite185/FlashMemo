@@ -60,8 +60,8 @@ public partial class ExportVM(
         new("Buried?", x => x.IsBuried),
         new("Learning stage", x => x.LearningStage),
         new("Created date", x => x.CreatedDate),
-        new("Last modified", x => x.Tags),
-        new("Last reviewed", x => x.Tags),
+        new("Last modified", x => x.LastModifiedDate),
+        new("Last reviewed", x => x.LastReviewedDate),
     ];
     #endregion
 
@@ -136,11 +136,11 @@ public partial class ExportVM(
             return;
         }
 
-        ICollection<CardEntity> cards;
+        ICollection<(CardEntity card, Note note)> serializedPairs;
 
         try
         {
-            cards = (deckIds is not null)
+            var cards = (deckIds is not null)
                 ? await cardQService.GetCardsWhere(
                     new Filters() 
                     { 
@@ -167,7 +167,7 @@ public partial class ExportVM(
                 return;
             }
 
-            ser.Serialize(cards);
+            serializedPairs = ser.Serialize(cards);
         }
 
         catch
@@ -180,8 +180,8 @@ public partial class ExportVM(
 
         string expContent = Format switch
         {
-            ExportFormat.txt => PrepareTxt([..cards.Select(c => c.Note)]),
-            ExportFormat.csv => await PrepareCsv(cards),
+            ExportFormat.txt => PrepareTxt([..serializedPairs.Select(p => p.note)]),
+            ExportFormat.csv => await PrepareCsv(serializedPairs),
 
             _ => throw new NotSupportedException($"{Format} not supported")
         };
@@ -208,17 +208,19 @@ public partial class ExportVM(
     
         return sb.ToString();
     }
-    private static async Task<string> PrepareCsv(ICollection<CardEntity> cards)
+    private static async Task<string> PrepareCsv(ICollection<(CardEntity card, Note note)> cards)
     {
         await using var strWriter = new StringWriter();
         await using var csv = new CsvWriter(strWriter, CultureInfo.InvariantCulture);
         csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("N/A");
 
-        var mappedDTOs = cards.Select(c => new CsvExportDTO(c));
+        var mappedDTOs = cards.Select(
+            p => new CsvExportDTO(p.card, p.note));
         
         csv.Context.RegisterClassMap<CardCsvMap>();
         csv.WriteRecords(mappedDTOs);
         csv.Flush();
+        
         return strWriter.ToString();
     }
     private async Task ExportToFile(string expContent, string expDirectory)

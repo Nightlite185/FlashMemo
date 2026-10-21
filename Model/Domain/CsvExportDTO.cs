@@ -4,13 +4,13 @@ namespace FlashMemo.Model.Domain;
 
 public record CsvExportDTO
 {
-    public CsvExportDTO(CardEntity card)
+    public CsvExportDTO(CardEntity card, Note note)
     {
-        if (card.Note is not StandardNote note)
+        if (note is not StandardNote sn)
             throw new NotSupportedException("Only standard notes supported for now.");
 
-        FrontContent = note.FrontContent;
-        BackContent = note.BackContent;
+        FrontContent = sn.FrontContent;
+        BackContent = sn.BackContent;
         Deck = card.Deck.Name;
 
         Tags = string.Join(separator: ',', card.Tags);

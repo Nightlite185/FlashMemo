@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Domain;
 
@@ -5,7 +6,7 @@ namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class CsvColumnOptionVM(
     string name, 
-    Func<CsvExportDTO, string> propSelector, 
+    Expression<Func<CsvExportDTO, string?>> propSelector, 
     bool isDefault = false) 
     : ObservableObject
 {
@@ -13,5 +14,5 @@ public partial class CsvColumnOptionVM(
     public partial bool IsSelected { get; set; } = isDefault;
     public bool IsDefault { get; } = isDefault;
     public string Name { get; } = name;
-    public Func<CsvExportDTO, string> PropSelector { get; } = propSelector;
+    public Expression<Func<CsvExportDTO, string?>> PropSelector { get; } = propSelector;
 }

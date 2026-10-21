@@ -15,6 +15,25 @@ public class CountingService(IDbContextFactory<AppDbContext> factory, IDeckOptio
             .AsNoTracking()
             .CountAsync();
     }
+    public async Task<int> AllCardsInDecks(IEnumerable<long> deckIds)
+    {
+        var selectedDeckIds = deckIds.Distinct().ToArray();
+        if (selectedDeckIds.Length == 0)
+            return 0;
+
+        await using var db = GetDb;
+        HashSet<long> allDeckIds = [];
+
+        foreach (long deckId in selectedDeckIds)
+        {
+            if (!allDeckIds.Contains(deckId))
+                allDeckIds.UnionWith(await DeckRepo.GetChildrenIds(deckId, db));
+        }
+
+        return await db.Cards
+            .Where(c => allDeckIds.Contains(c.DeckId))
+            .CountAsync();
+    }
     public async Task<int> AllDecks(long userId)
     {
         await using var db = GetDb;

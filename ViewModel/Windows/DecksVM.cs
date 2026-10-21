@@ -103,7 +103,7 @@ public partial class DecksVM(
     }
 
     [RelayCommand]
-    private void ShowExportMenu()
+    private async Task ShowExportMenu()
     {
         var decks = SelectedDecks.Cast<DeckNode>()
             .Flatten()
@@ -114,10 +114,8 @@ public partial class DecksVM(
             throw new InvalidOperationException(
             "Tried to export decks, but none are selected.");
 
-        CurrentPopup = exportVMF.Create(
-            userId,
-            decks,
-            PopupCancel);
+        CurrentPopup = await exportVMF.CreateAsync(
+            userId, decks, PopupCancel);
     }
 
     [RelayCommand]

@@ -172,13 +172,7 @@ public partial class ExportVM(
 
             if (cards.Count == 0)
             {
-                DialogService.Show(
-                title: "No cards to export.",
-                message: "Could not find any cards in this deck to export. " 
-                + "Please select another deck or create some cards.",
-
-                buttons: DialogButtons.OK,
-                icon: DialogIcons.Information);
+                DialogService.ShowNoCardsFoundToExport();
 
                 Close();
                 return;

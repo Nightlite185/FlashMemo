@@ -10,9 +10,9 @@ namespace FlashMemo.Tests.VMTests;
 public class ExportVMTests
 {
     [Fact]
-    public void DefaultFilename_MatchesTextFormat()
+    public async Task DefaultFilename_MatchesTextFormat()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
 
         Path.GetExtension(vm.ExportPath).Should().Be(".txt");
         vm.HasErrors.Should().BeFalse();
@@ -28,9 +28,9 @@ public class ExportVMTests
     [InlineData("invalid?.txt", false)]
     [InlineData("export.txt", true)]
     [InlineData("export.TXT", true)]
-    public void ExportPath_ReportsErrorsAndControlsConfirmation(string fileName, bool valid)
+    public async Task ExportPath_ReportsErrorsAndControlsConfirmation(string fileName, bool valid)
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.ExportPath = string.IsNullOrWhiteSpace(fileName)
             ? fileName
             : Path.Combine(Path.GetTempPath(), fileName);
@@ -40,9 +40,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void FolderPath_IsRejected()
+    public async Task FolderPath_IsRejected()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.ExportPath = Path.GetTempPath();
 
         vm.GetErrors(nameof(ExportVM.ExportPath)).Should().NotBeEmpty();
@@ -50,9 +50,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void CorrectingPath_ClearsErrorsAndNotifiesCommand()
+    public async Task CorrectingPath_ClearsErrorsAndNotifiesCommand()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         int commandChanges = 0;
         vm.ConfirmCommand.CanExecuteChanged += (_, _) => commandChanges++;
 
@@ -69,10 +69,10 @@ public class ExportVMTests
     [InlineData(NoteSeparator.Enter, "\n")]
     [InlineData(NoteSeparator.Space, " ")]
     [InlineData(NoteSeparator.SemiColon, ";")]
-    public void MatchingSeparators_AreReportedOnBothInputs_AndClearWhenNoteSeparatorChanges(
+    public async Task MatchingSeparators_AreReportedOnBothInputs_AndClearWhenNoteSeparatorChanges(
         NoteSeparator separator, string text)
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.NoteSep = separator;
         vm.FieldSeparator = text;
 
@@ -87,9 +87,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void ChangingFieldSeparator_ClearsBothSeparatorErrors()
+    public async Task ChangingFieldSeparator_ClearsBothSeparatorErrors()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.FieldSeparator = ";";
         vm.NoteSep = NoteSeparator.SemiColon;
 
@@ -102,9 +102,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void EmptyFieldSeparator_IsRejected()
+    public async Task EmptyFieldSeparator_IsRejected()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.FieldSeparator = "";
 
         vm.GetErrors(nameof(ExportVM.FieldSeparator)).Should().NotBeEmpty();
@@ -112,9 +112,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void ChangingFormat_UpdatesTheExtensionAndClearsUnsupportedFormatErrors()
+    public async Task ChangingFormat_UpdatesTheExtensionAndClearsUnsupportedFormatErrors()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.Format = (ExportFormat)99;
         vm.ExportPath = Path.Combine(Path.GetTempPath(), "export.csv");
 
@@ -134,9 +134,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void SwitchingFormats_PreservesOptionsAndOnlyValidatesVisibleSeparators()
+    public async Task SwitchingFormats_PreservesOptionsAndOnlyValidatesVisibleSeparators()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.FieldSeparator = ";";
         vm.NoteSep = NoteSeparator.SemiColon;
         vm.HasErrors.Should().BeTrue();
@@ -158,9 +158,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void CsvFormat_DoesNotRequireATextFieldSeparator()
+    public async Task CsvFormat_DoesNotRequireATextFieldSeparator()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.FieldSeparator = "";
         vm.Format = ExportFormat.csv;
         vm.Validate();
@@ -173,9 +173,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void ResetCsvColumns_RestoresDefaultsAfterSelectingAll()
+    public async Task ResetCsvColumns_RestoresDefaultsAfterSelectingAll()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.CsvColumns.Where(col => col.IsDefault).Select(col => col.Name)
             .Should().Equal("Front content", "Back content", "Deck", "Due date");
 
@@ -188,9 +188,9 @@ public class ExportVMTests
     }
 
     [Fact]
-    public void InvalidNoteSeparator_IsRejected()
+    public async Task InvalidNoteSeparator_IsRejected()
     {
-        var vm = CreateViewModel();
+        var vm = await CreateViewModel();
         vm.NoteSep = (NoteSeparator)99;
 
         vm.GetErrors(nameof(ExportVM.NoteSep)).Should().NotBeEmpty();
@@ -207,7 +207,7 @@ public class ExportVMTests
         var query = new Mock<ICardQueryService>(MockBehavior.Strict);
         var serializer = new Mock<INoteSerializer>(MockBehavior.Strict);
         bool closed = false;
-        var vm = new ExportVMF(query.Object, serializer.Object).Create(1, [1], () => closed = true);
+        var vm = await CreateViewModel(query.Object, serializer.Object, () => closed = true);
         vm.FieldSeparator = "\n";
 
         await vm.ConfirmCommand.ExecuteAsync(null);
@@ -217,7 +217,19 @@ public class ExportVMTests
         closed.Should().BeFalse();
     }
 
-    private static ExportVM CreateViewModel()
-        => new ExportVMF(Mock.Of<ICardQueryService>(), Mock.Of<INoteSerializer>())
-            .Create(1, [1], () => { });
+    private static async Task<ExportVM> CreateViewModel(
+        ICardQueryService? cardQuery = null, INoteSerializer? serializer = null, Action? cancel = null)
+    {
+        var counter = new Mock<ICountingService>();
+        counter.Setup(c => c.AllCardsInDecks(It.IsAny<IEnumerable<long>>())).ReturnsAsync(1);
+
+        var vm = await new ExportVMF(
+                cardQuery ?? Mock.Of<ICardQueryService>(),
+                serializer ?? Mock.Of<INoteSerializer>(),
+                counter.Object)
+            .CreateAsync(1, [1], cancel ?? (() => { }));
+
+        vm.Should().NotBeNull();
+        return vm!;
+    }
 }

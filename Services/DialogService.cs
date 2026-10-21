@@ -93,6 +93,16 @@ public static class DialogService
         return ConvertResultType(result);
     }
 
+    public static void ShowNoCardsFoundToExport()
+    {
+        Show(
+            title: "No cards to export.",
+            message: "Could not find any cards in this deck to export. " 
+            + "Please select another deck or create some cards.",
+
+            buttons: DialogButtons.OK,
+            icon: DialogIcons.Information);
+    }
     public static DialogResult ShowError(string message, string title = "Error", DialogButtons buttons = DialogButtons.OK)
         => Show(title: title, 
                 message: message, 

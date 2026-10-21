@@ -12,6 +12,33 @@ public class CountingServiceTests: IDisposable
     private const long DeckId = 7;
     private readonly FakeDbFactory factory = new();
 
+    [Theory]
+    [InlineData(new long[] { DeckId }, 5)]
+    [InlineData(new long[] { 8 }, 2)]
+    [InlineData(new long[] { DeckId, 11 }, 7)]
+    [InlineData(new long[] { 9, 8, DeckId, DeckId }, 5)]
+    [InlineData(new long[] { }, 0)]
+    public async Task AllCardsInDecks_CountsSelectedDecksAndAllDescendantsOnce(long[] deckIds, int expected)
+    {
+        await SeedDeckHierarchy();
+        ICountingService counter = new CountingService(factory, null!, null!);
+
+        int result = await counter.AllCardsInDecks(deckIds.Select(id => id));
+
+        result.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task AllCardsInDecks_EmptyDeckHasNoCards()
+    {
+        await SeedUserDeckAndCards(lessonCount: 0, reviewCount: 0);
+        var counter = new CountingService(factory, null!, null!);
+
+        int result = await counter.AllCardsInDecks([DeckId]);
+
+        result.Should().Be(0);
+    }
+
     [Fact]
     public async Task CalculateTakings_WhenLessonsShareReviewLimitAndReviewsGoFirst_DoesNotExceedActualLessons()
     {
@@ -94,6 +121,40 @@ public class CountingServiceTests: IDisposable
 
         db.Cards.AddRange(NewCards(lessonCount));
         db.Cards.AddRange(ReviewCards(reviewCount));
+
+        await db.SaveChangesAsync();
+    }
+
+    private async Task SeedDeckHierarchy()
+    {
+        await SeedUserDeckAndCards(lessonCount: 1, reviewCount: 1);
+        await using var db = factory.CreateDbContext();
+
+        foreach (var (id, parentId) in new (long, long?)[]
+                 { (8, DeckId), (9, 8), (10, DeckId), (11, null), (12, 11) })
+        {
+            db.Decks.Add(new Deck
+            {
+                Id = id,
+                UserId = UserId,
+                Name = $"Deck {id}",
+                ParentDeckId = parentId,
+                OptionsId = DeckOptions.DefaultId
+            });
+            db.Cards.Add(new CardEntity
+            {
+                Id = 10_000 + id,
+                UserId = UserId,
+                DeckId = id,
+                Note = new StandardNote { FrontContent = $"Card {id}", BackContent = "" },
+                State = CardState.Review,
+                Created = DateTime.Now,
+                Due = DateTime.Today.AddDays(7),
+                Interval = TimeSpan.FromDays(7),
+                IsSuspended = id == 8,
+                IsBuried = id == 10
+            });
+        }
 
         await db.SaveChangesAsync();
     }

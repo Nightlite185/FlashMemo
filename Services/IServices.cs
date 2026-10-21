@@ -22,9 +22,14 @@ public interface ICountingService
     ///<returns>an IDictionary, of which keys are deck ids, and values are corresponding CardsCount structs;
     ///containing count of cards grouped by their state.</returns>
     Task<IDictionary<long, CardsCount>> StudyableCards(long userId);
+    
     Task<LessonReviewTake> CalculateTakings(
         long userId, CardsByStateQ cardsQ, DeckOptionsEntity deckOpt);
+
     Task<int> AllCards(long userId);
+
+    /// <summary>Counts all cards in the selected decks and their descendants, without counting overlaps twice.</summary>
+    Task<int> AllCardsInDecks(IEnumerable<long> deckIds);
     Task<int> AllDecks(long userId);
     Task<int> AllReviewableCards(long userId);
 }

@@ -32,7 +32,7 @@ public partial class ExportUC : UserControl
             CheckPathExists = true,
             DefaultExt = extension,
             Filter = filter,
-            OverwritePrompt = true,
+            OverwritePrompt = false,
             Title = "Export cards"
         };
 

@@ -24,7 +24,7 @@ public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 public partial class ExportVM(
     long userId, ICardQueryService cardQService,
     INoteSerializer ser, Action cancel, ICollection<long> flatDeckIds,
-    ICollection<DeckNode> deckTree)
+    ICollection<DeckNode> deckTree, Func<DialogResult>? confirmOverwrite = null)
     : PopupVMBase(cancel), IViewModel
 {
     #region public properties
@@ -143,7 +143,18 @@ public partial class ExportVM(
             DialogService.ShowError("Select at least one column to export.");
             return;
         }
-        
+
+        if (File.Exists(ExportPath))
+        {
+            var ans = confirmOverwrite?.Invoke() ?? DialogService.Show(
+                title: "Overwrite?",
+                message: "File at the chosen path already exists. Do you want to overwrite it?",
+                buttons: DialogButtons.YesNo,
+                icon: DialogIcons.Warning);
+
+            if (ans is DialogResult.No) return;
+        }
+
         string? dir = Path.GetDirectoryName(ExportPath);
 
         if (dir is null)

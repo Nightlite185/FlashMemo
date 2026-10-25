@@ -269,6 +269,98 @@ public class ExportVMTests : IDisposable
         exportDirectory.GetFiles().Should().ContainSingle(file => file.FullName == vm.ExportPath);
     }
 
+    [Theory]
+    [InlineData(ExportFormat.txt)]
+    [InlineData(ExportFormat.csv)]
+    public async Task Export_WhenOverwriteIsDeclined_PreservesFileAndKeepsPopupOpen(ExportFormat format)
+    {
+        string path = Path.Combine(exportDirectory.FullName, $"existing.{format}");
+        await File.WriteAllTextAsync(path, "Existing export\r\nKeep this: żółw");
+        byte[] originalContent = await File.ReadAllBytesAsync(path);
+        var query = new Mock<ICardQueryService>(MockBehavior.Strict);
+        var serializer = new Mock<INoteSerializer>(MockBehavior.Strict);
+        int confirmations = 0;
+        int closed = 0;
+        var vm = new ExportVM(7, query.Object, serializer.Object, () => closed++,
+            [1], [CreateDeck(1, "Deck")], confirmOverwrite: () =>
+            {
+                confirmations++;
+                return DialogResult.No;
+            })
+        {
+            Format = format,
+            ExportPath = path
+        };
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        (await File.ReadAllBytesAsync(path)).Should().Equal(originalContent);
+        confirmations.Should().Be(1);
+        closed.Should().Be(0);
+        vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
+        query.VerifyNoOtherCalls();
+        serializer.VerifyNoOtherCalls();
+        exportDirectory.GetFiles().Should().ContainSingle(file => file.FullName == path);
+    }
+
+    [Theory]
+    [InlineData(ExportFormat.txt, true)]
+    [InlineData(ExportFormat.csv, true)]
+    [InlineData(ExportFormat.txt, false)]
+    [InlineData(ExportFormat.csv, false)]
+    public async Task Export_WhenDestinationIsNewOrOverwriteIsConfirmed_WritesFileBeforeClosing(
+        ExportFormat format, bool destinationExists)
+    {
+        string path = Path.Combine(exportDirectory.FullName, $"export.{format}");
+        if (destinationExists)
+            await File.WriteAllTextAsync(path, "Existing export that should be replaced");
+        var deck = CreateDeck(1, "Deck");
+        CardEntity[] cards = [CreateCard(deck)];
+        var query = new Mock<ICardQueryService>(MockBehavior.Strict);
+        query.Setup(service => service.GetCardsWhere(
+            It.IsAny<Filters>(), CardsOrder.Created, SortingDirection.Ascending)).ReturnsAsync(cards);
+        var serializer = CreateSerializer(cards);
+        int confirmations = 0;
+        int closed = 0;
+        string? contentWhenClosed = null;
+        var vm = new ExportVM(7, query.Object, serializer.Object, () =>
+        {
+            closed++;
+            contentWhenClosed = File.Exists(path) ? File.ReadAllText(path) : null;
+        }, [1], [deck], confirmOverwrite: () =>
+        {
+            confirmations++;
+            return DialogResult.Yes;
+        })
+        {
+            Format = format,
+            ExportPath = path
+        };
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        string exportedContent = await File.ReadAllTextAsync(path);
+        if (format == ExportFormat.txt)
+            exportedContent.Should().Be("front 1 - back 1\n");
+        else
+        {
+            var records = ReadCsv(path);
+            records.Should().HaveCount(2);
+            records[0].Should().Equal("Front content", "Back content", "Deck", "Due date");
+            records[1].Should().Equal("front 1", "back 1", "Deck", "N/A");
+        }
+        confirmations.Should().Be(destinationExists ? 1 : 0);
+        closed.Should().Be(1);
+        contentWhenClosed.Should().Be(exportedContent);
+        query.Verify(service => service.GetCardsWhere(
+            It.Is<Filters>(filters => filters.UserId == 7 && filters.DeckIds.SequenceEqual(new long[] { 1 })),
+            CardsOrder.Created, SortingDirection.Ascending), Times.Once);
+        query.VerifyNoOtherCalls();
+        serializer.Verify(service => service.Serialize(cards), Times.Once);
+        serializer.VerifyNoOtherCalls();
+        exportDirectory.GetFiles().Should().ContainSingle(file => file.FullName == path);
+    }
+
     [Fact]
     public async Task CsvExport_SelectedSubtreeStartsPathsAtSelectedDeck()
     {

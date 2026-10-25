@@ -1,13 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.IO;
-using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CsvHelper;
-using FlashMemo.Helpers;
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
@@ -23,8 +19,8 @@ public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 
 public partial class ExportVM(
     long userId, ICardQueryService cardQService,
-    INoteSerializer ser, Action cancel, ICollection<long> flatDeckIds,
-    ICollection<DeckNode> deckTree, Func<DialogResult>? confirmOverwrite = null)
+    IExportService exporter, IDialogService dialogs, Action cancel,
+    ICollection<long> flatDeckIds, ICollection<DeckNode> deckTree)
     : PopupVMBase(cancel), IViewModel
 {
     #region public properties
@@ -134,179 +130,126 @@ public partial class ExportVM(
     protected override async Task Confirm()
     {
         ValidateAllProperties();
+
         if (HasErrors)
             return;
 
-        if (Format == ExportFormat.csv 
-        && !CsvColumns.Any(col => col.IsSelected))
+        var format = Format;
+        var columns = CsvColumns.Where(c => c.IsSelected)
+            .Select(c => new CsvExportColumn(c.Name, c.PropSelector)).ToArray();
+
+        if (format == ExportFormat.csv && columns.Length == 0)
         {
-            DialogService.ShowError("Select at least one column to export.");
+            dialogs.ShowError("Select at least one column to export.");
             return;
         }
 
-        if (File.Exists(ExportPath))
+        string path = ExportPath;
+        string fieldSep = FieldSeparator;
+
+        char noteSep = (format == ExportFormat.txt )
+            ? ToChar(NoteSep) : default;
+        
+        if (File.Exists(path))
         {
-            var ans = confirmOverwrite?.Invoke() ?? DialogService.Show(
+            var answer = dialogs.Show(
                 title: "Overwrite?",
                 message: "File at the chosen path already exists. Do you want to overwrite it?",
                 buttons: DialogButtons.YesNo,
                 icon: DialogIcons.Warning);
 
-            if (ans is DialogResult.No) return;
+            if (answer != DialogResult.Yes)
+                return;
         }
 
-        string? dir = Path.GetDirectoryName(ExportPath);
-
-        if (dir is null)
-        {
-            DialogService.ShowError(
-                title: "Failed to export content.",
-                message: "Given path is invalid, please use another one.");
-            
-            return;
-        }
-
-        ICollection<(CardEntity card, Note note)> serializedPairs;
+        string content;
 
         try
         {
-            var cards = (flatDeckIds.Count > 0)
+            var cards = flatDeckIds.Count > 0
                 ? await cardQService.GetCardsWhere(
-                    new Filters() 
-                    { 
+                    new Filters
+                    {
                         UserId = userId,
                         DeckIds = [.. flatDeckIds],
                         IncludeChildrenDecks = true
-                    },
-                    CardsOrder.Created, 
-                    SortingDirection.Ascending)
+                    }, CardsOrder.Created, SortingDirection.Ascending)
 
                 : await cardQService.GetAllFromUser(userId);
 
             if (cards.Count == 0)
             {
-                DialogService.ShowNoCardsFoundToExport();
+                dialogs.ShowNoCardsFoundToExport();
 
                 Close();
                 return;
             }
 
-            serializedPairs = ser.Serialize(cards);
-        }
+            switch (format)
+            {
+                case ExportFormat.txt:
+                    content = exporter.PrepareTxt(cards, fieldSep, noteSep);
+                    break;
 
+                case ExportFormat.csv:
+                    var paths = GetFullPaths(deckTree);
+
+                    if (paths.Count != flatDeckIds.Count)
+                    {
+                        dialogs.ShowError(
+                            "Something went wrong while trying to build deck hierarchical paths.");
+                        return;
+                    }
+                    
+                    content = exporter.PrepareCsv(cards, paths, columns);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"{format} not supported");
+            }
+        }
         catch
         {
-            DialogService.ShowError(
-                "Something went wrong while preparing content to export. Try again later.");
-
+            dialogs.ShowError("Something went wrong while preparing content to export. Try again later.");
             return;
         }
 
-        string? expContent = Format switch
-        {
-            ExportFormat.txt => PrepareTxt([..serializedPairs.Select(p => p.note)]),
-            ExportFormat.csv => await PrepareCsv(serializedPairs),
-
-            _ => throw new NotSupportedException($"{Format} not supported")
-        };
-
-        if (expContent is null)
-            return;
-        
-        await ExportToFile(expContent, dir);
+        await SaveWithRetry(content, path);
     }
 
-    private string PrepareTxt(ICollection<Note> notes)
+    private async Task SaveWithRetry(string content, string path)
     {
-        char noteSep = ToChar(NoteSep);
-        var sb = new StringBuilder();
-
-        foreach (var note in notes)
+        while (true)
         {
-            if (note is not StandardNote sn)
-                throw new NotSupportedException(
-                "Only standard notes supported at the moment.");
+            try { await exporter.SaveAsync(content, path); }
 
-            string entry = sn.FrontContent + FieldSeparator
-                + sn.BackContent + noteSep;
-
-            sb.Append(entry);
-        }
-    
-        return sb.ToString();
-    }
-
-    /// <returns>string containing csv content, or null if failed to prepare it.</returns>
-    private async Task<string?> PrepareCsv(ICollection<(CardEntity card, Note note)> cards)
-    {
-        await using var strWriter = new StringWriter();
-        await using var csv = new CsvWriter(strWriter, CultureInfo.InvariantCulture);
-        csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("N/A");
-
-        var paths = GetFullPaths(deckTree);
-
-        if (paths.Count != flatDeckIds.Count)
-        {
-            DialogService.ShowError(
-                "Something went wrong while trying to build deck hierarchical paths.");
-
-            return null;
-        }
-
-        var mappedDTOs = cards.Select(p => new CsvExportDTO(
-            p.card, p.note, paths.GetValueOrDefault(p.card.DeckId, p.card.Deck.Name)));
-        
-        csv.Context.RegisterClassMap(new CardCsvMap(CsvColumns));
-        csv.WriteRecords(mappedDTOs);
-        csv.Flush();
-        
-        return strWriter.ToString();
-    }
-    private async Task ExportToFile(string expContent, string expDirectory)
-    {
-        var ans = DialogResult.Retry;
-        string tempWrite = Path.Combine(expDirectory,
-            $"FlashMemo-{Guid.NewGuid():N}.tmp");
-        
-        while (ans is DialogResult.Retry or DialogResult.TryAgain)
-        {
-            try
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                await File.WriteAllTextAsync(
-                    path: tempWrite,
-                    contents: expContent);
-
-                File.Move(tempWrite, ExportPath, overwrite: true);
-                ans = DialogResult.None;
-                Close();
-            }
-
-            catch (Exception e)
-            {
-                ans = DialogService.Show(
-                    title: "Failed to export content.", 
+                var answer = dialogs.Show(
+                    title: "Failed to export content.",
                     message: $"Error: {e.Message}",
                     buttons: DialogButtons.RetryCancel,
                     icon: DialogIcons.Error);
 
-                try { File.Delete(tempWrite); }
-                catch { }
+                if (answer is DialogResult.Retry or DialogResult.TryAgain)
+                    continue;
+
+                return;
             }
+
+            Close();
+            return;
         }
     }
 
-    private static char ToChar(NoteSeparator sep)
+    private static char ToChar(NoteSeparator separator) => separator switch
     {
-        return sep switch
-        {
-            NoteSeparator.Tab => '\t',
-            NoteSeparator.Enter => '\n',
-            NoteSeparator.SemiColon => ';',
-            NoteSeparator.Space => ' ',
-
-            _ => throw new InvalidEnumArgumentException("note separator has invalid value")
-        };
-    }
+        NoteSeparator.Tab => '\t',
+        NoteSeparator.Enter => '\n',
+        NoteSeparator.SemiColon => ';',
+        NoteSeparator.Space => ' ',
+        _ => throw new InvalidEnumArgumentException("note separator has invalid value")
+    };
     private static Dictionary<long, string> GetFullPaths(ICollection<DeckNode> deckTree)
     {
         if (deckTree.Count == 0) return [];

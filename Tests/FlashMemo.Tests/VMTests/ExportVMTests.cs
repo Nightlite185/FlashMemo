@@ -281,12 +281,13 @@ public class ExportVMTests : IDisposable
         var serializer = new Mock<INoteSerializer>(MockBehavior.Strict);
         int confirmations = 0;
         int closed = 0;
-        var vm = new ExportVM(7, query.Object, serializer.Object, () => closed++,
-            [1], [CreateDeck(1, "Deck")], confirmOverwrite: () =>
-            {
-                confirmations++;
-                return DialogResult.No;
-            })
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
+                DialogButtons.YesNo, DialogIcons.Warning))
+            .Callback(() => confirmations++)
+            .Returns(DialogResult.No);
+        var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
+            dialogs.Object, () => closed++, [1], [CreateDeck(1, "Deck")])
         {
             Format = format,
             ExportPath = path
@@ -323,15 +324,16 @@ public class ExportVMTests : IDisposable
         int confirmations = 0;
         int closed = 0;
         string? contentWhenClosed = null;
-        var vm = new ExportVM(7, query.Object, serializer.Object, () =>
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
+                DialogButtons.YesNo, DialogIcons.Warning))
+            .Callback(() => confirmations++)
+            .Returns(DialogResult.Yes);
+        var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object), dialogs.Object, () =>
         {
             closed++;
             contentWhenClosed = File.Exists(path) ? File.ReadAllText(path) : null;
-        }, [1], [deck], confirmOverwrite: () =>
-        {
-            confirmations++;
-            return DialogResult.Yes;
-        })
+        }, [1], [deck])
         {
             Format = format,
             ExportPath = path
@@ -428,7 +430,8 @@ public class ExportVMTests : IDisposable
         query.Setup(service => service.GetAllFromUser(7)).ReturnsAsync(cards);
         var serializer = CreateSerializer(cards);
         bool closed = false;
-        var vm = new ExportVM(7, query.Object, serializer.Object, () => closed = true, [], []);
+        var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
+            Mock.Of<IDialogService>(), () => closed = true, [], []);
         vm.Format = ExportFormat.csv;
         vm.ExportPath = Path.Combine(exportDirectory.FullName, "all-cards.csv");
 
@@ -533,8 +536,8 @@ public class ExportVMTests : IDisposable
 
         var vm = await new ExportVMF(
                 cardQuery ?? Mock.Of<ICardQueryService>(),
-                serializer ?? Mock.Of<INoteSerializer>(),
-                counter.Object)
+                new ExportService(serializer ?? Mock.Of<INoteSerializer>()),
+                counter.Object, Mock.Of<IDialogService>())
             .CreateAsync(userId, deckTree ?? [CreateDeck(1, "Deck")], cancel ?? (() => { }));
 
         vm.Should().NotBeNull();

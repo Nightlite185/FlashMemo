@@ -9,6 +9,26 @@ namespace FlashMemo.Tests.VMTests;
 
 public class ExportVMFTests
 {
+    [Fact]
+    public async Task CreateAsync_NoCardsShowsInformationWithoutCreatingPopup()
+    {
+        var counter = new Mock<ICountingService>(MockBehavior.Strict);
+        counter.Setup(service => service.AllCardsInDecks(It.IsAny<IEnumerable<long>>())).ReturnsAsync(0);
+        var query = new Mock<ICardQueryService>(MockBehavior.Strict);
+        var exporter = new Mock<IExportService>(MockBehavior.Strict);
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowNoCardsFoundToExport());
+        var factory = new ExportVMF(query.Object, exporter.Object, counter.Object, dialogs.Object);
+
+        var vm = await factory.CreateAsync(7, [CreateDeck(1)], () => { });
+
+        vm.Should().BeNull();
+        dialogs.Verify(service => service.ShowNoCardsFoundToExport(), Times.Once);
+        dialogs.VerifyNoOtherCalls();
+        query.VerifyNoOtherCalls();
+        exporter.VerifyNoOtherCalls();
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -28,7 +48,7 @@ public class ExportVMFTests
             .Callback<IEnumerable<long>>(ids => countedIds = ids.ToArray())
             .ReturnsAsync(1);
         var factory = new ExportVMF(
-            Mock.Of<ICardQueryService>(), Mock.Of<INoteSerializer>(), counter.Object);
+            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>());
 
         var vm = await factory.CreateAsync(7, selection, () => { });
 

@@ -115,6 +115,8 @@ public partial class App : Application
         sc.AddTransient<DisplayControlFactory>();
         sc.AddSingleton<INoteComparer, XamlNoteComparer>();
         sc.AddSingleton<INoteSerializer, XamlNoteSerializer>();
+        sc.AddSingleton<IExportService, ExportService>();
+        sc.AddSingleton<IDialogService, WpfDialogService>();
         sc.AddSingleton<ILoginService, LoginService>();
         sc.AddSingleton<ICountingService, CountingService>();
         sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();

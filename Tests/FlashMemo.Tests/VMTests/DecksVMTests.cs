@@ -17,7 +17,7 @@ public class DecksVMTests
     {
         var counter = new Mock<ICountingService>(MockBehavior.Strict);
         var factory = new ExportVMF(
-            Mock.Of<ICardQueryService>(), Mock.Of<INoteSerializer>(), counter.Object);
+            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>());
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory);
 
         Func<Task> showExport = () => vm.ShowExportMenuCommand.ExecuteAsync(null);
@@ -42,7 +42,7 @@ public class DecksVMTests
             .Callback<IEnumerable<long>>(ids => countedIds = ids.ToArray())
             .ReturnsAsync(1);
         var factory = new ExportVMF(
-            Mock.Of<ICardQueryService>(), Mock.Of<INoteSerializer>(), counter.Object);
+            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>());
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory);
         vm.DeckTree.Add(parent);
         vm.DeckTree.Add(unselected);

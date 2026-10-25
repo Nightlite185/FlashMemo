@@ -23,7 +23,8 @@ public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 
 public partial class ExportVM(
     long userId, ICardQueryService cardQService,
-    INoteSerializer ser, Action cancel, IEnumerable<long>? deckIds = null) // if deckIds is null -> we export everything from the user.
+    INoteSerializer ser, Action cancel, ICollection<long> flatDeckIds,
+    ICollection<DeckNode> deckTree)
     : PopupVMBase(cancel), IViewModel
 {
     #region public properties
@@ -136,7 +137,8 @@ public partial class ExportVM(
         if (HasErrors)
             return;
 
-        if (Format == ExportFormat.csv && !CsvColumns.Any(col => col.IsSelected))
+        if (Format == ExportFormat.csv 
+        && !CsvColumns.Any(col => col.IsSelected))
         {
             DialogService.ShowError("Select at least one column to export.");
             return;
@@ -157,12 +159,12 @@ public partial class ExportVM(
 
         try
         {
-            var cards = (deckIds is not null)
+            var cards = (flatDeckIds.Count > 0)
                 ? await cardQService.GetCardsWhere(
                     new Filters() 
                     { 
-                        UserId = userId, 
-                        DeckIds = [.. deckIds], 
+                        UserId = userId,
+                        DeckIds = [.. flatDeckIds],
                         IncludeChildrenDecks = true
                     },
                     CardsOrder.Created, 
@@ -189,13 +191,16 @@ public partial class ExportVM(
             return;
         }
 
-        string expContent = Format switch
+        string? expContent = Format switch
         {
             ExportFormat.txt => PrepareTxt([..serializedPairs.Select(p => p.note)]),
             ExportFormat.csv => await PrepareCsv(serializedPairs),
 
             _ => throw new NotSupportedException($"{Format} not supported")
         };
+
+        if (expContent is null)
+            return;
         
         await ExportToFile(expContent, dir);
     }
@@ -219,14 +224,26 @@ public partial class ExportVM(
     
         return sb.ToString();
     }
-    private async Task<string> PrepareCsv(ICollection<(CardEntity card, Note note)> cards)
+
+    /// <returns>string containing csv content, or null if failed to prepare it.</returns>
+    private async Task<string?> PrepareCsv(ICollection<(CardEntity card, Note note)> cards)
     {
         await using var strWriter = new StringWriter();
         await using var csv = new CsvWriter(strWriter, CultureInfo.InvariantCulture);
         csv.Context.TypeConverterOptionsCache.GetOptions<string>().NullValues.Add("N/A");
 
-        var mappedDTOs = cards.Select(
-            p => new CsvExportDTO(p.card, p.note));
+        var paths = GetFullPaths(deckTree);
+
+        if (paths.Count != flatDeckIds.Count)
+        {
+            DialogService.ShowError(
+                "Something went wrong while trying to build deck hierarchical paths.");
+
+            return null;
+        }
+
+        var mappedDTOs = cards.Select(p => new CsvExportDTO(
+            p.card, p.note, paths.GetValueOrDefault(p.card.DeckId, p.card.Deck.Name)));
         
         csv.Context.RegisterClassMap(new CardCsvMap(CsvColumns));
         csv.WriteRecords(mappedDTOs);
@@ -267,6 +284,45 @@ public partial class ExportVM(
         }
     }
 
+    private static char ToChar(NoteSeparator sep)
+    {
+        return sep switch
+        {
+            NoteSeparator.Tab => '\t',
+            NoteSeparator.Enter => '\n',
+            NoteSeparator.SemiColon => ';',
+            NoteSeparator.Space => ' ',
+
+            _ => throw new InvalidEnumArgumentException("note separator has invalid value")
+        };
+    }
+    private static Dictionary<long, string> GetFullPaths(ICollection<DeckNode> deckTree)
+    {
+        if (deckTree.Count == 0) return [];
+
+        var currPath = new Stack<string>();
+        var deckPathMap = new Dictionary<long, string>();
+
+        foreach(var deck in deckTree)
+            backTrack(deck);
+
+        void backTrack(DeckNode deck)
+        {
+            currPath.Push(deck.Name);
+            
+            deckPathMap.TryAdd(deck.Id, string.Join('/', currPath.Reverse()));
+
+            foreach(var child in deck.Children)
+                backTrack(child);
+
+            currPath.Pop();
+        }
+
+        return deckPathMap;
+    }
+    #endregion
+
+    #region Commands
     [RelayCommand]
     private void ResetCsvColumns()
     {
@@ -284,19 +340,6 @@ public partial class ExportVM(
             if (!col.IsSelected)
                 col.IsSelected = true;
         }
-    }
-
-    private static char ToChar(NoteSeparator sep)
-    {
-        return sep switch
-        {
-            NoteSeparator.Tab => '\t',
-            NoteSeparator.Enter => '\n',
-            NoteSeparator.SemiColon => ';',
-            NoteSeparator.Space => ' ',
-
-            _ => throw new InvalidEnumArgumentException("note separator has invalid value")
-        };
     }
     #endregion
 }

@@ -105,17 +105,16 @@ public partial class DecksVM(
     [RelayCommand]
     private async Task ShowExportMenu()
     {
-        var decks = SelectedDecks.Cast<DeckNode>()
-            .Flatten()
-            .Select(d => d.Id)
-            .Distinct();
-
         if (SelectedDecks.Count == 0)
             throw new InvalidOperationException(
             "Tried to export decks, but none are selected.");
 
+        var decks = SelectedDecks.Cast<DeckNode>()
+            .Flatten()
+            .Distinct();
+
         CurrentPopup = await exportVMF.CreateAsync(
-            userId, decks, PopupCancel);
+            userId, SelectedDecks.Cast<DeckNode>(), PopupCancel);
     }
 
     [RelayCommand]
@@ -270,6 +269,7 @@ public partial class DecksVM(
     #region properties & fields
     public HeatmapVM Heatmap { get; } = heatmapVM;
     public ObservableCollection<DeckNode> DeckTree { get; } = [];
+    
     // SfTreeView.SelectedItems requires ObservableCollection<object>.
     public ObservableCollection<object> SelectedDecks { get; } = [];
 

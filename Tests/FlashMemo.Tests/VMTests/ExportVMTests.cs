@@ -1,14 +1,21 @@
+using System.Globalization;
 using System.IO;
+using CsvHelper;
+using FlashMemo.Model;
+using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Popups;
+using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Moq;
 
 namespace FlashMemo.Tests.VMTests;
 
-public class ExportVMTests
+public class ExportVMTests : IDisposable
 {
+    private readonly DirectoryInfo exportDirectory = Directory.CreateTempSubdirectory("FlashMemo-ExportTests-");
+
     [Fact]
     public async Task DefaultFilename_MatchesTextFormat()
     {
@@ -217,8 +224,181 @@ public class ExportVMTests
         closed.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task CsvExport_WritesHierarchicalPathsForEveryBranchAndRoot()
+    {
+        var root = CreateDeck(1, "Languages, \"daily\"");
+        var child = CreateDeck(2, "Spanish");
+        var grandchild = CreateDeck(3, "Verbs");
+        var sibling = CreateDeck(4, "French");
+        var otherRoot = CreateDeck(5, "Science");
+        var otherChild = CreateDeck(6, "Verbs");
+        root.AddChild(child);
+        child.AddChild(grandchild);
+        root.AddChild(sibling);
+        otherRoot.AddChild(otherChild);
+        CardEntity[] cards = [
+            CreateCard(root), CreateCard(child), CreateCard(grandchild),
+            CreateCard(sibling), CreateCard(otherRoot), CreateCard(otherChild)
+        ];
+        int closed = 0;
+        var (vm, query) = await CreateExportViewModel([root, otherRoot], cards, () => closed++);
+        vm.Format = ExportFormat.csv;
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        var records = ReadCsv(vm.ExportPath);
+        records[0].Should().Equal("Front content", "Back content", "Deck", "Due date");
+        records.Skip(1).Select(row => row[2]).Should().Equal(
+            "Languages, \"daily\"",
+            "Languages, \"daily\"/Spanish",
+            "Languages, \"daily\"/Spanish/Verbs",
+            "Languages, \"daily\"/French",
+            "Science",
+            "Science/Verbs");
+        records.Skip(1).Select(row => row[0]).Should().Equal(cards.Select(card => $"front {card.Id}"));
+        records.Skip(1).Select(row => row[1]).Should().Equal(cards.Select(card => $"back {card.Id}"));
+        records.Skip(1).Select(row => row[3]).Should().OnlyContain(due => due == "N/A");
+        query.Verify(service => service.GetCardsWhere(
+            It.Is<Filters>(filters => filters.UserId == 7
+                && filters.DeckIds.SequenceEqual(new long[] { 1, 2, 3, 4, 5, 6 })
+                && filters.IncludeChildrenDecks),
+            CardsOrder.Created, SortingDirection.Ascending), Times.Once);
+        query.VerifyNoOtherCalls();
+        closed.Should().Be(1);
+        exportDirectory.GetFiles().Should().ContainSingle(file => file.FullName == vm.ExportPath);
+    }
+
+    [Fact]
+    public async Task CsvExport_SelectedSubtreeStartsPathsAtSelectedDeck()
+    {
+        var ancestor = CreateDeck(1, "Unselected ancestor");
+        var selected = CreateDeck(2, "Selected");
+        var child = CreateDeck(3, "Child");
+        ancestor.AddChild(selected);
+        selected.AddChild(child);
+        var (vm, query) = await CreateExportViewModel(
+            [selected], [CreateCard(selected), CreateCard(child)]);
+        vm.Format = ExportFormat.csv;
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        ReadCsv(vm.ExportPath).Skip(1).Select(row => row[2])
+            .Should().Equal("Selected", "Selected/Child");
+        query.Verify(service => service.GetCardsWhere(
+            It.Is<Filters>(filters => filters.DeckIds.SequenceEqual(new long[] { 2, 3 })),
+            CardsOrder.Created, SortingDirection.Ascending), Times.Once);
+        query.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task CsvExport_EmptyDeckSelectionExportsAllUserCardsWithDeckNameFallback()
+    {
+        var deck = CreateDeck(1, "Standalone");
+        IList<CardEntity> cards = new[] { CreateCard(deck) };
+        var query = new Mock<ICardQueryService>(MockBehavior.Strict);
+        query.Setup(service => service.GetAllFromUser(7)).ReturnsAsync(cards);
+        var serializer = CreateSerializer(cards);
+        bool closed = false;
+        var vm = new ExportVM(7, query.Object, serializer.Object, () => closed = true, [], []);
+        vm.Format = ExportFormat.csv;
+        vm.ExportPath = Path.Combine(exportDirectory.FullName, "all-cards.csv");
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        ReadCsv(vm.ExportPath)[1].Should().Equal("front 1", "back 1", "Standalone", "N/A");
+        query.Verify(service => service.GetAllFromUser(7), Times.Once);
+        query.VerifyNoOtherCalls();
+        serializer.Verify(service => service.Serialize(cards), Times.Once);
+        closed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CsvExport_OnlyWritesSelectedColumns()
+    {
+        var root = CreateDeck(1, "Root");
+        var child = CreateDeck(2, "Child");
+        root.AddChild(child);
+        var (vm, _) = await CreateExportViewModel([root], [CreateCard(child)]);
+        vm.Format = ExportFormat.csv;
+        foreach (var column in vm.CsvColumns)
+            column.IsSelected = column.Name == "Deck";
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        var records = ReadCsv(vm.ExportPath);
+        records.Should().HaveCount(2);
+        records[0].Should().Equal("Deck");
+        records[1].Should().Equal("Root/Child");
+    }
+
+    [Fact]
+    public async Task TextExport_SelectedTreeUsesConfiguredSeparatorsWithoutDeckPaths()
+    {
+        var root = CreateDeck(1, "Root");
+        var child = CreateDeck(2, "Child");
+        root.AddChild(child);
+        var (vm, query) = await CreateExportViewModel(
+            [root], [CreateCard(root), CreateCard(child)]);
+        vm.FieldSeparator = " | ";
+        vm.NoteSep = NoteSeparator.SemiColon;
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        (await File.ReadAllTextAsync(vm.ExportPath)).Should().Be("front 1 | back 1;front 2 | back 2;");
+        query.Verify(service => service.GetCardsWhere(
+            It.Is<Filters>(filters => filters.UserId == 7
+                && filters.DeckIds.SequenceEqual(new long[] { 1, 2 })),
+            CardsOrder.Created, SortingDirection.Ascending), Times.Once);
+        query.VerifyNoOtherCalls();
+    }
+
+    private async Task<(ExportVM VM, Mock<ICardQueryService> Query)> CreateExportViewModel(
+        ICollection<DeckNode> deckTree, ICollection<CardEntity> cards, Action? cancel = null)
+    {
+        var query = new Mock<ICardQueryService>(MockBehavior.Strict);
+        query.Setup(service => service.GetCardsWhere(
+            It.IsAny<Filters>(), CardsOrder.Created, SortingDirection.Ascending)).ReturnsAsync(cards);
+        var serializer = CreateSerializer(cards);
+        var vm = await CreateViewModel(query.Object, serializer.Object, cancel, deckTree, userId: 7);
+        vm.ExportPath = Path.Combine(exportDirectory.FullName, "export.txt");
+        return (vm, query);
+    }
+
+    private static Mock<INoteSerializer> CreateSerializer(IEnumerable<CardEntity> cards)
+    {
+        var serializer = new Mock<INoteSerializer>(MockBehavior.Strict);
+        serializer.Setup(service => service.Serialize(cards))
+            .Returns(cards.Select(card => (card, card.Note)).ToArray());
+        return serializer;
+    }
+
+    private static DeckNode CreateDeck(long id, string name)
+        => new(new Deck { Id = id, UserId = 7, Name = name }, []);
+
+    private static CardEntity CreateCard(DeckNode deck)
+        => new()
+        {
+            Id = deck.Id,
+            UserId = 7,
+            DeckId = deck.Id,
+            Deck = deck.ToEntity(),
+            Note = StandardNote.Create($"front {deck.Id}", $"back {deck.Id}")
+        };
+
+    private static List<string[]> ReadCsv(string path)
+    {
+        using var reader = new StreamReader(path);
+        using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+        var records = new List<string[]>();
+        while (csv.Read())
+            records.Add(Enumerable.Range(0, csv.Parser.Count).Select(index => csv.GetField(index)!).ToArray());
+        return records;
+    }
+
     private static async Task<ExportVM> CreateViewModel(
-        ICardQueryService? cardQuery = null, INoteSerializer? serializer = null, Action? cancel = null)
+        ICardQueryService? cardQuery = null, INoteSerializer? serializer = null, Action? cancel = null,
+        IEnumerable<DeckNode>? deckTree = null, long userId = 1)
     {
         var counter = new Mock<ICountingService>();
         counter.Setup(c => c.AllCardsInDecks(It.IsAny<IEnumerable<long>>())).ReturnsAsync(1);
@@ -227,9 +407,11 @@ public class ExportVMTests
                 cardQuery ?? Mock.Of<ICardQueryService>(),
                 serializer ?? Mock.Of<INoteSerializer>(),
                 counter.Object)
-            .CreateAsync(1, [1], cancel ?? (() => { }));
+            .CreateAsync(userId, deckTree ?? [CreateDeck(1, "Deck")], cancel ?? (() => { }));
 
         vm.Should().NotBeNull();
         return vm!;
     }
+
+    public void Dispose() => exportDirectory.Delete(recursive: true);
 }

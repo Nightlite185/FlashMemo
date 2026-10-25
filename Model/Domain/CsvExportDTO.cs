@@ -4,14 +4,15 @@ namespace FlashMemo.Model.Domain;
 
 public record CsvExportDTO
 {
-    public CsvExportDTO(CardEntity card, Note note)
+    // TODO: replace CardEntity with some interface only exposing needed props.
+    public CsvExportDTO(CardEntity card, Note note, string fullDeckPath)
     {
         if (note is not StandardNote sn)
             throw new NotSupportedException("Only standard notes supported for now.");
 
         FrontContent = sn.FrontContent;
         BackContent = sn.BackContent;
-        Deck = card.Deck.Name;
+        Deck = fullDeckPath;
 
         Tags = string.Join(separator: ',', card.Tags);
         

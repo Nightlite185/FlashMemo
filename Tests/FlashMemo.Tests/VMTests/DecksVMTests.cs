@@ -1,6 +1,8 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
@@ -10,6 +12,57 @@ namespace FlashMemo.Tests.VMTests;
 
 public class DecksVMTests
 {
+    [Fact]
+    public async Task ShowExportMenu_WithNoSelection_ThrowsWithoutCountingCards()
+    {
+        var counter = new Mock<ICountingService>(MockBehavior.Strict);
+        var factory = new ExportVMF(
+            Mock.Of<ICardQueryService>(), Mock.Of<INoteSerializer>(), counter.Object);
+        var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory);
+
+        Func<Task> showExport = () => vm.ShowExportMenuCommand.ExecuteAsync(null);
+
+        await showExport.Should().ThrowAsync<InvalidOperationException>();
+        vm.CurrentPopup.Should().BeNull();
+        counter.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ShowExportMenu_PassesSelectedTreesToFactory_AndCloseClearsPopup()
+    {
+        var parent = CreateDeck(1);
+        var child = CreateDeck(2);
+        var grandchild = CreateDeck(3);
+        var unselected = CreateDeck(4);
+        parent.AddChild(child);
+        child.AddChild(grandchild);
+        long[] countedIds = [];
+        var counter = new Mock<ICountingService>(MockBehavior.Strict);
+        counter.Setup(service => service.AllCardsInDecks(It.IsAny<IEnumerable<long>>()))
+            .Callback<IEnumerable<long>>(ids => countedIds = ids.ToArray())
+            .ReturnsAsync(1);
+        var factory = new ExportVMF(
+            Mock.Of<ICardQueryService>(), Mock.Of<INoteSerializer>(), counter.Object);
+        var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory);
+        vm.DeckTree.Add(parent);
+        vm.DeckTree.Add(unselected);
+        vm.SelectedDecks.Add(parent);
+
+        await vm.ShowExportMenuCommand.ExecuteAsync(null);
+
+        countedIds.Should().Equal(1, 2, 3);
+        var popup = vm.CurrentPopup.Should().BeOfType<ExportVM>().Subject;
+        popup.HasErrors.Should().BeFalse();
+        popup.ConfirmCommand.CanExecute(null).Should().BeTrue();
+        counter.Verify(service => service.AllCardsInDecks(It.IsAny<IEnumerable<long>>()), Times.Once);
+        counter.VerifyNoOtherCalls();
+
+        popup.CloseCommand.Execute(null);
+
+        vm.CurrentPopup.Should().BeNull();
+        vm.SelectedDecks.Should().Equal(parent);
+    }
+
     [Fact]
     public async Task ReloadDomain_ClearsSelectionBeforeReplacingTree()
     {

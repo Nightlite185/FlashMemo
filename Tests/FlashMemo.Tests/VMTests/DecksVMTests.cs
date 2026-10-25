@@ -92,8 +92,10 @@ public class DecksVMTests
         repo.VerifyNoOtherCalls();
     }
 
-    [Fact]
-    public async Task RemoveDecks_WhenSelectionContainsDescendant_DeletesEachSubtreeOnce()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RemoveDecks_WhenSelectionContainsDescendant_DeletesEachSubtreeOnce(bool descendantFirst)
     {
         var deckRepo = new Mock<IDeckRepo>();
         deckRepo
@@ -124,8 +126,8 @@ public class DecksVMTests
         parent.AddChild(child);
         vm.DeckTree.Add(parent);
         vm.DeckTree.Add(otherRoot);
-        vm.SelectedDecks.Add(parent);
-        vm.SelectedDecks.Add(child);
+        vm.SelectedDecks.Add(descendantFirst ? child : parent);
+        vm.SelectedDecks.Add(descendantFirst ? parent : child);
         vm.SelectedDecks.Add(otherRoot);
 
         await vm.RemoveDeckCommand.ExecuteAsync(null);

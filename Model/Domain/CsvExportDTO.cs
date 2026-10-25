@@ -4,7 +4,6 @@ namespace FlashMemo.Model.Domain;
 
 public record CsvExportDTO
 {
-    // TODO: replace CardEntity with some interface only exposing needed props.
     public CsvExportDTO(CardEntity card, Note note, string fullDeckPath)
     {
         if (note is not StandardNote sn)

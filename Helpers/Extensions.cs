@@ -80,6 +80,28 @@ public static class Extensions
         return JsonSerializer.Deserialize<T>(json)!;
     }
 
+    public static DeckNode[] GetSelectedRoots(this IEnumerable<DeckNode> decks)
+    {
+        var selectedDecks = decks.ToHashSet();
+
+        return [..selectedDecks.Where(d => !HasSelectedAncestor(d))];
+
+        bool HasSelectedAncestor(DeckNode deck)
+        {
+            DeckNode? ancestor = deck.Parent;
+
+            while (ancestor is not null)
+            {
+                if (selectedDecks.Contains(ancestor))
+                    return true;
+
+                ancestor = ancestor.Parent;
+            }
+
+            return false;
+        }
+    }
+
     public static IEnumerable<DeckNode> Flatten(this IEnumerable<DeckNode> nodes)
     {
         var result = new List<DeckNode>();

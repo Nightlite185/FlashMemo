@@ -9,7 +9,8 @@ public class ExportVMF(ICardQueryService cardQService, INoteSerializer ser, ICou
 {
     public async Task<ExportVM?> CreateAsync(long userId, IEnumerable<DeckNode> deckTree, Action cancel)
     {
-        var flatIds = deckTree
+        var selectedRoots = deckTree.GetSelectedRoots();
+        var flatIds = selectedRoots
             .Flatten()
             .Select(d => d.Id)
             .Distinct()
@@ -23,7 +24,7 @@ public class ExportVMF(ICardQueryService cardQService, INoteSerializer ser, ICou
 
         var vm = new ExportVM(
             userId, cardQService, ser,
-            cancel, flatIds, deckTree.ToArray());
+            cancel, flatIds, selectedRoots);
 
         vm.ErrorsChanged += (_, _) => vm.ConfirmCommand.NotifyCanExecuteChanged();
         vm.Validate();

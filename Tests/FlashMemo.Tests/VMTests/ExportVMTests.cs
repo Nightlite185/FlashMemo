@@ -291,6 +291,42 @@ public class ExportVMTests : IDisposable
         query.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task CsvExport_OverlappingSelectionsKeepAncestorPathsRegardlessOfSelectionOrder(
+        bool descendantFirst, bool selectGrandchild)
+    {
+        var root = CreateDeck(1, "Root");
+        var child = CreateDeck(2, "Child");
+        var grandchild = CreateDeck(3, "Grandchild");
+        var otherRoot = CreateDeck(4, "Other root");
+        root.AddChild(child);
+        child.AddChild(grandchild);
+        var descendant = selectGrandchild ? grandchild : child;
+        DeckNode[] selection = descendantFirst
+            ? [descendant, root, otherRoot]
+            : [root, descendant, otherRoot];
+        var (vm, query) = await CreateExportViewModel(selection,
+            [CreateCard(root), CreateCard(child), CreateCard(grandchild), CreateCard(otherRoot)]);
+        vm.Format = ExportFormat.csv;
+
+        await vm.ConfirmCommand.ExecuteAsync(null);
+
+        ReadCsv(vm.ExportPath).Skip(1).Select(row => row[2]).Should().Equal(
+            "Root", "Root/Child", "Root/Child/Grandchild", "Other root");
+        query.Verify(service => service.GetCardsWhere(
+            It.Is<Filters>(filters => filters.DeckIds.Count == 4
+                && filters.DeckIds.Contains(1) && filters.DeckIds.Contains(2)
+                && filters.DeckIds.Contains(3) && filters.DeckIds.Contains(4)),
+            CardsOrder.Created, SortingDirection.Ascending), Times.Once);
+        query.VerifyNoOtherCalls();
+        root.Children.Should().Equal(child);
+        child.Children.Should().Equal(grandchild);
+    }
+
     [Fact]
     public async Task CsvExport_EmptyDeckSelectionExportsAllUserCardsWithDeckNameFallback()
     {

@@ -109,10 +109,6 @@ public partial class DecksVM(
             throw new InvalidOperationException(
             "Tried to export decks, but none are selected.");
 
-        var decks = SelectedDecks.Cast<DeckNode>()
-            .Flatten()
-            .Distinct();
-
         CurrentPopup = await exportVMF.CreateAsync(
             userId, SelectedDecks.Cast<DeckNode>(), PopupCancel);
     }
@@ -126,10 +122,7 @@ public partial class DecksVM(
         if (decks.Length == 0)
             return;
 
-        var selectedSet = decks.ToHashSet();
-        var selectedRoots = selectedSet
-            .Where(deck => !HasSelectedAncestor(deck, selectedSet))
-            .ToArray();
+        var selectedRoots = decks.GetSelectedRoots();
 
         var userOptions = await userOptionsService
             .GetFromUser(userId);
@@ -248,23 +241,6 @@ public partial class DecksVM(
     }
 
     #endregion
-
-    private static bool HasSelectedAncestor(
-        DeckNode deck,
-        IReadOnlySet<DeckNode> selectedDecks)
-    {
-        DeckNode? ancestor = deck.Parent;
-
-        while (ancestor is not null)
-        {
-            if (selectedDecks.Contains(ancestor))
-                return true;
-
-            ancestor = ancestor.Parent;
-        }
-
-        return false;
-    }
 
     #region properties & fields
     public HeatmapVM Heatmap { get; } = heatmapVM;

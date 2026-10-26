@@ -69,14 +69,17 @@ public partial class App : Application
     private static async Task CheckLicenses()
     {
         await using var stream = ResourceAssembly
-            .GetManifestResourceStream("FlashMemo.SyncfusionLicense")
-                ?? throw new InvalidOperationException(
-                "Syncfusion license is missing.");
+            .GetManifestResourceStream("FlashMemo.SyncfusionLicense");
+
+        // Let Syncfusion handle missing registration with its own licensing warning.
+        if (stream is null)
+            return;
 
         using var reader = new StreamReader(stream);
+        string key = (await reader.ReadToEndAsync()).Trim();
 
-        SyncfusionLicenseProvider.RegisterLicense(
-            (await reader.ReadToEndAsync()).Trim());
+        if (!string.IsNullOrWhiteSpace(key))
+            SyncfusionLicenseProvider.RegisterLicense(key);
     }
     private static ServiceCollection ConfigureServices()
     {

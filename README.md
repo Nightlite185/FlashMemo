@@ -113,6 +113,8 @@ FlashMemo/
 - Windows 10 or Windows 11
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
+FlashMemo uses Syncfusion WPF controls. When building from source, obtain your own valid Syncfusion license or trial and save its key in `SyncfusionLicense.txt` in the project root. This file is ignored by Git and embedded during the build, so rebuild after adding or changing it. If the file is missing or empty, FlashMemo leaves licensing warnings to Syncfusion instead of throwing a startup exception. See [Syncfusion's WPF licensing guide](https://help.syncfusion.com/wpf/licensing/overview).
+
 ### Run locally
 
 ```powershell

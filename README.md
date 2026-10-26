@@ -27,6 +27,7 @@ FlashMemo is inspired by Anki's approach to spaced repetition. Its scheduling im
 - Create and edit formatted front/back notes with reusable tags.
 - Browse, search, sort, and filter cards by deck, tag, state, status, dates, and interval.
 - Perform bulk card operations including moving, rescheduling, postponing, burying, suspending, forgetting, and deleting.
+- Export selected decks and their subdecks to **TXT** with configurable separators or **CSV** with selectable columns and hierarchical deck paths.
 - Track study activity through a yearly heatmap, review streaks, answer ratios, average answer time, and review-volume statistics.
 - Maintain independent local profiles, preferences, and session state for multiple users.
 - Store all data locally in SQLite and apply EF Core migrations automatically on startup.
@@ -50,6 +51,17 @@ Search, sort, and filter cards by deck, tag, state, status, dates, and interval.
 Create rich front-and-back notes, organize them with reusable tags, and choose their destination deck.
 
 ![Rich card editor](Assets/Screenshots/create_card.png)
+
+### Export your cards
+
+Select one or more decks, open the context menu, and choose **Export**. Cards in their subdecks are included automatically. Exported front/back content is plain text, with formatting removed.
+
+- **TXT:** choose the separator between the front and back, and between notes.
+- **CSV:** choose which columns to include, such as front/back content, deck paths, tags, due dates, and scheduling metadata. Deck paths start at the selected deck, for example `Languages/Spanish/Verbs` when exporting `Languages`.
+
+Existing files require confirmation before they are replaced. Export writes a temporary file before replacing the destination, and failed writes can be retried.
+
+![CSV export options](Assets/Screenshots/export_menu.png)
 
 ### Track study progress
 
@@ -88,6 +100,7 @@ Each deck can use a reusable preset controlling daily limits, learning stages, i
 | Persistence | Entity Framework Core, SQLite, EF Core migrations |
 | MVVM tooling | CommunityToolkit.Mvvm |
 | Object mapping | AutoMapper |
+| Export | CsvHelper, plain-text conversion from WPF rich text |
 | Testing | xUnit, FluentAssertions, Moq.AutoMock, in-memory SQLite |
 
 ## Project structure
@@ -136,7 +149,7 @@ No account, cloud service, or external database is required.
 dotnet test FlashMemo.sln --configuration Release
 ```
 
-The test suite covers scheduling behavior, EF Core query translation, daily review limits, statistics, database initialization, session isolation, and card creation/review workflows, and filtering.
+The test suite covers scheduling behavior, EF Core query translation, daily review limits, statistics, database initialization, session isolation, card creation/review workflows, filtering, and TXT/CSV export. Export tests exercise rich-text conversion, selected deck hierarchies, CSV metadata and escaping, overwrite confirmation, and file-write retries and cleanup.
 
 ## Current scope
 

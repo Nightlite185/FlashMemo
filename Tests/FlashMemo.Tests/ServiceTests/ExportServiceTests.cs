@@ -85,6 +85,71 @@ public class ExportServiceTests : IDisposable
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void PrepareCsv_MapsAllColumnsIncludingNullableMetadata(bool hasReviewHistory)
+    {
+        var card = new CardEntity
+        {
+            DeckId = 2,
+            Deck = new Deck { Id = 2, Name = "Child" },
+            Note = StandardNote.Create("front", "back"),
+            Tags = [new Tag { Name = "żółw" }, new Tag { Name = "tag, with comma" }],
+            Interval = TimeSpan.FromDays(12),
+            State = CardState.Learning,
+            IsSuspended = true,
+            IsBuried = false,
+            LearningStage = hasReviewHistory ? LearningStage.II : null,
+            Created = new DateTime(2026, 9, 1),
+            Due = hasReviewHistory ? new DateTime(2026, 10, 29) : null,
+            LastModified = hasReviewHistory ? new DateTime(2026, 10, 26) : null,
+            LastReviewed = hasReviewHistory ? new DateTime(2026, 10, 25) : null
+        };
+        CardEntity[] cards = [card];
+        var serializer = new Mock<INoteSerializer>(MockBehavior.Strict);
+        serializer.Setup(service => service.Serialize(cards)).Returns(new[] { (card, card.Note) });
+        CsvExportColumn[] columns =
+        [
+            new("Front", dto => dto.FrontContent), new("Back", dto => dto.BackContent),
+            new("Deck", dto => dto.Deck), new("Due", dto => dto.DueDate),
+            new("Tags", dto => dto.Tags), new("Interval", dto => dto.IntervalDays),
+            new("State", dto => dto.State), new("Suspended", dto => dto.IsSuspended),
+            new("Buried", dto => dto.IsBuried), new("Stage", dto => dto.LearningStage),
+            new("Created", dto => dto.CreatedDate), new("Modified", dto => dto.LastModifiedDate),
+            new("Reviewed", dto => dto.LastReviewedDate)
+        ];
+
+        string content = new ExportService(serializer.Object).PrepareCsv(
+            cards, new Dictionary<long, string> { [2] = "Root/Child" }, columns);
+
+        using var reader = new CsvReader(new StringReader(content), CultureInfo.InvariantCulture);
+        reader.Read().Should().BeTrue();
+        reader.ReadHeader();
+        reader.HeaderRecord.Should().Equal(columns.Select(column => column.Name));
+        reader.Read().Should().BeTrue();
+        reader.GetField("Front").Should().Be("front");
+        reader.GetField("Back").Should().Be("back");
+        reader.GetField("Deck").Should().Be("Root/Child");
+        reader.GetField("Tags").Should().Be("żółw,tag, with comma");
+        reader.GetField("Interval").Should().Be("12");
+        reader.GetField("State").Should().Be("Learning");
+        reader.GetField("Suspended").Should().Be("True");
+        reader.GetField("Buried").Should().Be("False");
+        reader.GetField("Stage").Should().Be(hasReviewHistory ? "II" : "N/A");
+        DateTime.ParseExact(reader.GetField("Created")!, "dd/MM/yyyy", CultureInfo.CurrentCulture)
+            .Should().Be(new DateTime(2026, 9, 1));
+        foreach (var (column, expected) in new[]
+                 { ("Due", card.Due), ("Modified", card.LastModified), ("Reviewed", card.LastReviewed) })
+        {
+            if (expected is DateTime date)
+                DateTime.ParseExact(reader.GetField(column)!, "dd/MM/yyyy", CultureInfo.CurrentCulture).Should().Be(date);
+            else
+                reader.GetField(column).Should().Be("N/A");
+        }
+        reader.Read().Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task SaveAsync_WritesCompleteContentAndLeavesNoTemporaryFile(bool destinationExists)
     {
         string path = Path.Combine(directory.FullName, "export.txt");

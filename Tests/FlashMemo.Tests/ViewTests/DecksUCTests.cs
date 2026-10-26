@@ -31,6 +31,36 @@ public class DecksUCTests(WpfTestHost host) : IClassFixture<WpfTestHost>
         tree.SelectedItems.Should().BeSameAs(vm.SelectedDecks);
     });
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task RightClick_PreservesSelectedRowsOrSelectsOnlyTheUnselectedTarget(bool targetAlreadySelected)
+        => host.Run(() =>
+    {
+        var (view, vm, repo) = CreateView();
+        var first = vm.DeckTree[0];
+        var second = vm.DeckTree[1];
+        var other = new DeckNode(new Deck { Id = 3, UserId = 1, Name = "Other" }, []);
+        vm.DeckTree.Add(other);
+        vm.SelectedDecks.Add(first);
+        vm.SelectedDecks.Add(second);
+        Layout(view);
+        var target = targetAlreadySelected ? first : other;
+        var row = Descendants(Tree(view)).OfType<Grid>()
+            .Single(grid => ReferenceEquals(grid.DataContext, target) && grid.ContextMenu is not null);
+
+        row.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Right)
+        {
+            RoutedEvent = UIElement.PreviewMouseRightButtonDownEvent
+        });
+
+        if (targetAlreadySelected)
+            vm.SelectedDecks.Should().Equal(first, second);
+        else
+            vm.SelectedDecks.Should().Equal(other);
+        repo.VerifyNoOtherCalls();
+    });
+
     [Fact]
     public Task NativeDrop_ReparentsRootAndPersistsItOnce() => host.Run(() =>
     {

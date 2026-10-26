@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Windows.Threading;
 using AutoMapper;
 using FlashMemo.Model;
 using FlashMemo.Services;
@@ -9,6 +10,30 @@ namespace FlashMemo.Tests;
 
 public static class Helpers
 {
+    // FlowDocument conversion needs an STA thread, but no Application or window.
+    public static Task RunOnSta(Action action)
+        => RunOnSta(() => { action(); return Task.CompletedTask; });
+
+    public static Task RunOnSta(Func<Task> action)
+    {
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            var dispatcher = Dispatcher.CurrentDispatcher;
+            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
+            dispatcher.BeginInvoke((Action)(async () =>
+            {
+                try { await action(); completion.SetResult(); }
+                catch (Exception exception) { completion.SetException(exception); }
+                finally { dispatcher.BeginInvokeShutdown(DispatcherPriority.Background); }
+            }));
+            Dispatcher.Run();
+        }) { IsBackground = true };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return completion.Task;
+    }
+
     public static IMapper GetMapper()
     {
         return new MapperConfiguration(cfg => 

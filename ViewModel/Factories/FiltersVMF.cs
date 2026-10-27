@@ -1,10 +1,12 @@
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Other;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr, IVMEventBus eventBus, ILastSessionService lastSession)
+public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr, IVMEventBus eventBus, ILastSessionService lastSession,
+                        ILogger<FiltersVM> logger, IDialogService dialogs)
 {
     private readonly IDeckTreeBuilder deckTreeBuilder = dtb;
     private readonly ITagRepo tagRepo = tr;
@@ -12,7 +14,8 @@ public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr, IVMEventBus eventBus
     {
         var vm = new FiltersVM(
             deckTreeBuilder, tagRepo,
-            eventBus, lastSession, userId);
+            eventBus, lastSession, userId,
+            logger, dialogs);
 
         await vm.InitializeAsync();
         return vm;

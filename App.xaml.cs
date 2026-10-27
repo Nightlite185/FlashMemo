@@ -59,8 +59,8 @@ public partial class App : Application
         {
             await lss.LoadUserCacheAsync((long)lss.LastUserId);
 
-            var mainVM = sp.GetRequiredService<MainVMF>()
-                .Create((long)lss.LastUserId);
+            var mainVM = await sp.GetRequiredService<MainVMF>()
+                .CreateAsync((long)lss.LastUserId);
             
             sp.GetRequiredService<MainWindowBootstrapper>()
                 .SetupMainWindow(mainVM);
@@ -100,6 +100,7 @@ public partial class App : Application
         sc.AddSingleton<DeckSelectVMF>();
         sc.AddSingleton<CardCtxMenuVMF>();
         sc.AddSingleton<CreateCardVMF>();
+        sc.AddSingleton<CreateDeckVMF>();
         sc.AddSingleton<UserSelectVMF>();
         sc.AddSingleton<CardEditorVMF>();
         sc.AddSingleton<EditableCardVMF>();

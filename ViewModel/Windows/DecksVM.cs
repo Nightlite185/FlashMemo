@@ -8,15 +8,16 @@ using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Other;
-using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class DecksVM(
-    IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM, 
-    ILastSessionService lastSession, IUserOptionsService userOptionsService,
-    long userId, IVMEventBus bus, ExportVMF exportVMF) : BaseVM(bus), IPopupHost
+public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM,
+                            ILastSessionService lastSession, IUserOptionsService userOptionsService,
+                            long userId, IVMEventBus bus, ExportVMF exportVMF, ILogger<DecksVM> log,
+                            IDialogService dialogService, CreateDeckVMF createDeckVMF)
+                            : BaseVM(bus, log, dialogService), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
 
@@ -88,7 +89,7 @@ public partial class DecksVM(
     private void ShowCreateDeck(DeckNode? parent = null)
     {
         //* show create deck popup, in which you give it a name.
-        CurrentPopup = new CreateDeckVM(CreateDeck, PopupCancel, parent);
+        CurrentPopup = createDeckVMF.Create(CreateDeck, PopupCancel, parent);
     }
 
     [RelayCommand]
@@ -140,7 +141,7 @@ public partial class DecksVM(
                     + "This will also delete all of their subdecks and every card contained "
                     + "in the selected decks or any of their subdecks.";
 
-            var answer = DialogService.Show(
+            var answer = dialogs.Show(
                 title: decks.Length == 1 ? "Delete deck?" : "Delete decks?",
                 message: message
                     + " This action can't be undone."

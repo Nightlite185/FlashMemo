@@ -1,10 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Popups;
 
 public partial class RescheduleVM
-    (Func<IRescheduleData, Task> confirm, Action cancel)
+    (Func<IRescheduleData, Task> confirm, Action cancel,
+    ILogger<RescheduleVM> logger, IDialogService dialogs)
     : PopupVMBase(cancel)
 {
     private readonly Func<IRescheduleData, Task> confirm = confirm;

@@ -4,10 +4,12 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Other;
 
-public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId): ObservableObject, ICardTagsVM, IViewModel
+public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId, ILogger<CardTagsVM> logger, 
+                                IDialogService dialogs): ObservableObject, ICardTagsVM, IViewModel
 {
     #region public properties
     public IEnumerable<TagVM> CardTags => host.Tags;

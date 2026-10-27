@@ -11,17 +11,17 @@ using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 using Microsoft.VisualBasic.FileIO;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Popups;
 
 public enum ExportFormat { txt, csv }
 public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 
-public partial class ExportVM(
-    long userId, ICardQueryService cardQService,
-    IExportService exporter, IDialogService dialogs, Action cancel,
-    ICollection<long> flatDeckIds, ICollection<DeckNode> deckTree)
-    : PopupVMBase(cancel), IViewModel
+public partial class ExportVM(long userId, ICardQueryService cardQService, IExportService exporter, 
+                            IDialogService dialogs, Action cancel, ICollection<long> flatDeckIds, 
+                            ICollection<DeckNode> deckTree, ILogger<ExportVM> logger)
+                            : PopupVMBase(cancel), IViewModel
 {
     #region public properties
     [ObservableProperty] [NotifyDataErrorInfo]

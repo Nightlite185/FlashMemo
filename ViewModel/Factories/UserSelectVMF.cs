@@ -3,11 +3,13 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.Helpers;
 using FlashMemo.View;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Factories;
 
 public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls,
-                           ILastSessionService lss, IUserOptionsService userOptionsService)
+                            ILastSessionService lss, IUserOptionsService userOptionsService,
+                            ILogger<UserSelectVM> logger, IDialogService dialogs)
 {
     private readonly IUserRepo userRepo = ur;
     private readonly ILastSessionService lastSession = lss;
@@ -36,7 +38,7 @@ public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls,
         var vm = new UserSelectVM(
             userRepo, userVMBuilder, 
             loginService, lastSession,
-            userOptionsService, currentUserId);
+            userOptionsService, logger, dialogs, currentUserId);
     
         vm.Users.AddRange(
             await userVMBuilder.BuildAllCounted());

@@ -7,12 +7,14 @@ using FlashMemo.Model.Persistence;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Services;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
 public sealed partial class DeckOptionsMenuVM(
     IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor,
-    IUserOptionsService userOptionsService, Deck d, IVMEventBus bus)
+    IUserOptionsService userOptionsService, Deck d, IVMEventBus bus,
+    ILogger<DeckOptionsMenuVM> logger, IDialogService dialogs)
     : ObservableObject, IViewModel, IClosingAware, ICloseRequest
 {
     #region public properties
@@ -79,7 +81,7 @@ public sealed partial class DeckOptionsMenuVM(
         if (!userOptions.ConfirmPresetDeletion)
             return true;
 
-        var result = DialogService.Show(
+        var result = dialogs.Show(
             title: "Delete preset?",
             message: $"Are you sure you want to permanently delete '{CurrentOptions.Name}'?"
                 + " Every deck currently using this preset will be assigned to the default preset."
@@ -94,7 +96,7 @@ public sealed partial class DeckOptionsMenuVM(
     {
         if (!IsCurrentModified) return true;
         
-        var result = DialogService.Show(
+        var result = dialogs.Show(
             title: "Unsaved changes",
             message: "You have unsaved changes. Do you want to save them?",
             buttons: DialogButtons.YesNoCancel,
@@ -136,7 +138,7 @@ public sealed partial class DeckOptionsMenuVM(
             return;
         }
 
-        var answer = DialogService.Show(
+        var answer = dialogs.Show(
             title: "Unsaved changes",
 
             message: "You have unsaved changes. "

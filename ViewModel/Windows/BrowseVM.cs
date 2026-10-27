@@ -10,11 +10,13 @@ using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM filtersVM, long userId, IVMEventBus bus)
-                                        : BaseVM(bus), IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
+public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM filtersVM, long userId,
+                                    IVMEventBus bus, ILogger<BrowseVM> logger, IDialogService dialogService)
+                                    : BaseVM(bus, logger, dialogService), IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
 {
     #region Public properties
     public CollectionView CardsView { get; private set; } = null!;
@@ -22,7 +24,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     [ObservableProperty] public partial int VisibleCardsCount { get; private set; }
     public string SearchBar
     {
-        get => field;
+        get;
         set
         {
             if (!SetProperty(ref field, value, nameof(SearchBar))) 
@@ -89,7 +91,10 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     [RelayCommand]
     public async Task ApplyFiltersAsync(Filters? snapshot = null)
     {
-        snapshot ??= filtersVM.TakeSnapshot(); // take fresh snapshot by default if filters arent given; this is used in browse xaml bc its a parameterless command
+        //* take fresh snapshot by default if filters arent given;
+        //* this is used in browse xaml bc its a parameterless command
+        
+        snapshot ??= filtersVM.TakeSnapshot();
         cards.Clear();
         SelectedCount = 0;
 

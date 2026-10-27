@@ -6,11 +6,13 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Other;
 
 public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService userOptService, 
-                                    IVMEventBus bus, long userId): BaseVM(bus)
+                            IVMEventBus bus, long userId, ILogger<HeatmapVM> logger, IDialogService dialogService)
+                            : BaseVM(bus, logger, dialogService)
 {
     #region private things
     private UserOptions userOpt = null!;

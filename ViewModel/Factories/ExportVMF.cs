@@ -2,11 +2,13 @@ using FlashMemo.Helpers;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Factories;
 
 public class ExportVMF(ICardQueryService cardQService, IExportService exporter,
-    ICountingService counter, IDialogService dialogs)
+                        ICountingService counter, IDialogService dialogs,
+                        ILogger<ExportVM> logger)
 {
     public async Task<ExportVM?> CreateAsync(long userId, IEnumerable<DeckNode> deckTree, Action cancel)
     {
@@ -26,7 +28,8 @@ public class ExportVMF(ICardQueryService cardQService, IExportService exporter,
         var vm = new ExportVM(
             userId, cardQService, 
             exporter, dialogs, cancel, 
-            flatIds, selectedRoots);
+            flatIds, selectedRoots,
+            logger);
 
         vm.ErrorsChanged += (_, _) => vm.ConfirmCommand.NotifyCanExecuteChanged();
         vm.Validate();

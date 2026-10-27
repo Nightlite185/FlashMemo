@@ -7,10 +7,12 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
+using FlashMemo.Services;
 using FlashMemo.View;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Syncfusion.UI.Xaml.TreeView;
 using Syncfusion.UI.Xaml.TreeView.Engine;
@@ -308,7 +310,8 @@ public class DecksUCTests(WpfTestHost host) : IClassFixture<WpfTestHost>
     {
         var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
         repo.Setup(r => r.SaveEditedDeck(It.IsAny<Deck>())).Returns(Task.CompletedTask);
-        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!);
+        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
         vm.DeckTree.Add(new(new Deck { Id = 1, UserId = 1, Name = "First" }, []));
         vm.DeckTree.Add(new(new Deck { Id = 2, UserId = 1, Name = "Second" }, []));
         var view = new DecksUC { DataContext = vm };

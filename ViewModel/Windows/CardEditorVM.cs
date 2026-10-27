@@ -7,12 +7,14 @@ using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, IVMEventBus eventBus, 
-                                IDeckRepo deckRepo, DeckSelectVMF deckSelectVMF, EditableCardVM cardVM)
-                                : BaseVM(eventBus), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
+                                IDeckRepo deckRepo, DeckSelectVMF deckSelectVMF, EditableCardVM cardVM,
+                                ILogger<CardEditorVM> log, IDialogService dialogService)
+                                : BaseVM(eventBus, log, dialogService), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
     public List<TagVM> Tags => Card.Tags;
     public EditableCardVM Card { get; private set; } = cardVM;

@@ -9,12 +9,14 @@ using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, 
-DeckSelectVMF dsVMF, ILastSessionService lss, IVMEventBus bus, IDeckRepo repo)
-: BaseVM(bus), ICloseRequest, IPopupHost, ICardTagsVMHost
+public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelectVMF dsVMF, 
+                                ILastSessionService lss, IVMEventBus bus, IDeckRepo repo,
+                                ILogger<CreateCardVM> log, IDialogService dialogService)
+                                : BaseVM(bus, log, dialogService), ICloseRequest, IPopupHost, ICardTagsVMHost
 {
     #region private things
     private const int HistoryCap = 10;

@@ -2,11 +2,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Other;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class StatsVM (IVMEventBus bus, long userId, AnswerRatioVM ansRatioVM, 
-                                IStatsQueryService statsService) : BaseVM(bus)
+                            IStatsQueryService statsService,
+                            ILogger<StatsVM> log, IDialogService dialogService)
+                            : BaseVM(bus, log, dialogService)
 {
     private const string NotAvailable = "N/A";
 

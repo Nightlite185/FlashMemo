@@ -1,8 +1,10 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace FlashMemo.Tests.VMTests;
@@ -18,7 +20,8 @@ public class ExportVMFTests
         var exporter = new Mock<IExportService>(MockBehavior.Strict);
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
         dialogs.Setup(service => service.ShowNoCardsFoundToExport());
-        var factory = new ExportVMF(query.Object, exporter.Object, counter.Object, dialogs.Object);
+        var factory = new ExportVMF(query.Object, exporter.Object, counter.Object, dialogs.Object,
+            NullLogger<ExportVM>.Instance);
 
         var vm = await factory.CreateAsync(7, [CreateDeck(1)], () => { });
 
@@ -48,7 +51,8 @@ public class ExportVMFTests
             .Callback<IEnumerable<long>>(ids => countedIds = ids.ToArray())
             .ReturnsAsync(1);
         var factory = new ExportVMF(
-            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>());
+            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
+            NullLogger<ExportVM>.Instance);
 
         var vm = await factory.CreateAsync(7, selection, () => { });
 

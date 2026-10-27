@@ -6,14 +6,16 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.View;
 using FlashMemo.ViewModel.Bases;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus bus, long userId)
-: BaseVM(bus), IViewModel, IDisplayHost
+public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus bus, long userId,
+                            ILogger<MainVM> log, IDialogService dialogService)
+                            : BaseVM(bus, log, dialogService), IViewModel, IDisplayHost
 {
     // called by factory only. Need this two-step creation cuz circular dependency
-    internal async Task Initialize(IDisplayControl dsControl)
+    internal async Task InitAsync(IDisplayControl dsControl)
     {
         display = dsControl;
         await display.SwitchToDecks(UserId);
@@ -64,7 +66,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
 
             if (count > 1)
             {
-                DialogService.Show(
+                dialogs.Show(
                 title: "Choose one deck",
                 message: "Select exactly one deck before creating a card.",
                 buttons: DialogButtons.OK,
@@ -86,7 +88,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
 
         if (deck is null)
         {
-            DialogService.Show(
+            dialogs.Show(
                 title: "No decks yet",
                 message: "You don't have any decks to create new cards in. Add a new deck first!",
                 buttons: DialogButtons.OK,

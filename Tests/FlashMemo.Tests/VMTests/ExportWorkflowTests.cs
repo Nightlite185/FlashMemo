@@ -6,6 +6,7 @@ using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FlashMemo.Tests.VMTests;
 
@@ -189,7 +190,8 @@ public class ExportWorkflowTests
             .Returns("prepared content");
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
         var vm = new ExportVM(7, query.Object, exporter.Object, dialogs.Object, close ?? (() => { }),
-            [1], deckTree ?? [new DeckNode(new Deck { Id = 1, Name = "Deck" }, [])])
+            [1], deckTree ?? [new DeckNode(new Deck { Id = 1, Name = "Deck" }, [])],
+            NullLogger<ExportVM>.Instance)
         {
             ExportPath = Path.Combine(Path.GetTempPath(), $"FlashMemo-{Guid.NewGuid():N}.txt")
         };

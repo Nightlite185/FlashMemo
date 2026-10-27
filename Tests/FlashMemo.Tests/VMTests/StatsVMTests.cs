@@ -3,6 +3,7 @@ using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Windows;
 using FluentAssertions;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FlashMemo.Tests.VMTests;
 
@@ -62,8 +63,10 @@ public class StatsVMTests
 
     private static async Task<StatsVM> CreateViewModel(IStatsQueryService service)
     {
-        var answerRatioVM = new AnswerRatioVM(UserId, service);
-        var vm = new StatsVM(new VMEventBus(), UserId, answerRatioVM, service);
+        var answerRatioVM = new AnswerRatioVM(UserId, service,
+            NullLogger<AnswerRatioVM>.Instance, Mock.Of<IDialogService>());
+        var vm = new StatsVM(new VMEventBus(), UserId, answerRatioVM, service,
+            NullLogger<StatsVM>.Instance, Mock.Of<IDialogService>());
 
         await vm.InitAsync();
         return vm;

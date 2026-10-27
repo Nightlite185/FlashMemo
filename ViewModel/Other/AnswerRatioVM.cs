@@ -1,10 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Domain;
 using FlashMemo.Services;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Other;
 
-public partial class AnswerRatioVM(long userId, IStatsQueryService statsService): ObservableObject, IViewModel
+public partial class AnswerRatioVM(long userId, IStatsQueryService statsService,
+                                    ILogger<AnswerRatioVM> logger, IDialogService dialogs)
+                                    : ObservableObject, IViewModel
 {
     internal async Task InitAsync()
     {

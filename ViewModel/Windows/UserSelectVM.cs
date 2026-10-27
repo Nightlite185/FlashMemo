@@ -5,17 +5,14 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class UserSelectVM(
-    IUserRepo userRepo,
-    IUserVMBuilder userVMBuilder,
-    ILoginService loginService,
-    ILastSessionService lastSession,
-    IUserOptionsService userOptionsService,
-    long? currentUserId = null
-    ): ObservableObject, IViewModel, ICloseRequest
+public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuilder, ILoginService loginService, 
+                                ILastSessionService lastSession, IUserOptionsService userOptionsService,
+                                ILogger<UserSelectVM> logger, IDialogService dialogs, long? currentUserId = null
+                                ): ObservableObject, IViewModel, ICloseRequest
 {
     public bool IsNameAvailable(string name)
         => !Users.Any(u => u.Name == name);
@@ -44,7 +41,7 @@ public partial class UserSelectVM(
     {
         if (currentUserId == toRemove.Id)
         {
-            DialogService.Show(
+            dialogs.Show(
                 title: "Invalid action",
                 message: "Sorry, but you can't delete the user that you're currently logged in with. Please log in to another user, then delete this one.",
                 buttons: DialogButtons.OK,
@@ -61,7 +58,7 @@ public partial class UserSelectVM(
 
         if (shouldConfirm)
         {
-            var answer = DialogService.Show(
+            var answer = dialogs.Show(
                 title: "Delete user?",
                 message: $"Are you sure you want to permanently delete '{toRemove.Name}'? "
                     + "This will also delete every deck, card, preset, tag, and review record "
@@ -95,9 +92,7 @@ public partial class UserSelectVM(
     private async Task Login(UserVM toLogin)
     {
         if (currentUserId != toLogin.Id)
-        {
             await loginService.ChangeUser(toLogin.Id);
-        }
 
         OnCloseRequest?.Invoke();
     }

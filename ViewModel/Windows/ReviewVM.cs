@@ -10,14 +10,15 @@ using FlashMemo.Repositories;
 using FlashMemo.Model;
 using FlashMemo.ViewModel.Other;
 using System.Collections.ObjectModel;
-using FlashMemo.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class ReviewVM(
-    ICardService cardService, ICardQueryService cardQuery, long userId, IDeckMeta deck, ICardRepo cardRepo, 
-    IVMEventBus eventBus, IUserOptionsService uOptionsService, IDeckOptionsService deckOptService)
-    : BaseVM(eventBus), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
+public partial class ReviewVM(ICardService cardService, ICardQueryService cardQuery, long userId,
+                            IDeckMeta deck, ICardRepo cardRepo, IVMEventBus eventBus, 
+                            IUserOptionsService uOptionsService, IDeckOptionsService deckOptService,
+                            ILogger<ReviewVM> log, IDialogService dialogService)
+                            : BaseVM(eventBus, log, dialogService), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
     #region public properties
     

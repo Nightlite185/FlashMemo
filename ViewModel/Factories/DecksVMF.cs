@@ -1,13 +1,14 @@
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Windows;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Factories;
 
 public class DecksVMF(IDeckRepo deckRepo, IDeckTreeBuilder deckBuilder, 
-                      IVMEventBus bus, HeatmapVMF heatVMF,
-                      ILastSessionService lastSession,
-                      IUserOptionsService userOptionsService, ExportVMF exportVMF)
+                    IVMEventBus bus, HeatmapVMF heatVMF, ILastSessionService lastSession,
+                    IUserOptionsService userOptionsService, ExportVMF exportVMF,
+                    ILogger<DecksVM> logger, IDialogService dialogs, CreateDeckVMF createDeckVMF)
 {
     public async Task<DecksVM> CreateAsync(long userId)
     {
@@ -18,8 +19,8 @@ public class DecksVMF(IDeckRepo deckRepo, IDeckTreeBuilder deckBuilder,
             deckRepo, deckBuilder,
             heatVM, lastSession,
             userOptionsService, userId,
-            bus, exportVMF
-        );
+            bus, exportVMF,
+            logger, dialogs, createDeckVMF);
 
         await vm.InitAsync();
         return vm;

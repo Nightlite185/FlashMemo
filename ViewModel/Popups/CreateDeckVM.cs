@@ -1,11 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public partial class CreateDeckVM(Func<string, DeckNode?, Task> confirmAction, 
-                        Action cancel, DeckNode? parent = null): PopupVMBase(cancel)
+public partial class CreateDeckVM(Func<string, DeckNode?, Task> confirmAction, Action cancel,
+                                    ILogger<CreateDeckVM> logger, IDialogService dialogs,
+                                    DeckNode? parent = null) : PopupVMBase(cancel)
 {
     private readonly Func<string, DeckNode?, Task> confirm = confirmAction;
 

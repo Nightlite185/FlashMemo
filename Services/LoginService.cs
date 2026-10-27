@@ -15,7 +15,7 @@ public class LoginService(MainVMF mainVMF, MainWindowBootstrapper bootstrapper,
         await cardService.UnburyIfNextDay();
 
         bool replacedMainVM = false;
-        var newMainVM = mainVMF.Create(userId);
+        var newMainVM = await mainVMF.CreateAsync(userId);
 
         //* closing all windows despite Main(singleton),
         //* to avoid stale state and restart based on new user

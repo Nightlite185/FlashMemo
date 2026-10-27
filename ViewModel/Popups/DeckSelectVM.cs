@@ -3,12 +3,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
+using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public partial class DeckSelectVM
-    (Func<IDeckMeta, Task> confirm, Action cancel, IEnumerable<DeckNode> deckTree)
-    : PopupVMBase(cancel)
+public partial class DeckSelectVM(Func<IDeckMeta, Task> confirm, Action cancel, 
+                                IEnumerable<DeckNode> deckTree, ILogger<DeckSelectVM> logger, 
+                                IDialogService dialogs): PopupVMBase(cancel)
 {
     protected override bool CanConfirm => SelectedDeck is not null;
     protected override async Task Confirm()

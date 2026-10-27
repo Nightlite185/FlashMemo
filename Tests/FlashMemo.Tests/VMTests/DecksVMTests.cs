@@ -7,6 +7,7 @@ using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FlashMemo.Tests.VMTests;
 
@@ -17,8 +18,10 @@ public class DecksVMTests
     {
         var counter = new Mock<ICountingService>(MockBehavior.Strict);
         var factory = new ExportVMF(
-            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>());
-        var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory);
+            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
+            NullLogger<ExportVM>.Instance);
+        var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
 
         Func<Task> showExport = () => vm.ShowExportMenuCommand.ExecuteAsync(null);
 
@@ -42,8 +45,10 @@ public class DecksVMTests
             .Callback<IEnumerable<long>>(ids => countedIds = ids.ToArray())
             .ReturnsAsync(1);
         var factory = new ExportVMF(
-            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>());
-        var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory);
+            Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
+            NullLogger<ExportVM>.Instance);
+        var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
         vm.DeckTree.Add(parent);
         vm.DeckTree.Add(unselected);
         vm.SelectedDecks.Add(parent);
@@ -71,7 +76,8 @@ public class DecksVMTests
         var builder = new Mock<IDeckTreeBuilder>();
         builder.Setup(service => service.BuildCountedAsync(1))
             .ReturnsAsync(new[] { newDeck });
-        var vm = new DecksVM(null!, builder.Object, null!, null!, null!, 1, null!, null!);
+        var vm = new DecksVM(null!, builder.Object, null!, null!, null!, 1, null!, null!,
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
         vm.DeckTree.Add(oldDeck);
         vm.SelectedDecks.Add(oldDeck);
 
@@ -85,7 +91,8 @@ public class DecksVMTests
     public async Task RemoveDecks_WithNoSelection_DoesNothing()
     {
         var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
-        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!);
+        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
 
         await vm.RemoveDeckCommand.ExecuteAsync(null);
 
@@ -118,7 +125,8 @@ public class DecksVMTests
             userOptions.Object,
             1,
             null!,
-            null!);
+            null!,
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
 
         DeckNode parent = CreateDeck(1);
         DeckNode child = CreateDeck(2);

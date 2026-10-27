@@ -2,13 +2,14 @@ using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Persistence;
-using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Windows;
 
-public partial class UserOptionsMenuVM(long userId, IUserOptionsService optService, IMapper imapper, IVMEventBus bus)
+public partial class UserOptionsMenuVM(long userId, IUserOptionsService optService, IMapper imapper,
+                                        IVMEventBus bus, ILogger<UserOptionsMenuVM> logger, IDialogService dialogs)
                                         : ObservableObject, IViewModel, ICloseRequest, IClosingAware
 {
     public UserOptionsVM Options { get; private set; } = null!;
@@ -37,7 +38,7 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
         if (snapshot.Equals(lastSaved))
             return true;
 
-        var result = DialogService.Show(
+        var result = dialogs.Show(
             title: "Unsaved changes",
             message: "You have unsaved changes. Do you want to save them?",
             buttons: DialogButtons.YesNoCancel,

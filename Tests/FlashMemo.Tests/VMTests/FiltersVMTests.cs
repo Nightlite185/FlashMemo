@@ -9,6 +9,7 @@ using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FlashMemo.Tests.VMTests;
 
@@ -132,7 +133,8 @@ public sealed class FiltersVMTests : IDisposable
             new TagRepo(factory),
             new VMEventBus(),
             lastSession.Object,
-            UserId);
+            UserId,
+            NullLogger<FiltersVM>.Instance, Mock.Of<IDialogService>());
 
         await vm.InitializeAsync();
         return vm;

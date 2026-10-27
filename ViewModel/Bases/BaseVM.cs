@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Bases;
 
@@ -12,8 +13,12 @@ public record EditCardNavRequest(long CardId, long UserId): NavigationRequest;
 public record CreateCardNavRequest(IDeckMeta TargetDeck): NavigationRequest;
 public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 
-public abstract class BaseVM(IVMEventBus bus): ObservableObject, IViewModel, INavRequestSender, IFocusState, IClosedHandler
+public abstract class BaseVM(IVMEventBus bus, ILogger log, IDialogService dialogService)
+    : ObservableObject, IViewModel, INavRequestSender, IFocusState, IClosedHandler
 {
+    protected readonly ILogger logger = log;
+    protected readonly IDialogService dialogs = dialogService;
+
     public event Func<NavigationRequest, Task>? NavRequested;
     public void RegisterNavBubbling(INavRequestSender vm)
         => vm.NavRequested += NavigateTo;

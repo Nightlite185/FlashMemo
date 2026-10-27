@@ -5,12 +5,14 @@ using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.Services;
 
 public class WindowService
 (IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ecVMF, 
-CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsMenuVMF domVMF)
+CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsMenuVMF domVMF,
+    ILogger<WindowService> logger, IDialogService dialogs)
 {
     #region private fields
     private readonly IServiceProvider sp = sp;
@@ -67,7 +69,7 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
 
         if (vm is null)
         {
-            DialogService.Show(
+            dialogs.Show(
                 title: "Error",
                 message: "Sorry, but the card you tried to edit doesn't exist. "
                 + "This is expected if you deleted that card beforehand.",

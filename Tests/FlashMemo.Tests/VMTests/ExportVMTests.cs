@@ -9,6 +9,7 @@ using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FlashMemo.Tests.VMTests;
 
@@ -287,7 +288,8 @@ public class ExportVMTests : IDisposable
             .Callback(() => confirmations++)
             .Returns(DialogResult.No);
         var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
-            dialogs.Object, () => closed++, [1], [CreateDeck(1, "Deck")])
+            dialogs.Object, () => closed++, [1], [CreateDeck(1, "Deck")],
+            NullLogger<ExportVM>.Instance)
         {
             Format = format,
             ExportPath = path
@@ -333,7 +335,8 @@ public class ExportVMTests : IDisposable
         {
             closed++;
             contentWhenClosed = File.Exists(path) ? File.ReadAllText(path) : null;
-        }, [1], [deck])
+        }, [1], [deck],
+            NullLogger<ExportVM>.Instance)
         {
             Format = format,
             ExportPath = path
@@ -431,7 +434,8 @@ public class ExportVMTests : IDisposable
         var serializer = CreateSerializer(cards);
         bool closed = false;
         var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
-            Mock.Of<IDialogService>(), () => closed = true, [], []);
+            Mock.Of<IDialogService>(), () => closed = true, [], [],
+            NullLogger<ExportVM>.Instance);
         vm.Format = ExportFormat.csv;
         vm.ExportPath = Path.Combine(exportDirectory.FullName, "all-cards.csv");
 
@@ -537,7 +541,8 @@ public class ExportVMTests : IDisposable
         var vm = await new ExportVMF(
                 cardQuery ?? Mock.Of<ICardQueryService>(),
                 new ExportService(serializer ?? Mock.Of<INoteSerializer>()),
-                counter.Object, Mock.Of<IDialogService>())
+                counter.Object, Mock.Of<IDialogService>(),
+                NullLogger<ExportVM>.Instance)
             .CreateAsync(userId, deckTree ?? [CreateDeck(1, "Deck")], cancel ?? (() => { }));
 
         vm.Should().NotBeNull();

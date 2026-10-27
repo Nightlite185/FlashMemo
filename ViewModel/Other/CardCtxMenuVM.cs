@@ -7,6 +7,7 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Factories;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Other;
 
@@ -14,7 +15,8 @@ public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete 
 
 public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF, 
                                 IVMEventBus eventBus, IUserOptionsService userOptionsService,
-                                long userId, ICtxMenuHost host): ObservableObject
+                                long userId, ICtxMenuHost host, ILogger<CardCtxMenuVM> logger, 
+                                IDialogService dialogs, ILogger<RescheduleVM> rescheduleLogger): ObservableObject
 {
     #region ICommands
     
@@ -28,7 +30,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     [RelayCommand]
     private void ShowRescheduleCtx() // this lets u choose datetime OR postpone by days. Choose whether keep interval. 
     {
-        popupHost.CurrentPopup = new RescheduleVM(RescheduleCards, PopupCancel);
+        popupHost.CurrentPopup = new RescheduleVM(
+            RescheduleCards, PopupCancel, rescheduleLogger, dialogs);
     }
 
     [RelayCommand]
@@ -79,7 +82,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
                 ? "this card"
                 : $"these {cardCount} cards";
 
-            var answer = DialogService.Show(
+            var answer = dialogs.Show(
                 title: cardCount == 1 ? "Delete card?" : "Delete cards?",
                 message: $"Are you sure you want to permanently delete {subject}? "
                     + "This action can't be undone."

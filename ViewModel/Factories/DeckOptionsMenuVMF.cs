@@ -2,12 +2,14 @@ using AutoMapper;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Windows;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Factories;
 
 public class DeckOptionsMenuVMF(IMapper mapper, IDeckOptVMBuilder deckOptVMB,
                                 IDeckOptionsService deckOptService, IDeckRepo deckRepo,
-                                IVMEventBus bus, IUserOptionsService userOptionsService)
+                                IVMEventBus bus, IUserOptionsService userOptionsService,
+                                ILogger<DeckOptionsMenuVM> logger, IDialogService dialogs)
 {
     public async Task<DeckOptionsMenuVM> CreateAsync(long deckId)
     {
@@ -18,7 +20,8 @@ public class DeckOptionsMenuVMF(IMapper mapper, IDeckOptVMBuilder deckOptVMB,
         DeckOptionsMenuVM vm = new(
             mapper, deckOptVMB, 
             deckOptService, userOptionsService,
-            deck, bus);
+            deck, bus,
+            logger, dialogs);
 
         await vm.InitializeAsync();
         return vm;

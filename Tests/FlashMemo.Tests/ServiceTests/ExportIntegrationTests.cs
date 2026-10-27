@@ -10,6 +10,7 @@ using FlashMemo.ViewModel.Popups;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FlashMemo.Tests.ServiceTests;
 
@@ -52,7 +53,8 @@ public class ExportIntegrationTests : IDisposable
         bool closed = false;
         var vm = await new ExportVMF(
             new CardQueryService(factory, counter, options), new ExportService(new XamlNoteSerializer()),
-            counter, dialogs.Object).CreateAsync(7, [root], () => closed = true);
+            counter, dialogs.Object,
+            NullLogger<ExportVM>.Instance).CreateAsync(7, [root], () => closed = true);
         vm.Should().NotBeNull();
         vm!.Format = format;
         vm.ExportPath = Path.Combine(directory.FullName, $"export.{format}");

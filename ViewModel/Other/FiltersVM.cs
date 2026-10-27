@@ -9,11 +9,13 @@ using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Other;
 
 public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo, IVMEventBus bus, 
-                                        ILastSessionService lastSession, long userId): BaseVM(bus)
+                                    ILastSessionService lastSession, long userId, ILogger<FiltersVM> logger, 
+                                    IDialogService dialogService): BaseVM(bus, logger, dialogService)
 {
     #region public properties
     public Filters CachedFilters { get; private set; } = null!;

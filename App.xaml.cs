@@ -10,6 +10,7 @@ using FlashMemo.Model;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.IO;
+using Serilog;
 using Syncfusion.Licensing;
 
 namespace FlashMemo;
@@ -85,7 +86,7 @@ public partial class App : Application
     {
         ServiceCollection sc = new();
 
-        // ==== WINDOWS ====
+        #region WINDOWS
         sc.AddSingleton<MainWindow>(); //* only one MainWindow per runtime
         sc.AddTransient<BrowseWindow>();
         sc.AddTransient<UserOptionsWindow>();
@@ -93,8 +94,9 @@ public partial class App : Application
         sc.AddTransient<CreateCardWindow>();
         sc.AddTransient<UserSelectWindow>();
         sc.AddTransient<DeckOptionsWindow>();
+        #endregion
         
-        // ==== VM FACTORIES ====
+        #region VM FACTORIES
         sc.AddSingleton<ExportVMF>();
         sc.AddSingleton<DeckOptionsMenuVMF>();
         sc.AddSingleton<DeckSelectVMF>();
@@ -113,8 +115,9 @@ public partial class App : Application
         sc.AddSingleton<DecksVMF>();
         sc.AddSingleton<CardTagsVMF>();
         sc.AddSingleton<StatsVMF>();
+        #endregion
 
-        // ==== SERVICES ====
+        #region SERVICES
         sc.AddTransient<MainWindowBootstrapper>();
         sc.AddTransient<DisplayControlFactory>();
         sc.AddSingleton<INoteComparer, XamlNoteComparer>();
@@ -137,15 +140,16 @@ public partial class App : Application
         sc.AddAutoMapper(opt => opt.AddProfile<MappingProfile>());
         sc.AddSingleton<WindowService>();
         sc.AddTransient<DbSeeder>();
-        sc.AddLogging();
+        #endregion
 
-        // ==== REPOS ====
+        #region REPOS
         sc.AddSingleton<IDeckRepo, DeckRepo>();
         sc.AddSingleton<ITagRepo, TagRepo>();
         sc.AddSingleton<ICardRepo, CardRepo>();
         sc.AddSingleton<IUserRepo, UserRepo>();
+        #endregion
 
-        // ==== DB CONTEXT ====
+        #region DB CONTEXT
         sc.AddDbContext<AppDbContext>(o =>
         {
             o.UseSqlite($"Data Source={AppDbContext.DbPath}");
@@ -157,6 +161,26 @@ public partial class App : Application
         });
 
         sc.AddDbContextFactory<AppDbContext>();
+        #endregion
+
+        #region LOGGER
+        string logDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "FlashMemo", "Logs");
+
+        Directory.CreateDirectory(logDirectory);
+
+        var fileLogger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.File(
+                Path.Combine(logDirectory, "log-.txt"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 7,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
+
+        sc.AddLogging(logging => logging.AddSerilog(fileLogger, dispose: true));
+        #endregion
 
         return sc;
     }

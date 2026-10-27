@@ -13,10 +13,10 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
 : BaseVM(bus), IViewModel, IDisplayHost
 {
     // called by factory only. Need this two-step creation cuz circular dependency
-    internal void Initialize(IDisplayControl dsControl)
+    internal async Task Initialize(IDisplayControl dsControl)
     {
         display = dsControl;
-        display.SwitchToDecks(UserId);
+        await display.SwitchToDecks(UserId);
     }
 
     [ObservableProperty]

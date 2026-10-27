@@ -92,8 +92,11 @@ public partial class DecksVM(
     }
 
     [RelayCommand]
-    private void ShowReview(DeckNode deck)
-        => OnReviewNavRequest?.Invoke(deck);
+    private async Task ShowReview(DeckNode deck)
+    {
+        if (OnReviewNavRequest is { } handler)
+            await handler(deck);
+    }
 
     [RelayCommand]
     private async Task ShowDeckOptions(DeckNode? deck)

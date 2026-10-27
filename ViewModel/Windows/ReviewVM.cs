@@ -345,6 +345,10 @@ public partial class ReviewVM(
     }
 
     [RelayCommand]
-    private async Task ShowDecks() => OnDecksNavRequest?.Invoke();
+    private async Task ShowDecks()
+    {
+        if (OnDecksNavRequest is { } handler)
+            await handler();
+    }
     #endregion
 }

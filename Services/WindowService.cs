@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Windows;
 using FlashMemo.View;
 using FlashMemo.ViewModel;
@@ -160,10 +159,39 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
 
         if (vm is IClosingAware ac)
         {
-            async Task closingHelper(CancelEventArgs e)
-                => e.Cancel = !await ac.CanCloseAsync();
+            bool checkingClose = false;
+            bool allowClose = false;
+            win.Closing += async (_, e) =>
+            {
+                if (allowClose)
+                {
+                    allowClose = false;
+                    return;
+                }
 
-            win.Closing += async (_, e) => await closingHelper(e);
+                // WPF does not await Closing handlers: cancel before the first await.
+                e.Cancel = true;
+                if (checkingClose)
+                    return;
+
+                checkingClose = true;
+                try
+                {
+                    if (await ac.CanCloseAsync())
+                    {
+                        // Queue the approved close so a synchronous decision cannot reenter Closing.
+                        await win.Dispatcher.InvokeAsync(() =>
+                        {
+                            allowClose = true;
+                            win.Close();
+                        });
+                    }
+                }
+                finally
+                {
+                    checkingClose = false;
+                }
+            };
         }
     }
     #endregion

@@ -37,6 +37,10 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     [ObservableProperty] public partial string ElapsedTime { get; set; } = "00:00";
     [ObservableProperty] public partial SchedulePermutations? SchedulePerms { get; set; }
     [ObservableProperty] public partial bool IsSessionFinished { get; private set; }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
+    nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
+    public partial bool IsSavingReview { get; private set; }
     [ObservableProperty] public partial PopupVMBase? CurrentPopup { get; set; }
 
     public CardsCountVM CardsCount { get; private set; } = null!;
@@ -95,6 +99,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     }
     private void ShowNextCard()
     {
+        stopWatch.Reset();
+        UpdateTime();
         learningPool.InjectDueInto(activeCards);
         
         CurrentCard = activeCards.TryPop(out var fromStack)
@@ -107,7 +113,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         else if (CurrentCard.IsInvalid)
             ShowNextCard();
 
-        else stopWatch.Start();
+        else ResumeTimer();
     }
     private void UpdateOnReview(CardEntity reviewed)
     {
@@ -143,36 +149,61 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     }
     internal void UpdateTime() => ElapsedTime = 
         $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
+    private void ResumeTimer()
+    {
+        if (isFocused && IsCardLoaded && !IsSessionFinished && !IsSavingReview
+            && CurrentPopup is null && !(AnswerRevealed && userOptions.TimerStopsOnReveal))
+            stopWatch.Start();
+    }
+
     private async Task ReviewAsync(Answers answer)
     {
-        var time = stopWatch.Elapsed;
-        stopWatch.Reset();
+        if (IsSavingReview)
+            return;
 
         if (!IsCardLoaded)
             throw new InvalidOperationException(
             "Review called without an active card.");
 
-        AnswerRevealed = false;
-
         var updatedSchedule = GetScheduleInfo(answer);
-        SchedulePerms = null;
-        
-        var reviewed = await cardService.ReviewCardAsync(
-            CurrentCard!.Id,
-            updatedSchedule,
-            answer, time);
 
-        UpdateOnReview(reviewed);
+        bool wasRunning = stopWatch.IsRunning;
+        stopWatch.Stop();
+        var answerTime = stopWatch.Elapsed;
+        IsSavingReview = true;
+        UnsafeActionResult<CardEntity> result;
+
+        try
+        {
+            result = await net.TryUnsafe(
+                () => cardService.ReviewCardAsync(CurrentCard!.Id, updatedSchedule, answer, answerTime),
+                actionTried: "save the card review",
+                retry: false);
+        }
+        finally
+        {
+            IsSavingReview = false;
+        }
+
+        if (!result.Success)
+        {
+            if (wasRunning)
+                ResumeTimer();
+
+            return;
+        }
+
+        AnswerRevealed = false;
+        SchedulePerms = null;
+
+        UpdateOnReview(result.Value);
         ShowNextCard();
     }
 
     partial void OnCurrentPopupChanged(PopupVMBase? value)
     {
         if (CurrentPopup is null)
-        {
-            if (!stopWatch.IsRunning && IsCardLoaded)
-                stopWatch.Start();
-        }
+            ResumeTimer();
 
         else stopWatch.Stop();
     }
@@ -235,13 +266,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
 
     public override async Task OnFocusGained()
     {
-        if (IsCardLoaded && !IsSessionFinished &&
-        !stopWatch.IsRunning && CurrentPopup is null)
-        {
-            stopWatch.Start();
-        }
-
         await base.OnFocusGained();
+        ResumeTimer();
     }
 
     public override void OnFocusLost()
@@ -276,9 +302,9 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     
     private bool IsCardLoaded => CurrentCard is not null;
     private bool CanReview
-        => IsCardLoaded && AnswerRevealed;
+        => IsCardLoaded && AnswerRevealed && !IsSavingReview;
     private bool CanRevealAnswer
-        => IsCardLoaded && !AnswerRevealed;
+        => IsCardLoaded && !AnswerRevealed && !IsSavingReview;
     #endregion
 
     #region ICommands

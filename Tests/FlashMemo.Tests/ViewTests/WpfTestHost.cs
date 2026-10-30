@@ -6,6 +6,9 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.Tests.ViewTests;
 
+[CollectionDefinition("WPF")]
+public class WpfTestCollection : ICollectionFixture<WpfTestHost>;
+
 // WPF controls share one STA thread. Never start FlashMemo.App or open a window:
 // these view tests must not run startup migrations or interact with the desktop.
 public sealed class WpfTestHost : IDisposable

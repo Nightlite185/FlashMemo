@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class UserOptionsMenuVM(long userId, IUserOptionsService optService, IMapper imapper,
-                                        IVMEventBus bus, ILogger<UserOptionsMenuVM> logger, IDialogService dialogs)
+                                        IVMEventBus bus, ILogger<UserOptionsMenuVM> logger, IDialogService dialogs, SafetyNet net)
                                         : ObservableObject, IViewModel, ICloseRequest, IClosingAware
 {
     public UserOptionsVM Options { get; private set; } = null!;
@@ -46,7 +46,7 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
         );
 
         if (result is DialogResult.Yes)
-            await SaveChanges();
+            return await SaveCore();
 
         return result is DialogResult.Yes or DialogResult.No;
     }
@@ -56,15 +56,22 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
     [RelayCommand(CanExecute = nameof(CanSaveChanges))]
     private async Task SaveChanges()
     {
-        await repo.Update(
-            userId,
-            mapper.Map<UserOptions>(Options)
-        );
+        if (await SaveCore())
+            OnCloseRequest?.Invoke();
+    }
 
-        lastSaved = mapper.Map<UserOptions>(Options);
+    private async Task<bool> SaveCore()
+    {
+        var saving = mapper.Map<UserOptions>(Options);
+        if (!await net.TryUnsafe(
+            () => repo.Update(userId, saving),
+            actionTried: "save the user options",
+            retry: false))
+            return false;
 
+        lastSaved = saving;
         eventBus.NotifyUserOpt();
-        OnCloseRequest?.Invoke();
+        return true;
     }
     [RelayCommand] private void RevertChanges()
         => mapper.Map(lastSaved, Options);

@@ -45,7 +45,8 @@ namespace FlashMemo.View
             sn.BackContent = XamlSerializer
                 .ToXaml(BackBox.Document);
 
-            await VM.AddCardCommand.ExecuteAsync(null);
+            if (!await VM.AddCard())
+                return;
 
             // clearing the editor
             FrontBox.Document = new();

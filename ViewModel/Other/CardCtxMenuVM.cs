@@ -16,7 +16,7 @@ public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete 
 public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF, 
                                 IVMEventBus eventBus, IUserOptionsService userOptionsService,
                                 long userId, ICtxMenuHost host, ILogger<CardCtxMenuVM> logger, 
-                                IDialogService dialogs, ILogger<RescheduleVM> rescheduleLogger): ObservableObject
+                                IDialogService dialogs, ILogger<RescheduleVM> rescheduleLogger, SafetyNet net): ObservableObject
 {
     #region ICommands
     
@@ -30,8 +30,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     [RelayCommand]
     private void ShowRescheduleCtx() // this lets u choose datetime OR postpone by days. Choose whether keep interval. 
     {
-        popupHost.CurrentPopup = new RescheduleVM(
-            RescheduleCards, PopupCancel, rescheduleLogger, dialogs);
+        popupHost.CurrentPopup = new RescheduleVM( // TODO: add a factory for this popup vm, since it's grown.
+            RescheduleCards, PopupCancel, rescheduleLogger, dialogs, net);
     }
 
     [RelayCommand]
@@ -120,6 +120,14 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     {
         ThrowIfNoCardsCaptured(caller);
 
+        // TODO: Apply modifiers to detached copies, then refresh the live VMs only after saving succeeds
+        // (or restore a complete snapshot if saving fails). ToEntities() currently returns the VMs'
+        // backing entities, so the loop below changes live state before persistence. A failed postpone
+        // leaves Due advanced in memory, and confirming again can apply the offset twice. A failed move
+        // leaves DeckId changed, so the next confirmation can filter out cards that were never moved
+        // in the database. Cover both failure/reconfirmation cases when fixing this.
+        // Popup callbacks must let exceptions reach the popup's SafetyNet. Do not swallow failures here:
+        // callers would otherwise send success notifications and the popup would close after a failed save.
         var entities = capturedCards!.ToEntities();
 
         foreach (var card in entities)
@@ -130,6 +138,9 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
 
         eventBus.NotifyDomain();
     }
+    
+    // Popup confirmation callback: let failures propagate to the popup's SafetyNet.
+    // Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task RescheduleCards(IRescheduleData data)
     {
         Action<CardEntity> action = data switch
@@ -148,6 +159,9 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
 
         await ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
     }
+
+    // Popup confirmation callback: let failures propagate to the popup's SafetyNet.
+    // Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task MoveCards(IDeckMeta newDeck)
     {
         ThrowIfNoCardsCaptured(nameof(MoveCards));

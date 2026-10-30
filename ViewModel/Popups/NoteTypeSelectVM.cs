@@ -1,10 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Persistence;
+using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public partial class NoteTypeSelectVM(Func<NoteTypes, Task> confirm, Action cancel): PopupVMBase(cancel)
+public partial class NoteTypeSelectVM(Func<NoteTypes, Task> confirm, Action cancel, SafetyNet net): PopupVMBase(cancel)
 {
     public IEnumerable<NoteTypes> NoteTypes 
         => Enum.GetValues<NoteTypes>();
@@ -13,7 +14,12 @@ public partial class NoteTypeSelectVM(Func<NoteTypes, Task> confirm, Action canc
     
     protected override async Task Confirm()
     {
-        await confirm(SelectedType);
+        if (!await net.TryUnsafe(
+            () => confirm(SelectedType),
+            actionTried: "confirm the selected note type",
+            retry: false))
+            return;
+
         Close();
     }
 }

@@ -10,12 +10,17 @@ namespace FlashMemo.ViewModel.Popups;
 
 public partial class DeckSelectVM(Func<IDeckMeta, Task> confirm, Action cancel, 
                                 IEnumerable<DeckNode> deckTree, ILogger<DeckSelectVM> logger, 
-                                IDialogService dialogs): PopupVMBase(cancel)
+                                IDialogService dialogs, SafetyNet net): PopupVMBase(cancel)
 {
     protected override bool CanConfirm => SelectedDeck is not null;
     protected override async Task Confirm()
     {
-        await confirm(SelectedDeck);
+        if (!await net.TryUnsafe(
+            () => confirm(SelectedDeck),
+            actionTried: "confirm the selected deck",
+            retry: false))
+            return;
+
         Close();
     }
 

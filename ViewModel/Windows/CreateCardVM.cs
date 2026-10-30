@@ -50,6 +50,8 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
         eventBus.DomainChanged += OnDomainChanged;
     }
 
+    // Popup confirmation callback: let failures propagate to the popup's SafetyNet.
+    // Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task ChangeDeck(IDeckMeta newDeck)
     {
         if (CurrentDeck.Id == newDeck.Id)
@@ -77,21 +79,23 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
         // since there are no decks on this user.
         if (deck is null) OnCloseRequest?.Invoke();
     }
-    #endregion
 
-    #region ICommands
-    [RelayCommand]
-    private void Close() => OnCloseRequest?.Invoke();
-
-    [RelayCommand]
-    private async Task AddCard()
+    public async Task<bool> AddCard()
     {
         var card = CardEntity.CreateNew(
             WipCard.Note.ToEntity(),
             CurrentDeck,
             WipCard.Tags.ToEntities());
 
-        card = await cardRepo.AddCard(card);
+        var result = await net.TryUnsafe(
+            () => cardRepo.AddCard(card),
+            actionTried: "create the card",
+            retry: false);
+
+        if (!result.Success)
+            return false;
+
+        card = result.Value;
 
         History.Add(card);
 
@@ -100,7 +104,15 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
 
         WipCard = new();
         eventBus.NotifyDomain();
+        
+        return true;
     }
+    #endregion
+
+    #region ICommands
+    [RelayCommand]
+    private void Close() => OnCloseRequest?.Invoke();
+
 
     [RelayCommand]
     private async Task ShowDeckSelect()

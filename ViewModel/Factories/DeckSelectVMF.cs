@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Factories;
 
 public class DeckSelectVMF(IDeckTreeBuilder dtb, ILogger<DeckSelectVM> logger, 
-                            IDialogService dialogs)
+                            IDialogService dialogs, SafetyNet net)
 {
     private readonly IDeckTreeBuilder deckTreeBuilder = dtb;
     public async Task<DeckSelectVM> CreateAsync(Func<IDeckMeta, Task> confirm, Action cancel, long userId)
@@ -16,6 +16,6 @@ public class DeckSelectVMF(IDeckTreeBuilder dtb, ILogger<DeckSelectVM> logger,
 
         return new(
             confirm, cancel, deckTree,
-            logger, dialogs);
+            logger, dialogs, net);
     }
 }

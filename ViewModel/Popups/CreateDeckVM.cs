@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Popups;
 
 public partial class CreateDeckVM(Func<string, DeckNode?, Task> confirmAction, Action cancel,
-                                    ILogger<CreateDeckVM> logger, IDialogService dialogs,
+                                    ILogger<CreateDeckVM> logger, IDialogService dialogs, SafetyNet net,
                                     DeckNode? parent = null) : PopupVMBase(cancel)
 {
     private readonly Func<string, DeckNode?, Task> confirm = confirmAction;
@@ -20,7 +20,12 @@ public partial class CreateDeckVM(Func<string, DeckNode?, Task> confirmAction, A
 
     protected override async Task Confirm()
     {
-        await confirm(NameField, parent);
+        if (!await net.TryUnsafe(
+            () => confirm(NameField, parent),
+            actionTried: "create the deck",
+            retry: false))
+            return;
+
         Close();
     }
 }

@@ -20,7 +20,8 @@ using SfTreeViewItem = Syncfusion.UI.Xaml.TreeView.TreeViewItem;
 
 namespace FlashMemo.Tests.ViewTests;
 
-public class DecksUCTests(WpfTestHost host) : IClassFixture<WpfTestHost>
+[Collection("WPF")]
+public class DecksUCTests(WpfTestHost host)
 {
     [Fact]
     public Task Tree_AllowsDraggingAndReceivingDrops() => host.Run(() =>

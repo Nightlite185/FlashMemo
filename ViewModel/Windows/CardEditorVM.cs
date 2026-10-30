@@ -66,6 +66,9 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
             return;
         }
     } 
+    
+    // Popup confirmation callback: let failures propagate to the popup's SafetyNet.
+    // Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task ChangeDeck(IDeckMeta deck)
     {
         Card.ChangeDeck(deck);

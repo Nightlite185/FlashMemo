@@ -7,13 +7,14 @@ namespace FlashMemo.ViewModel.Popups;
 
 public partial class RescheduleVM
     (Func<IRescheduleData, Task> confirm, Action cancel,
-    ILogger<RescheduleVM> logger, IDialogService dialogs)
+    ILogger<RescheduleVM> logger, IDialogService dialogs, SafetyNet net)
     : PopupVMBase(cancel)
 {
     private readonly Func<IRescheduleData, Task> confirm = confirm;
     protected override async Task Confirm()
     {
         var minDate = MinPickableDate;
+        IRescheduleData data;
 
         if (DatepickerActive)
         {
@@ -21,15 +22,18 @@ public partial class RescheduleVM
                 ? minDate
                 : RescheduleToDate.Date;
 
-            await confirm(new RescheduleData(dt, KeepInterval));
+            data = new RescheduleData(dt, KeepInterval);
         }
 
-        else
-        {
-            await confirm(new PostponeData(
-                PostponeByDays, SinceToday, 
-                KeepInterval));
-        }
+        else data = new PostponeData(
+            PostponeByDays, SinceToday, 
+            KeepInterval);
+
+        if (!await net.TryUnsafe(
+            () => confirm(data),
+            actionTried: "reschedule the selected cards",
+            retry: false))
+            return;
 
         Close();
     }

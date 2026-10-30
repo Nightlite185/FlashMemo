@@ -9,7 +9,7 @@ namespace FlashMemo.ViewModel.Factories;
 public class DeckOptionsMenuVMF(IMapper mapper, IDeckOptVMBuilder deckOptVMB,
                                 IDeckOptionsService deckOptService, IDeckRepo deckRepo,
                                 IVMEventBus bus, IUserOptionsService userOptionsService,
-                                ILogger<DeckOptionsMenuVM> logger, IDialogService dialogs)
+                                ILogger<DeckOptionsMenuVM> logger, IDialogService dialogs, SafetyNet net)
 {
     public async Task<DeckOptionsMenuVM> CreateAsync(long deckId)
     {
@@ -21,7 +21,7 @@ public class DeckOptionsMenuVMF(IMapper mapper, IDeckOptVMBuilder deckOptVMB,
             mapper, deckOptVMB, 
             deckOptService, userOptionsService,
             deck, bus,
-            logger, dialogs);
+            logger, dialogs, net);
 
         await vm.InitializeAsync();
         return vm;

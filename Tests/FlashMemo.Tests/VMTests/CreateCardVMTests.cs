@@ -1,12 +1,14 @@
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
+using FlashMemo.Services;
 using FlashMemo.Tests.Fakes.Model;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq.AutoMock;
+using Moq;
 
 namespace FlashMemo.Tests.VMTests;
 
@@ -86,7 +88,7 @@ public class CreateCardVMTests : IDisposable
         var expectedCard = PrepareTaglessCard(vm);
         var expectedNote = expectedCard.Note as StandardNote;
 
-        await vm.AddCardCommand.ExecuteAsync(null);
+        (await vm.AddCard()).Should().BeTrue();
         
         var resultCard = db.Cards
             .Include(c => c.Note)
@@ -109,7 +111,7 @@ public class CreateCardVMTests : IDisposable
 
         vm.WipCard.Tags.AddRange(tags.ToVMs());
 
-        await vm.AddCardCommand.ExecuteAsync(null);
+        (await vm.AddCard()).Should().BeTrue();
 
         var resultCard = db.Cards
             .Include(c => c.Note)
@@ -121,6 +123,35 @@ public class CreateCardVMTests : IDisposable
         resultCard!.Tags.Should()
             .HaveCount(tags.Count)
             .And.AllSatisfy(t => t.UserId = 7);
+    }
+
+    [Fact]
+    public async Task FailedSave_KeepsDraftAndHistoryAndDoesNotNotifyDomain()
+    {
+        var mocker = new AutoMocker();
+        var dialogs = mocker.GetMock<IDialogService>();
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
+            .Returns(DialogResult.OK);
+        mocker.Use<IDeckMeta>(new Deck { Id = 1, UserId = 7, Name = "Deck" });
+        mocker.Use(Helpers.GetSafetyNet(dialogs.Object));
+        mocker.GetMock<ICardRepo>().Setup(repo => repo.AddCard(It.IsAny<CardEntity>()))
+            .ThrowsAsync(new IOException());
+        var vm = mocker.CreateInstance<CreateCardVM>();
+        PrepareTaglessCard(vm);
+        var draft = vm.WipCard;
+        var tag = new TagVM(new Tag { Id = 2, UserId = 7, Name = "Tag" });
+        draft.Tags.Add(tag);
+        var previous = new CardEntity { Id = 3 };
+        vm.History.Add(previous);
+
+        bool saved = await vm.AddCard();
+
+        saved.Should().BeFalse();
+        vm.WipCard.Should().BeSameAs(draft);
+        vm.WipCard.Tags.Should().Equal(tag);
+        vm.History.Should().Equal(previous);
+        mocker.GetMock<IVMEventBus>().Verify(bus => bus.NotifyDomain(), Times.Never);
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK), Times.Once);
     }
 
     public void Dispose() => factory.Dispose();

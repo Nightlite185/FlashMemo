@@ -189,6 +189,39 @@ public class DecksVMTests
         dialogs.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RenameDeck_CommitsSubmittedNameOnlyAfterSuccessfulSave(bool succeeds)
+    {
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        repo.Setup(service => service.RenameDeck(1, "New name")).Returns(completion.Task);
+        var dialogs = new Mock<IDialogService>();
+        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
+            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object));
+        var deck = CreateDeck(1);
+        deck.BeginRenameCommand.Execute(null);
+        deck.TempName = "New name";
+
+        var saving = vm.RenameDeckCommand.ExecuteAsync(deck);
+        deck.Name.Should().Be("Deck 1");
+        deck.IsRenaming.Should().BeTrue();
+
+        if (succeeds)
+            completion.SetResult();
+        else
+            completion.SetException(new IOException());
+        await saving;
+
+        deck.Name.Should().Be(succeeds ? "New name" : "Deck 1");
+        deck.IsRenaming.Should().Be(!succeeds);
+        repo.Verify(service => service.RenameDeck(1, "New name"), Times.Once);
+        repo.VerifyNoOtherCalls();
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK),
+            succeeds ? Times.Never() : Times.Once());
+    }
+
     private static DeckNode CreateDeck(long id)
         => new(
             new Deck

@@ -31,6 +31,9 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
         await ReloadDomainAsync();
     }
     private void PopupCancel() => CurrentPopup = null;
+    
+    // Popup confirmation callback: let failures propagate to the popup's SafetyNet.
+    // Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task CreateDeck(string name, DeckNode? parent = null)
     {
         Deck deck = Deck.CreateNew(
@@ -198,10 +201,25 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     [RelayCommand]
     private async Task RenameDeck(DeckNode deck)
     {
-        deck.CommitRename();
+        string? newName = deck.TempName;
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            dialogs.Show(
+                title: "Deck name required",
+                message: "Please enter a name for the deck.",
+                buttons: DialogButtons.OK,
+                icon: DialogIcons.Warning);
+            return;
+        }
 
-        await deckRepo.RenameDeck(
-            deck.Id, deck.Name);
+        if (!await net.TryUnsafe(
+            () => deckRepo.RenameDeck(deck.Id, newName),
+            actionTried: "rename the deck",
+            retry: false))
+            return;
+
+        deck.TempName = newName;
+        deck.CommitRename();
     }
 
     [RelayCommand(CanExecute = nameof(CanReparentDeck))]

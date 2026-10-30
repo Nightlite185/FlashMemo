@@ -14,7 +14,7 @@ namespace FlashMemo.ViewModel.Windows;
 public sealed partial class DeckOptionsMenuVM(
     IMapper m, IDeckOptVMBuilder doVMB, IDeckOptionsService dor,
     IUserOptionsService userOptionsService, Deck d, IVMEventBus bus,
-    ILogger<DeckOptionsMenuVM> logger, IDialogService dialogs)
+    ILogger<DeckOptionsMenuVM> logger, IDialogService dialogs, SafetyNet net)
     : ObservableObject, IViewModel, IClosingAware, ICloseRequest
 {
     #region public properties
@@ -104,7 +104,7 @@ public sealed partial class DeckOptionsMenuVM(
         );
 
         if (result is DialogResult.Yes)
-            await SaveCore();
+            return await SaveCore();
 
         else if (result is DialogResult.No)
             mapper.Map(lastSaved, CurrentOptions);
@@ -112,7 +112,7 @@ public sealed partial class DeckOptionsMenuVM(
         // only cancel clicked doesnt discard it
         return result is DialogResult.Yes or DialogResult.No;
     }
-    private async Task SaveCore()
+    private async Task<bool> SaveCore()
     {
         //* this applies any changed made in the preset,
         //* as well as syncs the relation between deck and its preset.
@@ -121,14 +121,22 @@ public sealed partial class DeckOptionsMenuVM(
 
         var saving = mapper.Map<DeckOptions>(CurrentOptions);
 
-        await deckOptService.SaveEditedPreset(saving);
-        
-        await deckOptService.AssignToDeck(
-            deckId: deck.Id,
-            newPresetId: saving.Id);
+        if (!await net.TryUnsafe(
+            () => deckOptService.SaveEditedPreset(saving),
+            actionTried: "save the preset. The deck assignment has not been changed",
+            retry: false))
+            return false;
 
         lastSaved = saving;
+
+        // Saving the preset is valid even if assigning it to this deck fails.
+        bool assigned = await net.TryUnsafe(
+            () => deckOptService.AssignToDeck(deck.Id, saving.Id),
+            actionTried: "assign the preset to this deck. The preset itself was saved successfully",
+            retry: false);
+
         eventBus.NotifyDeckOpt();
+        return assigned;
     }
     private async Task MaybeSwitchCurrent(DeckOptionsVM newPreset)
     {
@@ -152,8 +160,8 @@ public sealed partial class DeckOptionsMenuVM(
         switch (answer)
         {
             case DialogResult.Yes:
-                await SaveCore();
-                ChangePreset(newPreset);
+                if (await SaveCore())
+                    ChangePreset(newPreset);
                 break;
 
             case DialogResult.No:
@@ -177,8 +185,8 @@ public sealed partial class DeckOptionsMenuVM(
     [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
     private async Task SaveChanges()
     {
-        await SaveCore();
-        OnCloseRequest?.Invoke();
+        if (await SaveCore())
+            OnCloseRequest?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]

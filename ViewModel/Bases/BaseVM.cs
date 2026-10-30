@@ -29,11 +29,29 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
     {
         if (NavRequested is not null)
             await NavRequested(where);
+    } 
+
+    protected async Task<bool> TryUnsafe(
+        Func<Task> action, string actionTried, bool retry,
+        [CallerMemberName] string caller = "",
+        [CallerArgumentExpression(nameof(action))] string operation = "")
+    {
+        var result = await TryUnsafe(
+            async () =>
+            {
+                await action();
+                return ValueTuple.Create();
+            },
+            actionTried, retry, 
+            caller, operation);
+
+        return result.Success;
     }
 
     protected async Task<UnsafeActionResult<T>> TryUnsafe<T>(
         Func<Task<T>> action, string actionTried, bool retry,
-        [CallerMemberName] string caller = "")
+        [CallerMemberName] string caller = "",
+        [CallerArgumentExpression(nameof(action))] string operation = "")
     {
         DialogResult ans = DialogResult.None;
         bool firstPass = true;
@@ -48,9 +66,9 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
 
             catch (Exception e)
             {
-                string message = (firstPass ? "Called" : "Retried") + caller;
-
-                logger.LogError(exception: e, message: message);
+                logger.LogError(e, 
+                    message: "{Caller}: {Operation} failed ({Attempt})",
+                    args: [caller, operation, firstPass ? "initial attempt" : "retry"]);
 
                 ans = dialogs.ShowError(
                     message: "Something went wrong while trying to " + actionTried,

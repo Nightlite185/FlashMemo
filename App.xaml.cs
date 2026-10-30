@@ -172,11 +172,12 @@ public partial class App : Application
 
         var fileLogger = new LoggerConfiguration()
             .MinimumLevel.Information()
-            .WriteTo.File(
-                Path.Combine(logDirectory, "log-.txt"),
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 7,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+            .WriteTo.Async(sink => sink.File(
+                    Path.Combine(logDirectory, "log-.txt"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 7,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"),
+                blockWhenFull: false)
             .CreateLogger();
 
         sc.AddLogging(logging => logging.AddSerilog(fileLogger, dispose: true));

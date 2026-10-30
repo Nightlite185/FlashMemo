@@ -18,11 +18,11 @@ public class MainVMTests
         var deckRepo = new Mock<IDeckRepo>(MockBehavior.Strict);
         var deck = new DeckNode(new Deck { Id = 10, UserId = 7, Name = "Selected deck" }, []);
         var decksVM = new DecksVM(null!, null!, null!, null!, null!, 7, null!, null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
         decksVM.SelectedDecks.Add(deck);
         var vm = new MainVM(
             Mock.Of<ILastSessionService>(), deckRepo.Object, Mock.Of<IVMEventBus>(), 7,
-            NullLogger<MainVM>.Instance, Mock.Of<IDialogService>())
+            NullLogger<MainVM>.Instance, Mock.Of<IDialogService>(), Helpers.GetSafetyNet())
         {
             CurrentDisplay = decksVM
         };
@@ -61,11 +61,11 @@ public class MainVMTests
             deckRepo.Object,
             Mock.Of<IVMEventBus>(),
             userId,
-            NullLogger<MainVM>.Instance, Mock.Of<IDialogService>())
+            NullLogger<MainVM>.Instance, Mock.Of<IDialogService>(), Helpers.GetSafetyNet())
         {
             CurrentDisplay = new DecksVM(
                 null!, null!, null!, null!, null!, userId, null!, null!,
-                NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!)
+                NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet())
         };
 
         NavigationRequest? navigation = null;
@@ -100,7 +100,7 @@ public class MainVMTests
         dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
             .Returns(DialogResult.Cancel);
         var vm = new MainVM(lastSession.Object, deckRepo.Object, Mock.Of<IVMEventBus>(), 7,
-            NullLogger<MainVM>.Instance, dialogs.Object);
+            NullLogger<MainVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
         bool navigated = false;
         vm.NavRequested += _ =>
         {
@@ -131,7 +131,7 @@ public class MainVMTests
         dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
             .Returns(DialogResult.Retry);
         var vm = new MainVM(Mock.Of<ILastSessionService>(), deckRepo.Object, Mock.Of<IVMEventBus>(), 7,
-            NullLogger<MainVM>.Instance, dialogs.Object);
+            NullLogger<MainVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
         var navigations = new List<NavigationRequest>();
         vm.NavRequested += request =>
         {
@@ -167,13 +167,13 @@ public class MainVMTests
             .Returns(DialogResult.OK);
 
         var decksVM = new DecksVM(null!, null!, null!, null!, null!, userId, null!, null!,
-            NullLogger<DecksVM>.Instance, dialogs.Object, null!);
+            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object));
         for (int i = 0; i < selectedCount; i++)
             decksVM.SelectedDecks.Add(new DeckNode(
                 new Deck { Id = i + 1, UserId = userId, Name = $"Deck {i + 1}" }, []));
 
         var vm = new MainVM(Mock.Of<ILastSessionService>(), deckRepo.Object, Mock.Of<IVMEventBus>(),
-            userId, NullLogger<MainVM>.Instance, dialogs.Object)
+            userId, NullLogger<MainVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object))
         {
             CurrentDisplay = decksVM
         };

@@ -124,6 +124,7 @@ public partial class App : Application
         sc.AddSingleton<INoteSerializer, XamlNoteSerializer>();
         sc.AddSingleton<IExportService, ExportService>();
         sc.AddSingleton<IDialogService, WpfDialogService>();
+        sc.AddSingleton<SafetyNet>();
         sc.AddSingleton<ILoginService, LoginService>();
         sc.AddSingleton<ICountingService, CountingService>();
         sc.AddSingleton<IDeckTreeBuilder, DeckTreeBuilder>();

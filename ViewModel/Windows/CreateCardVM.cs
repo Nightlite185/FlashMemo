@@ -15,7 +15,7 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelectVMF dsVMF, 
                                 ILastSessionService lss, IVMEventBus bus, IDeckRepo repo,
-                                ILogger<CreateCardVM> log, IDialogService dialogService)
+                                ILogger<CreateCardVM> log, IDialogService dialogService, SafetyNet net)
                                 : BaseVM(bus, log, dialogService), ICloseRequest, IPopupHost, ICardTagsVMHost
 {
     #region private things
@@ -105,7 +105,7 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
     [RelayCommand]
     private async Task ShowDeckSelect()
     {
-        var result = await TryUnsafe(
+        var result = await net.TryUnsafe(
             () => deckSelectVMF.CreateAsync(
                 ChangeDeck, ClosePopup, CurrentDeck.UserId),
             actionTried: "load the available decks",
@@ -120,7 +120,7 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
     [RelayCommand]
     private async Task ShowEditOnHistory(ICard card)
     {
-        await TryUnsafe(
+        await net.TryUnsafe(
             () => NavigateTo(new EditCardNavRequest(card.Id, CurrentDeck.UserId)),
             actionTried: "open the card editor",
             retry: false);

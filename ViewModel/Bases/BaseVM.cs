@@ -1,5 +1,3 @@
-using System.Printing;
-using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
@@ -30,56 +28,6 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
         if (NavRequested is not null)
             await NavRequested(where);
     } 
-
-    protected async Task<bool> TryUnsafe(
-        Func<Task> action, string actionTried, bool retry,
-        [CallerMemberName] string caller = "",
-        [CallerArgumentExpression(nameof(action))] string operation = "")
-    {
-        var result = await TryUnsafe(
-            async () =>
-            {
-                await action();
-                return ValueTuple.Create();
-            },
-            actionTried, retry, 
-            caller, operation);
-
-        return result.Success;
-    }
-
-    protected async Task<UnsafeActionResult<T>> TryUnsafe<T>(
-        Func<Task<T>> action, string actionTried, bool retry,
-        [CallerMemberName] string caller = "",
-        [CallerArgumentExpression(nameof(action))] string operation = "")
-    {
-        DialogResult ans = DialogResult.None;
-        bool firstPass = true;
-        
-        while (firstPass || ans is DialogResult.Retry or DialogResult.TryAgain)
-        {
-            try
-            {
-                var res = await action();
-                return new(true, res);
-            }
-
-            catch (Exception e)
-            {
-                logger.LogError(e, 
-                    message: "{Caller}: {Operation} failed ({Attempt})",
-                    args: [caller, operation, firstPass ? "initial attempt" : "retry"]);
-
-                ans = dialogs.ShowError(
-                    message: "Something went wrong while trying to " + actionTried,
-                    buttons: retry ? DialogButtons.RetryCancel : DialogButtons.OK);
-            }
-
-            firstPass = false;
-        }
-
-        return new(Success: false);
-    }
 
     public virtual async Task OnFocusGained()
     {
@@ -148,9 +96,3 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
 
     protected readonly IVMEventBus eventBus = bus;
 }
-
-public record struct UnsafeActionResult<T>(
-    bool Success, 
-    T Value = default!); // mute nullable warning since value prop should be only accessed when success == true.
-                         // So its their fault for accessing it with success == false.
-                         // nullable T would only cause unnecessary safety checks.

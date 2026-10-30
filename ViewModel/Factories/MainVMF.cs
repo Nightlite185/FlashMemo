@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Factories;
 
 public class MainVMF(DisplayControlFactory dcFactory, IDeckRepo dr, ILastSessionService lss, 
-                    IVMEventBus bus, ILogger<MainVM> logger, IDialogService dialogs)
+                    IVMEventBus bus, ILogger<MainVM> logger, IDialogService dialogs, SafetyNet net)
 {
     private readonly DisplayControlFactory displayControlFactory = dcFactory;
     private readonly IVMEventBus eventBus = bus;
@@ -17,7 +17,7 @@ public class MainVMF(DisplayControlFactory dcFactory, IDeckRepo dr, ILastSession
         MainVM vm = new(
             lastSession, deckRepo,
             eventBus, userId,
-            logger, dialogs);
+            logger, dialogs, net);
 
         var dc = displayControlFactory.Create(vm);
 

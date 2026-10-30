@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus bus, long userId,
-                            ILogger<MainVM> log, IDialogService dialogService)
+                            ILogger<MainVM> log, IDialogService dialogService, SafetyNet net)
                             : BaseVM(bus, log, dialogService), IViewModel, IDisplayHost
 {
     // called by factory only. Need this two-step creation cuz circular dependency
@@ -31,7 +31,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
     public async Task DisplayDecks()
     {
         if (CurrentDisplay is not DecksVM)
-            await TryUnsafe(
+            await net.TryUnsafe(
                 () => display.SwitchToDecks(UserId),
                 actionTried: "open the decks view",
                 retry: false);
@@ -40,7 +40,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
     [RelayCommand]
     private async Task ShowBrowse()
     {
-        await TryUnsafe(
+        await net.TryUnsafe(
             () => NavigateTo(new BrowseNavRequest(UserId)),
             actionTried: "open the card browser",
             retry: false);
@@ -88,7 +88,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
         // Otherwise, try the last used cached deck.
         if (deck is null && lastSession.LastDeckId is long id)
         {
-            var result = await TryUnsafe(
+            var result = await net.TryUnsafe(
                 () => deckRepo.GetDeckMetaById(id),
                 actionTried: "load the last used deck",
                 retry: true);
@@ -102,7 +102,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
         // Finally, get the first (oldest) deck for the current user.
         if (deck is null)
         {
-            var result = await TryUnsafe(
+            var result = await net.TryUnsafe(
                 () => deckRepo.GetFirst(UserId),
                 actionTried: "load an available deck",
                 retry: true);
@@ -124,7 +124,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
             return;
         }
         
-        await TryUnsafe(
+        await net.TryUnsafe(
             () => NavigateTo(new CreateCardNavRequest(deck)),
             actionTried: "open the card creation window",
             retry: false);
@@ -133,7 +133,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
     [RelayCommand]
     private async Task ShowUserOptions()
     {
-        await TryUnsafe(
+        await net.TryUnsafe(
             () => NavigateTo(new UserOptionsNavRequest(UserId)),
             actionTried: "open the user options",
             retry: false);
@@ -143,7 +143,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
     private async Task DisplayStats()
     {
         if (CurrentDisplay is not StatsVM)
-            await TryUnsafe(
+            await net.TryUnsafe(
                 () => display.SwitchToStats(UserId),
                 actionTried: "open the statistics view",
                 retry: false);

@@ -13,7 +13,7 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, IVMEventBus eventBus, 
                                 IDeckRepo deckRepo, DeckSelectVMF deckSelectVMF, EditableCardVM cardVM,
-                                ILogger<CardEditorVM> log, IDialogService dialogService)
+                                ILogger<CardEditorVM> log, IDialogService dialogService, SafetyNet net)
                                 : BaseVM(eventBus, log, dialogService), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
     public List<TagVM> Tags => Card.Tags;
@@ -42,7 +42,7 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
                 break;
 
             case CtxMenuAction.Relocate:
-                var result = await TryUnsafe(
+                var result = await net.TryUnsafe(
                     () => deckRepo.GetFromCard(Card.Id),
                     actionTried: "load the card's current deck",
                     retry: true);
@@ -98,7 +98,7 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
 
     [RelayCommand] private async Task ShowDeckSelect()
     {
-        var result = await TryUnsafe(
+        var result = await net.TryUnsafe(
             () => deckSelectVMF.CreateAsync(
                 ChangeDeck, CancelPopup, Card.Deck.UserId),
             actionTried: "load the available decks",

@@ -7,7 +7,7 @@ namespace FlashMemo.ViewModel.Factories;
 
 public class CardEditorVMF(ICardService cardService, ICardRepo cardRepo, CardCtxMenuVMF ctxFactory, EditableCardVMF cardVMF,
                         IVMEventBus bus, IDeckRepo deckRepo, DeckSelectVMF deckSelectVMF, CardTagsVMF tagsVMF,
-                        ILogger<CardEditorVM> logger, IDialogService dialogs)
+                        ILogger<CardEditorVM> logger, IDialogService dialogs, SafetyNet net)
 {
     public async Task<CardEditorVM?> CreateAsync(long cardId, long userId)
     {
@@ -20,7 +20,7 @@ public class CardEditorVMF(ICardService cardService, ICardRepo cardRepo, CardCtx
             cardService, cardRepo, 
             bus, deckRepo, 
             deckSelectVMF, cardVM,
-            logger, dialogs);
+            logger, dialogs, net);
 
         var tagsVM = await tagsVMF
             .CreateAsync(userId, editorVM);

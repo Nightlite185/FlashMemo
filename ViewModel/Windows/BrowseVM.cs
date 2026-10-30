@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Windows;
 
 public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM filtersVM, long userId,
-                                    IVMEventBus bus, ILogger<BrowseVM> logger, IDialogService dialogService)
+                                    IVMEventBus bus, ILogger<BrowseVM> logger, IDialogService dialogService, SafetyNet net)
                                     : BaseVM(bus, logger, dialogService), IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
 {
     #region Public properties
@@ -145,7 +145,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     [RelayCommand]
     private async Task ShowCardEditor(CardVM card)
     {
-        await TryUnsafe(
+        await net.TryUnsafe(
             () => NavigateTo(new EditCardNavRequest(card.Id, userId)),
             actionTried: "open the card editor",
             retry: false);

@@ -25,6 +25,7 @@ public class CreateCardVMTests : IDisposable
 
         mocker.Use<IDeckMeta>(targetDeck);
         mocker.Use<ICardRepo>(cardRepo);
+        mocker.Use(Helpers.GetSafetyNet());
         
         return mocker.CreateInstance<CreateCardVM>();
     }

@@ -5,11 +5,16 @@ using FlashMemo.Model;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace FlashMemo.Tests;
 
 public static class Helpers
 {
+    public static SafetyNet GetSafetyNet(IDialogService? dialogs = null)
+        => new(NullLogger<SafetyNet>.Instance, dialogs ?? Mock.Of<IDialogService>());
+
     // FlowDocument conversion needs an STA thread, but no Application or window.
     public static Task RunOnSta(Action action)
         => RunOnSta(() => { action(); return Task.CompletedTask; });

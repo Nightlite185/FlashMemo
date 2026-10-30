@@ -41,7 +41,8 @@ public class ReviewVMTests: IDisposable
             .Use<IUserOptionsService>(userOptS)
             .Use<ICardRepo>(new CardRepo(factory))
             .Use<ICardService>(new CardService(factory, mapper))
-            .Use<ICardQueryService>(new CardQueryService(factory, counter, userOptS));
+            .Use<ICardQueryService>(new CardQueryService(factory, counter, userOptS))
+            .Use(Helpers.GetSafetyNet());
 
         var vmf = mocker.CreateInstance<ReviewVMF>();
         return await vmf.CreateAsync(userId, deck);

@@ -16,7 +16,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM,
                             ILastSessionService lastSession, IUserOptionsService userOptionsService,
                             long userId, IVMEventBus bus, ExportVMF exportVMF, ILogger<DecksVM> log,
-                            IDialogService dialogService, CreateDeckVMF createDeckVMF)
+                            IDialogService dialogService, CreateDeckVMF createDeckVMF, SafetyNet net)
                             : BaseVM(bus, log, dialogService), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
@@ -96,7 +96,7 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     private async Task ShowReview(DeckNode deck)
     {
         if (OnReviewNavRequest is { } handler)
-            await TryUnsafe(
+            await net.TryUnsafe(
                 () => handler(deck),
                 actionTried: "open the review session",
                 retry: false,
@@ -107,7 +107,7 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     private async Task ShowDeckOptions(DeckNode? deck)
     {
         if (deck is not null)
-            await TryUnsafe(
+            await net.TryUnsafe(
                 () => NavigateTo(new DeckOptionsNavRequest(deck.Id)),
                 actionTried: "open the deck options",
                 retry: false);
@@ -135,7 +135,7 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
 
         var selectedRoots = decks.GetSelectedRoots();
 
-        var userOptionsResult = await TryUnsafe(
+        var userOptionsResult = await net.TryUnsafe(
             () => userOptionsService.GetFromUser(userId),
             actionTried: "load the deck deletion preferences",
             retry: true);
@@ -169,7 +169,7 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
 
         foreach (DeckNode deck in selectedRoots)
         {
-            var result = await TryUnsafe(
+            var result = await net.TryUnsafe(
                 () => deckRepo.RemoveDeck(deck.Id),
                 actionTried: "delete the deck and its subdecks",
                 retry: false);

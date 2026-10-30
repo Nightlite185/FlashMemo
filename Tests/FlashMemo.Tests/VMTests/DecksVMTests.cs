@@ -21,7 +21,7 @@ public class DecksVMTests
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
             NullLogger<ExportVM>.Instance);
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
 
         Func<Task> showExport = () => vm.ShowExportMenuCommand.ExecuteAsync(null);
 
@@ -48,7 +48,7 @@ public class DecksVMTests
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
             NullLogger<ExportVM>.Instance);
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
         vm.DeckTree.Add(parent);
         vm.DeckTree.Add(unselected);
         vm.SelectedDecks.Add(parent);
@@ -77,7 +77,7 @@ public class DecksVMTests
         builder.Setup(service => service.BuildCountedAsync(1))
             .ReturnsAsync(new[] { newDeck });
         var vm = new DecksVM(null!, builder.Object, null!, null!, null!, 1, null!, null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
         vm.DeckTree.Add(oldDeck);
         vm.SelectedDecks.Add(oldDeck);
 
@@ -92,7 +92,7 @@ public class DecksVMTests
     {
         var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
         var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
 
         await vm.RemoveDeckCommand.ExecuteAsync(null);
 
@@ -126,7 +126,7 @@ public class DecksVMTests
             1,
             null!,
             null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!);
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
 
         DeckNode parent = CreateDeck(1);
         DeckNode child = CreateDeck(2);
@@ -168,7 +168,7 @@ public class DecksVMTests
         dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
             .Returns(DialogResult.OK);
         var vm = new DecksVM(deckRepo.Object, null!, null!, lastSession.Object, userOptions.Object,
-            1, null!, null!, NullLogger<DecksVM>.Instance, dialogs.Object, null!);
+            1, null!, null!, NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object));
         DeckNode[] decks = [CreateDeck(1), CreateDeck(2), CreateDeck(3)];
         foreach (var deck in decks)
         {

@@ -17,7 +17,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class ReviewVM(ICardService cardService, ICardQueryService cardQuery, long userId,
                             IDeckMeta deck, ICardRepo cardRepo, IVMEventBus eventBus, 
                             IUserOptionsService uOptionsService, IDeckOptionsService deckOptService,
-                            ILogger<ReviewVM> log, IDialogService dialogService)
+                            ILogger<ReviewVM> log, IDialogService dialogService, SafetyNet net)
                             : BaseVM(eventBus, log, dialogService), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
     #region public properties
@@ -324,7 +324,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         if (!IsCardLoaded) throw new InvalidOperationException(
         "tried to open card editor, but no card was loaded.");
 
-        await TryUnsafe(
+        await net.TryUnsafe(
             () => NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId)),
             actionTried: "open the card editor",
             retry: false);
@@ -333,7 +333,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     [RelayCommand]
     private async Task ShowEditFromHistory(ICard card)
     {
-        await TryUnsafe(
+        await net.TryUnsafe(
             () => NavigateTo(new EditCardNavRequest(card.Id, userId)),
             actionTried: "open the card editor",
             retry: false);
@@ -353,7 +353,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     private async Task ShowDecks()
     {
         if (OnDecksNavRequest is { } handler)
-            await TryUnsafe(
+            await net.TryUnsafe(
                 handler,
                 actionTried: "open the decks view",
                 retry: false,

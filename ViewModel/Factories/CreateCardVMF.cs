@@ -8,14 +8,14 @@ namespace FlashMemo.ViewModel.Factories;
 
 public class CreateCardVMF(ICardRepo cr, DeckSelectVMF dsVMF, ILastSessionService lss, 
                             IVMEventBus bus, IDeckRepo repo, CardTagsVMF cardTagsVMF,
-                            ILogger<CreateCardVM> logger, IDialogService dialogs)
+                            ILogger<CreateCardVM> logger, IDialogService dialogs, SafetyNet net)
 {
     public async Task<CreateCardVM> CreateAsync(IDeckMeta targetDeck)
     {
         CreateCardVM vm = new(
             cr, targetDeck, dsVMF,
             lss, bus, repo,
-            logger, dialogs);
+            logger, dialogs, net);
 
         var ctVM = await cardTagsVMF.CreateAsync(
             userId: targetDeck.UserId,

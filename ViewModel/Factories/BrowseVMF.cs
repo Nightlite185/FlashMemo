@@ -7,7 +7,7 @@ namespace FlashMemo.ViewModel.Factories;
 
 public class BrowseVMF(ICardQueryService cqs, FiltersVMF filtersVMF, 
                         CardCtxMenuVMF ctxFactory, IVMEventBus bus,
-                        ILogger<BrowseVM> logger, IDialogService dialogs)
+                        ILogger<BrowseVM> logger, IDialogService dialogs, SafetyNet net)
 {
     public async Task<BrowseVM> CreateAsync(long userId)
     {
@@ -17,7 +17,7 @@ public class BrowseVMF(ICardQueryService cqs, FiltersVMF filtersVMF,
         BrowseVM bvm = new(
             cqs, filtersVM,
             userId, bus,
-            logger, dialogs);
+            logger, dialogs, net);
 
         var ccm = ctxFactory.Create(
             bvm, bvm, userId);

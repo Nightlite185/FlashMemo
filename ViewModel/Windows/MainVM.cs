@@ -31,13 +31,19 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
     public async Task DisplayDecks()
     {
         if (CurrentDisplay is not DecksVM)
-            await display.SwitchToDecks(UserId);
+            await TryUnsafe(
+                () => display.SwitchToDecks(UserId),
+                actionTried: "open the decks view",
+                retry: false);
     }
 
     [RelayCommand]
     private async Task ShowBrowse()
     {
-        await NavigateTo(new BrowseNavRequest(UserId));
+        await TryUnsafe(
+            () => NavigateTo(new BrowseNavRequest(UserId)),
+            actionTried: "open the card browser",
+            retry: false);
     }
 
     [RelayCommand]
@@ -81,10 +87,31 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
 
         // Otherwise, try the last used cached deck.
         if (deck is null && lastSession.LastDeckId is long id)
-            deck = await deckRepo.GetDeckMetaById(id);
+        {
+            var result = await TryUnsafe(
+                () => deckRepo.GetDeckMetaById(id),
+                actionTried: "load the last used deck",
+                retry: true);
+
+            if (!result.Success)
+                return;
+
+            deck = result.Value;
+        }
 
         // Finally, get the first (oldest) deck for the current user.
-        deck ??= await deckRepo.GetFirst(UserId);
+        if (deck is null)
+        {
+            var result = await TryUnsafe(
+                () => deckRepo.GetFirst(UserId),
+                actionTried: "load an available deck",
+                retry: true);
+
+            if (!result.Success)
+                return;
+
+            deck = result.Value;
+        }
 
         if (deck is null)
         {
@@ -97,20 +124,29 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
             return;
         }
         
-        await NavigateTo(new CreateCardNavRequest(deck));
+        await TryUnsafe(
+            () => NavigateTo(new CreateCardNavRequest(deck)),
+            actionTried: "open the card creation window",
+            retry: false);
     }
 
     [RelayCommand]
     private async Task ShowUserOptions()
     {
-        await NavigateTo(new UserOptionsNavRequest(UserId));
+        await TryUnsafe(
+            () => NavigateTo(new UserOptionsNavRequest(UserId)),
+            actionTried: "open the user options",
+            retry: false);
     }
 
     [RelayCommand]
     private async Task DisplayStats()
     {
         if (CurrentDisplay is not StatsVM)
-            await display.SwitchToStats(UserId);
+            await TryUnsafe(
+                () => display.SwitchToStats(UserId),
+                actionTried: "open the statistics view",
+                retry: false);
     }
     #endregion
 

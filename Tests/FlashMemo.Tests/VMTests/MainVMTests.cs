@@ -84,6 +84,73 @@ public class MainVMTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ShowCreateCard_WhenDeckLookupFails_DoesNotNavigateOrFallBack(bool hasCachedDeck)
+    {
+        var deckRepo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        if (hasCachedDeck)
+            deckRepo.Setup(repo => repo.GetDeckMetaById(10)).ThrowsAsync(new IOException());
+        else
+            deckRepo.Setup(repo => repo.GetFirst(7)).ThrowsAsync(new IOException());
+
+        var lastSession = new Mock<ILastSessionService>();
+        lastSession.SetupGet(service => service.LastDeckId).Returns(hasCachedDeck ? 10L : null);
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
+            .Returns(DialogResult.Cancel);
+        var vm = new MainVM(lastSession.Object, deckRepo.Object, Mock.Of<IVMEventBus>(), 7,
+            NullLogger<MainVM>.Instance, dialogs.Object);
+        bool navigated = false;
+        vm.NavRequested += _ =>
+        {
+            navigated = true;
+            return Task.CompletedTask;
+        };
+
+        await vm.ShowCreateCardCommand.ExecuteAsync(null);
+
+        navigated.Should().BeFalse();
+        deckRepo.Verify(repo => repo.GetDeckMetaById(10), hasCachedDeck ? Times.Once() : Times.Never());
+        deckRepo.Verify(repo => repo.GetFirst(7), hasCachedDeck ? Times.Never() : Times.Once());
+        deckRepo.VerifyNoOtherCalls();
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel),
+            Times.Once);
+        dialogs.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ShowCreateCard_WhenDeckLookupSucceedsAfterRetry_NavigatesOnce()
+    {
+        var deck = new Deck { Id = 10, UserId = 7, Name = "Deck" };
+        var deckRepo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        deckRepo.SetupSequence(repo => repo.GetFirst(7))
+            .ThrowsAsync(new IOException())
+            .ReturnsAsync(deck);
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
+            .Returns(DialogResult.Retry);
+        var vm = new MainVM(Mock.Of<ILastSessionService>(), deckRepo.Object, Mock.Of<IVMEventBus>(), 7,
+            NullLogger<MainVM>.Instance, dialogs.Object);
+        var navigations = new List<NavigationRequest>();
+        vm.NavRequested += request =>
+        {
+            navigations.Add(request);
+            return Task.CompletedTask;
+        };
+
+        await vm.ShowCreateCardCommand.ExecuteAsync(null);
+
+        navigations.Should().ContainSingle().Which.Should().BeOfType<CreateCardNavRequest>()
+            .Subject.TargetDeck.Should().BeSameAs(deck);
+        deckRepo.Verify(repo => repo.GetFirst(7), Times.Exactly(2));
+        deckRepo.VerifyNoOtherCalls();
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel),
+            Times.Once);
+        dialogs.VerifyNoOtherCalls();
+    }
+
+    [Theory]
     [InlineData(0, "No decks yet")]
     [InlineData(2, "Choose one deck")]
     public async Task ShowCreateCard_WhenDeckCannotBeChosen_ShowsInjectedDialogWithoutNavigating(

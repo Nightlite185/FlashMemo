@@ -96,14 +96,21 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     private async Task ShowReview(DeckNode deck)
     {
         if (OnReviewNavRequest is { } handler)
-            await handler(deck);
+            await TryUnsafe(
+                () => handler(deck),
+                actionTried: "open the review session",
+                retry: false,
+                operation: nameof(OnReviewNavRequest));
     }
 
     [RelayCommand]
     private async Task ShowDeckOptions(DeckNode? deck)
     {
         if (deck is not null)
-            await NavigateTo(new DeckOptionsNavRequest(deck.Id));
+            await TryUnsafe(
+                () => NavigateTo(new DeckOptionsNavRequest(deck.Id)),
+                actionTried: "open the deck options",
+                retry: false);
     }
 
     [RelayCommand]
@@ -128,8 +135,15 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
 
         var selectedRoots = decks.GetSelectedRoots();
 
-        var userOptions = await userOptionsService
-            .GetFromUser(userId);
+        var userOptionsResult = await TryUnsafe(
+            () => userOptionsService.GetFromUser(userId),
+            actionTried: "load the deck deletion preferences",
+            retry: true);
+
+        if (!userOptionsResult.Success)
+            return;
+
+        var userOptions = userOptionsResult.Value;
 
         if (userOptions.ConfirmDeckDeletion)
         {
@@ -155,7 +169,15 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
 
         foreach (DeckNode deck in selectedRoots)
         {
-            var removedDeckIds = await deckRepo.RemoveDeck(deck.Id);
+            var result = await TryUnsafe(
+                () => deckRepo.RemoveDeck(deck.Id),
+                actionTried: "delete the deck and its subdecks",
+                retry: false);
+
+            if (!result.Success)
+                return;
+
+            var removedDeckIds = result.Value;
 
             if (lastSession.LastDeckId is long lastDeckId
                 && removedDeckIds.Contains(lastDeckId))

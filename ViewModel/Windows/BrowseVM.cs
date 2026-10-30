@@ -143,8 +143,13 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     #endregion
     
     [RelayCommand]
-    private async Task ShowCardEditor(CardVM card) =>
-        await NavigateTo(new EditCardNavRequest(card.Id, userId));
+    private async Task ShowCardEditor(CardVM card)
+    {
+        await TryUnsafe(
+            () => NavigateTo(new EditCardNavRequest(card.Id, userId)),
+            actionTried: "open the card editor",
+            retry: false);
+    }
 
     #region private things
     private readonly ObservableCollection<CardVM> cards = [];

@@ -147,6 +147,48 @@ public class DecksVMTests
         vm.SelectedDecks.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task RemoveDecks_WhenDeletionFails_KeepsFailedDeckAndStopsDeleting(int failedRootId)
+    {
+        var deckRepo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        if (failedRootId == 1)
+            deckRepo.Setup(repo => repo.RemoveDeck(1)).ThrowsAsync(new IOException());
+        else
+            deckRepo.Setup(repo => repo.RemoveDeck(1)).ReturnsAsync(new HashSet<long> { 1 });
+        deckRepo.Setup(repo => repo.RemoveDeck(2)).ThrowsAsync(new IOException());
+
+        var userOptions = new Mock<IUserOptionsService>();
+        userOptions.Setup(service => service.GetFromUser(1))
+            .ReturnsAsync(new UserOptions { ConfirmDeckDeletion = false });
+        var lastSession = new Mock<ILastSessionService>(MockBehavior.Strict);
+        lastSession.SetupGet(service => service.LastDeckId).Returns(failedRootId);
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
+            .Returns(DialogResult.OK);
+        var vm = new DecksVM(deckRepo.Object, null!, null!, lastSession.Object, userOptions.Object,
+            1, null!, null!, NullLogger<DecksVM>.Instance, dialogs.Object, null!);
+        DeckNode[] decks = [CreateDeck(1), CreateDeck(2), CreateDeck(3)];
+        foreach (var deck in decks)
+        {
+            vm.DeckTree.Add(deck);
+            vm.SelectedDecks.Add(deck);
+        }
+
+        await vm.RemoveDeckCommand.ExecuteAsync(null);
+
+        var remaining = decks[(failedRootId - 1)..];
+        vm.DeckTree.Should().Equal(remaining);
+        vm.SelectedDecks.Should().Equal(remaining);
+        deckRepo.Verify(repo => repo.RemoveDeck(1), Times.Once);
+        deckRepo.Verify(repo => repo.RemoveDeck(2), failedRootId == 1 ? Times.Never() : Times.Once());
+        deckRepo.VerifyNoOtherCalls();
+        lastSession.VerifySet(service => service.LastDeckId = null, Times.Never);
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK), Times.Once);
+        dialogs.VerifyNoOtherCalls();
+    }
+
     private static DeckNode CreateDeck(long id)
         => new(
             new Deck

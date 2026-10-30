@@ -151,6 +151,6 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
 
 public record struct UnsafeActionResult<T>(
     bool Success, 
-    T ResultValue = default!); // mute nullable warning since result prop should be only accessed when success == true.
-                               // So its their fault for accessing it with success == false.
-                               // nullable T would only cause unnecessary safety checks.
+    T Value = default!); // mute nullable warning since value prop should be only accessed when success == true.
+                         // So its their fault for accessing it with success == false.
+                         // nullable T would only cause unnecessary safety checks.

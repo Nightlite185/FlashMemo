@@ -42,8 +42,15 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
                 break;
 
             case CtxMenuAction.Relocate:
-                Card.ChangeDeck(await deckRepo
-                    .GetFromCard(Card.Id));
+                var result = await TryUnsafe(
+                    () => deckRepo.GetFromCard(Card.Id),
+                    actionTried: "load the card's current deck",
+                    retry: true);
+
+                if (!result.Success)
+                    return;
+
+                Card.ChangeDeck(result.Value);
                 break;
         }
     }
@@ -90,8 +97,18 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
         => CtxMenuVM.OpenMenu([Card]);
 
     [RelayCommand] private async Task ShowDeckSelect()
-        => CurrentPopup = await deckSelectVMF.CreateAsync(
-            ChangeDeck, CancelPopup, Card.Deck.UserId);
+    {
+        var result = await TryUnsafe(
+            () => deckSelectVMF.CreateAsync(
+                ChangeDeck, CancelPopup, Card.Deck.UserId),
+            actionTried: "load the available decks",
+            retry: true);
+
+        if (!result.Success)
+            return;
+
+        CurrentPopup = result.Value;
+    }
     #endregion
 
     public event Action? OnCloseRequest;

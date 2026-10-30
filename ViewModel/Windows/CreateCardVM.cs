@@ -105,16 +105,25 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
     [RelayCommand]
     private async Task ShowDeckSelect()
     {
-        CurrentPopup = await deckSelectVMF.CreateAsync(
-            ChangeDeck, ClosePopup,
-            CurrentDeck.UserId);
+        var result = await TryUnsafe(
+            () => deckSelectVMF.CreateAsync(
+                ChangeDeck, ClosePopup, CurrentDeck.UserId),
+            actionTried: "load the available decks",
+            retry: true);
+
+        if (!result.Success)
+            return;
+
+        CurrentPopup = result.Value;
     }
 
     [RelayCommand]
     private async Task ShowEditOnHistory(ICard card)
     {
-        await NavigateTo(new EditCardNavRequest(
-            card.Id, CurrentDeck.UserId));
+        await TryUnsafe(
+            () => NavigateTo(new EditCardNavRequest(card.Id, CurrentDeck.UserId)),
+            actionTried: "open the card editor",
+            retry: false);
     }
     #endregion
 }

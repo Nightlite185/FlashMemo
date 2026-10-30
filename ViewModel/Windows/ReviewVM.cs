@@ -324,15 +324,19 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         if (!IsCardLoaded) throw new InvalidOperationException(
         "tried to open card editor, but no card was loaded.");
 
-        await NavigateTo(new EditCardNavRequest(
-            CurrentCard!.Id, userId));
+        await TryUnsafe(
+            () => NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId)),
+            actionTried: "open the card editor",
+            retry: false);
     }
 
     [RelayCommand]
     private async Task ShowEditFromHistory(ICard card)
     {
-        await NavigateTo(new EditCardNavRequest(
-            card.Id, userId));
+        await TryUnsafe(
+            () => NavigateTo(new EditCardNavRequest(card.Id, userId)),
+            actionTried: "open the card editor",
+            retry: false);
     }
 
     [RelayCommand]
@@ -349,7 +353,11 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     private async Task ShowDecks()
     {
         if (OnDecksNavRequest is { } handler)
-            await handler();
+            await TryUnsafe(
+                handler,
+                actionTried: "open the decks view",
+                retry: false,
+                operation: nameof(OnDecksNavRequest));
     }
     #endregion
 }

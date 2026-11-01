@@ -81,11 +81,19 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
     #region ICommands
     [RelayCommand] private async Task SaveChanges()
     {
-        await cardService.SaveEditedCard(
-            Card.ToEntity(),
-            CardAction.Modify
-        );
+        var edited = Card.ToEntity();
 
+        Task action() => cardService.SaveEditedCard(
+            edited, CardAction.Modify);
+
+        if (!await net.TryUnsafe(action,
+            actionTried: "save the modified card.",
+            retry: false))
+        {
+            return;
+        }
+
+        Card.UpdateLastSaved(edited);
         eventBus.NotifyDomain();
         OnCloseRequest?.Invoke();
     }

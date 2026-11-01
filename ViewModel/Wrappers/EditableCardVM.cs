@@ -1,3 +1,4 @@
+using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
@@ -9,44 +10,37 @@ public partial class EditableCardVM: ObservableObject, ICardVM
 {
     /// <summary>Deck needs to be included with card, otherwise it will throw on init.</summary>
     /// <exception cref="NullReferenceException"></exception>
-    public EditableCardVM(CardEntity card, INoteComparer noteComparer)
+    public EditableCardVM(CardEntity card, INoteComparer noteComparer, IMapper mapper)
     {
         this.noteComparer = noteComparer;
-        this.card = card;
+        this.mapper = mapper;
+        this.lastSaved = card;
 
-        Note = card.Note.ToVM();
+        Note = mapper.Map<Note>(card.Note).ToVM();
 
         TryRefreshTags(card);
         TryRefreshDeck(card);
     }
 
-    public void Refresh(CardEntity updated)
-    {
-        card = updated;
-        Note.Refresh(updated.Note);
-
-        TryRefreshDeck(updated);
-        TryRefreshTags(updated);
-    }
+    #region properties
     [ObservableProperty] public partial NoteVM Note { get; set; }
     [ObservableProperty] public partial IDeckMeta Deck { get; private set; } = null!;
     public List<TagVM> Tags { get; init; } = [];
-    public long Id => card.Id;
-    public long DeckId => card.DeckId;
-
+    public long Id => lastSaved.Id;
+    public long DeckId => lastSaved.DeckId;
+    #endregion
     public void RevertChanges()
     {
-        Note = card.Note.ToVM();
-
-        Tags.Clear();
-        Tags.AddRange(card.Tags.ToVMs());
+        Note = mapper.Map<Note>(lastSaved.Note).ToVM();
+        TryRefreshTags(lastSaved);
+        TryRefreshDeck(lastSaved);
     }
 
     public void ChangeDeck(IDeckMeta newDeck) => Deck = newDeck;
 
     public bool IsSameAsSavedNote(string frontText, string backText)
     {
-        var saved = noteComparer.FromModel(card.Note);
+        var saved = noteComparer.FromModel(lastSaved.Note);
         var edited = noteComparer.FromEditor(Note.Type, frontText, backText);
 
         return noteComparer.AreEqual(saved, edited);
@@ -54,12 +48,12 @@ public partial class EditableCardVM: ObservableObject, ICardVM
 
     public CardEntity ToEntity()
     {
-        card.Note = Note.ToEntity();
-        card.DeckId = Deck.Id;
-
-        card.ReplaceTagsWith(Tags.ToEntities());
-
-        return card;
+        var edited = mapper.Map<CardEntity>(lastSaved);
+        edited.Note = mapper.Map<Note>(Note.ToEntity());
+        edited.DeckId = Deck.Id;
+        edited.Deck = Deck.ToEntity();
+        edited.Tags = mapper.Map<List<Tag>>(Tags.ToEntities());
+        return edited;
     }
 
     private void TryRefreshDeck(CardEntity updated)
@@ -75,9 +69,17 @@ public partial class EditableCardVM: ObservableObject, ICardVM
             "Tags need to be included with card to refresh them");
 
         Tags.Clear();
-        Tags.AddRange(updated.Tags.ToVMs());
+        Tags.AddRange(mapper.Map<List<Tag>>(updated.Tags).ToVMs());
+    }
+    public void UpdateLastSaved(CardEntity card)
+    {
+        if (card.Id != lastSaved.Id) throw new InvalidOperationException(
+            "Cannot update cached card with a card of different id.");
+
+        lastSaved = card;
     }
 
-    private CardEntity card;
+    private CardEntity lastSaved;
     private readonly INoteComparer noteComparer;
+    private readonly IMapper mapper;
 }

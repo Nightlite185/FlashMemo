@@ -15,6 +15,15 @@ public sealed class MappingProfile: Profile
         CreateMap<Card, CardEntity>();
         CreateMap<CardEntity, Card>();
 
+        CreateMap<Note, Note>().Include<StandardNote, StandardNote>();
+        CreateMap<StandardNote, StandardNote>();
+        CreateMap<Tag, Tag>()
+            .ForMember(tag => tag.User, opt => opt.Ignore())
+            .ForMember(tag => tag.Cards, opt => opt.Ignore());
+        CreateMap<CardEntity, CardEntity>()
+            // The editor supplies the selected deck after copying the saved card.
+            .ForMember(card => card.Deck, opt => opt.Ignore());
+
         CreateMap<UserOptions, UserOptionsVM>();
         CreateMap<UserOptionsVM, UserOptions>();
         #endregion

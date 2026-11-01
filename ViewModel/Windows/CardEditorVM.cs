@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, IVMEventBus eventBus, 
-                                IDeckRepo deckRepo, DeckSelectVMF deckSelectVMF, EditableCardVM cardVM,
+                                DeckSelectVMF deckSelectVMF, EditableCardVM cardVM,
                                 ILogger<CardEditorVM> log, IDialogService dialogService, SafetyNet net)
                                 : BaseVM(eventBus, log, dialogService), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
@@ -33,8 +33,14 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
         eventBus.DomainChanged += OnDomainChanged;
     }
     
-    public async Task OnActionExecuted(CtxMenuAction action)
+    public Task OnActionExecuted(CtxMenuAction action, IReadOnlyCollection<CardEntity> affectedCards)
     {
+        var saved = affectedCards
+            .Single(c => c.Id == Card.Id);
+            
+        if (action != CtxMenuAction.Delete)
+            Card.UpdateLastSaved(saved);
+
         switch (action)
         {
             case CtxMenuAction.Delete:
@@ -42,17 +48,11 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
                 break;
 
             case CtxMenuAction.Relocate:
-                var result = await net.TryUnsafe(
-                    () => deckRepo.GetFromCard(Card.Id),
-                    actionTried: "load the card's current deck",
-                    retry: true);
-
-                if (!result.Success)
-                    return;
-
-                Card.ChangeDeck(result.Value);
+                Card.ChangeDeck(saved.Deck);
                 break;
         }
+
+        return Task.CompletedTask;
     }
 
     protected override async Task ReloadDomainAsync()
@@ -105,7 +105,7 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
         => OnCloseRequest?.Invoke();
 
     [RelayCommand] private void ShowCtxMenu()
-        => CtxMenuVM.OpenMenu([Card]);
+        => CtxMenuVM.OpenMenu([Card.SavedEntity]);
 
     [RelayCommand] private async Task ShowDeckSelect()
     {

@@ -63,6 +63,7 @@ public sealed class CardRepo(IDbContextFactory<AppDbContext> dbFactory) : DbDepe
         await using var db = GetDb;
         return await db.Cards
             .Include(c => c.Deck)
+            .Include(c => c.Tags)
             .Where(c => cardIds.Contains(c.Id))
             .ToArrayAsync();
     }

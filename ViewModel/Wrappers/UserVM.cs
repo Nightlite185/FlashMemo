@@ -36,11 +36,6 @@ public partial class UserVM: RenameVMBase
 
     #endregion
 
-    public UserEntity ToEntity()
-    {
-        user.Name = Name;
-        return user;
-    }
 }
 
 public readonly struct UserVMStats

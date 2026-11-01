@@ -156,17 +156,23 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
         {
             Learning = await query.Learning
                 .AsNoTracking()
+                .Include(card => card.Deck)
+                .Include(card => card.Tags)
                 .ToListAsync(),
 
             Lessons = (takings.Lessons != 0) 
                 ? await query.Lessons
                     .AsNoTracking()
+                    .Include(card => card.Deck)
+                    .Include(card => card.Tags)
                     .ToListAsync()
                 : [],
 
             Reviews = (takings.Reviews != 0) 
                 ? await query.Reviews
                     .AsNoTracking()
+                    .Include(card => card.Deck)
+                    .Include(card => card.Tags)
                     .ToListAsync()
                 : []
         };

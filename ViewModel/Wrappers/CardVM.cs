@@ -7,7 +7,7 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolCard, IViewModel, ICardVM
+public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolCard, IViewModel
 {
     public CardVM(CardEntity card)
     {
@@ -17,24 +17,18 @@ public partial class CardVM: ObservableObject, IScheduleInfoCard, ILearningPoolC
         this.card = card;
     }
     
-    public CardEntity ToEntity()
-    {
-        card.Note = this.Note.ToEntity();
+    // Borrowed saved state: consumers must copy it before preparing modifications.
+    internal CardEntity SavedEntity => card;
 
-        card.ReplaceTagsWith(Tags.ToEntities());
-
-        return card;
-    }
     public void Refresh(CardEntity card)
     {
         this.card = card;
-        Note.Refresh(card.Note);
+        Note = NoteVM.Create(card.Note);
 
         Tags.Clear();
         Tags.AddRange(card.Tags.ToVMs());
+        OnPropertyChanged("");
     }
-    public void NotifyPropChanged(string name)
-        => OnPropertyChanged(name);
     #region Properties
     [ObservableProperty] public partial bool IsSelected { get; set; } = false;
     

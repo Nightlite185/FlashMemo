@@ -6,7 +6,7 @@ using FlashMemo.Services;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class EditableCardVM: ObservableObject, ICardVM
+public partial class EditableCardVM: ObservableObject
 {
     /// <summary>Deck needs to be included with card, otherwise it will throw on init.</summary>
     /// <exception cref="NullReferenceException"></exception>
@@ -28,6 +28,8 @@ public partial class EditableCardVM: ObservableObject, ICardVM
     public List<TagVM> Tags { get; init; } = [];
     public long Id => lastSaved.Id;
     public long DeckId => lastSaved.DeckId;
+    // Context operations use persisted state rather than the editor's pending changes.
+    internal CardEntity SavedEntity => lastSaved;
     #endregion
     public void RevertChanges()
     {

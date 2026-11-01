@@ -40,13 +40,6 @@ public interface IClosedHandler
 
 public interface IViewModel;
 
-public interface ICardVM
-{
-    long Id { get; }
-    long DeckId { get; }
-    CardEntity ToEntity();
-}
-
 public interface IFocusState
 {
     Task OnFocusGained();
@@ -55,7 +48,7 @@ public interface IFocusState
 
 public interface ICtxMenuHost
 {
-    Task OnActionExecuted(CtxMenuAction action);
+    Task OnActionExecuted(CtxMenuAction action, IReadOnlyCollection<CardEntity> affectedCards);
 }
 
 public interface ICardsSource<TCard> where TCard: class

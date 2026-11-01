@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Factories;
 
 public class CardEditorVMF(ICardService cardService, ICardRepo cardRepo, CardCtxMenuVMF ctxFactory, EditableCardVMF cardVMF,
-                        IVMEventBus bus, IDeckRepo deckRepo, DeckSelectVMF deckSelectVMF, CardTagsVMF tagsVMF,
+                        IVMEventBus bus, DeckSelectVMF deckSelectVMF, CardTagsVMF tagsVMF,
                         ILogger<CardEditorVM> logger, IDialogService dialogs, SafetyNet net)
 {
     public async Task<CardEditorVM?> CreateAsync(long cardId, long userId)
@@ -18,7 +18,7 @@ public class CardEditorVMF(ICardService cardService, ICardRepo cardRepo, CardCtx
 
         CardEditorVM editorVM = new(
             cardService, cardRepo, 
-            bus, deckRepo, 
+            bus,
             deckSelectVMF, cardVM,
             logger, dialogs, net);
 

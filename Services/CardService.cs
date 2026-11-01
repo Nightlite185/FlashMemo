@@ -15,6 +15,7 @@ public class CardService(IDbContextFactory<AppDbContext> factory, IMapper mapper
 
         var cardEntity = await db.Cards
             .Include(c => c.Deck)
+            .Include(c => c.Tags)
             .SingleAsync(c => c.Id == cardId);
 
         var domainCard = mapper.Map<Card>(cardEntity);

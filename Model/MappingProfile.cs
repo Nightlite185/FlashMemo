@@ -21,8 +21,10 @@ public sealed class MappingProfile: Profile
             .ForMember(tag => tag.User, opt => opt.Ignore())
             .ForMember(tag => tag.Cards, opt => opt.Ignore());
         CreateMap<CardEntity, CardEntity>()
-            // The editor supplies the selected deck after copying the saved card.
-            .ForMember(card => card.Deck, opt => opt.Ignore());
+            // Keep deck metadata without mapping Deck's IEnumerable<CardEntity> graph.
+            // Edit operations replace this reference; they do not modify the deck itself.
+            .ForMember(card => card.Deck, opt => opt.Ignore())
+            .AfterMap((source, copy) => copy.Deck = source.Deck);
 
         CreateMap<UserOptions, UserOptionsVM>();
         CreateMap<UserOptionsVM, UserOptions>();

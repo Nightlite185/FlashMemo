@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Windows;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Wrappers;
 using Expression = System.Linq.Expressions.Expression;
 
@@ -61,9 +60,6 @@ public static class Extensions
 
     public static IEnumerable<Tag> ToEntities(this IEnumerable<TagVM> tags)
         => tags.Select(t => t.ToEntity());
-
-    public static IEnumerable<CardEntity> ToEntities(this IEnumerable<ICardVM> cards)
-        => cards.Select(c => c.ToEntity());
 
     public static NoteVM ToVM(this Note note)
     {

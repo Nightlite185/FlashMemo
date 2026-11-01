@@ -244,11 +244,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
             ShowNextCard();
     }
 
-    public async Task OnActionExecuted(CtxMenuAction action)
+    public Task OnActionExecuted(CtxMenuAction action, IReadOnlyCollection<CardEntity> affectedCards)
     {
-        if (CurrentCard is null) throw new InvalidOperationException(
-            "Couldn't have called ctx menu action if current card is null");
-
         if (action is CtxMenuAction.Relocate
         or CtxMenuAction.Reschedule
         or CtxMenuAction.Bury
@@ -256,12 +253,28 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         or CtxMenuAction.Delete
         or CtxMenuAction.Forget)
         {
-            CurrentCard.IsInvalid = true;
-            ReviewedCount++;
+            var affectedById = affectedCards.ToDictionary(card => card.Id);
+            foreach (var card in allSessionCards)
+            {
+                if (!affectedById.TryGetValue(card.Id, out var saved))
+                    continue;
+
+                if (action != CtxMenuAction.Delete)
+                    card.Refresh(saved);
+
+                if (!card.IsInvalid)
+                {
+                    card.IsInvalid = true;
+                    ReviewedCount++;
+                }
+            }
 
             CardsCount.UpdateCount();
-            ShowNextCard();
+            if (CurrentCard?.IsInvalid == true)
+                ShowNextCard();
         }
+
+        return Task.CompletedTask;
     }
 
     public override async Task OnFocusGained()
@@ -372,7 +385,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
             throw new InvalidOperationException(
             "Tried opening ctx menu with no currently loaded card.");
 
-        CtxMenuVM.OpenMenu([CurrentCard]);
+        CtxMenuVM.OpenMenu([CurrentCard.SavedEntity]);
     }
 
     [RelayCommand]

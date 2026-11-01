@@ -70,13 +70,14 @@ public class CardEditorSaveWorkflowTests
     }
 
     [Fact]
-    public void Refresh_ReplacesEditorBackingNoteWithoutSharingNewSnapshot()
+    public void Revert_UsesUpdatedSavedSnapshotWithoutSharingItsNote()
     {
         var vm = CreateEditable(CreateSavedCard());
         var refreshed = CreateSavedCard();
         refreshed.NoteId = 90;
         refreshed.Note = new StandardNote { Id = 90, FrontContent = "Fresh front", BackContent = "Fresh back" };
-        vm.Refresh(refreshed);
+        vm.UpdateLastSaved(refreshed);
+        vm.RevertChanges();
         ((StandardNoteVM)vm.Note).FrontContent = "Changed after refresh";
 
         var candidate = vm.ToEntity();
@@ -100,7 +101,7 @@ public class CardEditorSaveWorkflowTests
         var bus = new Mock<IVMEventBus>();
         var dialogs = new Mock<IDialogService>();
         var editor = new CardEditorVM(service.Object, Mock.Of<ICardRepo>(), bus.Object,
-            Mock.Of<IDeckRepo>(), null!, vm, NullLogger<CardEditorVM>.Instance, dialogs.Object,
+            null!, vm, NullLogger<CardEditorVM>.Instance, dialogs.Object,
             Helpers.GetSafetyNet(dialogs.Object));
         bool closed = false;
         editor.OnCloseRequest += () => closed = true;

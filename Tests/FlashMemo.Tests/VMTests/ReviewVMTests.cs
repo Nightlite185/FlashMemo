@@ -42,6 +42,7 @@ public class ReviewVMTests: IDisposable
             .Use<ICardRepo>(new CardRepo(factory))
             .Use<ICardService>(new CardService(factory, mapper))
             .Use<ICardQueryService>(new CardQueryService(factory, counter, userOptS))
+            .Use(mapper)
             .Use(Helpers.GetSafetyNet());
 
         var vmf = mocker.CreateInstance<ReviewVMF>();
@@ -110,20 +111,21 @@ public class ReviewVMTests: IDisposable
         var vm = await Init();
 
         var DbCards = factory.CreateDbContext()
-            .Cards.ToDictionary(c => c.State);
+            .Cards.Include(card => card.Deck).Include(card => card.Tags).ToDictionary(c => c.State);
 
-        var card1 = vm.CurrentCard?.ToEntity();
-        var card2 = vm.activeCards.Pop().ToEntity();
-        var card3 = vm.activeCards.Pop().ToEntity();
+        var card1 = vm.CurrentCard?.SavedEntity;
+        var card2 = vm.activeCards.Pop().SavedEntity;
+        var card3 = vm.activeCards.Pop().SavedEntity;
 
         // according to card-by-state order from default deckOptions,
         // cards in vm's stack should be in following order:
         // 1. Learning, 2. Review, 3. Lessons
 
         // we are checking order and deep equality in the same time.
-        card1.Should().BeEquivalentTo(DbCards[CardState.Learning]);
-        card2.Should().BeEquivalentTo(DbCards[CardState.Review]);
-        card3.Should().BeEquivalentTo(DbCards[CardState.New]);
+        card1.Should().BeEquivalentTo(DbCards[CardState.Learning], options => options.Excluding(card => card.Deck));
+        card2.Should().BeEquivalentTo(DbCards[CardState.Review], options => options.Excluding(card => card.Deck));
+        card3.Should().BeEquivalentTo(DbCards[CardState.New], options => options.Excluding(card => card.Deck));
+        new[] { card1!, card2, card3 }.Should().OnlyContain(card => card.Deck.Id == deck.Id && card.Deck.Name == deck.Name);
 
         vm.CardsCount.Should().BeEquivalentTo(new CardsCount()
             {Learning = 1, Lessons  = 1, Reviews = 1}, 

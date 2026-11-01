@@ -1,7 +1,7 @@
+using AutoMapper;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
@@ -16,15 +16,21 @@ public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete 
 public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF, 
                                 IVMEventBus eventBus, IUserOptionsService userOptionsService,
                                 long userId, ICtxMenuHost host, ILogger<CardCtxMenuVM> logger, 
-                                IDialogService dialogs, ILogger<RescheduleVM> rescheduleLogger, SafetyNet net): ObservableObject
+                                IDialogService dialogs, ILogger<RescheduleVM> rescheduleLogger, SafetyNet net,
+                                IMapper mapper): ObservableObject
 {
     #region ICommands
     
     [RelayCommand]
     private async Task MoveCardsCtx()
     {
-        popupHost.CurrentPopup = await deckSelectVMF
-            .CreateAsync(MoveCards, PopupCancel, userId);
+        var result = await net.TryUnsafe(
+            () => deckSelectVMF.CreateAsync(MoveCards, PopupCancel, userId),
+            actionTried: "load the available decks",
+            retry: true);
+
+        if (result.Success)
+            popupHost.CurrentPopup = result.Value;
     }
 
     [RelayCommand]
@@ -37,34 +43,28 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     [RelayCommand]
     private async Task ForgetCardsCtx()
     {
-        await ModifyCardsHelper(
-            c => c.Forget(),
-            CardAction.Forget
-        );
-
-        await ctxHost.OnActionExecuted(CtxMenuAction.Forget);
+        await net.TryUnsafe(
+            () => ModifyCardsHelper(c => c.Forget(), CardAction.Forget, CtxMenuAction.Forget),
+            actionTried: "forget the selected cards",
+            retry: false);
     }
 
     [RelayCommand]
     private async Task ToggleBuryCtx()
     {
-        await ModifyCardsHelper(
-            c => c.FlipBuried(),
-            CardAction.Bury
-        );
-
-        await ctxHost.OnActionExecuted(CtxMenuAction.Bury);
+        await net.TryUnsafe(
+            () => ModifyCardsHelper(c => c.FlipBuried(), CardAction.Bury, CtxMenuAction.Bury),
+            actionTried: "change whether the selected cards are buried",
+            retry: false);
     }
 
     [RelayCommand]
     private async Task ToggleSuspendedCtx()
     {
-        await ModifyCardsHelper(
-            c => c.FlipSuspended(),
-            CardAction.Suspend
-        );
-
-        await ctxHost.OnActionExecuted(CtxMenuAction.Suspend);
+        await net.TryUnsafe(
+            () => ModifyCardsHelper(c => c.FlipSuspended(), CardAction.Suspend, CtxMenuAction.Suspend),
+            actionTried: "change whether the selected cards are suspended",
+            retry: false);
     }
 
     [RelayCommand]
@@ -72,11 +72,17 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     {
         ThrowIfNoCardsCaptured(nameof(DeleteCardsCtxCommand));
 
-        var cardCount = capturedCards!.Count;
-        var userOptions = await userOptionsService
-            .GetFromUser(userId);
+        var selected = capturedCards!;
+        var cardCount = selected.Count;
+        var options = await net.TryUnsafe(
+            () => userOptionsService.GetFromUser(userId),
+            actionTried: "load the card deletion preferences",
+            retry: true);
 
-        if (userOptions.ConfirmCardDeletion)
+        if (!options.Success)
+            return;
+
+        if (options.Value.ConfirmCardDeletion)
         {
             var subject = cardCount == 1
                 ? "this card"
@@ -94,17 +100,23 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
                 return;
         }
 
-        await cardRepo.DeleteCards(
-            capturedCards.Select(c => c.Id));
+        var ids = selected.Select(card => card.Id).ToHashSet();
+        if (!await net.TryUnsafe(
+            () => cardRepo.DeleteCards(ids),
+            actionTried: "delete the selected cards",
+            retry: false))
+            return;
 
+        capturedCards = [..capturedCards!.Where(card => !ids.Contains(card.Id))];
+        await ctxHost.OnActionExecuted(CtxMenuAction.Delete, selected);
         eventBus.NotifyDomain();
-        await ctxHost.OnActionExecuted(CtxMenuAction.Delete);
     }
     #endregion
     
     #region methods
-    public void OpenMenu(IReadOnlyCollection<ICardVM> selected)
-        => capturedCards = [..selected];
+    // Capture owned baselines immediately. No caller-owned entity is modified by this menu.
+    public void OpenMenu(IReadOnlyCollection<CardEntity> selected)
+        => capturedCards = mapper.Map<List<CardEntity>>(selected);
 
     ///<summary> Called when user closed ctx menu without clicking on any option </summary>
     private void ThrowIfNoCardsCaptured(string? calledMember)
@@ -116,19 +128,18 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     private void PopupCancel()
         => popupHost.CurrentPopup = null;
 
-    private async Task ModifyCardsHelper(Action<CardEntity> cardModifier, CardAction cardAction, [CallerMemberName] string? caller = null)
+    private async Task ModifyCardsHelper(Action<CardEntity> cardModifier, CardAction cardAction,
+        CtxMenuAction ctxAction, Func<CardEntity, bool>? filter = null, [CallerMemberName] string? caller = null)
     {
         ThrowIfNoCardsCaptured(caller);
 
-        // TODO: Apply modifiers to detached copies, then refresh the live VMs only after saving succeeds
-        // (or restore a complete snapshot if saving fails). ToEntities() currently returns the VMs'
-        // backing entities, so the loop below changes live state before persistence. A failed postpone
-        // leaves Due advanced in memory, and confirming again can apply the offset twice. A failed move
-        // leaves DeckId changed, so the next confirmation can filter out cards that were never moved
-        // in the database. Cover both failure/reconfirmation cases when fixing this.
-        // Popup callbacks must let exceptions reach the popup's SafetyNet. Do not swallow failures here:
-        // callers would otherwise send success notifications and the popup would close after a failed save.
-        var entities = capturedCards!.ToEntities();
+        // Every attempt starts from unchanged baselines, so a failed move/postpone can be confirmed again.
+        // Keep failures propagating to the command/popup boundary; success callbacks belong after the save.
+        var entities = mapper.Map<List<CardEntity>>(
+            capturedCards!.Where(card => filter?.Invoke(card) ?? true));
+
+        if (entities.Count == 0)
+            return;
 
         foreach (var card in entities)
             cardModifier(card);
@@ -136,6 +147,9 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
         await cardService.SaveEditedCards(
             entities, cardAction);
 
+        var savedById = entities.ToDictionary(card => card.Id);
+        capturedCards = [..capturedCards!.Select(card => savedById.GetValueOrDefault(card.Id, card))];
+        await ctxHost.OnActionExecuted(ctxAction, entities);
         eventBus.NotifyDomain();
     }
     
@@ -155,31 +169,18 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
         
         await ModifyCardsHelper(
             action,
-            CardAction.Reschedule);
-
-        await ctxHost.OnActionExecuted(CtxMenuAction.Reschedule);
+            CardAction.Reschedule, CtxMenuAction.Reschedule);
     }
 
     // Popup confirmation callback: let failures propagate to the popup's SafetyNet.
     // Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task MoveCards(IDeckMeta newDeck)
     {
-        ThrowIfNoCardsCaptured(nameof(MoveCards));
-
-        //* only take cards that arent already in that deck.
-        capturedCards = [..capturedCards!
-            .Where(c => c.DeckId != newDeck.Id)];
-
-        //* if all of them are in it -> return quickly.
-        if (capturedCards.Count == 0) 
-            return;
-
+        var target = newDeck.ToEntity();
         await ModifyCardsHelper(
-            c => c.MoveToDeck(newDeck.ToEntity()),
-            CardAction.Relocate
-        );
-
-        await ctxHost.OnActionExecuted(CtxMenuAction.Relocate);
+            c => c.MoveToDeck(target),
+            CardAction.Relocate, CtxMenuAction.Relocate,
+            filter: card => card.DeckId != target.Id);
     }
     #endregion
     
@@ -191,7 +192,7 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     private readonly ICardRepo cardRepo = cr;
     private readonly IPopupHost popupHost = pph;
     private readonly ICtxMenuHost ctxHost = host;
-    private IReadOnlyCollection<ICardVM>? capturedCards;
+    private IReadOnlyCollection<CardEntity>? capturedCards;
     private long userId = userId;
     #endregion
 }

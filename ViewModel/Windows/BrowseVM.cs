@@ -39,7 +39,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     {
         var selected = cards
             .Where(vm => vm.IsSelected)
-            .ToImmutableArray();
+            .ToImmutableList();
 
         capturedCards = selected;
         return selected;
@@ -80,7 +80,7 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
             throw new InvalidOperationException(
             "obj from the view collection has wrong type");
 
-        var note = card.Note.ToEntity() as StandardNote
+        var note = card.Note as StandardNoteVM
             ?? throw new InvalidOperationException(
             "Only standard notes allowed for now.");
 
@@ -106,37 +106,29 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     }
     public void OpenCtxMenu()
     {
-        CtxMenuVM.OpenMenu(capturedCards
-            ?? GetSelectedCards());
+        var selected = (capturedCards ?? GetSelectedCards())
+            .Select(card => card.SavedEntity)
+            .ToArray();
+
+        CtxMenuVM.OpenMenu(selected);
     }
-    public async Task OnActionExecuted(CtxMenuAction action)
+    public Task OnActionExecuted(CtxMenuAction action, IReadOnlyCollection<CardEntity> affectedCards)
     {
-        if (capturedCards is null || capturedCards.Count == 0) 
-            throw new InvalidOperationException("capturedCards was empty or null");
+        var affectedById = affectedCards.ToDictionary(card => card.Id);
+        CardVM[] affectedVMs = [..cards.Where(card => affectedById.ContainsKey(card.Id))];
 
         if (action == CtxMenuAction.Delete)
         {
-            cards.RemoveRange(capturedCards);
+            cards.RemoveRange(affectedVMs);
+            SelectedCount = cards.Count(card => card.IsSelected);
             UpdateVisibleCardsCount();
-            return;
+            return Task.CompletedTask;
         }
 
-        ImmutableArray<string>? propNames = action switch
-        {
-            CtxMenuAction.Relocate => [nameof(CardVM.DeckName)],
-            CtxMenuAction.Reschedule => rescheduleProps,
-            CtxMenuAction.Forget => rescheduleProps,
-            CtxMenuAction.Bury => [nameof(CardVM.IsBuried)],
-            CtxMenuAction.Suspend => [nameof(CardVM.IsSuspended)],
+        foreach (var card in affectedVMs)
+            card.Refresh(affectedById[card.Id]);
 
-            _ => null
-        };
-
-        if (propNames is null) return;
-
-        foreach (var card in capturedCards)
-        foreach (string name in propNames)
-            card.NotifyPropChanged(name);
+        return Task.CompletedTask;
     }
     protected override async Task ReloadDomainAsync()
         => await ApplyFiltersAsync(filtersVM.CachedFilters);
@@ -154,15 +146,6 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     #region private things
     private readonly ObservableCollection<CardVM> cards = [];
     private IReadOnlyCollection<CardVM>? capturedCards;
-    private readonly static ImmutableArray<string> rescheduleProps =
-    [
-        nameof(CardVM.State),
-        nameof(CardVM.Due),
-        nameof(CardVM.DayInterval),
-        nameof(CardVM.LearningStage),
-        nameof(CardVM.LastModified)
-    ];
-
     private void UpdateVisibleCardsCount()
     {
         if (CardsView.Count >= 0)

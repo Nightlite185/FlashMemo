@@ -139,17 +139,22 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
 
         var selectedRoots = decks.GetSelectedRoots();
 
-        var userOptionsResult = await net.TryUnsafe(
-            () => userOptionsService.GetFromUser(userId),
-            actionTried: "load the deck deletion preferences",
-            retry: true);
+        bool shouldConfirm = true;
 
-        if (!userOptionsResult.Success)
-            return;
+        try
+        {
+            shouldConfirm = (await userOptionsService
+                .GetFromUser(userId)).ConfirmDeckDeletion;
+        }
+        
+        catch (Exception e)
+        {
+            logger.LogError(e,
+                "Failed to load deck deletion preferences for user {UserId}; asking for confirmation anyway",
+                userId);
+        }
 
-        var userOptions = userOptionsResult.Value;
-
-        if (userOptions.ConfirmDeckDeletion)
+        if (shouldConfirm)
         {
             string message = (decks.Length == 1)
                 ? $"Are you sure you want to permanently delete '{decks[0].Name}'? "

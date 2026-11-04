@@ -7,6 +7,7 @@ using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Moq;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FlashMemo.Tests.VMTests;
@@ -97,6 +98,51 @@ public class DecksVMTests
         await vm.RemoveDeckCommand.ExecuteAsync(null);
 
         repo.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(DialogResult.Yes)]
+    [InlineData(DialogResult.No)]
+    public async Task RemoveDecks_WhenPreferencesFail_LogsAndUsesDeletionConfirmation(DialogResult answer)
+    {
+        var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        repo.Setup(service => service.RemoveDeck(1)).ReturnsAsync(new HashSet<long> { 1 });
+        var preferences = new Mock<IUserOptionsService>(MockBehavior.Strict);
+        var failure = new IOException();
+        preferences.Setup(service => service.GetFromUser(1)).ThrowsAsync(failure);
+        var logger = new Mock<ILogger<DecksVM>>();
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.Show("Delete deck?", It.IsAny<string>(),
+                DialogButtons.YesNo, DialogIcons.Warning))
+            .Returns(answer);
+        var vm = new DecksVM(repo.Object, null!, null!, Mock.Of<ILastSessionService>(), preferences.Object,
+            1, null!, null!, logger.Object, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object),
+            Helpers.GetMapper());
+        var deck = CreateDeck(1);
+        vm.DeckTree.Add(deck);
+        vm.SelectedDecks.Add(deck);
+
+        await vm.RemoveDeckCommand.ExecuteAsync(null);
+
+        if (answer is DialogResult.Yes)
+        {
+            vm.DeckTree.Should().BeEmpty();
+            vm.SelectedDecks.Should().BeEmpty();
+        }
+        else
+        {
+            vm.DeckTree.Should().Equal(deck);
+            vm.SelectedDecks.Should().Equal(deck);
+        }
+        repo.Verify(service => service.RemoveDeck(1), answer is DialogResult.Yes ? Times.Once() : Times.Never());
+        repo.VerifyNoOtherCalls();
+        preferences.Verify(service => service.GetFromUser(1), Times.Once);
+        preferences.VerifyNoOtherCalls();
+        logger.Verify(service => service.Log(LogLevel.Error, It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(), failure, It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+        dialogs.Verify(service => service.Show("Delete deck?", It.IsAny<string>(),
+            DialogButtons.YesNo, DialogIcons.Warning), Times.Once);
+        dialogs.VerifyNoOtherCalls();
     }
 
     [Theory]

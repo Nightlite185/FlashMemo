@@ -74,15 +74,22 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
 
         var selected = capturedCards!;
         var cardCount = selected.Count;
-        var options = await net.TryUnsafe(
-            () => userOptionsService.GetFromUser(userId),
-            actionTried: "load the card deletion preferences",
-            retry: true);
+        bool shouldConfirm = true;
 
-        if (!options.Success)
-            return;
+        try
+        {
+            shouldConfirm = (await userOptionsService
+                .GetFromUser(userId)).ConfirmCardDeletion;
+        }
+        
+        catch (Exception e)
+        {
+            logger.LogError(e,
+                "Failed to load card deletion preferences for user {UserId}; asking for confirmation anyway",
+                userId);
+        }
 
-        if (options.Value.ConfirmCardDeletion)
+        if (shouldConfirm)
         {
             var subject = cardCount == 1
                 ? "this card"

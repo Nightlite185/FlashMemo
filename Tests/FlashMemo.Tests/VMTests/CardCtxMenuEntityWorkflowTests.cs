@@ -12,6 +12,7 @@ using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -120,6 +121,41 @@ public class CardCtxMenuEntityWorkflowTests
         flow.Host.Verify(host => host.OnActionExecuted(CtxMenuAction.Suspend,
             It.IsAny<IReadOnlyCollection<CardEntity>>()), Times.Exactly(2));
         flow.Bus.Verify(bus => bus.NotifyDomain(), Times.Exactly(2));
+    }
+
+    [Theory]
+    [InlineData(DialogResult.Yes)]
+    [InlineData(DialogResult.No)]
+    public async Task DeleteCards_WhenPreferencesFail_LogsAndUsesDeletionConfirmation(DialogResult answer)
+    {
+        var logger = new Mock<ILogger<CardCtxMenuVM>>();
+        var flow = CreateWorkflow(logger: logger.Object);
+        var failure = new IOException();
+        flow.Preferences.Setup(service => service.GetFromUser(7)).ThrowsAsync(failure);
+        flow.Dialogs.Setup(service => service.Show("Delete cards?", It.IsAny<string>(),
+                DialogButtons.YesNo, DialogIcons.Warning))
+            .Returns(answer);
+        flow.Repo.Setup(repo => repo.DeleteCards(It.IsAny<IEnumerable<long>>())).Returns(Task.CompletedTask);
+        flow.Menu.OpenMenu([CreateCard(1), CreateCard(2)]);
+
+        await flow.Menu.DeleteCardsCtxCommand.ExecuteAsync(null);
+
+        var expectedCalls = answer is DialogResult.Yes ? Times.Once() : Times.Never();
+        flow.Repo.Verify(repo => repo.DeleteCards(It.Is<IEnumerable<long>>(ids =>
+            ids.Order().SequenceEqual(new long[] { 1, 2 }))), expectedCalls);
+        flow.Repo.VerifyNoOtherCalls();
+        flow.Host.Verify(host => host.OnActionExecuted(CtxMenuAction.Delete,
+            It.Is<IReadOnlyCollection<CardEntity>>(cards => cards.Count == 2)), expectedCalls);
+        flow.Host.VerifyNoOtherCalls();
+        flow.Bus.Verify(bus => bus.NotifyDomain(), expectedCalls);
+        flow.Bus.VerifyNoOtherCalls();
+        flow.Preferences.Verify(service => service.GetFromUser(7), Times.Once);
+        flow.Preferences.VerifyNoOtherCalls();
+        logger.Verify(service => service.Log(LogLevel.Error, It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(), failure, It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+        flow.Dialogs.Verify(service => service.Show("Delete cards?", It.IsAny<string>(),
+            DialogButtons.YesNo, DialogIcons.Warning), Times.Once);
+        flow.Dialogs.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -323,7 +359,8 @@ public class CardCtxMenuEntityWorkflowTests
     }
 
     private static Workflow CreateWorkflow(ICtxMenuHost? host = null, IPopupHost? popup = null,
-        ICardService? persistingService = null, IVMEventBus? eventBus = null)
+        ICardService? persistingService = null, IVMEventBus? eventBus = null,
+        ILogger<CardCtxMenuVM>? logger = null)
     {
         var service = new Mock<ICardService>(MockBehavior.Strict);
         var hostMock = new Mock<ICtxMenuHost>(MockBehavior.Strict);
@@ -341,7 +378,7 @@ public class CardCtxMenuEntityWorkflowTests
         var bus = new Mock<IVMEventBus>();
         var rescheduleFactory = new RescheduleVMF(NullLogger<RescheduleVM>.Instance, dialogs.Object, net);
         var menuFactory = new CardCtxMenuVMF(repo.Object, persistingService ?? service.Object,
-            eventBus ?? bus.Object, deckFactory, preferences.Object, NullLogger<CardCtxMenuVM>.Instance,
+            eventBus ?? bus.Object, deckFactory, preferences.Object, logger ?? NullLogger<CardCtxMenuVM>.Instance,
             dialogs.Object, net, Helpers.GetMapper(), rescheduleFactory);
         var menu = menuFactory.Create(popup, host ?? hostMock.Object, 7);
         return new(menu, service, hostMock, popup, bus, repo, preferences, dialogs, target);

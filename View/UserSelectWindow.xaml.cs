@@ -81,17 +81,15 @@ namespace FlashMemo.View
             });
         }
 
-        private void CreateButton_Click(object sender, RoutedEventArgs e)
+        private async void CreateButton_Click(object sender, RoutedEventArgs e)
         {
             string name = VM.NewUsernameField;
 
             if (IsNameConflicting(name))
                 return;
 
-            VM.CreateUserCommand.ExecuteAsync(name);
-
-            VM.NewUsernameField = "";
             Keyboard.ClearFocus();
+            await VM.CreateUserCommand.ExecuteAsync(name);
         }
 
         private void NewUserNameBox_KeyDown(object sender, KeyEventArgs e)

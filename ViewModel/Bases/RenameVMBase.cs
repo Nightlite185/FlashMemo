@@ -68,13 +68,11 @@ public abstract partial class RenameVMBase: ObservableObject, IViewModel
 
     protected virtual void OnRenameCommitted(string name) { }
 
-    // User and preset renaming still use the synchronous workflow for now.
+    [Obsolete("preset renaming still use the synchronous workflow for now. Replace with RenameAsync call.")]
     public string CommitRename()
     {
         if (string.IsNullOrEmpty(TempName))
-            throw new InvalidOperationException(); //TODO: replace with silent cancellation.
-
-        // TODO: return false or sth when temp is same as the old name
+            throw new InvalidOperationException();
 
         Name = TempName;
         IsRenaming = false;

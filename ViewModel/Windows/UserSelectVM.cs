@@ -11,8 +11,8 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuilder, ILoginService loginService, 
                                 ILastSessionService lastSession, IUserOptionsService userOptionsService,
-                                ILogger<UserSelectVM> logger, IDialogService dialogs, long? currentUserId = null
-                                ): ObservableObject, IViewModel, ICloseRequest
+                                ILogger<UserSelectVM> logger, IDialogService dialogs, SafetyNet net,
+                                long? currentUserId = null): ObservableObject, IViewModel, ICloseRequest
 {
     public bool IsNameAvailable(string name)
         => !Users.Any(u => u.Name == name);
@@ -32,8 +32,13 @@ public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuild
     [RelayCommand]
     private async Task RenameUser(UserVM user)
     {
-        string newName = user.CommitRename();
-        await userRepo.Rename(user.Id, newName);
+        await user.RenameAsync(
+            name => net.TryUnsafe(
+                () => userRepo.Rename(user.Id, name),
+                actionTried: "rename the user",
+                retry: false
+            )
+        );
     }
 
     [RelayCommand]
@@ -52,9 +57,19 @@ public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuild
         }
 
         var preferenceOwnerId = currentUserId ?? toRemove.Id;
-        bool shouldConfirm = (await userOptionsService
-            .GetFromUser(preferenceOwnerId))
-            .ConfirmUserDeletion;
+        bool shouldConfirm = true;
+
+        try
+        {
+            shouldConfirm = (await userOptionsService
+                .GetFromUser(preferenceOwnerId)).ConfirmUserDeletion;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e,
+                "Failed to load deletion preferences for user {UserId}; asking for confirmation anyway",
+                preferenceOwnerId);
+        }
 
         if (shouldConfirm)
         {
@@ -71,28 +86,53 @@ public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuild
                 return;
         }
 
-        await userRepo.Remove(toRemove.Id);
+        if (!await net.TryUnsafe(
+            () => userRepo.Remove(toRemove.Id),
+            actionTried: "remove the user",
+            retry: false))
+            return;
+
         Users.Remove(toRemove);
 
         if (lastSession.LastUserId == toRemove.Id)
-            await lastSession.ClearLastUserAsync();
+        {
+            try { await lastSession.ClearLastUserAsync(); }
+
+            catch (Exception e)
+            {
+                logger.LogError(e, "failed to clear last logged user of id = {UserId}", lastSession.LastUserId);
+            }
+        }
     }
 
     [RelayCommand]
     private async Task CreateUser(string name)
     {
         var user = UserEntity.Create(name);
-        user = await userRepo.CreateNew(user);
-        var vm = userVMBuilder.BuildUncounted(user);
-        
-        Users.Add(vm);
+
+        var saveRes = await net.TryUnsafe(
+            () => userRepo.CreateNew(user),
+            actionTried: "create new user.",
+            retry: false);
+
+        if (!saveRes.Success) return;
+
+        user = saveRes.Value;
+        Users.Add(userVMBuilder.BuildUncounted(user));
+
+        if (NewUsernameField == name)
+            NewUsernameField = "";
     }
 
     [RelayCommand]
     private async Task Login(UserVM toLogin)
     {
-        if (currentUserId != toLogin.Id)
-            await loginService.ChangeUser(toLogin.Id);
+        if (currentUserId != toLogin.Id
+            && !await net.TryUnsafe(
+                () => loginService.ChangeUser(toLogin.Id),
+                actionTried: "log in to the selected user",
+                retry: false))
+            return;
 
         OnCloseRequest?.Invoke();
     }

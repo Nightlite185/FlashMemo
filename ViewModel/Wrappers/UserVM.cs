@@ -19,6 +19,9 @@ public partial class UserVM: RenameVMBase
 
     private readonly UserEntity user;
 
+    protected override void OnRenameCommitted(string name)
+        => user.Name = name;
+
     #region Public properties
     public long Id => user.Id;
     

@@ -9,7 +9,7 @@ namespace FlashMemo.ViewModel.Factories;
 
 public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls,
                             ILastSessionService lss, IUserOptionsService userOptionsService,
-                            ILogger<UserSelectVM> logger, IDialogService dialogs)
+                            ILogger<UserSelectVM> logger, IDialogService dialogs, SafetyNet net)
 {
     private readonly IUserRepo userRepo = ur;
     private readonly ILastSessionService lastSession = lss;
@@ -38,7 +38,8 @@ public class UserSelectVMF(IUserRepo ur, IUserVMBuilder uvmb, ILoginService ls,
         var vm = new UserSelectVM(
             userRepo, userVMBuilder, 
             loginService, lastSession,
-            userOptionsService, logger, dialogs, currentUserId);
+            userOptionsService, logger,
+            dialogs, net, currentUserId);
     
         vm.Users.AddRange(
             await userVMBuilder.BuildAllCounted());

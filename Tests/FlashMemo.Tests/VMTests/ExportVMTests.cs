@@ -289,7 +289,7 @@ public class ExportVMTests : IDisposable
             .Returns(DialogResult.No);
         var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
             dialogs.Object, () => closed++, [1], [CreateDeck(1, "Deck")],
-            NullLogger<ExportVM>.Instance)
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object))
         {
             Format = format,
             ExportPath = path
@@ -336,7 +336,7 @@ public class ExportVMTests : IDisposable
             closed++;
             contentWhenClosed = File.Exists(path) ? File.ReadAllText(path) : null;
         }, [1], [deck],
-            NullLogger<ExportVM>.Instance)
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object))
         {
             Format = format,
             ExportPath = path
@@ -435,7 +435,7 @@ public class ExportVMTests : IDisposable
         bool closed = false;
         var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
             Mock.Of<IDialogService>(), () => closed = true, [], [],
-            NullLogger<ExportVM>.Instance);
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
         vm.Format = ExportFormat.csv;
         vm.ExportPath = Path.Combine(exportDirectory.FullName, "all-cards.csv");
 
@@ -542,7 +542,7 @@ public class ExportVMTests : IDisposable
                 cardQuery ?? Mock.Of<ICardQueryService>(),
                 new ExportService(serializer ?? Mock.Of<INoteSerializer>()),
                 counter.Object, Mock.Of<IDialogService>(),
-                NullLogger<ExportVM>.Instance)
+                NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet())
             .CreateAsync(userId, deckTree ?? [CreateDeck(1, "Deck")], cancel ?? (() => { }));
 
         vm.Should().NotBeNull();

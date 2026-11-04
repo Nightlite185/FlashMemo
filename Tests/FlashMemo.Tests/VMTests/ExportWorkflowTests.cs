@@ -62,8 +62,7 @@ public class ExportWorkflowTests
             .ThrowsAsync(new IOException("File is locked"))
             .ThrowsAsync(new UnauthorizedAccessException("Access denied"))
             .Returns(Task.CompletedTask);
-        dialogs.Setup(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
-                DialogButtons.RetryCancel, DialogIcons.Error))
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
             .Callback(() =>
             {
                 closed.Should().Be(0);
@@ -78,8 +77,8 @@ public class ExportWorkflowTests
         exporter.Verify(service => service.PrepareTxt(It.IsAny<IEnumerable<CardEntity>>(), " - ", '\n'), Times.Once);
         query.Verify(service => service.GetCardsWhere(It.IsAny<Filters>(),
             CardsOrder.Created, SortingDirection.Ascending), Times.Once);
-        dialogs.Verify(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.RetryCancel, DialogIcons.Error), Times.Exactly(2));
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel),
+            Times.Exactly(2));
         exporter.VerifyNoOtherCalls();
         query.VerifyNoOtherCalls();
         dialogs.VerifyNoOtherCalls();
@@ -94,16 +93,16 @@ public class ExportWorkflowTests
         var (vm, _, exporter, dialogs) = CreateWorkflow(() => closed++);
         Exception failure = accessDenied ? new UnauthorizedAccessException() : new IOException();
         exporter.Setup(service => service.SaveAsync("prepared content", vm.ExportPath)).ThrowsAsync(failure);
-        dialogs.Setup(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.RetryCancel, DialogIcons.Error)).Returns(DialogResult.Cancel);
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
+            .Returns(DialogResult.Cancel);
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
         closed.Should().Be(0);
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
         exporter.Verify(service => service.SaveAsync("prepared content", vm.ExportPath), Times.Once);
-        dialogs.Verify(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.RetryCancel, DialogIcons.Error), Times.Once);
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel),
+            Times.Once);
         dialogs.VerifyNoOtherCalls();
     }
 
@@ -191,7 +190,7 @@ public class ExportWorkflowTests
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
         var vm = new ExportVM(7, query.Object, exporter.Object, dialogs.Object, close ?? (() => { }),
             [1], deckTree ?? [new DeckNode(new Deck { Id = 1, Name = "Deck" }, [])],
-            NullLogger<ExportVM>.Instance)
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object))
         {
             ExportPath = Path.Combine(Path.GetTempPath(), $"FlashMemo-{Guid.NewGuid():N}.txt")
         };

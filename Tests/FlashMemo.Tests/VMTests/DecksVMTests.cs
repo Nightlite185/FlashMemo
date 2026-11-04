@@ -19,7 +19,7 @@ public class DecksVMTests
         var counter = new Mock<ICountingService>(MockBehavior.Strict);
         var factory = new ExportVMF(
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
-            NullLogger<ExportVM>.Instance);
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
             NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
 
@@ -46,7 +46,7 @@ public class DecksVMTests
             .ReturnsAsync(1);
         var factory = new ExportVMF(
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
-            NullLogger<ExportVM>.Instance);
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
             NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
         vm.DeckTree.Add(parent);

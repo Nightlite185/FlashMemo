@@ -21,7 +21,7 @@ public class ExportVMFTests
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
         dialogs.Setup(service => service.ShowNoCardsFoundToExport());
         var factory = new ExportVMF(query.Object, exporter.Object, counter.Object, dialogs.Object,
-            NullLogger<ExportVM>.Instance);
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object));
 
         var vm = await factory.CreateAsync(7, [CreateDeck(1)], () => { });
 
@@ -52,7 +52,7 @@ public class ExportVMFTests
             .ReturnsAsync(1);
         var factory = new ExportVMF(
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
-            NullLogger<ExportVM>.Instance);
+            NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
 
         var vm = await factory.CreateAsync(7, selection, () => { });
 

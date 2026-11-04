@@ -20,7 +20,7 @@ public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 
 public partial class ExportVM(long userId, ICardQueryService cardQService, IExportService exporter, 
                             IDialogService dialogs, Action cancel, ICollection<long> flatDeckIds, 
-                            ICollection<DeckNode> deckTree, ILogger<ExportVM> logger)
+                            ICollection<DeckNode> deckTree, ILogger<ExportVM> logger, SafetyNet net)
                             : PopupVMBase(cancel), IViewModel
 {
     #region public properties
@@ -129,12 +129,19 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     #region methods
     protected override async Task Confirm()
     {
+        #region Snapshotting UI props and validation
+
         ValidateAllProperties();
 
         if (HasErrors)
             return;
 
         var format = Format;
+        string path = ExportPath;
+        string fieldSep = FieldSeparator;
+        char noteSep = (format == ExportFormat.txt)
+            ? ToChar(NoteSep) : default;
+
         var columns = CsvColumns.Where(c => c.IsSelected)
             .Select(c => new CsvExportColumn(c.Name, c.PropSelector)).ToArray();
 
@@ -143,12 +150,6 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
             dialogs.ShowError("Select at least one column to export.");
             return;
         }
-
-        string path = ExportPath;
-        string fieldSep = FieldSeparator;
-
-        char noteSep = (format == ExportFormat.txt )
-            ? ToChar(NoteSep) : default;
         
         if (File.Exists(path))
         {
@@ -161,84 +162,66 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
             if (answer != DialogResult.Yes)
                 return;
         }
+        #endregion
 
-        string content;
+        var prepared = await net.TryUnsafe(
+            () => PrepareContentAsync(format, fieldSep, noteSep, columns),
+            actionTried: "prepare content to export",
+            retry: false);
 
-        try
-        {
-            var cards = flatDeckIds.Count > 0
-                ? await cardQService.GetCardsWhere(
-                    new Filters
-                    {
-                        UserId = userId,
-                        DeckIds = [.. flatDeckIds],
-                        IncludeChildrenDecks = true
-                    }, CardsOrder.Created, SortingDirection.Ascending)
-
-                : await cardQService.GetAllFromUser(userId);
-
-            if (cards.Count == 0)
-            {
-                dialogs.ShowNoCardsFoundToExport();
-
-                Close();
-                return;
-            }
-
-            switch (format)
-            {
-                case ExportFormat.txt:
-                    content = exporter.PrepareTxt(cards, fieldSep, noteSep);
-                    break;
-
-                case ExportFormat.csv:
-                    var paths = GetFullPaths(deckTree);
-
-                    if (paths.Count != flatDeckIds.Count)
-                    {
-                        dialogs.ShowError(
-                            "Something went wrong while trying to build deck hierarchical paths.");
-                        return;
-                    }
-                    
-                    content = exporter.PrepareCsv(cards, paths, columns);
-                    break;
-
-                default:
-                    throw new NotSupportedException($"{format} not supported");
-            }
-        }
-        catch
-        {
-            dialogs.ShowError("Something went wrong while preparing content to export. Try again later.");
+        if (!prepared.Success || prepared.Value is null)
             return;
-        }
 
-        await SaveWithRetry(content, path);
+        var saveSuccess = await net.TryUnsafe(
+            () => exporter.SaveAsync(prepared.Value, path),
+            actionTried: $"export cards to {Format} format",
+            retry: true);
+
+        if (saveSuccess) Close();
     }
 
-    private async Task SaveWithRetry(string content, string path)
+    private async Task<string?> PrepareContentAsync(
+        ExportFormat format, string fieldSep, 
+        char noteSep, IEnumerable<CsvExportColumn> columns)
     {
-        while (true)
+        var cards = flatDeckIds.Count > 0
+            ? await cardQService.GetCardsWhere(
+                new Filters
+                {
+                    UserId = userId,
+                    DeckIds = [.. flatDeckIds],
+                    IncludeChildrenDecks = true
+                }, CardsOrder.Created, SortingDirection.Ascending)
+
+            : await cardQService.GetAllFromUser(userId);
+
+        if (cards.Count == 0)
         {
-            try { await exporter.SaveAsync(content, path); }
-
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-            {
-                var answer = dialogs.Show(
-                    title: "Failed to export content.",
-                    message: $"Error: {e.Message}",
-                    buttons: DialogButtons.RetryCancel,
-                    icon: DialogIcons.Error);
-
-                if (answer is DialogResult.Retry or DialogResult.TryAgain)
-                    continue;
-
-                return;
-            }
+            dialogs.ShowNoCardsFoundToExport();
 
             Close();
-            return;
+            return null;
+        }
+
+        switch (format)
+        {
+            case ExportFormat.txt:
+                return exporter.PrepareTxt(cards, fieldSep, noteSep);
+
+            case ExportFormat.csv:
+                var paths = GetFullPaths(deckTree);
+
+                if (paths.Count != flatDeckIds.Count)
+                {
+                    dialogs.ShowError(
+                        "Something went wrong while trying to build deck hierarchical paths.");
+                        
+                    return null;
+                }
+
+                return exporter.PrepareCsv(cards, paths, columns);
+
+            default: throw new NotSupportedException($"{format} not supported");
         }
     }
 

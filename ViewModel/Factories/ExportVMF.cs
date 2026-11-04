@@ -8,7 +8,7 @@ namespace FlashMemo.ViewModel.Factories;
 
 public class ExportVMF(ICardQueryService cardQService, IExportService exporter,
                         ICountingService counter, IDialogService dialogs,
-                        ILogger<ExportVM> logger)
+                        ILogger<ExportVM> logger, SafetyNet net)
 {
     public async Task<ExportVM?> CreateAsync(long userId, IEnumerable<DeckNode> deckTree, Action cancel)
     {
@@ -29,7 +29,7 @@ public class ExportVMF(ICardQueryService cardQService, IExportService exporter,
             userId, cardQService, 
             exporter, dialogs, cancel, 
             flatIds, selectedRoots,
-            logger);
+            logger, net);
 
         vm.ErrorsChanged += (_, _) => vm.ConfirmCommand.NotifyCanExecuteChanged();
         vm.Validate();

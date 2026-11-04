@@ -102,14 +102,7 @@ public partial class DecksUC: UserControl
         if (e.Key != Key.Enter)
             return;
 
-        if (string.IsNullOrWhiteSpace(deck.TempName))
-        {
-            deck.CancelRenameCommand.Execute(null);
-        }
-        else
-        {
-            await vm.RenameDeckCommand.ExecuteAsync(deck);
-        }
+        await vm.RenameDeckCommand.ExecuteAsync(deck);
 
         e.Handled = true;
     }

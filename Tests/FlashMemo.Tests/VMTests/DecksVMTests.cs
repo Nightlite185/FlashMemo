@@ -206,7 +206,9 @@ public class DecksVMTests
 
         var saving = vm.RenameDeckCommand.ExecuteAsync(deck);
         deck.Name.Should().Be("Deck 1");
+        deck.SavedEntity.Name.Should().Be("Deck 1");
         deck.IsRenaming.Should().BeTrue();
+        deck.TempName.Should().Be("New name");
 
         if (succeeds)
             completion.SetResult();
@@ -215,7 +217,9 @@ public class DecksVMTests
         await saving;
 
         deck.Name.Should().Be(succeeds ? "New name" : "Deck 1");
+        deck.SavedEntity.Name.Should().Be(succeeds ? "New name" : "Deck 1");
         deck.IsRenaming.Should().Be(!succeeds);
+        deck.TempName.Should().Be(succeeds ? null : "New name");
         repo.Verify(service => service.RenameDeck(1, "New name"), Times.Once);
         repo.VerifyNoOtherCalls();
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK),
@@ -253,10 +257,10 @@ public class DecksVMTests
         deck.AddChild(child);
         oldParent?.AddChild(deck);
 
-        // A prior rename updates Name without changing the backing entity.
+        // A successful prior rename also updates the saved backing entity.
         deck.BeginRenameCommand.Execute(null);
         deck.TempName = "Renamed deck";
-        deck.CommitRename();
+        await deck.RenameAsync(_ => Task.FromResult(true));
 
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Deck? submitted = null;
@@ -285,7 +289,7 @@ public class DecksVMTests
         submitted.ParentDeckId.Should().Be(newParent?.Id);
         deck.SavedEntity.Should().BeSameAs(original);
         original.ParentDeckId.Should().Be(oldParent?.Id);
-        original.Name.Should().Be("Original name");
+        original.Name.Should().Be("Renamed deck");
         deck.Parent.Should().BeSameAs(oldParent);
         vm.DeckTree.Should().Equal(originalRoots);
         oldParent?.Children.Should().Equal(deck);

@@ -202,26 +202,13 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     [RelayCommand]
     private async Task RenameDeck(DeckNode deck)
     {
-        string? newName = deck.TempName;
-        
-        if (string.IsNullOrWhiteSpace(newName))
-        {
-            dialogs.Show(
-                title: "Deck name required",
-                message: "Please enter a name for the deck.",
-                buttons: DialogButtons.OK,
-                icon: DialogIcons.Warning);
-            return;
-        }
-
-        if (!await net.TryUnsafe(
-            () => deckRepo.RenameDeck(deck.Id, newName),
-            actionTried: "rename the deck",
-            retry: false))
-            return;
-
-        deck.TempName = newName;
-        deck.CommitRename();
+        await deck.RenameAsync(
+            name => net.TryUnsafe(
+                action: () => deckRepo.RenameDeck(deck.Id, name),
+                actionTried: "rename the deck",
+                retry: false
+            )
+        );
     }
 
     [RelayCommand(CanExecute = nameof(CanReparentDeck))]
@@ -236,8 +223,6 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
 
         var edited = mapper.Map<Deck>(deck.SavedEntity);
 
-        // Rename commits the displayed name separately from the backing entity.
-        edited.Name = deck.Name;
         edited.ParentDeckId = newParent?.Id;
 
         if (!await net.TryUnsafe(

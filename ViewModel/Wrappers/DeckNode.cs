@@ -39,6 +39,9 @@ public partial class DeckNode : RenameVMBase, IDeckMeta
     // Borrowed saved state: consumers must copy it before preparing modifications.
     internal Deck SavedEntity => deck;
 
+    protected override void OnRenameCommitted(string name)
+        => deck.Name = name;
+
     public void Refresh(Deck deck)
     {
         this.deck = deck;

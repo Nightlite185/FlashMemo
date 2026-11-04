@@ -98,6 +98,7 @@ public partial class App : Application
         
         #region VM FACTORIES
         sc.AddSingleton<ExportVMF>();
+        sc.AddSingleton<RescheduleVMF>();
         sc.AddSingleton<DeckOptionsMenuVMF>();
         sc.AddSingleton<DeckSelectVMF>();
         sc.AddSingleton<CardCtxMenuVMF>();

@@ -1,6 +1,7 @@
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
@@ -42,8 +43,8 @@ public class PopupConfirmationTests
                 NullLogger<CreateDeckVM>.Instance, dialogs.Object, net) { NameField = "New deck" },
             "deck" => new DeckSelectVM(_ => Confirm(), Close, [deck],
                 NullLogger<DeckSelectVM>.Instance, dialogs.Object, net) { SelectedDeck = deck },
-            "reschedule" => new RescheduleVM(_ => Confirm(), Close,
-                NullLogger<RescheduleVM>.Instance, dialogs.Object, net),
+            "reschedule" => new RescheduleVMF(NullLogger<RescheduleVM>.Instance, dialogs.Object, net)
+                .Create(_ => Confirm(), Close),
             "note" => new NoteTypeSelectVM(_ => Confirm(), Close, net),
             _ => throw new ArgumentOutOfRangeException(nameof(kind))
         };

@@ -339,9 +339,11 @@ public class CardCtxMenuEntityWorkflowTests
         var repo = new Mock<ICardRepo>(MockBehavior.Strict);
         var preferences = new Mock<IUserOptionsService>(MockBehavior.Strict);
         var bus = new Mock<IVMEventBus>();
-        var menu = new CardCtxMenuVM(persistingService ?? service.Object, repo.Object, popup, deckFactory,
-            eventBus ?? bus.Object, preferences.Object, 7, host ?? hostMock.Object, NullLogger<CardCtxMenuVM>.Instance,
-            dialogs.Object, NullLogger<RescheduleVM>.Instance, net, Helpers.GetMapper());
+        var rescheduleFactory = new RescheduleVMF(NullLogger<RescheduleVM>.Instance, dialogs.Object, net);
+        var menuFactory = new CardCtxMenuVMF(repo.Object, persistingService ?? service.Object,
+            eventBus ?? bus.Object, deckFactory, preferences.Object, NullLogger<CardCtxMenuVM>.Instance,
+            dialogs.Object, net, Helpers.GetMapper(), rescheduleFactory);
+        var menu = menuFactory.Create(popup, host ?? hostMock.Object, 7);
         return new(menu, service, hostMock, popup, bus, repo, preferences, dialogs, target);
     }
 

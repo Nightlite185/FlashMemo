@@ -13,11 +13,11 @@ namespace FlashMemo.ViewModel.Other;
 
 public enum CtxMenuAction { Relocate, Reschedule, Forget, Bury, Suspend, Delete }
 
-public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF, 
+public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph, DeckSelectVMF dsVMF,
                                 IVMEventBus eventBus, IUserOptionsService userOptionsService,
-                                long userId, ICtxMenuHost host, ILogger<CardCtxMenuVM> logger, 
-                                IDialogService dialogs, ILogger<RescheduleVM> rescheduleLogger, SafetyNet net,
-                                IMapper mapper): ObservableObject
+                                long userId, ICtxMenuHost host, ILogger<CardCtxMenuVM> logger,
+                                IDialogService dialogs, SafetyNet net, IMapper mapper, 
+                                RescheduleVMF rescheduleVMF): ObservableObject
 {
     #region ICommands
     
@@ -36,8 +36,8 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     [RelayCommand]
     private void ShowRescheduleCtx() // this lets u choose datetime OR postpone by days. Choose whether keep interval. 
     {
-        popupHost.CurrentPopup = new RescheduleVM( // TODO: add a factory for this popup vm, since it's grown.
-            RescheduleCards, PopupCancel, rescheduleLogger, dialogs, net);
+        popupHost.CurrentPopup = rescheduleVMF.Create(
+            confirm: RescheduleCards, cancel: PopupCancel);
     }
 
     [RelayCommand]

@@ -2,21 +2,22 @@ using AutoMapper;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Other;
-using FlashMemo.ViewModel.Popups;
 using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class CardCtxMenuVMF(ICardRepo cr, ICardService cs, IVMEventBus bus,
-                            DeckSelectVMF dsVMF, IUserOptionsService userOptionsService, ILogger<CardCtxMenuVM> logger,
-                            IDialogService dialogs, ILogger<RescheduleVM> rescheduleLogger, SafetyNet net, IMapper mapper)
+public class CardCtxMenuVMF(ICardRepo cr, ICardService cs, IVMEventBus bus, 
+                            DeckSelectVMF dsVMF, IUserOptionsService userOptionsService, 
+                            ILogger<CardCtxMenuVM> logger, IDialogService dialogs, 
+                            SafetyNet net, IMapper mapper, RescheduleVMF rescheduleVMF)
 {
     public CardCtxMenuVM Create(IPopupHost pph, ICtxMenuHost host, long userId)
     {
         return new(
             cs, cr, pph, dsVMF,
             bus, userOptionsService,
-            userId, host,
-            logger, dialogs, rescheduleLogger, net, mapper);
+            userId, host, logger, 
+            dialogs, net, mapper, 
+            rescheduleVMF);
     }
 }

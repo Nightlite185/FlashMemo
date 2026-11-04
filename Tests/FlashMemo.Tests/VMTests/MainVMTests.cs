@@ -18,7 +18,7 @@ public class MainVMTests
         var deckRepo = new Mock<IDeckRepo>(MockBehavior.Strict);
         var deck = new DeckNode(new Deck { Id = 10, UserId = 7, Name = "Selected deck" }, []);
         var decksVM = new DecksVM(null!, null!, null!, null!, null!, 7, null!, null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
         decksVM.SelectedDecks.Add(deck);
         var vm = new MainVM(
             Mock.Of<ILastSessionService>(), deckRepo.Object, Mock.Of<IVMEventBus>(), 7,
@@ -65,7 +65,7 @@ public class MainVMTests
         {
             CurrentDisplay = new DecksVM(
                 null!, null!, null!, null!, null!, userId, null!, null!,
-                NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet())
+                NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper())
         };
 
         NavigationRequest? navigation = null;
@@ -167,7 +167,7 @@ public class MainVMTests
             .Returns(DialogResult.OK);
 
         var decksVM = new DecksVM(null!, null!, null!, null!, null!, userId, null!, null!,
-            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object));
+            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object), Helpers.GetMapper());
         for (int i = 0; i < selectedCount; i++)
             decksVM.SelectedDecks.Add(new DeckNode(
                 new Deck { Id = i + 1, UserId = userId, Name = $"Deck {i + 1}" }, []));

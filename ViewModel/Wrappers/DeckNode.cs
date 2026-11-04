@@ -8,8 +8,9 @@ namespace FlashMemo.ViewModel.Wrappers;
 
 public partial class DeckNode : RenameVMBase, IDeckMeta
 {
-    private readonly Deck deck;
-    public DeckNode(Deck deck, ICollection<DeckNode> children, DeckNode? parent = null, CardsCount? countByState = null)
+    private Deck deck;
+    public DeckNode(Deck deck, ICollection<DeckNode> children,
+                    DeckNode? parent = null, CardsCount? countByState = null)
     {
         this.deck = deck;
         this.Parent = parent;
@@ -35,6 +36,16 @@ public partial class DeckNode : RenameVMBase, IDeckMeta
     #endregion
     
     #region methods
+    // Borrowed saved state: consumers must copy it before preparing modifications.
+    internal Deck SavedEntity => deck;
+
+    public void Refresh(Deck deck)
+    {
+        this.deck = deck;
+        Name = deck.Name;
+        OnPropertyChanged(string.Empty);
+    }
+
     public void SetCardCount(CardsCount? cc)
     {
         if (cc is CardsCount validCC)

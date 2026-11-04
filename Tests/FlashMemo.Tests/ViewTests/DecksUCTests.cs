@@ -312,7 +312,7 @@ public class DecksUCTests(WpfTestHost host)
         var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
         repo.Setup(r => r.SaveEditedDeck(It.IsAny<Deck>())).Returns(Task.CompletedTask);
         var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
         vm.DeckTree.Add(new(new Deck { Id = 1, UserId = 1, Name = "First" }, []));
         vm.DeckTree.Add(new(new Deck { Id = 2, UserId = 1, Name = "Second" }, []));
         var view = new DecksUC { DataContext = vm };

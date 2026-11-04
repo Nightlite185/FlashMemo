@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Helpers;
@@ -16,7 +17,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM,
                             ILastSessionService lastSession, IUserOptionsService userOptionsService,
                             long userId, IVMEventBus bus, ExportVMF exportVMF, ILogger<DecksVM> log,
-                            IDialogService dialogService, CreateDeckVMF createDeckVMF, SafetyNet net)
+                            IDialogService dialogService, CreateDeckVMF createDeckVMF, SafetyNet net, IMapper mapper)
                             : BaseVM(bus, log, dialogService), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
@@ -202,6 +203,7 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     private async Task RenameDeck(DeckNode deck)
     {
         string? newName = deck.TempName;
+        
         if (string.IsNullOrWhiteSpace(newName))
         {
             dialogs.Show(
@@ -225,29 +227,36 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     [RelayCommand(CanExecute = nameof(CanReparentDeck))]
     private async Task ReparentDeck(DeckReparentRequest request)
     {
+        if (!CanReparentDeck(request))
+            return;
+
         DeckNode deck = request.Deck;
         DeckNode? oldParent = deck.Parent;
         DeckNode? newParent = request.NewParent;
 
+        var edited = mapper.Map<Deck>(deck.SavedEntity);
+
+        // Rename commits the displayed name separately from the backing entity.
+        edited.Name = deck.Name;
+        edited.ParentDeckId = newParent?.Id;
+
+        if (!await net.TryUnsafe(
+            action: () => deckRepo.SaveEditedDeck(edited),
+            actionTried: "reparent the deck",
+            retry: false))
+            return;
+
+        if (oldParent is null)
+            DeckTree.Remove(deck);
+
+        deck.Reparent(newParent);
+
         if (newParent is null)
-        {
-            if (oldParent is null)
-                return;
-
-            oldParent.RemoveChild(deck);
             DeckTree.Add(deck);
-        }
 
-        else
-        {
-            if (oldParent is null)
-                DeckTree.Remove(deck);
+        else newParent.IsExpanded = true;
 
-            deck.Reparent(newParent);
-            newParent.IsExpanded = true;
-        }
-
-        await deckRepo.SaveEditedDeck(deck.ToEntity());
+        deck.Refresh(edited);
     }
 
     private static bool CanReparentDeck(DeckReparentRequest? request)

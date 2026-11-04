@@ -29,7 +29,9 @@ public abstract partial class RenameVMBase: ObservableObject, IViewModel
     public string CommitRename()
     {
         if (string.IsNullOrEmpty(TempName))
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(); //TODO: replace with silent cancellation.
+
+        // TODO: return false or sth when temp is same as the old name
 
         Name = TempName;
         IsRenaming = false;

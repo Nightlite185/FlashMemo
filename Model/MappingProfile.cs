@@ -26,6 +26,14 @@ public sealed class MappingProfile: Profile
             .ForMember(card => card.Deck, opt => opt.Ignore())
             .AfterMap((source, copy) => copy.Deck = source.Deck);
 
+        // Deck edits persist scalar values, not the related entity graph.
+        CreateMap<Deck, Deck>()
+            .ForMember(deck => deck.Options, opt => opt.Ignore())
+            .ForMember(deck => deck.User, opt => opt.Ignore())
+            .ForMember(deck => deck.Cards, opt => opt.Ignore())
+            .ForMember(deck => deck.ChildrenDecks, opt => opt.Ignore())
+            .ForMember(deck => deck.ParentDeck, opt => opt.Ignore());
+
         CreateMap<UserOptions, UserOptionsVM>();
         CreateMap<UserOptionsVM, UserOptions>();
         #endregion

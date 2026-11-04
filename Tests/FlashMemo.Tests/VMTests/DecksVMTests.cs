@@ -21,7 +21,7 @@ public class DecksVMTests
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
 
         Func<Task> showExport = () => vm.ShowExportMenuCommand.ExecuteAsync(null);
 
@@ -48,7 +48,7 @@ public class DecksVMTests
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
         vm.DeckTree.Add(parent);
         vm.DeckTree.Add(unselected);
         vm.SelectedDecks.Add(parent);
@@ -77,7 +77,7 @@ public class DecksVMTests
         builder.Setup(service => service.BuildCountedAsync(1))
             .ReturnsAsync(new[] { newDeck });
         var vm = new DecksVM(null!, builder.Object, null!, null!, null!, 1, null!, null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
         vm.DeckTree.Add(oldDeck);
         vm.SelectedDecks.Add(oldDeck);
 
@@ -92,7 +92,7 @@ public class DecksVMTests
     {
         var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
         var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
 
         await vm.RemoveDeckCommand.ExecuteAsync(null);
 
@@ -126,7 +126,7 @@ public class DecksVMTests
             1,
             null!,
             null!,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet());
+            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
 
         DeckNode parent = CreateDeck(1);
         DeckNode child = CreateDeck(2);
@@ -168,7 +168,7 @@ public class DecksVMTests
         dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
             .Returns(DialogResult.OK);
         var vm = new DecksVM(deckRepo.Object, null!, null!, lastSession.Object, userOptions.Object,
-            1, null!, null!, NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object));
+            1, null!, null!, NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object), Helpers.GetMapper());
         DeckNode[] decks = [CreateDeck(1), CreateDeck(2), CreateDeck(3)];
         foreach (var deck in decks)
         {
@@ -199,7 +199,7 @@ public class DecksVMTests
         repo.Setup(service => service.RenameDeck(1, "New name")).Returns(completion.Task);
         var dialogs = new Mock<IDialogService>();
         var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
-            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object));
+            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object), Helpers.GetMapper());
         var deck = CreateDeck(1);
         deck.BeginRenameCommand.Execute(null);
         deck.TempName = "New name";
@@ -217,6 +217,122 @@ public class DecksVMTests
         deck.Name.Should().Be(succeeds ? "New name" : "Deck 1");
         deck.IsRenaming.Should().Be(!succeeds);
         repo.Verify(service => service.RenameDeck(1, "New name"), Times.Once);
+        repo.VerifyNoOtherCalls();
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK),
+            succeeds ? Times.Never() : Times.Once());
+    }
+
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, false, false)]
+    public async Task ReparentDeck_ChangesTreeAndSavedEntityOnlyAfterSuccessfulSave(
+        bool startsAtRoot, bool movesToRoot, bool succeeds)
+    {
+        var oldParent = startsAtRoot ? null : CreateDeck(2);
+        var newParent = movesToRoot ? null : CreateDeck(3);
+        var original = new Deck
+        {
+            Id = 1,
+            Name = "Original name",
+            UserId = 7,
+            OptionsId = 42,
+            Created = new DateTime(2025, 6, 15),
+            ParentDeckId = oldParent?.Id
+        };
+        var deck = new DeckNode(original, [],
+            countByState: new CardsCount { Lessons = 2, Learning = 3, Reviews = 4 })
+        {
+            IsSelected = true,
+            IsExpanded = true
+        };
+        var child = CreateDeck(4);
+        deck.AddChild(child);
+        oldParent?.AddChild(deck);
+
+        // A prior rename updates Name without changing the backing entity.
+        deck.BeginRenameCommand.Execute(null);
+        deck.TempName = "Renamed deck";
+        deck.CommitRename();
+
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Deck? submitted = null;
+        var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        repo.Setup(service => service.SaveEditedDeck(It.IsAny<Deck>()))
+            .Callback<Deck>(edited => submitted = edited)
+            .Returns(completion.Task);
+        var dialogs = new Mock<IDialogService>();
+        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 7, null!, null!,
+            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object),
+            Helpers.GetMapper());
+        vm.DeckTree.Add(oldParent ?? deck);
+        if (newParent is not null)
+            vm.DeckTree.Add(newParent);
+        vm.SelectedDecks.Add(deck);
+        var originalRoots = vm.DeckTree.ToArray();
+
+        var saving = vm.ReparentDeckCommand.ExecuteAsync(new(deck, newParent));
+
+        submitted.Should().NotBeNull().And.NotBeSameAs(original);
+        submitted!.Id.Should().Be(original.Id);
+        submitted.Name.Should().Be("Renamed deck");
+        submitted.UserId.Should().Be(original.UserId);
+        submitted.OptionsId.Should().Be(original.OptionsId);
+        submitted.Created.Should().Be(original.Created);
+        submitted.ParentDeckId.Should().Be(newParent?.Id);
+        deck.SavedEntity.Should().BeSameAs(original);
+        original.ParentDeckId.Should().Be(oldParent?.Id);
+        original.Name.Should().Be("Original name");
+        deck.Parent.Should().BeSameAs(oldParent);
+        vm.DeckTree.Should().Equal(originalRoots);
+        oldParent?.Children.Should().Equal(deck);
+        newParent?.Children.Should().BeEmpty();
+        newParent?.IsExpanded.Should().BeFalse();
+
+        if (succeeds)
+            completion.SetResult();
+        else
+            completion.SetException(new IOException());
+        await saving;
+
+        if (succeeds)
+        {
+            deck.SavedEntity.Should().BeSameAs(submitted);
+            deck.Parent.Should().BeSameAs(newParent);
+            oldParent?.Children.Should().BeEmpty();
+            if (newParent is null)
+                vm.DeckTree.Should().Equal(oldParent!, deck);
+            else
+            {
+                newParent.Children.Should().Equal(deck);
+                newParent.IsExpanded.Should().BeTrue();
+                vm.DeckTree.Should().NotContain(deck);
+            }
+        }
+        else
+        {
+            deck.SavedEntity.Should().BeSameAs(original);
+            deck.Parent.Should().BeSameAs(oldParent);
+            vm.DeckTree.Should().Equal(originalRoots);
+            oldParent?.Children.Should().Equal(deck);
+            newParent?.Children.Should().BeEmpty();
+            newParent?.IsExpanded.Should().BeFalse();
+        }
+
+        // Moving the existing node preserves its subtree and view state.
+        deck.Children.Should().Equal(child);
+        child.Parent.Should().BeSameAs(deck);
+        deck.IsExpanded.Should().BeTrue();
+        deck.IsSelected.Should().BeTrue();
+        deck.LessonsCount.Should().Be(2);
+        deck.LearningCount.Should().Be(3);
+        deck.ReviewsCount.Should().Be(4);
+        vm.SelectedDecks.Should().Equal(deck);
+        original.ParentDeckId.Should().Be(oldParent?.Id);
+        repo.Verify(service => service.SaveEditedDeck(It.IsAny<Deck>()), Times.Once);
         repo.VerifyNoOtherCalls();
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK),
             succeeds ? Times.Never() : Times.Once());

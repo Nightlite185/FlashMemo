@@ -54,6 +54,10 @@ public partial class App : Application
         {
             await sp.GetRequiredService<WindowService>()
                 .ShowUserSelect(currentUserId: null);
+
+            // Cancelling the startup chooser must also exit with explicit shutdown enabled.
+            if (!Windows.OfType<MainWindow>().Any(w => w.IsVisible))
+                Shutdown();
         }
 
         else

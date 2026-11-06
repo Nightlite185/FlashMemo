@@ -12,6 +12,64 @@ namespace FlashMemo.Tests.VMTests;
 
 public class MainVMTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OpeningDialog_BlocksAnotherRequestAndRestoresInputAfterCompletion(bool fails)
+    {
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var dialogs = new Mock<IDialogService>();
+        var vm = new MainVM(Mock.Of<ILastSessionService>(), Mock.Of<IDeckRepo>(), Mock.Of<IVMEventBus>(), 7,
+            NullLogger<MainVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
+        var requests = new List<NavigationRequest>();
+        vm.NavRequested += request =>
+        {
+            requests.Add(request);
+            return requests.Count == 1 ? completion.Task : Task.CompletedTask;
+        };
+
+        var opening = vm.ShowBrowseCommand.ExecuteAsync(null);
+        vm.IsOpeningDialog.Should().BeTrue();
+        await vm.ShowUserOptionsCommand.ExecuteAsync(null);
+        requests.Should().ContainSingle().Which.Should().BeOfType<BrowseNavRequest>();
+
+        if (fails)
+            completion.SetException(new IOException());
+        else
+            completion.SetResult();
+        await opening;
+
+        vm.IsOpeningDialog.Should().BeFalse();
+        await vm.ShowUserOptionsCommand.ExecuteAsync(null);
+        requests.Should().HaveCount(2);
+        requests[1].Should().BeOfType<UserOptionsNavRequest>();
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK),
+            fails ? Times.Once() : Times.Never());
+    }
+
+    [Fact]
+    public async Task PreparingCreateCard_BlocksNavigationWhileItsDeckIsStillLoading()
+    {
+        var completion = new TaskCompletionSource<Deck>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var decks = new Mock<IDeckRepo>();
+        decks.Setup(repo => repo.GetFirst(7)).Returns(completion.Task);
+        var vm = new MainVM(Mock.Of<ILastSessionService>(), decks.Object, Mock.Of<IVMEventBus>(), 7,
+            NullLogger<MainVM>.Instance, Mock.Of<IDialogService>(), Helpers.GetSafetyNet());
+        var requests = new List<NavigationRequest>();
+        vm.NavRequested += request => { requests.Add(request); return Task.CompletedTask; };
+
+        var opening = vm.ShowCreateCardCommand.ExecuteAsync(null);
+        vm.IsOpeningDialog.Should().BeTrue();
+        await vm.ShowBrowseCommand.ExecuteAsync(null);
+        requests.Should().BeEmpty();
+
+        completion.SetResult(new Deck { Id = 10, UserId = 7, Name = "Deck" });
+        await opening;
+
+        requests.Should().ContainSingle().Which.Should().BeOfType<CreateCardNavRequest>();
+        vm.IsOpeningDialog.Should().BeFalse();
+    }
+
     [Fact]
     public async Task ShowCreateCard_WhenOneDeckIsSelected_UsesSelectedDeck()
     {

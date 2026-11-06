@@ -23,7 +23,7 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
     public void RegisterNavBubbling(INavRequestSender vm)
         => vm.NavRequested += NavigateTo;
 
-    protected async Task NavigateTo(NavigationRequest where)
+    protected virtual async Task NavigateTo(NavigationRequest where)
     {
         if (NavRequested is not null)
             await NavRequested(where);

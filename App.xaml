@@ -7,7 +7,8 @@
             xmlns:xceed="http://schemas.xceed.com/wpf/xaml/toolkit"
             xmlns:helpers="clr-namespace:FlashMemo.Helpers"
             xmlns:popups="clr-namespace:FlashMemo.ViewModel.Popups"
-            xmlns:local="clr-namespace:FlashMemo">
+            xmlns:local="clr-namespace:FlashMemo"
+            ShutdownMode="OnExplicitShutdown">
 
     <Application.Resources>
 

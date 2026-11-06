@@ -142,56 +142,79 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
     }
     internal void WireEvents(IViewModel vm, Window win)
     {
-        if (vm is INavRequestSender nrs)
-            nrs.NavRequested += NavRequestHandler;
+        win.DataContext = vm;
+        AttachVM(vm);
 
-        if (vm is ICloseRequest cr)
-            cr.OnCloseRequest += win.Close;
-
-        if (vm is IClosedHandler ch)
-            win.Closed += (_, _) => ch.OnClosed();
-
-        if (vm is IFocusState fs)
+        // Window handlers are attached once and always use the current VM.
+        win.DataContextChanged += (_, e) =>
         {
-            win.Activated += (_, _) => fs.OnFocusGained();
-            win.Deactivated += (_, _) => fs.OnFocusLost();
+            DetachVM(e.OldValue);
+            (e.OldValue as IClosedHandler)?.OnClosed();
+            AttachVM(e.NewValue);
+        };
+
+        win.Closed += (_, _) =>
+        {
+            DetachVM(win.DataContext);
+            (win.DataContext as IClosedHandler)?.OnClosed();
+        };
+
+        win.Activated += async (_, _) =>
+        {
+            if (win.DataContext is IFocusState current)
+                await current.OnFocusGained();
+        };
+        win.Deactivated += (_, _) => (win.DataContext as IFocusState)?.OnFocusLost();
+
+        bool checkingClose = false;
+        bool allowClose = false;
+        win.Closing += async (_, e) =>
+        {
+            if (allowClose)
+            {
+                allowClose = false;
+                return;
+            }
+
+            if (win.DataContext is not IClosingAware current)
+                return;
+
+            // WPF does not await Closing handlers: cancel before the first await.
+            e.Cancel = true;
+            if (checkingClose)
+                return;
+
+            checkingClose = true;
+            try
+            {
+                if (await current.CanCloseAsync())
+                {
+                    // Queue the approved close so a synchronous decision cannot reenter Closing.
+                    await win.Dispatcher.InvokeAsync(() =>
+                    {
+                        allowClose = true;
+                        win.Close();
+                    });
+                }
+            }
+            finally { checkingClose = false; }
+        };
+
+        void AttachVM(object? model)
+        {
+            if (model is INavRequestSender navigation)
+                navigation.NavRequested += NavRequestHandler;
+            if (model is ICloseRequest close)
+                close.OnCloseRequest += win.Close;
         }
 
-        if (vm is IClosingAware ac)
+        void DetachVM(object? model)
         {
-            bool checkingClose = false;
-            bool allowClose = false;
-            win.Closing += async (_, e) =>
-            {
-                if (allowClose)
-                {
-                    allowClose = false;
-                    return;
-                }
-
-                // WPF does not await Closing handlers: cancel before the first await.
-                e.Cancel = true;
-                if (checkingClose)
-                    return;
-
-                checkingClose = true;
-                try
-                {
-                    if (await ac.CanCloseAsync())
-                    {
-                        // Queue the approved close so a synchronous decision cannot reenter Closing.
-                        await win.Dispatcher.InvokeAsync(() =>
-                        {
-                            allowClose = true;
-                            win.Close();
-                        });
-                    }
-                }
-                finally
-                {
-                    checkingClose = false;
-                }
-            };
+            // VM-owned events must release their subscriptions when its window closes or VM changes.
+            if (model is INavRequestSender navigation)
+                navigation.NavRequested -= NavRequestHandler;
+            if (model is ICloseRequest close)
+                close.OnCloseRequest -= win.Close;
         }
     }
     #endregion

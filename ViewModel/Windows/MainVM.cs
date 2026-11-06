@@ -1,10 +1,8 @@
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
-using FlashMemo.View;
 using FlashMemo.ViewModel.Bases;
 using Microsoft.Extensions.Logging;
 
@@ -20,6 +18,30 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
         display = dsControl;
         await display.SwitchToDecks(UserId);
     }
+
+    public override void OnClosed()
+    {
+        if (CurrentDisplay is IClosedHandler current)
+            current.OnClosed();
+
+        base.OnClosed();
+    }
+
+    protected override Task NavigateTo(NavigationRequest where)
+        => OpenDialogAsync(() => base.NavigateTo(where));
+
+    private async Task OpenDialogAsync(Func<Task> open)
+    {
+        if (IsOpeningDialog)
+            return;
+
+        IsOpeningDialog = true;
+        try { await open(); }
+        finally { IsOpeningDialog = false; }
+    }
+
+    [ObservableProperty]
+    public partial bool IsOpeningDialog { get; private set; }
 
     [ObservableProperty]
     //* current User Control being displayed in the main window, bound to this VM
@@ -49,18 +71,16 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
     [RelayCommand]
     private async Task ShowChangeUser()
     {
-        //* closing all windows despite Main (singleton),
-        //* to avoid stale state and restart based on new user
-        
-        foreach (var view in App.Current.Windows)
-            if (view is Window win and not MainWindow)
-                win.Close();
-
-        await NavigateTo(new UserSelectNavRequest(UserId));
+        await net.TryUnsafe(
+            () => NavigateTo(new UserSelectNavRequest(UserId)),
+            actionTried: "open the user selection window",
+            retry: false);
     }
 
     [RelayCommand]
-    private async Task ShowCreateCard()
+    private Task ShowCreateCard() => OpenDialogAsync(PrepareCreateCardAsync);
+
+    private async Task PrepareCreateCardAsync()
     {
         IDeckMeta? deck = null;
 
@@ -125,7 +145,7 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
         }
         
         await net.TryUnsafe(
-            () => NavigateTo(new CreateCardNavRequest(deck)),
+            () => base.NavigateTo(new CreateCardNavRequest(deck)),
             actionTried: "open the card creation window",
             retry: false);
     }

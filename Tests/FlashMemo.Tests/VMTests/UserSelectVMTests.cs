@@ -187,7 +187,7 @@ public class UserSelectVMTests
     [InlineData(true)]
     public async Task Login_ClosesOnlyAfterSuccessfulUserChange(bool succeeds)
     {
-        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var login = new Mock<ILoginService>(MockBehavior.Strict);
         login.Setup(service => service.ChangeUser(2)).Returns(completion.Task);
         var dialogs = new Mock<IDialogService>();
@@ -199,7 +199,7 @@ public class UserSelectVMTests
         closeRequests.Should().Be(0);
 
         if (succeeds)
-            completion.SetResult();
+            completion.SetResult(true);
         else
             completion.SetException(new IOException());
         await loggingIn;
@@ -209,6 +209,23 @@ public class UserSelectVMTests
         login.VerifyNoOtherCalls();
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK),
             succeeds ? Times.Never() : Times.Once());
+    }
+
+    [Fact]
+    public async Task Login_WhenSwitchingIsDeclined_KeepsTheChooserOpenWithoutAnErrorDialog()
+    {
+        var login = new Mock<ILoginService>();
+        login.Setup(service => service.ChangeUser(2)).ReturnsAsync(false);
+        var dialogs = new Mock<IDialogService>();
+        var vm = CreateVM(login: login.Object, dialogs: dialogs.Object);
+        bool closed = false;
+        vm.OnCloseRequest += () => closed = true;
+
+        await vm.LoginCommand.ExecuteAsync(CreateUser(2));
+
+        closed.Should().BeFalse();
+        login.Verify(service => service.ChangeUser(2), Times.Once);
+        dialogs.VerifyNoOtherCalls();
     }
 
     [Fact]

@@ -8,7 +8,7 @@ namespace FlashMemo.Services;
 
 public interface ILoginService
 {
-    Task ChangeUser(long userId);
+    Task<bool> ChangeUser(long userId);
 }
 
 public interface IDeckTreeBuilder

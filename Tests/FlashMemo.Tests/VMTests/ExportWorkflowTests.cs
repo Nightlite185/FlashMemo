@@ -34,8 +34,9 @@ public class ExportWorkflowTests
         var deck = new DeckNode(new Deck { Id = 1, Name = "Original" }, []);
         var (vm, _, exporter, _) = CreateWorkflow(deckTree: [deck]);
         vm.Format = ExportFormat.csv;
+        deck.BeginRenameCommand.Execute(null);
         deck.TempName = "Renamed before confirming";
-        deck.CommitRename();
+        await deck.RenameAsync(_ => Task.FromResult(true));
         exporter.VerifyNoOtherCalls();
         exporter.Setup(service => service.PrepareCsv(It.IsAny<IEnumerable<CardEntity>>(),
                 It.Is<IReadOnlyDictionary<long, string>>(paths => paths.Count == 1

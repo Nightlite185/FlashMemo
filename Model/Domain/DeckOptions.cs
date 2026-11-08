@@ -30,7 +30,7 @@ public record DeckOptions
     }
 
     public long Id { get; internal set; }
-    public string Name { get; init; } = null!;
+    public string Name { get; internal set; } = null!;
     public long? UserId { get; init; }
     
     #region sub-options properties

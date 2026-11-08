@@ -300,12 +300,12 @@ public sealed partial class DeckOptionsMenuVM(
     [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
     private async Task RenamePreset(DeckOptionsVM options)
     {
-        options.CommitRename();
-        
-        await deckOptService.Rename(
-            options.Name, options.Id);
+        var success = await options.RenameAsync(name => net.TryUnsafe(
+            () => deckOptService.Rename(options.Name, options.Id),
+            actionTried: "Rename the deck options preset",
+            retry: false));
 
-        lastSaved = mapper.Map<DeckOptions>(options);
+        if (success) lastSaved.Name = options.Name;
     }
     #endregion
 }

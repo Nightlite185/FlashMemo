@@ -67,16 +67,4 @@ public abstract partial class RenameVMBase: ObservableObject, IViewModel
     }
 
     protected virtual void OnRenameCommitted(string name) { }
-
-    [Obsolete("preset renaming still use the synchronous workflow for now. Replace with RenameAsync call.")]
-    public string CommitRename()
-    {
-        if (string.IsNullOrEmpty(TempName))
-            throw new InvalidOperationException();
-
-        Name = TempName;
-        IsRenaming = false;
-
-        return Name;
-    }
 }

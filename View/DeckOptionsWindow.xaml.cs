@@ -16,28 +16,19 @@ public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
 
     private async void PresetSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count == 0)
+        if (e.AddedItems.Count == 0 || e.AddedItems[0] is not DeckOptionsVM selected)
             return;
 
         var combo = (ComboBox)sender;
-        var neww = e.AddedItems[0] as DeckOptionsVM;
 
-        var old = e.RemovedItems.Count == 0
-            ? null 
-            : e.RemovedItems[0] as DeckOptionsVM;
-
-        if (old == neww || neww == VM.CurrentOptions) 
+        if (selected == VM.CurrentOptions)
             return;
-        
-        if (old is not null && !await VM.CanDiscardAsync())
-        {
-            // Restore UI only (VM untouched)
-            combo.SelectedItem = old;
-            return;
-        }
 
-        // NOW commit to VM
-        VM.ChangePresetCommand.Execute(neww);
+        if (VM.ChangePresetCommand.CanExecute(selected))
+            await VM.ChangePresetCommand.ExecuteAsync(selected);
+
+        // A cancelled discard prompt leaves the previous preset selected.
+        combo.SetCurrentValue(ComboBox.SelectedItemProperty, VM.CurrentOptions);
     }
 
     private async void CreatePresetBox_KeyDown(object sender, KeyEventArgs e)
@@ -60,12 +51,14 @@ public partial class DeckOptionsWindow : Window, IViewFor<DeckOptionsMenuVM>
         }
 
         await VM.AddNewPresetCommand.ExecuteAsync(null);
-        VM.CancelCreatePresetCommand.Execute(null);
         e.Handled = true;
     }
 
     private void CreatePresetBox_LostFocus(object sender, RoutedEventArgs e)
     {
+        if (VM.AddNewPresetCommand.IsRunning)
+            return;
+
         Keyboard.ClearFocus();
         VM.CancelCreatePresetCommand.Execute(null);
     }

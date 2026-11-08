@@ -62,11 +62,11 @@ public sealed partial class DeckOptionsMenuVM(
         AllPresets.AddRange(
             await vmBuilder.BuildAllCounted(deck.UserId));
 
-        CurrentOptions = AllPresets.Single(
+        var current = AllPresets.Single(
             p => p.Id == deck.OptionsId);
         
-        lastSaved = mapper
-            .Map<DeckOptions>(CurrentOptions);
+        lastSaved = mapper.Map<DeckOptions>(current);
+        CurrentOptions = current;
     }
     private static void ThrowIfDefault(DeckOptionsVM opt)
     {
@@ -75,10 +75,22 @@ public sealed partial class DeckOptionsMenuVM(
     }
     public async Task<bool> CanRemovePreset()
     {
-        var userOptions = await userOptionsService
-            .GetFromUser(deck.UserId);
+        bool shouldConfirm = true;
 
-        if (!userOptions.ConfirmPresetDeletion)
+        try
+        {
+            shouldConfirm = (await userOptionsService
+                .GetFromUser(deck.UserId)).ConfirmPresetDeletion;
+        }
+
+        catch (Exception e)
+        {
+            logger.LogError(e,
+                "Failed to load preset deletion preferences for user {UserId}; asking for confirmation anyway",
+                deck.UserId);
+        }
+
+        if (!shouldConfirm)
             return true;
 
         var result = dialogs.Show(
@@ -138,38 +150,6 @@ public sealed partial class DeckOptionsMenuVM(
         eventBus.NotifyDeckOpt();
         return assigned;
     }
-    private async Task MaybeSwitchCurrent(DeckOptionsVM newPreset)
-    {
-        if (!IsCurrentModified)
-        {
-            ChangePreset(newPreset);
-            return;
-        }
-
-        var answer = dialogs.Show(
-            title: "Unsaved changes",
-
-            message: "You have unsaved changes. "
-                + "Do you want to save current preset and switch to the newly created one? "
-                + "\"No\" will discard and switch, \"Cancel\" will not switch at all.",
-
-            buttons: DialogButtons.YesNoCancel,
-            icon: DialogIcons.Question
-        );
-
-        switch (answer)
-        {
-            case DialogResult.Yes:
-                if (await SaveCore())
-                    ChangePreset(newPreset);
-                break;
-
-            case DialogResult.No:
-                mapper.Map(lastSaved, CurrentOptions);
-                ChangePreset(newPreset);
-                break;
-        }
-    }
     #endregion
 
     #region private things
@@ -197,15 +177,22 @@ public sealed partial class DeckOptionsMenuVM(
         if (!await CanRemovePreset())
             return;
 
+        var removing = CurrentOptions;
+        bool success = await net.TryUnsafe(
+            action: () => deckOptService.Remove(removing.Id),
+            actionTried: "remove a deck options preset.",
+            retry: false);
+
+        if (!success) return;
+
+        var defaultVM = AllPresets.Single(
+            o => o.Id == DeckOptions.DefaultId);
+
+        defaultVM.DeckCount += removing.DeckCount;
         deck.OptionsId = DeckOptions.DefaultId;
-
-        AllPresets.Remove(CurrentOptions);
-        await deckOptService.Remove(CurrentOptions.Id);
-
-        CurrentOptions = AllPresets.Single(o =>
-            o.Id == DeckOptions.DefaultId);
-
-        lastSaved = mapper.Map<DeckOptions>(CurrentOptions);
+        lastSaved = DeckOptions.Default;
+        CurrentOptions = defaultVM;
+        AllPresets.Remove(removing);
         eventBus.NotifyDeckOpt();
     }
 
@@ -215,15 +202,21 @@ public sealed partial class DeckOptionsMenuVM(
         var domainClone = mapper.Map<DeckOptions>(CurrentOptions) with
         {
             Id = 0,
-            Name = $"{CurrentOptions.Name} - copy"
+            Name = $"{CurrentOptions.Name} - copy",
+            UserId = deck.UserId
         };
 
-        domainClone = await deckOptService.CreateNew(domainClone);
+        var result = await net.TryUnsafe(
+            () => deckOptService.CreateNew(domainClone),
+            actionTried: "clone the deck options preset.",
+            retry: false);
+
+        if (!result.Success) return;
         
-        var cloneVM = mapper.Map<DeckOptionsVM>(domainClone);
+        var cloneVM = mapper.Map<DeckOptionsVM>(result.Value);
         AllPresets.Add(cloneVM);
 
-        await MaybeSwitchCurrent(cloneVM);
+        await ChangePreset(cloneVM);
     }
 
     [RelayCommand]
@@ -235,12 +228,18 @@ public sealed partial class DeckOptionsMenuVM(
         var newPreset = DeckOptions
             .CreateNew(NewPresetName, deck.UserId);
 
-        newPreset = await deckOptService.CreateNew(newPreset);
-        
-        var newVM = mapper.Map<DeckOptionsVM>(newPreset);
-        AllPresets.Add(newVM);
+        var result = await net.TryUnsafe(
+            () => deckOptService.CreateNew(newPreset),
+            actionTried: "create the deck options preset.",
+            retry: false);
 
-        await MaybeSwitchCurrent(newVM);
+        if (!result.Success) return;
+        
+        var newVM = mapper.Map<DeckOptionsVM>(result.Value);
+        AllPresets.Add(newVM);
+        CancelCreatePreset();
+
+        await ChangePreset(newVM);
     }
 
     [RelayCommand]
@@ -278,13 +277,21 @@ public sealed partial class DeckOptionsMenuVM(
     }
 
     [RelayCommand]
-    private void ChangePreset(DeckOptionsVM chosenPreset)
+    private async Task ChangePreset(DeckOptionsVM chosenPreset)
     {
+        if (chosenPreset == CurrentOptions)
+            return;
+
+        // A selection is a draft. SaveCore is the only code that persists the deck assignment.
+        if (!await CanDiscardAsync())
+            return;
+
         CurrentOptions.DeckCount--; // decrementing previous preset's deck count
         chosenPreset.DeckCount++; // incrementing new one's
         
-        CurrentOptions = chosenPreset;
         deck.OptionsId = chosenPreset.Id;
+        lastSaved = mapper.Map<DeckOptions>(chosenPreset);
+        CurrentOptions = chosenPreset;
 
         if (AllPresets.Any(p => p.DeckCount < 0))
             throw new InvalidOperationException(
@@ -293,19 +300,24 @@ public sealed partial class DeckOptionsMenuVM(
         if (CurrentOptions.DeckCount < 1)
             throw new InvalidOperationException(
             $"Current preset needs to have deck count of at least 1, but it was {CurrentOptions.DeckCount}.");
-
-        lastSaved = mapper.Map<DeckOptions>(chosenPreset);
     }
 
     [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
     private async Task RenamePreset(DeckOptionsVM options)
     {
+        ThrowIfDefault(options);
+
         var success = await options.RenameAsync(name => net.TryUnsafe(
-            () => deckOptService.Rename(options.Name, options.Id),
+            () => deckOptService.Rename(name, options.Id),
             actionTried: "Rename the deck options preset",
             retry: false));
 
-        if (success) lastSaved.Name = options.Name;
+        if (!success) return;
+
+        if (lastSaved.Id == options.Id)
+            lastSaved = lastSaved with { Name = options.Name };
+
+        eventBus.NotifyDeckOpt();
     }
     #endregion
 }

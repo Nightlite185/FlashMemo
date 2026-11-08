@@ -44,6 +44,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
             "Cannot delete default deck options preset.");
 
         await using var db = GetDb;
+        await using var transaction = await db.Database.BeginTransactionAsync();
 
         //* replacing all references to removed preset's id with -1 (default one).
         await db.Decks
@@ -56,6 +57,7 @@ public class DeckOptionsService(IDbContextFactory<AppDbContext> dbFactory, IMapp
             .Where(x => x.Id == presetId)
             .ExecuteDeleteAsync();
 
+        await transaction.CommitAsync();
     }
     public async Task AssignToDeck(long deckId, long newPresetId)
     {

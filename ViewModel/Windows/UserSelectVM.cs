@@ -129,13 +129,12 @@ public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuild
     {
         if (currentUserId != toLogin.Id)
         {
-            var login = await net.TryUnsafe(
+            bool success = await net.TryUnsafe(
                 () => loginService.ChangeUser(toLogin.Id),
                 actionTried: "log in to the selected user",
                 retry: false);
 
-            if (!login.Success || !login.Value) // TODO: add a overload in net that would return just bool, for action arg typed as Func<Task<bool>>
-                return;
+            if (!success) return;
         }
 
         OnCloseRequest?.Invoke();

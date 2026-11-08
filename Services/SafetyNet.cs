@@ -6,6 +6,18 @@ namespace FlashMemo.Services;
 public class SafetyNet(ILogger<SafetyNet> logger, IDialogService dialogs)
 {
     public async Task<bool> TryUnsafe(
+        Func<Task<bool>> action, string actionTried, bool retry,
+        [CallerMemberName] string caller = "",
+        [CallerArgumentExpression(nameof(action))] string operation = "")
+    {
+        var result = await TryUnsafe<bool>(
+            action, actionTried,
+            retry, caller, operation);
+
+        return result.Success && result.Value;
+    }
+
+    public async Task<bool> TryUnsafe(
         Func<Task> action, string actionTried, bool retry,
         [CallerMemberName] string caller = "",
         [CallerArgumentExpression(nameof(action))] string operation = "")

@@ -16,7 +16,8 @@ public class SessionExitTests
         var session = new Mock<ILastSessionService>();
         session.Setup(service => service.SaveStateAsync()).Returns(completion.Task);
         var logger = new Mock<ILogger<MainWindowBootstrapper>>();
-        var bootstrapper = new MainWindowBootstrapper(null!, session.Object, logger.Object);
+        var bootstrapper = new MainWindowBootstrapper(null!, session.Object, logger.Object,
+            Mock.Of<IDialogService>());
 
         var saving = bootstrapper.SaveSessionOnExitAsync();
         saving.IsCompleted.Should().BeFalse();

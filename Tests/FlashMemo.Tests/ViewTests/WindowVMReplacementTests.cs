@@ -1,8 +1,10 @@
 using System.Reflection;
 using System.Windows;
 using FlashMemo.Services;
+using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
+using FlashMemo.ViewModel.Windows;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -55,16 +57,83 @@ public class WindowVMReplacementTests(WpfTestHost host)
         var session = new Mock<ILastSessionService>(MockBehavior.Strict);
         var cards = new Mock<ICardService>(MockBehavior.Strict);
         var dialogs = new Mock<IDialogService>();
-        var login = new LoginService(null!, null!, cards.Object, session.Object, dialogs.Object);
+        var bootstrapper = new MainWindowBootstrapper(null!, session.Object,
+            NullLogger<MainWindowBootstrapper>.Instance, dialogs.Object);
+        var login = new LoginService(null!, bootstrapper, cards.Object, session.Object, dialogs.Object);
 
-        login.ChangeUser(7).GetAwaiter().GetResult().Should().BeFalse();
+        try
+        {
+            login.ChangeUser(7).GetAwaiter().GetResult().Should().BeFalse();
 
-        closed.Should().BeFalse();
-        dialogs.Verify(service => service.Show("Close other windows", It.IsAny<string>(),
-            DialogButtons.OK, DialogIcons.Warning), Times.Once);
-        session.VerifyNoOtherCalls();
-        cards.VerifyNoOtherCalls();
-        other.Close();
+            closed.Should().BeFalse();
+            dialogs.Verify(service => service.Show("Close other windows", It.IsAny<string>(),
+                DialogButtons.OK, DialogIcons.Warning), Times.Once);
+            session.VerifyNoOtherCalls();
+            cards.VerifyNoOtherCalls();
+        }
+        finally { other.Close(); }
+    });
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public Task SwitchingUsers_WithOnlyMainAndChooserWindows_IsAllowed(bool hasMain, bool hasChooser)
+        => host.Run(() =>
+    {
+        var main = hasMain ? new MainWindow() : null;
+        var chooser = hasChooser ? new UserSelectWindow() : null;
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        var bootstrapper = new MainWindowBootstrapper(null!, null!,
+            NullLogger<MainWindowBootstrapper>.Instance, dialogs.Object);
+
+        try
+        {
+            bootstrapper.EnsureReadyForSwitch().Should().BeTrue();
+            dialogs.VerifyNoOtherCalls();
+        }
+        finally
+        {
+            chooser?.Close();
+            main?.Close();
+        }
+    });
+
+    [Fact]
+    public Task ActivatingMainVM_ReusesTheWindowAndReleasesThePreviousVM() => host.Run(() =>
+    {
+        var window = new MainWindow();
+        var service = new WindowService(null!, null!, null!, null!, null!, null!, null!,
+            NullLogger<WindowService>.Instance);
+        var previous = new MainVM(null!, null!, Mock.Of<IVMEventBus>(), 1,
+            NullLogger<MainVM>.Instance, null!, null!);
+        var current = new MainVM(null!, null!, Mock.Of<IVMEventBus>(), 2,
+            NullLogger<MainVM>.Instance, null!, null!);
+        var previousDisplay = new Mock<IClosedHandler>();
+        var currentDisplay = new Mock<IClosedHandler>();
+        previous.CurrentDisplay = previousDisplay.Object;
+        current.CurrentDisplay = currentDisplay.Object;
+        window.ChangeDataCtx(previous);
+        service.WireEvents(previous, window);
+        var bootstrapper = new MainWindowBootstrapper(null!, null!,
+            NullLogger<MainWindowBootstrapper>.Instance, Mock.Of<IDialogService>());
+
+        try
+        {
+            bootstrapper.ActivateMainVM(current);
+
+            Application.Current.Windows.OfType<MainWindow>().Should().ContainSingle()
+                .Which.Should().BeSameAs(window);
+            window.DataContext.Should().BeSameAs(current);
+            window.VM.Should().BeSameAs(current);
+            previousDisplay.Verify(display => display.OnClosed(), Times.Once);
+            currentDisplay.Verify(display => display.OnClosed(), Times.Never);
+        }
+        finally { window.Close(); }
+
+        previousDisplay.Verify(display => display.OnClosed(), Times.Once);
+        currentDisplay.Verify(display => display.OnClosed(), Times.Once);
     });
 
     private static void RaiseWindowEvent(Window window, string method)

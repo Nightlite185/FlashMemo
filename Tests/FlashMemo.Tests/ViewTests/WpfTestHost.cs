@@ -27,6 +27,10 @@ public sealed class WpfTestHost : IDisposable
             resources["DeckRowHoverBrush"] = new SolidColorBrush(Color.FromRgb(42, 42, 42));
             resources["DeckOptionsButtonStyle"] = new Style(typeof(Button));
             resources["NavButtonStyle"] = new Style(typeof(Button));
+            resources["NavSeparatorStyle"] = new Style(typeof(Border));
+            resources["NavBorderBrush"] = Brushes.White;
+            resources["NavBgBrush"] = Brushes.Black;
+            resources["InverseBoolConverter"] = new InverseBoolConverter();
             resources["BoolToVisConverter"] = new BoolToVisConverter();
             resources["InverseBoolToVisConverter"] = new InverseBoolToVisConverter();
             resources["NullToVisConverter"] = new NullToVisConverter();

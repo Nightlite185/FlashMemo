@@ -68,7 +68,7 @@ public partial class App : Application
                 .CreateAsync((long)lss.LastUserId);
             
             sp.GetRequiredService<MainWindowBootstrapper>()
-                .SetupMainWindow(mainVM);
+                .ActivateMainVM(mainVM);
         }
     }
     private static async Task CheckLicenses()

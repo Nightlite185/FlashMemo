@@ -1,3 +1,4 @@
+using System.Windows;
 using FlashMemo.View;
 using FlashMemo.ViewModel.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,21 +7,22 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.Services;
 
 public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss,
-    ILogger<MainWindowBootstrapper> logger)
+    ILogger<MainWindowBootstrapper> logger, IDialogService dialogs)
 {
     private readonly IServiceProvider sp = sp;
     private readonly ILastSessionService lastSession = lss;
 
-    public void SetupMainWindow(MainVM mainVM)
+    private void SetupMainWindow(MainVM mainVM)
     {
         //* MainWindow needs to be created from DI, since its singleton.
         //* DI has reference to that window -> prevents GC from eating it.
 
         var win = sp.GetRequiredService<MainWindow>();
         
-        SetupMainVM(win, mainVM);
+        win.ChangeDataCtx(mainVM);
 
-        sp.GetRequiredService<WindowService>().WireEvents(mainVM, win);
+        sp.GetRequiredService<WindowService>()
+            .WireEvents(mainVM, win);
 
         bool isExiting = false;
         win.Closing += async (_, e) =>
@@ -45,9 +47,32 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
         win.Show();
     }
 
-    public void SetupMainVM(MainWindow win, MainVM vm)
+    public bool EnsureReadyForSwitch()
     {
-        win.ChangeDataCtx(vm);
+        if (App.Current.Windows.OfType<Window>()
+            .Any(window => window is not MainWindow and not UserSelectWindow))
+        {
+            dialogs.Show(
+                title: "Close other windows",
+                message: "Please close all other windows before switching users. They may contain unsaved changes.",
+                buttons: DialogButtons.OK,
+                icon: DialogIcons.Warning);
+            
+            return false;
+        }
+
+        return true;
+    }
+
+    public void ActivateMainVM(MainVM vm)
+    {
+        var mainWin = App.Current.Windows
+            .OfType<MainWindow>().SingleOrDefault();
+
+        if (mainWin is not null)
+            mainWin.ChangeDataCtx(vm);
+
+        else SetupMainWindow(vm);
     }
 
     internal async Task SaveSessionOnExitAsync()

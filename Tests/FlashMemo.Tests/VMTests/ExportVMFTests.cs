@@ -12,7 +12,7 @@ namespace FlashMemo.Tests.VMTests;
 public class ExportVMFTests
 {
     [Fact]
-    public async Task CreateAsync_NoCardsShowsInformationWithoutCreatingPopup()
+    public async Task TryCreateAsync_NoCardsShowsInformationWithoutCreatingPopup()
     {
         var counter = new Mock<ICountingService>(MockBehavior.Strict);
         counter.Setup(service => service.AllCardsInDecks(It.IsAny<IEnumerable<long>>())).ReturnsAsync(0);
@@ -23,7 +23,7 @@ public class ExportVMFTests
         var factory = new ExportVMF(query.Object, exporter.Object, counter.Object, dialogs.Object,
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object));
 
-        var vm = await factory.CreateAsync(7, [CreateDeck(1)], () => { });
+        var vm = await factory.TryCreateAsync(7, [CreateDeck(1)], () => { });
 
         vm.Should().BeNull();
         dialogs.Verify(service => service.ShowNoCardsFoundToExport(), Times.Once);
@@ -35,7 +35,7 @@ public class ExportVMFTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CreateAsync_FlattensSelectedTreesWithoutDuplicateDeckIds(bool selectDescendantToo)
+    public async Task TryCreateAsync_FlattensSelectedTreesWithoutDuplicateDeckIds(bool selectDescendantToo)
     {
         var root = CreateDeck(1);
             var child = CreateDeck(2);
@@ -54,7 +54,7 @@ public class ExportVMFTests
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
 
-        var vm = await factory.CreateAsync(7, selection, () => { });
+        var vm = await factory.TryCreateAsync(7, selection, () => { });
 
         vm.Should().NotBeNull();
         // CSV preparation requires one ID per deck path. Repeated descendants
@@ -63,6 +63,30 @@ public class ExportVMFTests
         countedIds.Should().BeEquivalentTo(new long[] { 1, 2, 3, 4 });
         counter.Verify(service => service.AllCardsInDecks(It.IsAny<IEnumerable<long>>()), Times.Once);
         counter.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TryCreateAsync_CountFailureRetriesOrReturnsNullOnCancel(bool retry)
+    {
+        var counter = new Mock<ICountingService>(MockBehavior.Strict);
+        counter.SetupSequence(service => service.AllCardsInDecks(It.IsAny<IEnumerable<long>>()))
+            .ThrowsAsync(new IOException())
+            .ReturnsAsync(1);
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
+            .Returns(retry ? DialogResult.Retry : DialogResult.Cancel);
+        var factory = new ExportVMF(Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(),
+            counter.Object, dialogs.Object, NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object));
+
+        var vm = await factory.TryCreateAsync(7, [CreateDeck(1)], () => { });
+
+        (vm is not null).Should().Be(retry);
+        counter.Verify(service => service.AllCardsInDecks(It.IsAny<IEnumerable<long>>()),
+            Times.Exactly(retry ? 2 : 1));
+        dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel), Times.Once);
+        dialogs.VerifyNoOtherCalls();
     }
 
     private static DeckNode CreateDeck(long id)

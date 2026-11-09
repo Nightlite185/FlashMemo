@@ -23,7 +23,7 @@ public class WindowClosingTests(WpfTestHost host)
             var vm = new ClosingVM { Decision = asynchronous ? completion.Task : Task.FromResult(allowsClose) };
             var window = new Window();
             var service = new WindowService(null!, null!, null!, null!, null!, null!, null!,
-                NullLogger<WindowService>.Instance, Mock.Of<IDialogService>());
+                NullLogger<WindowService>.Instance);
             service.WireEvents(vm, window);
             bool closed = false;
             window.Closed += (_, _) => closed = true;

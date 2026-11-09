@@ -109,16 +109,11 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
 
     [RelayCommand] private async Task ShowDeckSelect()
     {
-        var result = await net.TryUnsafe(
-            () => deckSelectVMF.CreateAsync(
-                ChangeDeck, CancelPopup, Card.Deck.UserId),
-            actionTried: "load the available decks",
-            retry: true);
+        var vm = await deckSelectVMF.TryCreateAsync(
+            ChangeDeck, CancelPopup, Card.Deck.UserId);
+        if (vm is null) return;
 
-        if (!result.Success)
-            return;
-
-        CurrentPopup = result.Value;
+        CurrentPopup = vm;
     }
     #endregion
 

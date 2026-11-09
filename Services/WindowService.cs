@@ -3,6 +3,7 @@ using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -11,7 +12,7 @@ namespace FlashMemo.Services;
 public class WindowService
 (IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ecVMF, 
 CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsMenuVMF domVMF,
-    ILogger<WindowService> logger, IDialogService dialogs)
+    ILogger<WindowService> logger)
 {
     #region private fields
     private readonly IServiceProvider sp = sp;
@@ -57,28 +58,17 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
     #region window showing dispatchers
     private async Task ShowBrowse(BrowseNavRequest e)
     {
-        var vm = await browseVMF.CreateAsync(e.UserId);
+        var vm = await browseVMF.TryCreateAsync(e.UserId);
+        if (vm is null) return;
+
         var win = sp.GetRequiredService<BrowseWindow>();
 
         WireHelper(vm, win);
     }
     private async Task ShowEditCard(EditCardNavRequest e)
     {
-        var vm = await editCardVMF.CreateAsync(e.CardId, e.UserId);
-
-        if (vm is null)
-        {
-            dialogs.Show(
-                title: "Error",
-                message: "Sorry, but the card you tried to edit doesn't exist. "
-                + "This is expected if you deleted that card beforehand.",
-                
-                buttons: DialogButtons.OK,
-                icon: DialogIcons.Error
-            );
-
-            return;
-        }
+        var vm = await editCardVMF.TryCreateAsync(e.CardId, e.UserId);
+        if (vm is null) return;
 
         var win = sp.GetRequiredService<EditCardWindow>();
 
@@ -86,7 +76,9 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
     }
     private async Task ShowCreateCard(CreateCardNavRequest e)
     {
-        var vm = await createCardVMF.CreateAsync(e.TargetDeck);
+        var vm = await createCardVMF.TryCreateAsync(e.TargetDeck);
+        if (vm is null) return;
+
         var win = sp.GetRequiredService<CreateCardWindow>();
 
         WireHelper(vm, win);
@@ -99,14 +91,18 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
     /// </param>
     internal async Task ShowUserSelect(long? currentUserId)
     {
-        var vm = await userSelectVMF.CreateAsync(currentUserId);
+        var vm = await userSelectVMF.TryCreateAsync(currentUserId);
+        if (vm is null) return;
+
         var win = sp.GetRequiredService<UserSelectWindow>();
 
         WireHelper(vm, win);
     }
     private async Task ShowUserOptions(UserOptionsNavRequest e)
     {
-        var vm = await userOptionsVMF.CreateAsync(e.UserId);
+        var vm = await userOptionsVMF.TryCreateAsync(e.UserId);
+        if (vm is null) return;
+
         var win = sp.GetRequiredService<UserOptionsWindow>();
 
         WireHelper(vm, win);
@@ -114,7 +110,9 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
 
     private async Task ShowDeckOptions(DeckOptionsNavRequest e)
     {
-        var vm = await deckOptionsMenuVMF.CreateAsync(e.DeckId);
+        var vm = await deckOptionsMenuVMF.TryCreateAsync(e.DeckId);
+        if (vm is null) return;
+
         var win = sp.GetRequiredService<DeckOptionsWindow>();
 
         WireHelper(vm, win);

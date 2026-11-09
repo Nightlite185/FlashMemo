@@ -17,7 +17,14 @@ public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr, IVMEventBus eventBus
             eventBus, lastSession, userId,
             logger, dialogs);
 
-        await vm.InitializeAsync();
+        try { await vm.InitializeAsync(); }
+        
+        catch
+        {
+            vm.OnClosed();
+            throw;
+        }
+        
         return vm;
     }
 }   

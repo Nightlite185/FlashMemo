@@ -543,7 +543,7 @@ public class ExportVMTests : IDisposable
                 new ExportService(serializer ?? Mock.Of<INoteSerializer>()),
                 counter.Object, Mock.Of<IDialogService>(),
                 NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet())
-            .CreateAsync(userId, deckTree ?? [CreateDeck(1, "Deck")], cancel ?? (() => { }));
+            .TryCreateAsync(userId, deckTree ?? [CreateDeck(1, "Deck")], cancel ?? (() => { }));
 
         vm.Should().NotBeNull();
         return vm!;

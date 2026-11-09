@@ -10,17 +10,30 @@ public class ReviewVMF(ICardService cs, ICardQueryService cqs, CardCtxMenuVMF ct
                     IDeckOptionsService deckOptService, ICardRepo cr, IVMEventBus bus,
                     IUserOptionsService uos, ILogger<ReviewVM> logger, IDialogService dialogs, SafetyNet net)
 {
-    public async Task<ReviewVM> CreateAsync(long userId, IDeckMeta deck)
+    public async Task<ReviewVM?> TryCreateAsync(long userId, IDeckMeta deck)
     {
-        var vm = new ReviewVM(
-            cs, cqs, userId, deck,
-            cr, bus, uos, deckOptService,
-            logger, dialogs, net);
+        var res = await net.TryUnsafe(
+            action: async () =>
+            {
+                var vm = new ReviewVM(
+                    cs, cqs, userId, deck,
+                    cr, bus, uos, deckOptService,
+                    logger, dialogs, net);
 
-        var ctxMenu = ctxFactory
-            .Create(vm, vm, userId);
+                var ctxMenu = ctxFactory
+                    .Create(vm, vm, userId);
 
-        await vm.InitAsync(ctxMenu);
-        return vm;
+                try { await vm.InitAsync(ctxMenu); }
+                catch
+                {
+                    vm.OnClosed();
+                    throw;
+                }
+                return vm;
+            },
+            actionTried: "open the review session",
+            retry: true);
+
+        return res.Success ? res.Value : null;
     }
 }

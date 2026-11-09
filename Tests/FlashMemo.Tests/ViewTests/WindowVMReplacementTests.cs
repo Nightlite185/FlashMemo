@@ -16,7 +16,7 @@ public class WindowVMReplacementTests(WpfTestHost host)
     public Task ReplacingDataContext_UsesOnlyTheCurrentVMAndReleasesTheOldSubscriptions() => host.Run(() =>
     {
         var service = new WindowService(null!, null!, null!, null!, null!, null!, null!,
-            NullLogger<WindowService>.Instance, Mock.Of<IDialogService>());
+            NullLogger<WindowService>.Instance);
         var first = new WindowVM();
         var current = new WindowVM();
         var window = new Window();

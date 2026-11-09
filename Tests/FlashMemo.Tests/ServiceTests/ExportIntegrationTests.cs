@@ -55,7 +55,7 @@ public class ExportIntegrationTests : IDisposable
             new CardQueryService(factory, counter, options), new ExportService(new XamlNoteSerializer()),
             counter, dialogs.Object,
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object))
-            .CreateAsync(7, [root], () => closed = true);
+            .TryCreateAsync(7, [root], () => closed = true);
         vm.Should().NotBeNull();
         vm!.Format = format;
         vm.ExportPath = Path.Combine(directory.FullName, $"export.{format}");

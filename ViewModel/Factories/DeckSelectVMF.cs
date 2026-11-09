@@ -9,13 +9,21 @@ public class DeckSelectVMF(IDeckTreeBuilder dtb, ILogger<DeckSelectVM> logger,
                             IDialogService dialogs, SafetyNet net)
 {
     private readonly IDeckTreeBuilder deckTreeBuilder = dtb;
-    public async Task<DeckSelectVM> CreateAsync(Func<IDeckMeta, Task> confirm, Action cancel, long userId)
+    public async Task<DeckSelectVM?> TryCreateAsync(Func<IDeckMeta, Task> confirm, Action cancel, long userId)
     {
-        var deckTree = await deckTreeBuilder
-            .BuildAsync(userId);
+        var res = await net.TryUnsafe(
+            action: async () =>
+            {
+                var deckTree = await deckTreeBuilder
+                    .BuildAsync(userId);
 
-        return new(
-            confirm, cancel, deckTree,
-            logger, dialogs, net);
+                return new DeckSelectVM(
+                    confirm, cancel, deckTree,
+                    logger, dialogs, net);
+            },
+            actionTried: "load the available decks",
+            retry: true);
+
+        return res.Success ? res.Value : null;
     }
 }

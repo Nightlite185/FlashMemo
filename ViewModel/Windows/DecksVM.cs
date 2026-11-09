@@ -124,8 +124,11 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
             throw new InvalidOperationException(
             "Tried to export decks, but none are selected.");
 
-        CurrentPopup = await exportVMF.CreateAsync(
+        var vm = await exportVMF.TryCreateAsync(
             userId, SelectedDecks.Cast<DeckNode>(), PopupCancel);
+        if (vm is null) return;
+
+        CurrentPopup = vm;
     }
 
     [RelayCommand]

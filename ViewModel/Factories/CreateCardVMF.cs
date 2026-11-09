@@ -10,18 +10,26 @@ public class CreateCardVMF(ICardRepo cr, DeckSelectVMF dsVMF, ILastSessionServic
                             IVMEventBus bus, IDeckRepo repo, CardTagsVMF cardTagsVMF,
                             ILogger<CreateCardVM> logger, IDialogService dialogs, SafetyNet net)
 {
-    public async Task<CreateCardVM> CreateAsync(IDeckMeta targetDeck)
+    public async Task<CreateCardVM?> TryCreateAsync(IDeckMeta targetDeck)
     {
-        CreateCardVM vm = new(
-            cr, targetDeck, dsVMF,
-            lss, bus, repo,
-            logger, dialogs, net);
+        var res = await net.TryUnsafe(
+            action: async () =>
+            {
+                CreateCardVM vm = new(
+                    cr, targetDeck, dsVMF,
+                    lss, bus, repo,
+                    logger, dialogs, net);
 
-        var ctVM = await cardTagsVMF.CreateAsync(
-            userId: targetDeck.UserId,
-            host: vm);
+                var ctVM = await cardTagsVMF.CreateAsync(
+                    userId: targetDeck.UserId,
+                    host: vm);
 
-        vm.Initialize(ctVM);
-        return vm;
+                vm.Initialize(ctVM);
+                return vm;
+            },
+            actionTried: "open the card creation window",
+            retry: true);
+
+        return res.Success ? res.Value : null;
     }
 }

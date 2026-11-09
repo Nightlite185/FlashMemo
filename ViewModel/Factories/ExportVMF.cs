@@ -10,30 +10,38 @@ public class ExportVMF(ICardQueryService cardQService, IExportService exporter,
                         ICountingService counter, IDialogService dialogs,
                         ILogger<ExportVM> logger, SafetyNet net)
 {
-    public async Task<ExportVM?> CreateAsync(long userId, IEnumerable<DeckNode> deckTree, Action cancel)
+    public async Task<ExportVM?> TryCreateAsync(long userId, IEnumerable<DeckNode> deckTree, Action cancel)
     {
-        var selectedRoots = deckTree.GetSelectedRoots();
-        var flatIds = selectedRoots
-            .Flatten()
-            .Select(d => d.Id)
-            .Distinct()
-            .ToArray();
+        var res = await net.TryUnsafe(
+            action: async () =>
+            {
+                var selectedRoots = deckTree.GetSelectedRoots();
+                var flatIds = selectedRoots
+                    .Flatten()
+                    .Select(d => d.Id)
+                    .Distinct()
+                    .ToArray();
 
-        if (await counter.AllCardsInDecks(flatIds) == 0)
-        {
-            dialogs.ShowNoCardsFoundToExport();
-            return null;
-        }
+                if (await counter.AllCardsInDecks(flatIds) == 0)
+                {
+                    dialogs.ShowNoCardsFoundToExport();
+                    return null;
+                }
 
-        var vm = new ExportVM(
-            userId, cardQService, 
-            exporter, dialogs, cancel, 
-            flatIds, selectedRoots,
-            logger, net);
+                var vm = new ExportVM(
+                    userId, cardQService,
+                    exporter, dialogs, cancel,
+                    flatIds, selectedRoots,
+                    logger, net);
 
-        vm.ErrorsChanged += (_, _) => vm.ConfirmCommand.NotifyCanExecuteChanged();
-        vm.Validate();
+                vm.ErrorsChanged += (_, _) => vm.ConfirmCommand.NotifyCanExecuteChanged();
+                vm.Validate();
 
-        return vm;
+                return vm;
+            },
+            actionTried: "open the export menu",
+            retry: true);
+
+        return res.Success ? res.Value : null;
     }
 }

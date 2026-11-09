@@ -9,26 +9,44 @@ public class CardEditorVMF(ICardService cardService, ICardRepo cardRepo, CardCtx
                         IVMEventBus bus, DeckSelectVMF deckSelectVMF, CardTagsVMF tagsVMF,
                         ILogger<CardEditorVM> logger, IDialogService dialogs, SafetyNet net)
 {
-    public async Task<CardEditorVM?> CreateAsync(long cardId, long userId)
+    public async Task<CardEditorVM?> TryCreateAsync(long cardId, long userId)
     {
-        var cardVM = await cardVMF
-            .CreateAsync(cardId);
+        var res = await net.TryUnsafe(
+            action: async () =>
+            {
+                var cardVM = await cardVMF
+                    .CreateAsync(cardId);
 
-        if (cardVM is null) return null;
+                if (cardVM is null)
+                {
+                    dialogs.Show(
+                        title: "Error",
+                        message: "Sorry, but the card you tried to edit doesn't exist. "
+                        + "This is expected if you deleted that card beforehand.",
+                        buttons: DialogButtons.OK,
+                        icon: DialogIcons.Error);
 
-        CardEditorVM editorVM = new(
-            cardService, cardRepo, 
-            bus,
-            deckSelectVMF, cardVM,
-            logger, dialogs, net);
+                    return null;
+                }
 
-        var tagsVM = await tagsVMF
-            .CreateAsync(userId, editorVM);
+                CardEditorVM editorVM = new(
+                    cardService, cardRepo,
+                    bus,
+                    deckSelectVMF, cardVM,
+                    logger, dialogs, net);
 
-        var ctxMenuVM = ctxFactory.Create(
-            editorVM, editorVM, userId);
+                var tagsVM = await tagsVMF
+                    .CreateAsync(userId, editorVM);
 
-        editorVM.Initialize(ctxMenuVM, tagsVM);
-        return editorVM;
+                var ctxMenuVM = ctxFactory.Create(
+                    editorVM, editorVM, userId);
+
+                editorVM.Initialize(ctxMenuVM, tagsVM);
+                return editorVM;
+            },
+            actionTried: "open the card editor",
+            retry: true);
+
+        return res.Success ? res.Value : null;
     }
 }

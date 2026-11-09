@@ -20,7 +20,8 @@ public class DisplayControl(IDisplayHost host, DecksVMF decksVMF, ReviewVMF revi
     public async Task SwitchToReview(long userId, IDeckMeta deck)
     {
         var vm = await reviewVMF
-            .CreateAsync(userId, deck);
+            .TryCreateAsync(userId, deck);
+        if (vm is null) return;
 
         UnplugHostEvents();
         WireEvents(vm);
@@ -32,7 +33,8 @@ public class DisplayControl(IDisplayHost host, DecksVMF decksVMF, ReviewVMF revi
     public async Task SwitchToStats(long userId)
     {
         var vm = await statsVMF
-            .CreateAsync(userId);
+            .TryCreateAsync(userId);
+        if (vm is null) return;
 
         UnplugHostEvents();
         WireEvents(vm);

@@ -58,6 +58,12 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     #endregion
 
     #region methods
+    public override void OnClosed()
+    {
+        base.OnClosed();
+        filtersVM.OnClosed();
+    }
+
     internal async Task InitializeAsync(CardCtxMenuVM ccm)
     {
         CtxMenuVM = ccm;

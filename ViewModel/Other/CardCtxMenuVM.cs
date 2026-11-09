@@ -24,13 +24,11 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
     [RelayCommand]
     private async Task MoveCardsCtx()
     {
-        var result = await net.TryUnsafe(
-            () => deckSelectVMF.CreateAsync(MoveCards, PopupCancel, userId),
-            actionTried: "load the available decks",
-            retry: true);
+        var vm = await deckSelectVMF.TryCreateAsync(
+            MoveCards, PopupCancel, userId);
+        if (vm is null) return;
 
-        if (result.Success)
-            popupHost.CurrentPopup = result.Value;
+        popupHost.CurrentPopup = vm;
     }
 
     [RelayCommand]

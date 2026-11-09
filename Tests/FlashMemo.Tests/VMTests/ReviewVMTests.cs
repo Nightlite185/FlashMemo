@@ -46,7 +46,9 @@ public class ReviewVMTests: IDisposable
             .Use(Helpers.GetSafetyNet());
 
         var vmf = mocker.CreateInstance<ReviewVMF>();
-        return await vmf.CreateAsync(userId, deck);
+        var vm = await vmf.TryCreateAsync(userId, deck);
+        vm.Should().NotBeNull();
+        return vm!;
     }
     
     ///<summary>Seeds one of each state; 1 review, 1 new, and 1 learning.</summary>

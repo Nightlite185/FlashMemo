@@ -1,5 +1,3 @@
-using System.Windows;
-using FlashMemo.View;
 using FlashMemo.ViewModel.Factories;
 
 namespace FlashMemo.Services;
@@ -19,7 +17,6 @@ public class LoginService(MainVMF mainVMF, MainWindowBootstrapper boot,
         await cardService.UnburyIfNextDay();
 
         var newMainVM = await mainVMF.CreateAsync(userId);
-
         boot.ActivateMainVM(newMainVM);
 
         return true;

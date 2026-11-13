@@ -10,15 +10,26 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Other;
 
+/// <summary>
+/// Shows a snapshot of review activity, refreshed on initialization, year/option changes,
+/// and domain notifications received while unfocused, when focus returns.
+/// </summary>
+/// <remarks>
+/// BaseVM ignores domain notifications while focused. The current review flow closes
+/// DecksVM and its heatmap before reviewing; returning to decks creates a fresh snapshot.
+/// If reviews can be saved while this VM stays focused, add a refresh path for that case.
+/// </remarks>
 public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService userOptService, 
-                            IVMEventBus bus, long userId, ILogger<HeatmapVM> logger, IDialogService dialogService)
+                            IVMEventBus bus, long userId, ILogger<HeatmapVM> logger,
+                            IDialogService dialogService, SafetyNet net)
                             : BaseVM(bus, logger, dialogService)
 {
     #region private things
-    private UserOptions userOpt = null!;
-    private bool CanShiftForward => HeatmapYear < DateTime.Today.Year;
-    private bool CanShiftBack => HeatmapYear > MinYear;
-    private const short MinYear = 2010;
+    private UserOptions? userOpt;
+    private bool isLoading;
+    private bool CanShiftForward => Visibility && HeatmapYear < DateTime.Today.Year;
+    private bool CanShiftBack => Visibility && HeatmapYear > MinYear;
+    private const int MinYear = 2010;
     #endregion
 
     #region methods
@@ -27,53 +38,68 @@ public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService u
         eventBus.UserOptionsChanged += OnUserOptChanged;
         eventBus.DomainChanged += OnDomainChanged;
 
-        userOpt = await userOptService
-            .GetFromUser(userId);
-
-        await ReloadDomainAsync();
+        await ReloadUserOptAsync();
     }
-    protected override async Task ReloadDomainAsync()
+    protected override Task ReloadDomainAsync()
+        // BaseVM.OnFocusGained awaits domain reload before checking dirty user options.
+        // If both are dirty, its following options reload refreshes the weeks using the new preference.
+        => isUserOptDirty ? Task.CompletedTask : LoadAsync(HeatmapYear, reloadOptions: false);
+
+    protected override Task ReloadUserOptAsync()
+        => LoadAsync(HeatmapYear, reloadOptions: true);
+
+    private async Task LoadAsync(int year, bool reloadOptions)
     {
-        if (!HeatmapVisibility)
+        // Error dialogs can return focus while the original load is still in progress.
+        if (isLoading || (!reloadOptions && userOpt?.ShowHeatmap != true))
             return;
 
-        Weeks.Clear();
-        
-        Weeks.AddRange(await builder
-            .BuildWeeks(userId, HeatmapYear));
+        isLoading = true;
+        IsLoaded = false;
+
+        try
+        {
+            var result = await net.TryUnsafe(
+                action: async () =>
+                {
+                    if (reloadOptions)
+                    {
+                        userOpt = null;
+                        userOpt = await userOptService.GetFromUser(userId);
+                    }
+
+                    return userOpt!.ShowHeatmap
+                        ? await builder.BuildWeeks(userId, year)
+                        : [];
+                },
+                actionTried: "load the review heatmap",
+                retry: true);
+
+            if (!result.Success)
+                return;
+
+            Weeks.Clear();
+            Weeks.AddRange(result.Value);
+            HeatmapYear = year;
+            IsLoaded = userOpt!.ShowHeatmap;
+        }
+        finally { isLoading = false; }
     }
-    protected override async Task ReloadUserOptAsync()
-    {
-        // caching previous vis (we dont reload if its off
-        // to optimize and save resources).
-        bool outdated = !HeatmapVisibility;
 
-        // loading fresh options
-        userOpt = await userOptService
-            .GetFromUser(userId);
-
-        // if previous vis was off (outdated)
-        // and now its turned on -> reload heatmap
-        if (outdated && HeatmapVisibility)
-            await ReloadDomainAsync();
-
-        // notify vis property changed either way
-        OnPropertyChanged(nameof(HeatmapVisibility));
-    }
-
-    private void NotifyCanShiftChanged()
-    {
-        ShiftYearBackCommand.NotifyCanExecuteChanged();
-        ShiftYearForwardCommand.NotifyCanExecuteChanged();
-    }
     #endregion
 
     #region public properties
     [ObservableProperty]
-    public partial short HeatmapYear { get; private set; } = (short)DateTime.Today.Year;
+    public partial int HeatmapYear { get; private set; } = DateTime.Today.Year;
     public ObservableCollection<ActivityWeekVM> Weeks 
     { get; private init; } = [];
-    public bool HeatmapVisibility => userOpt.ShowHeatmap;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Visibility))]
+    [NotifyCanExecuteChangedFor(nameof(ShiftYearBackCommand), nameof(ShiftYearForwardCommand))]
+    public partial bool IsLoaded { get; private set; }
+
+    public bool Visibility => userOpt?.ShowHeatmap == true && IsLoaded;
     #endregion
     
     #region ICommands
@@ -82,12 +108,7 @@ public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService u
     {
         if (!CanShiftBack) return;
 
-        Weeks.Clear();
-
-        Weeks.AddRange(await builder
-            .BuildWeeks(userId, --HeatmapYear));
-
-        NotifyCanShiftChanged();
+        await LoadAsync(HeatmapYear - 1, reloadOptions: false);
     }
 
     [RelayCommand(CanExecute = nameof(CanShiftForward))]
@@ -95,12 +116,7 @@ public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService u
     {
         if (!CanShiftForward) return;
 
-        Weeks.Clear();
-        
-        Weeks.AddRange(await builder
-            .BuildWeeks(userId, ++HeatmapYear));
-
-        NotifyCanShiftChanged();
+        await LoadAsync(HeatmapYear + 1, reloadOptions: false);
     }
     #endregion
 }

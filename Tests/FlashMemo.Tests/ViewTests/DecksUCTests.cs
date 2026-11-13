@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -9,6 +10,8 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.View;
+using FlashMemo.ViewModel.Factories;
+using FlashMemo.ViewModel.Other;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;
@@ -307,11 +310,44 @@ public class DecksUCTests(WpfTestHost host)
             .Single(group => group.Name == "DropStates").CurrentState.Name.Should().Be("Normal");
     });
 
-    private static (DecksUC View, DecksVM VM, Mock<IDeckRepo> Repo) CreateView()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public Task Heatmap_IsVisibleOnlyWhenEnabledAndLoaded(bool enabled, bool loadFails) => host.Run(() =>
+    {
+        var options = new Mock<IUserOptionsService>(MockBehavior.Strict);
+        options.Setup(service => service.GetFromUser(1))
+            .ReturnsAsync(UserOptions.CreateDefault() with { ShowHeatmap = enabled });
+        var activity = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
+        if (loadFails)
+            activity.Setup(service => service.BuildWeeks(1, It.IsAny<short>())).ThrowsAsync(new IOException());
+        else
+            activity.Setup(service => service.BuildWeeks(1, It.IsAny<short>()))
+                .ReturnsAsync(Array.Empty<ActivityWeekVM>());
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
+            .Returns(DialogResult.Cancel);
+        var factory = new HeatmapVMF(activity.Object, options.Object, new VMEventBus(),
+            NullLogger<HeatmapVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
+        var heatmap = factory.CreateAsync(1).GetAwaiter().GetResult();
+        var (view, vm, _) = CreateView(heatmap);
+
+        var border = Descendants(view).OfType<Border>().Single(element =>
+            BindingOperations.GetBinding(element, UIElement.VisibilityProperty)?.Path.Path == "Heatmap.Visibility");
+
+        vm.Heatmap.Should().BeSameAs(heatmap);
+        border.Visibility.Should().Be(enabled && !loadFails ? Visibility.Visible : Visibility.Collapsed);
+        heatmap.OnClosed();
+    });
+
+    private static (DecksUC View, DecksVM VM, Mock<IDeckRepo> Repo) CreateView(HeatmapVM? heatmap = null)
     {
         var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
         repo.Setup(r => r.SaveEditedDeck(It.IsAny<Deck>())).Returns(Task.CompletedTask);
-        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, null!, null!,
+        heatmap ??= new HeatmapVM(null!, null!, new VMEventBus(), 1,
+            NullLogger<HeatmapVM>.Instance, Mock.Of<IDialogService>(), Helpers.GetSafetyNet());
+        var vm = new DecksVM(repo.Object, null!, heatmap, null!, null!, 1, null!, null!,
             NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
         vm.DeckTree.Add(new(new Deck { Id = 1, UserId = 1, Name = "First" }, []));
         vm.DeckTree.Add(new(new Deck { Id = 2, UserId = 1, Name = "Second" }, []));

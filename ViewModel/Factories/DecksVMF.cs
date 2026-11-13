@@ -24,7 +24,13 @@ public class DecksVMF(IDeckRepo deckRepo, IDeckTreeBuilder deckBuilder,
             bus, exportVMF, logger, dialogs, 
             createDeckVMF, net, mapper);
 
-        await vm.InitAsync();
+        try { await vm.InitAsync(); }
+        catch
+        {
+            vm.OnClosed();
+            throw;
+        }
+
         return vm;
     }
 }

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using FlashMemo.ViewModel;
 using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.Services;
@@ -44,14 +45,19 @@ public class SafetyNet(ILogger<SafetyNet> logger, IDialogService dialogs)
 
         while (firstPass || ans is DialogResult.Retry or DialogResult.TryAgain)
         {
+            T? res = default;
+
             try
             {
-                var res = await action();
+                res = await action();
                 return new(true, res);
             }
 
             catch (Exception e)
             {
+                if (res is IClosedHandler cleanup)
+                    cleanup.OnClosed();
+
                 logger.LogError(e,
                     message: "{Caller}: {Operation} failed ({Attempt})",
                     args: [caller, operation, firstPass ? "initial attempt" : "retry"]);

@@ -5,14 +5,14 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Factories;
 
 public class HeatmapVMF(IActivityVMBuilder builder, IUserOptionsService userOptService,
-                        IVMEventBus bus, ILogger<HeatmapVM> logger, IDialogService dialogs)
+                        IVMEventBus bus, ILogger<HeatmapVM> logger, IDialogService dialogs, SafetyNet net)
 {
     public async Task<HeatmapVM> CreateAsync(long userId)
     {
         var vm = new HeatmapVM(
-            builder, userOptService, 
+            builder, userOptService,
             bus, userId,
-            logger, dialogs);
+            logger, dialogs, net);
 
         await vm.InitAsync();
         return vm;

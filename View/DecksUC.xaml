@@ -453,7 +453,7 @@
             BorderBrush="#2AFFFFFF"
             BorderThickness="1"
             CornerRadius="12"
-            Visibility="{Binding Heatmap.HeatmapVisibility,
+            Visibility="{Binding Heatmap.Visibility,
                 Converter={StaticResource BoolToVisConverter}}">
 
             <Grid>

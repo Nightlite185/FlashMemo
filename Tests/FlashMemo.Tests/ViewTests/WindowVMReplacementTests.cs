@@ -59,7 +59,8 @@ public class WindowVMReplacementTests(WpfTestHost host)
         var dialogs = new Mock<IDialogService>();
         var bootstrapper = new MainWindowBootstrapper(null!, session.Object,
             NullLogger<MainWindowBootstrapper>.Instance, dialogs.Object);
-        var login = new LoginService(null!, bootstrapper, cards.Object, session.Object, dialogs.Object);
+        var login = new LoginService(null!, bootstrapper, cards.Object, session.Object, dialogs.Object,
+            Helpers.GetSafetyNet(dialogs.Object), NullLogger<LoginService>.Instance);
 
         try
         {

@@ -2,14 +2,19 @@ using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.Services;
 
-public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDependentClass(factory), ILastSessionService
+public class LastSessionService(IDbContextFactory<AppDbContext> factory, ILogger<LastSessionService> logger): DbDependentClass(factory), ILastSessionService
 {
+    #region variables & properties
+
+    // === private ===
     private AppSessionData appSession = null!;
     private UserSessionCache? userCache;
 
+    // === public ===
     public Filters? LastFilters {
         get => GetUserCache().LastFilters;
         set => GetUserCache().LastFilters = value;
@@ -20,64 +25,87 @@ public class LastSessionService(IDbContextFactory<AppDbContext> factory): DbDepe
         set => GetUserCache().LastUsedDeckId = value;
     }
 
+    #endregion
+
+    #region public methods
     public async Task LoadAppSessionAsync()
     {
         await using var db = GetDb;
         appSession = await db.AppSessionData.SingleAsync();
     }
 
+    //* Loading only changes in-memory state; SaveStateAsync persists it later.
+    //* this methods handles its own failures.
     public async Task LoadUserCacheAsync(long userId)
     {
-        await using var db = GetDb;
+        UserSessionCache? loadedCache = null;
+        try
+        {
+            await using var db = GetDb;
+            loadedCache = await db.UserSessionCaches
+                .AsNoTracking()
+                .SingleOrDefaultAsync(cache => cache.UserId == userId);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to load the session cache for user {UserId}; using defaults", userId);
+        }
 
-        userCache = await db.UserSessionCaches
-            .SingleOrDefaultAsync(cache => cache.UserId == userId);
-
-        if (userCache is not null)
-            return;
-
-        userCache = new UserSessionCache
+        this.userCache = loadedCache ?? new UserSessionCache
         {
             UserId = userId,
             LastFilters = Filters.GetEmpty(userId)
         };
-
-        await db.UserSessionCaches.AddAsync(userCache);
-        await db.SaveChangesAsync();
     }
 
-    public async Task SetLastUserAsync(long userId)
-    {
-        appSession.LastLoadedUserId = userId;
-        await SaveAppSessionAsync();
-    }
+    public Task SetLastUserAsync(long userId) => SaveLastUserAsync(userId);
 
-    public async Task ClearLastUserAsync()
-    {
-        appSession.LastLoadedUserId = null;
-        await SaveAppSessionAsync();
-    }
+    public Task ClearLastUserAsync() => SaveLastUserAsync(null);
 
     public async Task SaveStateAsync()
     {
+        var savingCache = userCache;
         await using var db = GetDb;
 
         db.AppSessionData.Update(appSession);
 
-        if (userCache is not null)
-            db.UserSessionCaches.Update(userCache);
+        if (savingCache is not null)
+        {
+            bool exists = await db.UserSessionCaches
+                .AnyAsync(cache => cache.UserId == savingCache.UserId);
+
+            if (exists)
+                db.UserSessionCaches.Update(savingCache);
+
+            else db.UserSessionCaches.Add(savingCache);
+        }
 
         await db.SaveChangesAsync();
     }
+
+    #endregion
+
+    #region private methods
 
     private UserSessionCache GetUserCache()
         => userCache ?? throw new InvalidOperationException(
             "A user session cache must be loaded before it can be accessed.");
 
-    private async Task SaveAppSessionAsync()
+    private async Task SaveLastUserAsync(long? userId)
     {
+        var saving = new AppSessionData
+        {
+            Id = appSession.Id,
+            LastLoadedUserId = userId
+        };
+
         await using var db = GetDb;
-        db.AppSessionData.Update(appSession);
+        
+        db.AppSessionData.Update(saving);
         await db.SaveChangesAsync();
+
+        appSession = saving;
     }
+
+    #endregion
 }

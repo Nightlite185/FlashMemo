@@ -9,7 +9,7 @@ namespace FlashMemo.Services;
 public class ActivityVMBuilder(IDbContextFactory<AppDbContext> factory)
     : DbDependentClass(factory), IActivityVMBuilder
 {
-    public async Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, short year)
+    public async Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, int year)
     {
         await using var db = GetDb;
         return (await BuildCells(db, userId, year))
@@ -28,7 +28,7 @@ public class ActivityVMBuilder(IDbContextFactory<AppDbContext> factory)
         return date.AddDays(-daysSinceMonday);
     }
 
-    private async static Task<ICollection<ActivityCellVM>> BuildCells(AppDbContext db, long userId, short year)
+    private async static Task<ICollection<ActivityCellVM>> BuildCells(AppDbContext db, long userId, int year)
     {
         var today = DateTime.Today;
 

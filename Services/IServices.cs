@@ -2,6 +2,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Other;
+using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 
 namespace FlashMemo.Services;
@@ -130,7 +131,7 @@ public interface INoteComparer
 
 public interface IActivityVMBuilder
 {
-    Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, int year);
+     Task<ICollection<ActivityWeekVM>> BuildWeeks(long userId, int year);
 }
 
 public interface IStatsQueryService
@@ -142,4 +143,11 @@ public interface IStatsQueryService
     Task<int> TotalReviewsEver(long userId);
     Task<int> LongestReviewStreak(long userId);
     Task<int> CurrentReviewStreak(long userId);
+}
+
+public interface IMainWindowBootstrapper
+{
+    bool EnsureReadyForSwitch();
+    void ActivateMainVM(MainVM vm);
+    void Shutdown();
 }

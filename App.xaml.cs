@@ -44,14 +44,13 @@ public partial class App : Application
     
     private async Task InitUserSession()
     {
-        await sp.GetRequiredService<ICardService>()
-            .UnburyIfNextDay();
-
         var lss = sp.GetRequiredService<ILastSessionService>();
         await lss.LoadAppSessionAsync();
 
         if (lss.LastUserId is null)
         {
+            //* the user selector is actually a dialog, not a window
+            //* so it is only once the dialog is closed, that the execution comes back here.
             await sp.GetRequiredService<WindowService>()
                 .ShowUserSelect(currentUserId: null);
 
@@ -62,13 +61,8 @@ public partial class App : Application
 
         else
         {
-            await lss.LoadUserCacheAsync((long)lss.LastUserId);
-
-            var mainVM = await sp.GetRequiredService<MainVMF>()
-                .CreateAsync((long)lss.LastUserId);
-            
-            sp.GetRequiredService<MainWindowBootstrapper>()
-                .ActivateMainVM(mainVM);
+            await sp.GetRequiredService<ILoginService>()
+                .ChangeUser((long)lss.LastUserId);
         }
     }
     private static async Task CheckLicenses()
@@ -123,7 +117,7 @@ public partial class App : Application
         #endregion
 
         #region SERVICES
-        sc.AddTransient<MainWindowBootstrapper>();
+        sc.AddTransient<IMainWindowBootstrapper, MainWindowBootstrapper>();
         sc.AddTransient<DisplayControlFactory>();
         sc.AddSingleton<INoteComparer, XamlNoteComparer>();
         sc.AddSingleton<INoteSerializer, XamlNoteSerializer>();

@@ -7,10 +7,12 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.Services;
 
 public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss,
-    ILogger<MainWindowBootstrapper> logger, IDialogService dialogs)
+    ILogger<MainWindowBootstrapper> logger, IDialogService dialogs): IMainWindowBootstrapper
 {
     private readonly IServiceProvider sp = sp;
     private readonly ILastSessionService lastSession = lss;
+    private bool fatalShutdownStarted = false;
+    private bool exitSaveStarted = false;
 
     private void SetupMainWindow(MainVM mainVM)
     {
@@ -24,10 +26,9 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
         sp.GetRequiredService<WindowService>()
             .WireEvents(mainVM, win);
 
-        bool isExiting = false;
         win.Closing += async (_, e) =>
         {
-            if (isExiting)
+            if (exitSaveStarted || fatalShutdownStarted)
                 return;
 
             if (win.DataContext is MainVM { IsOpeningDialog: true })
@@ -36,14 +37,14 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
                 return;
             }
 
-            isExiting = true;
+            exitSaveStarted = true;
             
             // Let the Closing event finish before saving and requesting application shutdown.
             await Task.Yield();
             await SaveSessionOnExitAsync();
             App.Current.Shutdown();
         };
-            
+
         win.Show();
     }
 
@@ -83,5 +84,12 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
             logger.LogError(e, 
                 "Failed to save the last session before exiting");
         }
+    }
+
+    public void Shutdown()
+    {
+        // Fatal shutdown must not start the normal asynchronous exit-save flow.
+        fatalShutdownStarted = true;
+        App.Current.Shutdown(exitCode: 1);
     }
 }

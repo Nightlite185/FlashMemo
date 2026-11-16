@@ -28,9 +28,9 @@ public class HeatmapVMTests
             options.Setup(service => service.GetFromUser(7)).ReturnsAsync(UserOptions.CreateDefault());
         var builder = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
         if (optionsFail)
-            builder.Setup(service => service.BuildWeeks(7, It.IsAny<short>())).ReturnsAsync(Weeks());
+            builder.Setup(service => service.BuildWeeks(7, It.IsAny<int>())).ReturnsAsync(Weeks());
         else
-            builder.SetupSequence(service => service.BuildWeeks(7, It.IsAny<short>()))
+            builder.SetupSequence(service => service.BuildWeeks(7, It.IsAny<int>()))
                 .ThrowsAsync(new IOException())
                 .ReturnsAsync(Weeks());
         var bus = new Mock<IVMEventBus>();
@@ -55,7 +55,7 @@ public class HeatmapVMTests
         await vm.OnFocusGained();
 
         options.Verify(service => service.GetFromUser(7), Times.Exactly(retry ? 2 : 1));
-        builder.Verify(service => service.BuildWeeks(7, It.IsAny<short>()),
+        builder.Verify(service => service.BuildWeeks(7, It.IsAny<int>()),
             Times.Exactly(optionsFail ? (retry ? 1 : 0) : (retry ? 2 : 1)));
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel), Times.Once);
         dialogs.VerifyNoOtherCalls();
@@ -74,11 +74,11 @@ public class HeatmapVMTests
         options.Setup(service => service.GetFromUser(7)).ReturnsAsync(() => currentOptions);
         var activity = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
         if (initialLoadFails)
-            activity.SetupSequence(service => service.BuildWeeks(7, It.IsAny<short>()))
+            activity.SetupSequence(service => service.BuildWeeks(7, It.IsAny<int>()))
                 .ThrowsAsync(new IOException())
                 .ReturnsAsync(Weeks());
         else
-            activity.Setup(service => service.BuildWeeks(7, It.IsAny<short>())).ReturnsAsync(Weeks());
+            activity.Setup(service => service.BuildWeeks(7, It.IsAny<int>())).ReturnsAsync(Weeks());
         var bus = new VMEventBus();
         var dialogs = ErrorDialogs();
         var net = Helpers.GetSafetyNet(dialogs.Object);
@@ -101,7 +101,7 @@ public class HeatmapVMTests
             currentOptions = currentOptions with { ShowHeatmap = false };
             await ChangeOptions(vm, bus);
         }
-        activity.Verify(service => service.BuildWeeks(7, It.IsAny<short>()),
+        activity.Verify(service => service.BuildWeeks(7, It.IsAny<int>()),
             Times.Exactly(initialLoadFails ? 1 : 0));
 
         var notifications = new List<string?>();
@@ -113,7 +113,7 @@ public class HeatmapVMTests
         originalHeatmap.Visibility.Should().BeTrue();
         originalHeatmap.Weeks.Should().ContainSingle();
         notifications.Should().Contain(nameof(HeatmapVM.Visibility));
-        activity.Verify(service => service.BuildWeeks(7, It.IsAny<short>()),
+        activity.Verify(service => service.BuildWeeks(7, It.IsAny<int>()),
             Times.Exactly(initialLoadFails ? 2 : 1));
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel),
             initialLoadFails ? Times.Once() : Times.Never());
@@ -129,8 +129,8 @@ public class HeatmapVMTests
         var options = new Mock<IUserOptionsService>(MockBehavior.Strict);
         options.Setup(service => service.GetFromUser(7)).ReturnsAsync(UserOptions.CreateDefault());
         var builder = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
-        short currentYear = (short)DateTime.Today.Year;
-        short previousYear = (short)(currentYear - 1);
+        int currentYear = DateTime.Today.Year;
+        int previousYear = currentYear - 1;
         var originalWeeks = Weeks();
         var newWeeks = Weeks();
         builder.Setup(service => service.BuildWeeks(7, currentYear)).ReturnsAsync(originalWeeks);
@@ -163,7 +163,7 @@ public class HeatmapVMTests
         var currentOptions = UserOptions.CreateDefault();
         options.Setup(service => service.GetFromUser(7)).ReturnsAsync(() => currentOptions);
         var builder = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
-        builder.Setup(service => service.BuildWeeks(7, It.IsAny<short>())).ReturnsAsync(Weeks());
+        builder.Setup(service => service.BuildWeeks(7, It.IsAny<int>())).ReturnsAsync(Weeks());
         var bus = new VMEventBus();
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
         var factory = new HeatmapVMF(builder.Object, options.Object, bus,
@@ -178,7 +178,7 @@ public class HeatmapVMTests
 
         vm.Visibility.Should().BeFalse();
         vm.Weeks.Should().BeEmpty();
-        builder.Verify(service => service.BuildWeeks(7, It.IsAny<short>()), Times.Once);
+        builder.Verify(service => service.BuildWeeks(7, It.IsAny<int>()), Times.Once);
         dialogs.VerifyNoOtherCalls();
         vm.OnClosed();
     }
@@ -189,7 +189,7 @@ public class HeatmapVMTests
         var options = new Mock<IUserOptionsService>(MockBehavior.Strict);
         options.Setup(service => service.GetFromUser(7)).ReturnsAsync(UserOptions.CreateDefault());
         var builder = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
-        builder.SetupSequence(service => service.BuildWeeks(7, It.IsAny<short>()))
+        builder.SetupSequence(service => service.BuildWeeks(7, It.IsAny<int>()))
             .ReturnsAsync(Weeks())
             .ThrowsAsync(new IOException());
         var bus = new VMEventBus();
@@ -210,7 +210,7 @@ public class HeatmapVMTests
         await vm.OnFocusGained();
 
         vm.Visibility.Should().BeFalse();
-        builder.Verify(service => service.BuildWeeks(7, It.IsAny<short>()), Times.Exactly(2));
+        builder.Verify(service => service.BuildWeeks(7, It.IsAny<int>()), Times.Exactly(2));
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel), Times.Once);
         vm.OnClosed();
     }

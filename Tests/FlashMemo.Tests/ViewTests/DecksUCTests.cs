@@ -321,9 +321,9 @@ public class DecksUCTests(WpfTestHost host)
             .ReturnsAsync(UserOptions.CreateDefault() with { ShowHeatmap = enabled });
         var activity = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
         if (loadFails)
-            activity.Setup(service => service.BuildWeeks(1, It.IsAny<short>())).ThrowsAsync(new IOException());
+            activity.Setup(service => service.BuildWeeks(1, It.IsAny<int>())).ThrowsAsync(new IOException());
         else
-            activity.Setup(service => service.BuildWeeks(1, It.IsAny<short>()))
+            activity.Setup(service => service.BuildWeeks(1, It.IsAny<int>()))
                 .ReturnsAsync(Array.Empty<ActivityWeekVM>());
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
         dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))

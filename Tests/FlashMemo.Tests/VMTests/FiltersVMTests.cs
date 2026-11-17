@@ -134,7 +134,7 @@ public sealed class FiltersVMTests : IDisposable
             new VMEventBus(),
             lastSession.Object,
             UserId,
-            NullLogger<FiltersVM>.Instance, Mock.Of<IDialogService>());
+            NullLogger<FiltersVM>.Instance, Mock.Of<IDialogService>(), Helpers.GetSafetyNet());
 
         await vm.InitializeAsync();
         return vm;

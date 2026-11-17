@@ -16,9 +16,9 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, HeatmapVM heatmapVM,
                             ILastSessionService lastSession, IUserOptionsService userOptionsService,
-                            long userId, IVMEventBus bus, ExportVMF exportVMF, ILogger<DecksVM> log,
-                            IDialogService dialogService, CreateDeckVMF createDeckVMF, SafetyNet net, IMapper mapper)
-                            : BaseVM(bus, log, dialogService), IPopupHost
+                            long userId, IVMEventBus bus, ExportVMF exportVMF, ILogger<DecksVM> logger,
+                            IDialogService dialogs, CreateDeckVMF createDeckVMF, SafetyNet net, IMapper mapper)
+                            : BaseVM(bus, logger, dialogs, net), IPopupHost
 {
     public sealed record DeckReparentRequest(DeckNode Deck, DeckNode? NewParent);
 
@@ -53,9 +53,9 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
         else DeckTree.Add(node);
     }
     
-    protected override async Task ReloadDeckOptAsync() 
+    protected override async Task<bool> ReloadDeckOptAsync()
         => await ReloadDomainAsync();
-    protected override async Task ReloadUserOptAsync()
+    protected override async Task<bool> ReloadUserOptAsync()
         => await ReloadDomainAsync();
     public override async Task OnFocusGained()
     {
@@ -80,13 +80,20 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     #region ICommands
 
     [RelayCommand]
-    protected override async Task ReloadDomainAsync()
+    private async Task ReloadDomain() => await net.TryUnsafe(
+        action: ReloadDomainAsync,
+        actionTried: "reload available decks",
+        retry: true);
+
+    protected override async Task<bool> ReloadDomainAsync()
     {
         SelectedDecks.Clear();
         DeckTree.Clear();
 
         DeckTree.AddRange(await decksBuilder
             .BuildCountedAsync(userId));
+            
+        return true;
     }
 
     [RelayCommand]

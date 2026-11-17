@@ -16,7 +16,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelectVMF dsVMF, 
                                 ILastSessionService lss, IVMEventBus bus, IDeckRepo repo,
                                 ILogger<CreateCardVM> log, IDialogService dialogService, SafetyNet net)
-                                : BaseVM(bus, log, dialogService), ICloseRequest, IPopupHost, ICardTagsVMHost
+                                : BaseVM(bus, log, dialogService, net), ICloseRequest, IPopupHost, ICardTagsVMHost
 {
     #region private things
     private const int HistoryCap = 10;
@@ -62,10 +62,10 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
     }
     private void ClosePopup() => CurrentPopup = null;
     
-    protected override async Task ReloadDomainAsync()
+    protected override async Task<bool> ReloadDomainAsync()
     {
         if (await deckRepo.Exists(CurrentDeck.Id))
-            return;
+            return true;
         
         Deck? deck;
 
@@ -78,6 +78,7 @@ public partial class CreateCardVM(ICardRepo cr, IDeckMeta targetDeck, DeckSelect
         // if its still null at this point, just close the window
         // since there are no decks on this user.
         if (deck is null) OnCloseRequest?.Invoke();
+        return true;
     }
 
     public async Task<bool> AddCard()

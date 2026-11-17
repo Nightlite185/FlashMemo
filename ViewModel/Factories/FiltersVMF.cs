@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Factories;
 
 public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr, IVMEventBus eventBus, ILastSessionService lastSession,
-                        ILogger<FiltersVM> logger, IDialogService dialogs)
+                        ILogger<FiltersVM> logger, IDialogService dialogs, SafetyNet net)
 {
     private readonly IDeckTreeBuilder deckTreeBuilder = dtb;
     private readonly ITagRepo tagRepo = tr;
@@ -15,7 +15,7 @@ public class FiltersVMF (IDeckTreeBuilder dtb, ITagRepo tr, IVMEventBus eventBus
         var vm = new FiltersVM(
             deckTreeBuilder, tagRepo,
             eventBus, lastSession, userId,
-            logger, dialogs);
+            logger, dialogs, net);
 
         try { await vm.InitializeAsync(); }
         

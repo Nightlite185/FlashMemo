@@ -184,14 +184,15 @@ public class HeatmapVMTests
     }
 
     [Fact]
-    public async Task ErrorDialogReturningFocus_DoesNotStartAnotherLoad()
+    public async Task ErrorDialogReturningFocus_DoesNotReenterButLaterFocusRetries()
     {
         var options = new Mock<IUserOptionsService>(MockBehavior.Strict);
         options.Setup(service => service.GetFromUser(7)).ReturnsAsync(UserOptions.CreateDefault());
         var builder = new Mock<IActivityVMBuilder>(MockBehavior.Strict);
         builder.SetupSequence(service => service.BuildWeeks(7, It.IsAny<int>()))
             .ReturnsAsync(Weeks())
-            .ThrowsAsync(new IOException());
+            .ThrowsAsync(new IOException())
+            .ReturnsAsync(Weeks());
         var bus = new VMEventBus();
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
         var factory = new HeatmapVMF(builder.Object, options.Object, bus,
@@ -209,8 +210,8 @@ public class HeatmapVMTests
         vm.OnFocusLost();
         await vm.OnFocusGained();
 
-        vm.Visibility.Should().BeFalse();
-        builder.Verify(service => service.BuildWeeks(7, It.IsAny<int>()), Times.Exactly(2));
+        vm.Visibility.Should().BeTrue();
+        builder.Verify(service => service.BuildWeeks(7, It.IsAny<int>()), Times.Exactly(3));
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel), Times.Once);
         vm.OnClosed();
     }

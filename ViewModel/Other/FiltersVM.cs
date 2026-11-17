@@ -15,7 +15,7 @@ namespace FlashMemo.ViewModel.Other;
 
 public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo, IVMEventBus bus, 
                                     ILastSessionService lastSession, long userId, ILogger<FiltersVM> logger, 
-                                    IDialogService dialogService): BaseVM(bus, logger, dialogService)
+                                    IDialogService dialogService, SafetyNet net): BaseVM(bus, logger, dialogService, net)
 {
     #region public properties
     public Filters CachedFilters { get; private set; } = null!;
@@ -121,29 +121,30 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
     }
 
     //* only reloads those filters that are dynamically dependent on the current domain.
-    protected override async Task ReloadDomainAsync()
+    protected override async Task<bool> ReloadDomainAsync()
     {
-        //* snapshotting selected ids
+        // Finish both loads and materialize the replacements before changing the current filters.
+        var deckTree = (await deckTB.BuildAsync(userId)).ToArray();
+        var tags = (await tagRepo.GetFromUser(userId)).ToVMs().ToArray();
+
         long[] selectedDecks = [..OnlySelectedDecks()];
         long[] selectedTags = [..OnlySelectedTags()];
+
+        // Restore selections on the replacement objects before publishing them.
+        deckTree.Flatten()
+            .IntersectBy(selectedDecks, d => d.Id)
+            .ForEach(d => d.IsSelected = true);
+
+        tags.IntersectBy(selectedTags, t => t.Id)
+            .ForEach(t => t.IsSelected = true);
 
         DeckTree.Clear();
         Tags.Clear();
 
-        DeckTree.AddRange(await deckTB
-            .BuildAsync(userId));
+        DeckTree.AddRange(deckTree);
+        Tags.AddRange(tags);
 
-        Tags.AddRange((await tagRepo
-            .GetFromUser(userId))
-            .ToVMs());
-
-        //* marking all tags and decks that still exist and were selected before the reload.
-        DeckTree.Flatten()
-            .IntersectBy(selectedDecks, d => d.Id)
-            .ForEach(d => d.IsSelected = true);
-
-        Tags.IntersectBy(selectedTags, t => t.Id)
-            .ForEach(t => t.IsSelected = true);
+        return true;
     }
 
     private void MarkVMsSelected(Filters filters)

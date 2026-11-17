@@ -8,8 +8,8 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class StatsVM (IVMEventBus bus, long userId, AnswerRatioVM ansRatioVM, 
                             IStatsQueryService statsService,
-                            ILogger<StatsVM> log, IDialogService dialogService)
-                            : BaseVM(bus, log, dialogService)
+                            ILogger<StatsVM> log, IDialogService dialogService, SafetyNet net)
+                            : BaseVM(bus, log, dialogService, net)
 {
     private const string NotAvailable = "N/A";
 

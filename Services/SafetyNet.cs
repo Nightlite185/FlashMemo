@@ -6,6 +6,7 @@ namespace FlashMemo.Services;
 
 public class SafetyNet(ILogger<SafetyNet> logger, IDialogService dialogs)
 {
+    /// <param name="retry">Generally put true for read-only operations, and false for ones that write.</param>
     public async Task<bool> TryUnsafe(
         Func<Task<bool>> action, string actionTried, bool retry,
         [CallerMemberName] string caller = "",

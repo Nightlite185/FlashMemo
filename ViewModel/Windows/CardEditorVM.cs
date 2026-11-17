@@ -14,7 +14,7 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, IVMEventBus eventBus, 
                                 DeckSelectVMF deckSelectVMF, EditableCardVM cardVM,
                                 ILogger<CardEditorVM> log, IDialogService dialogService, SafetyNet net)
-                                : BaseVM(eventBus, log, dialogService), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
+                                : BaseVM(eventBus, log, dialogService, net), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
     public List<TagVM> Tags => Card.Tags;
     public EditableCardVM Card { get; private set; } = cardVM;
@@ -55,16 +55,15 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
         return Task.CompletedTask;
     }
 
-    protected override async Task ReloadDomainAsync()
+    protected override async Task<bool> ReloadDomainAsync()
     {
         var card = await cardRepo
             .GetById(Card.Id);
 
         if (card is null)
-        {
             OnCloseRequest?.Invoke();
-            return;
-        }
+
+        return true;
     } 
     
     // Popup confirmation callback: let failures propagate to the popup's SafetyNet.

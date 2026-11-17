@@ -22,7 +22,7 @@ public class StatsVMF(IStatsQueryService statsService, IVMEventBus bus, ILogger<
                 StatsVM sVM = new(
                     bus, userId, ratioVM,
                     statsService,
-                    logger, dialogs);
+                    logger, dialogs, net);
 
                 await sVM.InitAsync();
                 return sVM;

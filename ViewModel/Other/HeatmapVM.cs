@@ -22,7 +22,7 @@ namespace FlashMemo.ViewModel.Other;
 public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService userOptService, 
                             IVMEventBus bus, long userId, ILogger<HeatmapVM> logger,
                             IDialogService dialogService, SafetyNet net)
-                            : BaseVM(bus, logger, dialogService)
+                            : BaseVM(bus, logger, dialogService, net)
 {
     #region private things
     private UserOptions? userOpt;
@@ -40,19 +40,22 @@ public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService u
 
         await ReloadUserOptAsync();
     }
-    protected override Task ReloadDomainAsync()
-        // BaseVM.OnFocusGained awaits domain reload before checking dirty user options.
-        // If both are dirty, its following options reload refreshes the weeks using the new preference.
-        => isUserOptDirty ? Task.CompletedTask : LoadAsync(HeatmapYear, reloadOptions: false);
 
-    protected override Task ReloadUserOptAsync()
+    // BaseVM.OnFocusGained awaits domain reload before checking dirty user options.
+    // If both are dirty, its following options reload refreshes the weeks using the new preference.
+    protected override Task<bool> ReloadDomainAsync()
+        => isUserOptDirty ? Task.FromResult(true) : LoadAsync(HeatmapYear, reloadOptions: false);
+
+    protected override Task<bool> ReloadUserOptAsync()
         => LoadAsync(HeatmapYear, reloadOptions: true);
 
-    private async Task LoadAsync(int year, bool reloadOptions)
+    private async Task<bool> LoadAsync(int year, bool reloadOptions)
     {
         // Error dialogs can return focus while the original load is still in progress.
-        if (isLoading || (!reloadOptions && userOpt?.ShowHeatmap != true))
-            return;
+        if (isLoading) return false;
+
+        if (!reloadOptions && userOpt?.ShowHeatmap != true)
+            return true;
 
         isLoading = true;
         IsLoaded = false;
@@ -76,12 +79,14 @@ public partial class HeatmapVM(IActivityVMBuilder builder, IUserOptionsService u
                 retry: true);
 
             if (!result.Success)
-                return;
+                return false;
 
             Weeks.Clear();
             Weeks.AddRange(result.Value);
             HeatmapYear = year;
             IsLoaded = userOpt!.ShowHeatmap;
+            
+            return true;
         }
         finally { isLoading = false; }
     }

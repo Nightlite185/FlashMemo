@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 namespace FlashMemo.ViewModel.Windows;
 
 public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus bus, long userId,
-                            ILogger<MainVM> log, IDialogService dialogService, SafetyNet net)
-                            : BaseVM(bus, log, dialogService), IViewModel, IDisplayHost
+                            ILogger<MainVM> logger, IDialogService dialogs, SafetyNet net)
+                            : BaseVM(bus, logger, dialogs, net), IViewModel, IDisplayHost
 {
     // called by factory only. Need this two-step creation cuz circular dependency
     internal async Task InitAsync(IDisplayControl dsControl)

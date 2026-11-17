@@ -66,7 +66,7 @@ public class StatsVMTests
         var answerRatioVM = new AnswerRatioVM(UserId, service,
             NullLogger<AnswerRatioVM>.Instance, Mock.Of<IDialogService>());
         var vm = new StatsVM(new VMEventBus(), UserId, answerRatioVM, service,
-            NullLogger<StatsVM>.Instance, Mock.Of<IDialogService>());
+            NullLogger<StatsVM>.Instance, Mock.Of<IDialogService>(), Helpers.GetSafetyNet());
 
         await vm.InitAsync();
         return vm;

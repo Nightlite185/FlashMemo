@@ -34,7 +34,7 @@ public static class FocusBoundaryBehavior
     private static void SetState(DependencyObject obj, FocusTrackingState? state)
         => obj.SetValue(StateProperty, state);
 
-    private static void OnEnableBoundaryFocusTrackingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static async void OnEnableBoundaryFocusTrackingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not FrameworkElement root)
             return;
@@ -51,7 +51,7 @@ public static class FocusBoundaryBehavior
             root.DataContextChanged += Root_DataContextChanged;
 
             WireWindow(root, state);
-            Reevaluate(root, state);
+            await Reevaluate(root, state);
             return;
         }
 
@@ -68,13 +68,13 @@ public static class FocusBoundaryBehavior
         SetState(root, null);
     }
 
-    private static void Root_Loaded(object sender, RoutedEventArgs e)
+    private static async void Root_Loaded(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement root || GetState(root) is not FocusTrackingState state)
             return;
 
         WireWindow(root, state);
-        Reevaluate(root, state);
+        await Reevaluate(root, state);
     }
 
     private static void Root_Unloaded(object sender, RoutedEventArgs e)
@@ -91,7 +91,7 @@ public static class FocusBoundaryBehavior
         UnwireWindow(state);
     }
 
-    private static void Root_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    private static async void Root_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (sender is not FrameworkElement root || GetState(root) is not FocusTrackingState state)
             return;
@@ -101,7 +101,7 @@ public static class FocusBoundaryBehavior
         if (!state.HasBoundaryFocus && hasFocusNow)
         {
             state.HasBoundaryFocus = true;
-            NotifyFocusGained(root);
+            await NotifyFocusGained(root);
         }
         else if (state.HasBoundaryFocus && !hasFocusNow)
         {
@@ -110,7 +110,7 @@ public static class FocusBoundaryBehavior
         }
     }
 
-    private static void Root_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    private static async void Root_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
         if (sender is not FrameworkElement root || GetState(root) is not FocusTrackingState state)
             return;
@@ -121,7 +121,7 @@ public static class FocusBoundaryBehavior
         if (!oldInside && newInside && !state.HasBoundaryFocus && IsWindowActive(root, state))
         {
             state.HasBoundaryFocus = true;
-            NotifyFocusGained(root);
+            await NotifyFocusGained(root);
         }
     }
 
@@ -190,14 +190,14 @@ public static class FocusBoundaryBehavior
         return ReferenceEquals(rootWindow, elementWindow);
     }
 
-    private static void Reevaluate(FrameworkElement root, FocusTrackingState state)
+    private static async Task Reevaluate(FrameworkElement root, FocusTrackingState state)
     {
         var hasFocusNow = ComputeHasBoundaryFocus(root, state);
 
         if (!state.HasBoundaryFocus && hasFocusNow)
         {
             state.HasBoundaryFocus = true;
-            NotifyFocusGained(root);
+            await NotifyFocusGained(root);
             return;
         }
 
@@ -237,10 +237,10 @@ public static class FocusBoundaryBehavior
         return LogicalTreeHelper.GetParent(current);
     }
 
-    private static void NotifyFocusGained(FrameworkElement root)
+    private static async Task NotifyFocusGained(FrameworkElement root)
     {
         if (root.DataContext is IFocusState vm)
-            _ = vm.OnFocusGained();
+            await vm.OnFocusGained();
     }
 
     private static void NotifyFocusLost(FrameworkElement root)
@@ -255,7 +255,7 @@ public static class FocusBoundaryBehavior
         public bool RestoreBoundaryFocusOnActivate { get; set; }
         public Window? Window { get; set; }
 
-        public void OnWindowActivated(object? sender, EventArgs e)
+        public async void OnWindowActivated(object? sender, EventArgs e)
         {
             var hasFocusNow = ComputeHasBoundaryFocus(root, this);
             if (!hasFocusNow && RestoreBoundaryFocusOnActivate && root.IsVisible)
@@ -265,7 +265,7 @@ public static class FocusBoundaryBehavior
             {
                 HasBoundaryFocus = true;
                 RestoreBoundaryFocusOnActivate = false;
-                NotifyFocusGained(root);
+                await NotifyFocusGained(root);
             }
         }
 
@@ -280,7 +280,7 @@ public static class FocusBoundaryBehavior
             NotifyFocusLost(root);
         }
 
-        public void OnWindowPreviewMouseDown(object? sender, MouseButtonEventArgs e)
+        public async void OnWindowPreviewMouseDown(object? sender, MouseButtonEventArgs e)
         {
             var clickedInside = IsInsideRoot(root, e.OriginalSource as DependencyObject);
             var clickedInSameWindow = IsInSameWindow(root, e.OriginalSource as DependencyObject, this);
@@ -288,7 +288,7 @@ public static class FocusBoundaryBehavior
             if (!HasBoundaryFocus && clickedInside)
             {
                 HasBoundaryFocus = true;
-                NotifyFocusGained(root);
+                await NotifyFocusGained(root);
                 return;
             }
 

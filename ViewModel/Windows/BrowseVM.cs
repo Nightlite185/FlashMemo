@@ -16,7 +16,7 @@ namespace FlashMemo.ViewModel.Windows;
 
 public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM filtersVM, long userId,
                                     IVMEventBus bus, ILogger<BrowseVM> logger, IDialogService dialogService, SafetyNet net)
-                                    : BaseVM(bus, logger, dialogService), IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
+                                    : BaseVM(bus, logger, dialogService, net), IPopupHost, IFiltrable, IClosedHandler, ICtxMenuHost
 {
     #region Public properties
     public CollectionView CardsView { get; private set; } = null!;
@@ -95,7 +95,12 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
     }
 
     [RelayCommand]
-    public async Task ApplyFiltersAsync(Filters? snapshot = null)
+    public async Task TryApplyFiltersAsync(Filters? snapshot = null)
+        => await net.TryUnsafe(
+            () => ApplyFiltersAsync(snapshot),
+            "apply the card filters", retry: false);
+
+    private async Task ApplyFiltersAsync(Filters? snapshot)
     {
         //* take fresh snapshot by default if filters arent given;
         //* this is used in browse xaml bc its a parameterless command
@@ -136,8 +141,11 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
 
         return Task.CompletedTask;
     }
-    protected override async Task ReloadDomainAsync()
-        => await ApplyFiltersAsync(filtersVM.CachedFilters);
+    protected override async Task<bool> ReloadDomainAsync()
+    {
+        await ApplyFiltersAsync(filtersVM.CachedFilters);
+        return true;
+    }
     #endregion
     
     [RelayCommand]

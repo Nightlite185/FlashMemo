@@ -3,7 +3,6 @@ using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
-using FlashMemo.ViewModel.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

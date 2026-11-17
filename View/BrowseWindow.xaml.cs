@@ -414,7 +414,7 @@ public partial class BrowseWindow : Window, IViewFor<BrowseVM>
 
         fVM.ResetFiltersCommand.Execute(null);
         
-        await VM.ApplyFiltersAsync(
+        await VM.TryApplyFiltersAsync(
             fVM.TakeSnapshot());
     }
 

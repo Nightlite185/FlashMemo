@@ -13,11 +13,10 @@ public record EditCardNavRequest(long CardId, long UserId): NavigationRequest;
 public record CreateCardNavRequest(IDeckMeta TargetDeck): NavigationRequest;
 public record DeckOptionsNavRequest(long DeckId): NavigationRequest;
 
-public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dialogService)
+public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dialogService, SafetyNet net)
     : ObservableObject, IViewModel, INavRequestSender, IFocusState, IClosedHandler
 {
-    protected readonly ILogger logger = logger;
-    protected readonly IDialogService dialogs = dialogService;
+    private bool isReloading;
 
     public event Func<NavigationRequest, Task>? NavRequested;
     public void RegisterNavBubbling(INavRequestSender vm)
@@ -35,24 +34,28 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
 
         isFocused = true;
         
-        if (isDomainDirty)
+        // Error dialogs can return focus before the original reload has completed.
+        if (isReloading) return;
+        isReloading = true;
+
+        try
         {
-            await ReloadDomainAsync();
-            isDomainDirty = false;
+            if (isDomainDirty && await net.TryUnsafe(
+                ReloadDomainAsync, "reload the current view's data", retry: true))
+                isDomainDirty = false;
+
+            if (isUserOptDirty && await net.TryUnsafe(
+                ReloadUserOptAsync, "reload user options", retry: true))
+                isUserOptDirty = false;
+
+            if (isDeckOptDirty && await net.TryUnsafe(
+                ReloadDeckOptAsync, "reload deck options", retry: true))
+                isDeckOptDirty = false;
         }
 
-        if (isUserOptDirty)
-        {
-            await ReloadUserOptAsync();
-            isUserOptDirty = false;
-        }
-
-        if (isDeckOptDirty)
-        {
-            await ReloadDeckOptAsync();
-            isDeckOptDirty = false;
-        }
+        finally { isReloading = false; }
     }
+
     public virtual void OnFocusLost() => isFocused = false;
 
     protected virtual void OnDomainChanged()
@@ -80,14 +83,50 @@ public abstract class BaseVM(IVMEventBus bus, ILogger logger, IDialogService dia
         eventBus.DeckOptionsChanged -= OnDeckOptChanged;
     }
 
-    /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
-    protected virtual async Task ReloadDomainAsync() => await Task.CompletedTask;
+    /// <summary>Reloads domain data. Override when this view model needs that refresh.</summary>
+    /// <returns>
+    /// Normally return true after success (including a handled state that needs no further work),
+    /// allowing OnFocusGained to clear isDomainDirty.
+    /// Return false only to keep the flag dirty without throwing, for example when another load
+    /// is still in progress or a nested SafetyNet already handled a failure.
+    /// </returns>
+    /// <remarks>
+    /// Let failures propagate to OnFocusGained's SafetyNet; they also leave the flag dirty.
+    /// Do not catch an exception just to return false.
+    /// Returning false does not trigger an error dialog or immediate retry.
+    /// The default implementation returns true because this view model has no work for this hook.
+    /// </remarks>
+    protected virtual Task<bool> ReloadDomainAsync() => Task.FromResult(true);
 
-    /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
-    protected virtual async Task ReloadUserOptAsync() => await Task.CompletedTask;
+    /// <summary>Reloads user options. Override when this view model needs that refresh.</summary>
+    /// <returns>
+    /// Normally return true after success (including a handled state that needs no further work),
+    /// allowing OnFocusGained to clear isUserOptDirty.
+    /// Return false only to keep the flag dirty without throwing, for example when another load
+    /// is still in progress or a nested SafetyNet already handled a failure.
+    /// </returns>
+    /// <remarks>
+    /// Let failures propagate to OnFocusGained's SafetyNet; they also leave the flag dirty.
+    /// Do not catch an exception just to return false.
+    /// Returning false does not trigger an error dialog or immediate retry.
+    /// The default implementation returns true because this view model has no work for this hook.
+    /// </remarks>
+    protected virtual Task<bool> ReloadUserOptAsync() => Task.FromResult(true);
 
-    /// <summary>Optional method, must override base to be useful. Do not call base's implementation when overriding.</summary>
-    protected virtual async Task ReloadDeckOptAsync() => await Task.CompletedTask;
+    /// <summary>Reloads deck options. Override when this view model needs that refresh.</summary>
+    /// <returns>
+    /// Normally return true after success (including a handled state that needs no further work),
+    /// allowing OnFocusGained to clear isDeckOptDirty.
+    /// Return false only to keep the flag dirty without throwing, for example when another load
+    /// is still in progress or a nested SafetyNet already handled a failure.
+    /// </returns>
+    /// <remarks>
+    /// Let failures propagate to OnFocusGained's SafetyNet; they also leave the flag dirty.
+    /// Do not catch an exception just to return false.
+    /// Returning false does not trigger an error dialog or immediate retry.
+    /// The default implementation returns true because this view model has no work for this hook.
+    /// </remarks>
+    protected virtual Task<bool> ReloadDeckOptAsync() => Task.FromResult(true);
 
     protected bool isFocused = true;
     protected bool isDomainDirty;

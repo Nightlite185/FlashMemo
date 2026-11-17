@@ -18,7 +18,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
                             IDeckMeta deck, ICardRepo cardRepo, IVMEventBus eventBus, 
                             IUserOptionsService uOptionsService, IDeckOptionsService deckOptService,
                             ILogger<ReviewVM> log, IDialogService dialogService, SafetyNet net)
-                            : BaseVM(eventBus, log, dialogService), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
+                            : BaseVM(eventBus, log, dialogService, net), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
     #region public properties
     
@@ -208,7 +208,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         else stopWatch.Stop();
     }
     
-    protected override async Task ReloadDomainAsync()
+    protected override async Task<bool> ReloadDomainAsync()
     {
         // 1. Fetch fresh entities for all session card IDs in one query
         var freshEntities = await cardRepo.GetByIds(
@@ -242,6 +242,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         // 6. If current card got nuked, move on
         if (CurrentCard?.IsInvalid == true)
             ShowNextCard();
+
+        return true;
     }
 
     public Task OnActionExecuted(CtxMenuAction action, IReadOnlyCollection<CardEntity> affectedCards)
@@ -289,18 +291,21 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         stopWatch.Stop();
     }
 
-    protected override async Task ReloadUserOptAsync()
+    protected override async Task<bool> ReloadUserOptAsync()
     {
         userOptions = await uOptionsService
             .GetFromUser(userId);
 
         OnPropertyChanged(nameof(TimerVisible));
+        return true;
     }
 
-    protected override async Task ReloadDeckOptAsync()
+    protected override async Task<bool> ReloadDeckOptAsync()
     {
         deckOptions = await deckOptService
             .GetFromDeck(Deck.Id);
+            
+        return true;
     }
     #endregion
 

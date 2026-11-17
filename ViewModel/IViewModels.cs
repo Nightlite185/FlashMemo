@@ -20,7 +20,7 @@ public interface INavRequestSender
 
 public interface IFiltrable
 {
-    public Task ApplyFiltersAsync(Filters filters);
+    public Task TryApplyFiltersAsync(Filters filters);
 }
 
 public interface IPopupHost

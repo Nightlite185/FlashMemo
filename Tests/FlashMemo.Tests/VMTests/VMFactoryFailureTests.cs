@@ -153,7 +153,7 @@ public class VMFactoryFailureTests
                 .Returns(retry ? DialogResult.Retry : DialogResult.Cancel);
             var net = Helpers.GetSafetyNet(dialogs.Object);
             var filters = new FiltersVMF(builder.Object, tags.Object, bus.Object, Mock.Of<ILastSessionService>(),
-                NullLogger<FiltersVM>.Instance, dialogs.Object);
+                NullLogger<FiltersVM>.Instance, dialogs.Object, net);
             var factory = new BrowseVMF(query.Object, filters, ContextMenuFactory(bus.Object, dialogs.Object, net),
                 bus.Object, NullLogger<BrowseVM>.Instance, dialogs.Object, net);
 

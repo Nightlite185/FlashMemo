@@ -20,20 +20,41 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        await CheckLicenses();
+        // DI and the normal log directory may themselves fail to initialize.
+        var startupNet = new SafetyNet(new StartupLogger(), new WpfDialogService());
+
+        if (!await startupNet.TryUnsafe(
+            () => StartAsync(e),
+            actionTried: "start FlashMemo. The application could not initialize and will close.",
+            retry: false))
+        {
+            Shutdown(exitCode: 1);
+        }
+    }
+
+    private async Task<bool> StartAsync(StartupEventArgs e)
+    {
         base.OnStartup(e);
+        await CheckLicenses();
 
         var services = ConfigureServices();
         this.sp = services.BuildServiceProvider();
-
         using (var scope = sp.CreateScope())
         {
-            await scope.ServiceProvider
+            bool seeded = await scope.ServiceProvider
                 .GetRequiredService<DbSeeder>()
-                .SeedAsync();
+                .TrySeedAsync();
+
+            if (!seeded)
+                return false;
         }
 
-        await InitUserSession();
+        var net = sp.GetRequiredService<SafetyNet>();
+
+        return await net.TryUnsafe(
+            InitUserSession,
+            actionTried: "load the saved application session and open FlashMemo. The application cannot continue and will close.",
+            retry: false);
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -61,8 +82,10 @@ public partial class App : Application
 
         else
         {
-            await sp.GetRequiredService<ILoginService>()
+            bool loggedIn = await sp.GetRequiredService<ILoginService>()
                 .ChangeUser((long)lss.LastUserId);
+
+            if (!loggedIn) Shutdown(exitCode: 1);
         }
     }
     private static async Task CheckLicenses()

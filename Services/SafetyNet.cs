@@ -55,9 +55,6 @@ public class SafetyNet(ILogger<SafetyNet> logger, IDialogService dialogs)
 
             catch (Exception e)
             {
-                if (res is IClosedHandler cleanup)
-                    cleanup.OnClosed();
-
                 logger.LogError(e,
                     message: "{Caller}: {Operation} failed ({Attempt})",
                     args: [caller, operation, firstPass ? "initial attempt" : "retry"]);

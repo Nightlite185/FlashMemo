@@ -114,16 +114,17 @@ public class BaseVMReloadTests
         var query = new Mock<ICardQueryService>(MockBehavior.Strict);
         query.Setup(service => service.GetCardsWhere(It.IsAny<Filters>(),
             It.IsAny<CardsOrder>(), It.IsAny<SortingDirection>())).ThrowsAsync(new IOException());
+        query.Setup(service => service.GetAllFromUser(7)).ThrowsAsync(new IOException());
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
-        dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
-            .Returns(DialogResult.OK);
+        dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
+            .Returns(DialogResult.Cancel);
         var vm = new BrowseVM(query.Object, null!, 7, new VMEventBus(),
             NullLogger<BrowseVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
 
         await vm.TryApplyFiltersAsync(new Filters { UserId = 7 });
 
         query.VerifyAll();
-        dialogs.Verify(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK), Times.Once());
+        dialogs.Verify(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel), Times.Exactly(2));
     }
 
     private sealed class ReloadVM(SafetyNet net)

@@ -15,18 +15,22 @@ namespace FlashMemo.Tests.VMTests;
 public class DecksVMTests
 {
     [Fact]
-    public async Task ShowExportMenu_WithNoSelection_ThrowsWithoutCountingCards()
+    public async Task ShowExportMenu_WithNoSelection_ShowsInformationWithoutCountingCards()
     {
         var counter = new Mock<ICountingService>(MockBehavior.Strict);
         var factory = new ExportVMF(
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowInfo(It.IsAny<string>(), "Choose decks first.", DialogButtons.OK))
+            .Returns(DialogResult.OK);
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
+            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object), Helpers.GetMapper());
 
-        Func<Task> showExport = () => vm.ShowExportMenuCommand.ExecuteAsync(null);
+        await vm.ShowExportMenuCommand.ExecuteAsync(null);
 
-        await showExport.Should().ThrowAsync<InvalidOperationException>();
+        dialogs.Verify(service => service.ShowInfo(It.IsAny<string>(), "Choose decks first.", DialogButtons.OK), Times.Once);
+        dialogs.VerifyNoOtherCalls();
         vm.CurrentPopup.Should().BeNull();
         counter.VerifyNoOtherCalls();
     }
@@ -48,8 +52,11 @@ public class DecksVMTests
         var factory = new ExportVMF(
             Mock.Of<ICardQueryService>(), Mock.Of<IExportService>(), counter.Object, Mock.Of<IDialogService>(),
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowInfo(It.IsAny<string>(), "Choose decks first.", DialogButtons.OK))
+            .Returns(DialogResult.OK);
         var vm = new DecksVM(null!, null!, null!, null!, null!, 1, null!, factory,
-            NullLogger<DecksVM>.Instance, Mock.Of<IDialogService>(), null!, Helpers.GetSafetyNet(), Helpers.GetMapper());
+            NullLogger<DecksVM>.Instance, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object), Helpers.GetMapper());
         vm.DeckTree.Add(parent);
         vm.DeckTree.Add(unselected);
         vm.SelectedDecks.Add(parent);
@@ -112,8 +119,7 @@ public class DecksVMTests
         preferences.Setup(service => service.GetFromUser(1)).ThrowsAsync(failure);
         var logger = new Mock<ILogger<DecksVM>>();
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
-        dialogs.Setup(service => service.Show("Delete deck?", It.IsAny<string>(),
-                DialogButtons.YesNo, DialogIcons.Warning))
+        dialogs.Setup(service => service.ShowWarning(It.IsAny<string>(), "Delete deck?", DialogButtons.YesNo))
             .Returns(answer);
         var vm = new DecksVM(repo.Object, null!, null!, Mock.Of<ILastSessionService>(), preferences.Object,
             1, null!, null!, logger.Object, dialogs.Object, null!, Helpers.GetSafetyNet(dialogs.Object),
@@ -140,8 +146,7 @@ public class DecksVMTests
         preferences.VerifyNoOtherCalls();
         logger.Verify(service => service.Log(LogLevel.Error, It.IsAny<EventId>(),
             It.IsAny<It.IsAnyType>(), failure, It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
-        dialogs.Verify(service => service.Show("Delete deck?", It.IsAny<string>(),
-            DialogButtons.YesNo, DialogIcons.Warning), Times.Once);
+        dialogs.Verify(service => service.ShowWarning(It.IsAny<string>(), "Delete deck?", DialogButtons.YesNo), Times.Once);
         dialogs.VerifyNoOtherCalls();
     }
 

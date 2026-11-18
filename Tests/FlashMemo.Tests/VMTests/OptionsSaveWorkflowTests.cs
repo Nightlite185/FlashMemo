@@ -25,8 +25,7 @@ public class OptionsSaveWorkflowTests
             .Returns(succeeds ? Task.CompletedTask : Task.FromException(new IOException()));
         var bus = new Mock<IVMEventBus>();
         var dialogs = new Mock<IDialogService>();
-        dialogs.Setup(dialog => dialog.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.YesNoCancel, DialogIcons.Warning)).Returns(DialogResult.Yes);
+        dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(DialogResult.Yes);
         var vm = new UserOptionsMenuVM(7, service.Object, Helpers.GetMapper(), bus.Object,
             NullLogger<UserOptionsMenuVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
         await vm.InitAsync();
@@ -126,10 +125,8 @@ public class OptionsSaveWorkflowTests
         dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
             .Callback<string, string, DialogButtons>((message, _, _) => errors.Add(message))
             .Returns(DialogResult.OK);
-        dialogs.Setup(dialog => dialog.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.YesNoCancel, DialogIcons.Warning)).Returns(DialogResult.Yes);
-        dialogs.Setup(dialog => dialog.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.YesNoCancel, DialogIcons.Question)).Returns(DialogResult.Yes);
+        dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(DialogResult.Yes);
+        dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(DialogResult.Yes);
         var bus = new Mock<IVMEventBus>();
         var vm = new DeckOptionsMenuVM(mapper, builder.Object, service.Object, Mock.Of<IUserOptionsService>(),
             new Deck { Id = 1, UserId = 7, OptionsId = 11 }, bus.Object,

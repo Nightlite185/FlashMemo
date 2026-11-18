@@ -220,8 +220,7 @@ public class MainVMTests
             deckRepo.Setup(repo => repo.GetFirst(userId)).ReturnsAsync((Deck?)null);
 
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
-        dialogs.Setup(service => service.Show(expectedTitle, It.IsAny<string>(),
-                DialogButtons.OK, DialogIcons.Information))
+        dialogs.Setup(service => service.ShowInfo(It.IsAny<string>(), expectedTitle, DialogButtons.OK))
             .Returns(DialogResult.OK);
 
         var decksVM = new DecksVM(null!, null!, null!, null!, null!, userId, null!, null!,
@@ -245,8 +244,7 @@ public class MainVMTests
         await vm.ShowCreateCardCommand.ExecuteAsync(null);
 
         navigated.Should().BeFalse();
-        dialogs.Verify(service => service.Show(expectedTitle, It.IsAny<string>(),
-            DialogButtons.OK, DialogIcons.Information), Times.Once);
+        dialogs.Verify(service => service.ShowInfo(It.IsAny<string>(), expectedTitle, DialogButtons.OK), Times.Once);
         dialogs.VerifyNoOtherCalls();
         deckRepo.Verify(repo => repo.GetFirst(userId), selectedCount == 0 ? Times.Once() : Times.Never());
         deckRepo.VerifyNoOtherCalls();

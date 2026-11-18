@@ -132,8 +132,7 @@ public class CardCtxMenuEntityWorkflowTests
         var flow = CreateWorkflow(logger: logger.Object);
         var failure = new IOException();
         flow.Preferences.Setup(service => service.GetFromUser(7)).ThrowsAsync(failure);
-        flow.Dialogs.Setup(service => service.Show("Delete cards?", It.IsAny<string>(),
-                DialogButtons.YesNo, DialogIcons.Warning))
+        flow.Dialogs.Setup(service => service.ShowWarning(It.IsAny<string>(), "Delete cards?", DialogButtons.YesNo))
             .Returns(answer);
         flow.Repo.Setup(repo => repo.DeleteCards(It.IsAny<IEnumerable<long>>())).Returns(Task.CompletedTask);
         flow.Menu.OpenMenu([CreateCard(1), CreateCard(2)]);
@@ -153,8 +152,7 @@ public class CardCtxMenuEntityWorkflowTests
         flow.Preferences.VerifyNoOtherCalls();
         logger.Verify(service => service.Log(LogLevel.Error, It.IsAny<EventId>(),
             It.IsAny<It.IsAnyType>(), failure, It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
-        flow.Dialogs.Verify(service => service.Show("Delete cards?", It.IsAny<string>(),
-            DialogButtons.YesNo, DialogIcons.Warning), Times.Once);
+        flow.Dialogs.Verify(service => service.ShowWarning(It.IsAny<string>(), "Delete cards?", DialogButtons.YesNo), Times.Once);
         flow.Dialogs.VerifyNoOtherCalls();
     }
 

@@ -33,8 +33,7 @@ public class VMFactoryFailureTests
         else
         {
             cards.Setup(repo => repo.GetById(1)).ReturnsAsync((CardEntity?)null);
-            dialogs.Setup(service => service.Show("Error", It.Is<string>(message => message.Contains("doesn't exist")),
-                DialogButtons.OK, DialogIcons.Error)).Returns(DialogResult.OK);
+            dialogs.Setup(service => service.ShowError(It.Is<string>(message => message.Contains("doesn't exist")), "Error", DialogButtons.OK)).Returns(DialogResult.OK);
         }
         var editable = new EditableCardVMF(cards.Object, null!, null!, null!);
         var factory = new CardEditorVMF(null!, cards.Object, null!, editable, null!, null!, null!,

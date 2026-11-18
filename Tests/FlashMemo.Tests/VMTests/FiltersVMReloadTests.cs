@@ -59,7 +59,7 @@ public class FiltersVMReloadTests
             vm.DeckTree.CollectionChanged += (_, _) => collectionChanges++;
             vm.Tags.CollectionChanged += (_, _) => collectionChanges++;
 
-            var decksLoaded = new TaskCompletionSource<IEnumerable<DeckNode>>();
+            var decksLoaded = new TaskCompletionSource<IList<DeckNode>>();
             var tagsLoaded = new TaskCompletionSource<ICollection<Tag>>();
             var tagsRequested = new TaskCompletionSource();
             tree.Setup(builder => builder.BuildAsync(userId)).Returns(decksLoaded.Task);

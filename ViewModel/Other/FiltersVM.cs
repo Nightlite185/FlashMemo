@@ -67,7 +67,7 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
 
     public Filters TakeSnapshot()
     {
-        var snapshot = new Filters()
+        return new Filters()
         {
             UserId = userId,
             
@@ -89,11 +89,13 @@ public sealed partial class FiltersVM(IDeckTreeBuilder deckTB, ITagRepo tagRepo,
             IsDue = IsDue,
             Due = Due
         };
+    }
 
+    // Taking a draft snapshot must not replace the filters that produced the displayed cards.
+    internal void RememberAppliedFilters(Filters snapshot)
+    {
         CachedFilters = snapshot;
         lastSession.LastFilters = snapshot;
-
-        return snapshot;
     }
     internal async Task InitializeAsync()
     {

@@ -83,8 +83,7 @@ public class DeckOptionsPresetWorkflowTests
     {
         var flow = await CreateWorkflow();
         flow.Original.DailyLimits.Reviews++;
-        flow.Dialogs.Setup(dialog => dialog.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.YesNoCancel, DialogIcons.Warning)).Returns(answer);
+        flow.Dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(answer);
         flow.Service.Setup(service => service.CreateNew(It.IsAny<DeckOptions>()))
             .ReturnsAsync((DeckOptions preset) => preset with { Id = 13 });
         flow.VM.NewPresetName = "New preset";
@@ -157,8 +156,7 @@ public class DeckOptionsPresetWorkflowTests
         var flow = await CreateWorkflow();
         int savedReviews = flow.Original.DailyLimits.Reviews;
         flow.Original.DailyLimits.Reviews++;
-        flow.Dialogs.Setup(dialog => dialog.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.YesNoCancel, DialogIcons.Warning)).Returns(DialogResult.Yes);
+        flow.Dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(DialogResult.Yes);
         var calls = new List<string>();
         flow.Service.Setup(service => service.SaveEditedPreset(It.IsAny<DeckOptions>()))
             .Callback(() => calls.Add("save"))
@@ -225,13 +223,11 @@ public class DeckOptionsPresetWorkflowTests
         flow.Preferences.Setup(service => service.GetFromUser(7))
             .Returns(readFails ? Task.FromException<UserOptions>(new IOException())
                 : Task.FromResult(UserOptions.CreateDefault() with { ConfirmPresetDeletion = confirm }));
-        flow.Dialogs.Setup(dialog => dialog.Show("Delete preset?", It.IsAny<string>(),
-            DialogButtons.YesNo, DialogIcons.Warning)).Returns(DialogResult.No);
+        flow.Dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), "Delete preset?", DialogButtons.YesNo)).Returns(DialogResult.No);
 
         (await flow.VM.CanRemovePreset()).Should().Be(!readFails && !confirm);
 
-        flow.Dialogs.Verify(dialog => dialog.Show("Delete preset?", It.IsAny<string>(),
-            DialogButtons.YesNo, DialogIcons.Warning), readFails || confirm ? Times.Once() : Times.Never());
+        flow.Dialogs.Verify(dialog => dialog.ShowWarning(It.IsAny<string>(), "Delete preset?", DialogButtons.YesNo), readFails || confirm ? Times.Once() : Times.Never());
         flow.Logger.Verify(logger => logger.Log(LogLevel.Error, It.IsAny<EventId>(),
             It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()), readFails ? Times.Once() : Times.Never());
@@ -245,8 +241,7 @@ public class DeckOptionsPresetWorkflowTests
     {
         var flow = await CreateWorkflow();
         flow.Preferences.Setup(service => service.GetFromUser(7)).ThrowsAsync(new IOException());
-        flow.Dialogs.Setup(dialog => dialog.Show("Delete preset?", It.IsAny<string>(),
-            DialogButtons.YesNo, DialogIcons.Warning)).Returns(answer);
+        flow.Dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), "Delete preset?", DialogButtons.YesNo)).Returns(answer);
         flow.Service.Setup(service => service.Remove(11)).Returns(Task.CompletedTask);
 
         await flow.VM.RemovePresetCommand.ExecuteAsync(null);
@@ -310,8 +305,7 @@ public class DeckOptionsPresetWorkflowTests
         preferences.Setup(repo => repo.GetFromUser(7))
             .ReturnsAsync(UserOptions.CreateDefault() with { ConfirmPresetDeletion = false });
         var dialogs = new Mock<IDialogService>();
-        dialogs.Setup(dialog => dialog.Show(It.IsAny<string>(), It.IsAny<string>(),
-            DialogButtons.YesNoCancel, DialogIcons.Question)).Returns(DialogResult.No);
+        dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(DialogResult.No);
         var bus = new Mock<IVMEventBus>();
         var logger = new Mock<ILogger<DeckOptionsMenuVM>>();
         var deck = new Deck { Id = 1, UserId = 7, OptionsId = 11 };

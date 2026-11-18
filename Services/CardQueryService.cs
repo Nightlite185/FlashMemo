@@ -10,7 +10,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
     : DbDependentClass(factory), ICardQueryService
 {
     #region Public methods
-    public async Task<ICollection<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
+    public async Task<IList<CardEntity>> GetCardsWhere(Filters filters, CardsOrder order, SortingDirection dir)
     {
         await using var db = GetDb;
 
@@ -78,6 +78,7 @@ public class CardQueryService(IDbContextFactory<AppDbContext> factory, ICounting
             .AsNoTracking()
             .Where(c => c.UserId == userId)
             .Include(c => c.Deck)
+            .Include(c => c.Tags)
             .ToListAsync();
     }
     public async Task<IList<CardEntity>> GetAllFromDeck(long deckId)

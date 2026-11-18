@@ -63,8 +63,7 @@ public class UserSelectVMTests
         options.Setup(service => service.GetFromUser(1)).ThrowsAsync(failure);
         var logger = new Mock<ILogger<UserSelectVM>>();
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
-        dialogs.Setup(service => service.Show("Delete user?", It.IsAny<string>(),
-                DialogButtons.YesNo, DialogIcons.Warning))
+        dialogs.Setup(service => service.ShowWarning(It.IsAny<string>(), "Delete user?", DialogButtons.YesNo))
             .Returns(answer);
         var vm = CreateVM(repo: repo.Object, session: session.Object,
             options: options.Object, dialogs: dialogs.Object, logger: logger.Object);
@@ -87,8 +86,7 @@ public class UserSelectVMTests
         logger.Verify(service => service.Log(LogLevel.Error, It.IsAny<EventId>(),
             It.IsAny<It.IsAnyType>(), failure, It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
-        dialogs.Verify(service => service.Show("Delete user?", It.IsAny<string>(),
-            DialogButtons.YesNo, DialogIcons.Warning), Times.Once);
+        dialogs.Verify(service => service.ShowWarning(It.IsAny<string>(), "Delete user?", DialogButtons.YesNo), Times.Once);
         dialogs.VerifyNoOtherCalls();
     }
 

@@ -283,8 +283,7 @@ public class ExportVMTests : IDisposable
         int confirmations = 0;
         int closed = 0;
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
-        dialogs.Setup(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
-                DialogButtons.YesNo, DialogIcons.Warning))
+        dialogs.Setup(service => service.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNo))
             .Callback(() => confirmations++)
             .Returns(DialogResult.No);
         var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
@@ -327,8 +326,7 @@ public class ExportVMTests : IDisposable
         int closed = 0;
         string? contentWhenClosed = null;
         var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
-        dialogs.Setup(service => service.Show(It.IsAny<string>(), It.IsAny<string>(),
-                DialogButtons.YesNo, DialogIcons.Warning))
+        dialogs.Setup(service => service.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNo))
             .Callback(() => confirmations++)
             .Returns(DialogResult.Yes);
         var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object), dialogs.Object, () =>
@@ -489,7 +487,7 @@ public class ExportVMTests : IDisposable
     }
 
     private async Task<(ExportVM VM, Mock<ICardQueryService> Query)> CreateExportViewModel(
-        ICollection<DeckNode> deckTree, ICollection<CardEntity> cards, Action? cancel = null)
+        ICollection<DeckNode> deckTree, IList<CardEntity> cards, Action? cancel = null)
     {
         var query = new Mock<ICardQueryService>(MockBehavior.Strict);
         query.Setup(service => service.GetCardsWhere(

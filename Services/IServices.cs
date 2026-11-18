@@ -14,8 +14,8 @@ public interface ILoginService
 
 public interface IDeckTreeBuilder
 {
-    Task<IEnumerable<DeckNode>> BuildAsync(long userId);
-    Task<IEnumerable<DeckNode>> BuildCountedAsync(long userId);
+    Task<IList<DeckNode>> BuildAsync(long userId);
+    Task<IList<DeckNode>> BuildCountedAsync(long userId);
 }
 
 public interface ICountingService
@@ -36,7 +36,7 @@ public interface ICountingService
 }
 public interface ICardQueryService
 {
-    Task<ICollection<CardEntity>> GetCardsWhere(
+    Task<IList<CardEntity>> GetCardsWhere(
         Filters filters, CardsOrder order, SortingDirection dir);
 
     Task<(ICollection<CardEntity>, CardsCount)> GetForStudy(long deckId, long userId);

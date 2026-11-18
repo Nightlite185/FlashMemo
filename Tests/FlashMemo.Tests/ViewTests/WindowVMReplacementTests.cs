@@ -67,8 +67,7 @@ public class WindowVMReplacementTests(WpfTestHost host)
             login.ChangeUser(7).GetAwaiter().GetResult().Should().BeFalse();
 
             closed.Should().BeFalse();
-            dialogs.Verify(service => service.Show("Close other windows", It.IsAny<string>(),
-                DialogButtons.OK, DialogIcons.Warning), Times.Once);
+            dialogs.Verify(service => service.ShowWarning(It.IsAny<string>(), "Close other windows", DialogButtons.OK), Times.Once);
             session.VerifyNoOtherCalls();
             cards.VerifyNoOtherCalls();
         }

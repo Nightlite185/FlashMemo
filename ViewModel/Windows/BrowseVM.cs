@@ -74,10 +74,10 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
         
         CardsView.Filter += OnFilter;
 
-        await ApplyFiltersAsync(
-            filtersVM.CachedFilters);
-
-        UpdateVisibleCardsCount();
+        // Initialization propagates failure to the factory so it can release this VM.
+        var snapshot = filtersVM.CachedFilters;
+        var loadedCards = await LoadCardsAsync(snapshot, SortOrder, SortDir);
+        CommitCards(loadedCards, snapshot);
     }
 
     private bool OnFilter(object obj)
@@ -100,21 +100,48 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
             () => ApplyFiltersAsync(snapshot),
             "apply the card filters", retry: false);
 
-    private async Task ApplyFiltersAsync(Filters? snapshot)
+    private async Task<bool> ApplyFiltersAsync(Filters? snapshot)
     {
-        //* take fresh snapshot by default if filters arent given;
-        //* this is used in browse xaml bc its a parameterless command
-        
         snapshot ??= filtersVM.TakeSnapshot();
-        cards.Clear();
-        SelectedCount = 0;
+        var order = SortOrder;
+        var direction = SortDir;
 
-        cards.AddRange((await cardQueryS
-            .GetCardsWhere(snapshot, SortOrder, SortDir))
-            .ToVMs());
+        var queryAttempt = await net.TryUnsafe(
+            action: () => LoadCardsAsync(snapshot, order, direction),
+            actionTried: "load cards with applied filters. If you don't wish to retry, we'll attempt loading all cards as fallback.",
+            retry: true);
 
-        UpdateVisibleCardsCount();
+        if (!queryAttempt.Success)
+        {
+            queryAttempt = await net.TryUnsafe(
+                action: async () => (await cardQueryS.GetAllFromUser(userId)).ToVMs().ToArray(),
+                actionTried: "load all current user's cards. The previous results will be kept if this fails.",
+                retry: true);
+
+            if (!queryAttempt.Success)
+                return false;
+
+            // Keep the draft available for another attempt, but remember what actually loaded.
+            snapshot = Filters.GetEmpty(userId);
+        }
+
+        CommitCards(queryAttempt.Value, snapshot);
+        return true;
     }
+
+    private async Task<CardVM[]> LoadCardsAsync(Filters snapshot, CardsOrder order, SortingDirection direction)
+        => [..(await cardQueryS.GetCardsWhere(snapshot, order, direction)).ToVMs()];
+
+    private void CommitCards(CardVM[] loadedCards, Filters snapshot)
+    {
+        cards.Clear();
+        cards.AddRange(loadedCards);
+        capturedCards = null;
+        SelectedCount = 0;
+        UpdateVisibleCardsCount();
+        filtersVM.RememberAppliedFilters(snapshot);
+    }
+
     public void OpenCtxMenu()
     {
         var selected = (capturedCards ?? GetSelectedCards())
@@ -141,11 +168,8 @@ public sealed partial class BrowseVM(ICardQueryService cardQueryS, FiltersVM fil
 
         return Task.CompletedTask;
     }
-    protected override async Task<bool> ReloadDomainAsync()
-    {
-        await ApplyFiltersAsync(filtersVM.CachedFilters);
-        return true;
-    }
+    protected override Task<bool> ReloadDomainAsync()
+        => ApplyFiltersAsync(filtersVM.CachedFilters);
     #endregion
     
     [RelayCommand]

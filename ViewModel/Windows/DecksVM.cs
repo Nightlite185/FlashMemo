@@ -37,13 +37,16 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     // Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task CreateDeck(string name, DeckNode? parent = null)
     {
-        Deck deck = Deck.CreateNew(
-            name, userId, parent?.Id);
+        var deck = await net.TryUnsafe(
+            () => deckRepo.AddNewDeck(
+                Deck.CreateNew(name, userId, parent?.Id)),
+            actionTried: "create new deck",
+            retry: false);
 
-        deck = await deckRepo.AddNewDeck(deck);
-        
+        if (!deck.Success) return;
+
         DeckNode node = new(
-            deck: deck,
+            deck.Value,
             children: [],
             countByState: new());
 
@@ -87,12 +90,13 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
 
     protected override async Task<bool> ReloadDomainAsync()
     {
+        var newDecks = (await decksBuilder
+            .BuildCountedAsync(userId));
+
         SelectedDecks.Clear();
         DeckTree.Clear();
 
-        DeckTree.AddRange(await decksBuilder
-            .BuildCountedAsync(userId));
-            
+        DeckTree.AddRange(newDecks);
         return true;
     }
 
@@ -100,7 +104,8 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     private void ShowCreateDeck(DeckNode? parent = null)
     {
         //* show create deck popup, in which you give it a name.
-        CurrentPopup = createDeckVMF.Create(CreateDeck, PopupCancel, parent);
+        CurrentPopup = createDeckVMF
+            .Create(CreateDeck, PopupCancel, parent);
     }
 
     [RelayCommand]

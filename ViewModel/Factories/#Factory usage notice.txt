@@ -1,0 +1,3 @@
+Only factory callers should wrap those calls into failure handling helpers like SafetyNet. 
+Factories themselves should only propagate those errors further and clean up after failed, half-initialized vm objects (like disconnecting events.)
+VMs shouldn't themselves handle failures in initialization methods either, just let it flow to the factories.

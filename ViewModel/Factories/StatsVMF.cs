@@ -15,7 +15,7 @@ public class StatsVMF(IStatsQueryService statsService, IVMEventBus bus, ILogger<
             {
                 AnswerRatioVM ratioVM = new(
                     userId, statsService,
-                    answerRatioLogger, dialogs);
+                    answerRatioLogger, dialogs, net);
 
                 await ratioVM.InitAsync();
 

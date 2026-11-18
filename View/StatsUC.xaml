@@ -405,7 +405,7 @@
 
                                         <TextBlock Margin="0,10,0,0"
                                                    Style="{StaticResource StatsBodyTextStyle}"
-                                                   Text="This percentage updates instantly when you switch answer type or time period."/>
+                                                   Text="The percentage reflects the selected answer type and time period."/>
                                     </StackPanel>
 
                                     <Border Grid.Column="1"

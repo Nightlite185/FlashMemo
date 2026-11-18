@@ -53,11 +53,9 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
         if (App.Current.Windows.OfType<Window>()
             .Any(window => window is not MainWindow and not UserSelectWindow))
         {
-            dialogs.Show(
+            dialogs.ShowWarning(
                 title: "Close other windows",
-                message: "Please close all other windows before switching users. They may contain unsaved changes.",
-                buttons: DialogButtons.OK,
-                icon: DialogIcons.Warning);
+                message: "Please close all other windows before switching users. They may contain unsaved changes.");
             
             return false;
         }

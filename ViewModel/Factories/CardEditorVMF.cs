@@ -19,12 +19,10 @@ public class CardEditorVMF(ICardService cardService, ICardRepo cardRepo, CardCtx
 
                 if (cardVM is null)
                 {
-                    dialogs.Show(
+                    dialogs.ShowError(
                         title: "Error",
                         message: "Sorry, but the card you tried to edit doesn't exist. "
-                        + "This is expected if you deleted that card beforehand.",
-                        buttons: DialogButtons.OK,
-                        icon: DialogIcons.Error);
+                        + "This is expected if you deleted that card beforehand.");
 
                     return null;
                 }

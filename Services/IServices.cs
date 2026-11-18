@@ -151,3 +151,12 @@ public interface IMainWindowBootstrapper
     void ActivateMainVM(MainVM vm);
     void Shutdown();
 }
+
+public interface IDialogService
+{
+    DialogResult Show(string title, string message, DialogButtons buttons, DialogIcons icon);
+    DialogResult ShowWarning(string message, string title = "Warning", DialogButtons buttons = DialogButtons.OK);
+    DialogResult ShowError(string message, string title = "Error", DialogButtons buttons = DialogButtons.OK);
+    DialogResult ShowInfo(string message, string title = "Info", DialogButtons buttons = DialogButtons.OK);
+    void ShowNoCardsFoundToExport();
+}

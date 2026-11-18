@@ -31,6 +31,7 @@ public static class DialogService
     public const string DeleteConfirmationSettingsHint =
         "\n\n(If you don't want to see this pop-up again, turn it off in User Options.)";
 
+    #region private helpers
     private static MessageBoxButton ConvertButtonType(DialogButtons db)
     {
         return db switch
@@ -81,6 +82,8 @@ public static class DialogService
             _ => throw new ArgumentOutOfRangeException(nameof(result), result, null)
         };
     }
+    #endregion
+
     public static DialogResult Show(string title, string message,
                     DialogButtons buttons, DialogIcons icon)
     {
@@ -104,8 +107,20 @@ public static class DialogService
             icon: DialogIcons.Information);
     }
     public static DialogResult ShowError(string message, string title = "Error", DialogButtons buttons = DialogButtons.OK)
-        => Show(title: title, 
-                message: message, 
-                buttons: buttons, 
+        => Show(title: title,
+                message: message,
+                buttons: buttons,
                 icon: DialogIcons.Error);
-} 
+
+    public static DialogResult ShowInfo(string message, string title = "Info", DialogButtons buttons = DialogButtons.OK)
+        => Show(title: title,
+                message: message,
+                buttons: buttons,
+                icon: DialogIcons.Information);
+
+    public static DialogResult ShowWarning(string message, string title = "Info", DialogButtons buttons = DialogButtons.OK)
+        => Show(title: title,
+                message: message,
+                buttons: buttons,
+                icon: DialogIcons.Information);
+}

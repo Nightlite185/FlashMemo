@@ -128,8 +128,13 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     private async Task ShowExportMenu()
     {
         if (SelectedDecks.Count == 0)
-            throw new InvalidOperationException(
-            "Tried to export decks, but none are selected.");
+        {
+            dialogs.ShowInfo(
+                title: "Choose decks first.",
+                message: "There were no decks selected. Choose some first, then try opening the export menu.");
+
+            return;
+        }
 
         var vm = await exportVMF.TryCreateAsync(
             userId, SelectedDecks.Cast<DeckNode>(), PopupCancel);
@@ -174,13 +179,12 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
                     + "This will also delete all of their subdecks and every card contained "
                     + "in the selected decks or any of their subdecks.";
 
-            var answer = dialogs.Show(
+            var answer = dialogs.ShowWarning(
                 title: decks.Length == 1 ? "Delete deck?" : "Delete decks?",
                 message: message
                     + " This action can't be undone."
                     + DialogService.DeleteConfirmationSettingsHint,
-                buttons: DialogButtons.YesNo,
-                icon: DialogIcons.Warning);
+                buttons: DialogButtons.YesNo);
 
             if (answer is DialogResult.No)
                 return;

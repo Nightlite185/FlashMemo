@@ -92,11 +92,9 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
 
             if (count > 1)
             {
-                dialogs.Show(
-                title: "Choose one deck",
-                message: "Select exactly one deck before creating a card.",
-                buttons: DialogButtons.OK,
-                icon: DialogIcons.Information);
+                dialogs.ShowInfo(
+                    title: "Choose one deck",
+                    message: "Select exactly one deck before creating a card.");
 
                 return;
             }
@@ -135,11 +133,9 @@ public partial class MainVM(ILastSessionService lss, IDeckRepo dr, IVMEventBus b
 
         if (deck is null)
         {
-            dialogs.Show(
+            dialogs.ShowInfo(
                 title: "No decks yet",
-                message: "You don't have any decks to create new cards in. Add a new deck first!",
-                buttons: DialogButtons.OK,
-                icon: DialogIcons.Information);
+                message: "You don't have any decks to create new cards in. Add a new deck first!");
 
             return;
         }

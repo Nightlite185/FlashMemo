@@ -153,11 +153,10 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
         
         if (File.Exists(path))
         {
-            var answer = dialogs.Show(
+            var answer = dialogs.ShowWarning(
                 title: "Overwrite?",
                 message: "File at the chosen path already exists. Do you want to overwrite it?",
-                buttons: DialogButtons.YesNo,
-                icon: DialogIcons.Warning);
+                buttons: DialogButtons.YesNo);
 
             if (answer != DialogResult.Yes)
                 return;

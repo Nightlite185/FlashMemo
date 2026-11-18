@@ -46,12 +46,9 @@ public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuild
     {
         if (currentUserId == toRemove.Id)
         {
-            dialogs.Show(
+            dialogs.ShowInfo(
                 title: "Invalid action",
-                message: "Sorry, but you can't delete the user that you're currently logged in with. Please log in to another user, then delete this one.",
-                buttons: DialogButtons.OK,
-                icon: DialogIcons.Information
-            );
+                message: "Sorry, but you can't delete the user that you're currently logged in with. Please log in to another user, then delete this one.");
 
             return;
         }
@@ -73,14 +70,13 @@ public partial class UserSelectVM(IUserRepo userRepo, IUserVMBuilder userVMBuild
 
         if (shouldConfirm)
         {
-            var answer = dialogs.Show(
+            var answer = dialogs.ShowWarning(
                 title: "Delete user?",
                 message: $"Are you sure you want to permanently delete '{toRemove.Name}'? "
                     + "This will also delete every deck, card, preset, tag, and review record "
                     + "owned by this user. This action can't be undone."
                     + DialogService.DeleteConfirmationSettingsHint,
-                buttons: DialogButtons.YesNo,
-                icon: DialogIcons.Warning);
+                buttons: DialogButtons.YesNo);
 
             if (answer is DialogResult.No)
                 return;

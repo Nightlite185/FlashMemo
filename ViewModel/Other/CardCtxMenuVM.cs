@@ -93,13 +93,12 @@ public partial class CardCtxMenuVM(ICardService cs, ICardRepo cr, IPopupHost pph
                 ? "this card"
                 : $"these {cardCount} cards";
 
-            var answer = dialogs.Show(
+            var answer = dialogs.ShowWarning(
                 title: cardCount == 1 ? "Delete card?" : "Delete cards?",
                 message: $"Are you sure you want to permanently delete {subject}? "
                     + "This action can't be undone."
                     + DialogService.DeleteConfirmationSettingsHint,
-                buttons: DialogButtons.YesNo,
-                icon: DialogIcons.Warning);
+                buttons: DialogButtons.YesNo);
 
             if (answer is DialogResult.No)
                 return;

@@ -38,11 +38,10 @@ public partial class UserOptionsMenuVM(long userId, IUserOptionsService optServi
         if (snapshot.Equals(lastSaved))
             return true;
 
-        var result = dialogs.Show(
+        var result = dialogs.ShowWarning(
             title: "Unsaved changes",
             message: "You have unsaved changes. Do you want to save them?",
-            buttons: DialogButtons.YesNoCancel,
-            icon: DialogIcons.Warning
+            buttons: DialogButtons.YesNoCancel
         );
 
         if (result is DialogResult.Yes)

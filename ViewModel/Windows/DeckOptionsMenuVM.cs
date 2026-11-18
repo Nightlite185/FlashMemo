@@ -93,13 +93,12 @@ public sealed partial class DeckOptionsMenuVM(
         if (!shouldConfirm)
             return true;
 
-        var result = dialogs.Show(
+        var result = dialogs.ShowWarning(
             title: "Delete preset?",
             message: $"Are you sure you want to permanently delete '{CurrentOptions.Name}'?"
                 + " Every deck currently using this preset will be assigned to the default preset."
                 + DialogService.DeleteConfirmationSettingsHint,
-            buttons: DialogButtons.YesNo,
-            icon: DialogIcons.Warning);
+            buttons: DialogButtons.YesNo);
 
         return result is DialogResult.Yes;
     }
@@ -108,12 +107,10 @@ public sealed partial class DeckOptionsMenuVM(
     {
         if (!IsCurrentModified) return true;
         
-        var result = dialogs.Show(
+        var result = dialogs.ShowWarning(
             title: "Unsaved changes",
             message: "You have unsaved changes. Do you want to save them?",
-            buttons: DialogButtons.YesNoCancel,
-            icon: DialogIcons.Warning
-        );
+            buttons: DialogButtons.YesNoCancel);
 
         if (result is DialogResult.Yes)
             return await SaveCore();

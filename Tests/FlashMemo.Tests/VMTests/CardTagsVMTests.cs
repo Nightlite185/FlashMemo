@@ -106,6 +106,44 @@ public class CardTagsVMTests
         dialogs.VerifyNoOtherCalls();
     }
 
+    [Fact]
+    public async Task NativeSelectionChanges_UpdateOnlyTheCardDraft()
+    {
+        var tag = new Tag { Id = 12, UserId = 7, Name = "Existing" };
+        var flow = await CreateWorkflow(tag);
+        var selected = flow.VM.AllTags.Single();
+
+        flow.VM.SelectedTags.Add(selected);
+        flow.Host.Tags.Should().ContainSingle().Which.Should().BeSameAs(selected);
+        flow.VM.SelectedTags.Remove(selected);
+        flow.Host.Tags.Should().BeEmpty();
+
+        flow.Repo.Verify(repo => repo.GetOrCreate(It.IsAny<Tag>()), Times.Never);
+        flow.Bus.VerifyNoOtherCalls();
+        flow.Dialogs.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ReloadSelection_UsesCurrentDraftAndCanonicalSuggestionInstances()
+    {
+        var tag = new Tag { Id = 12, UserId = 7, Name = "Existing" };
+        var flow = await CreateWorkflow(tag);
+        flow.Host.Tags.Add(new TagVM(tag));
+
+        flow.VM.ReloadSelection();
+        flow.VM.ReloadSelection();
+
+        flow.Host.Tags.Should().ContainSingle();
+        flow.VM.SelectedTags.Should().ContainSingle().Which
+            .Should().BeSameAs(flow.VM.AllTags.Single());
+
+        flow.Host.Tags.Clear(); // A new card starts with a new, empty selection.
+        flow.VM.ReloadSelection();
+        flow.VM.SelectedTags.Should().BeEmpty();
+        flow.VM.AllTags.Should().ContainSingle();
+        flow.Bus.VerifyNoOtherCalls();
+    }
+
     private static async Task<Workflow> CreateWorkflow(params Tag[] cached)
     {
         var repo = new Mock<ITagRepo>(MockBehavior.Strict);

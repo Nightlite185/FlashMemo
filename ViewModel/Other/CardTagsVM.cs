@@ -1,9 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Wrappers;
+using System.Collections.Specialized;
 
 namespace FlashMemo.ViewModel.Other;
 
@@ -11,8 +13,8 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId, Safet
     : ObservableObject, ICardTagsVM, IViewModel
 {
     #region public properties
-    public IEnumerable<TagVM> CardTags => host.Tags;
-    public IEnumerable<TagVM> AllTags => allTags;
+    public ObservableCollection<TagVM> SelectedTags { get; } = [];
+    public ObservableCollection<TagVM> AllTags { get; } = [];
     #endregion
 
     #region methods
@@ -24,8 +26,9 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId, Safet
             .GetFromUser(userId))
             .ToVMs();
 
-        allTags.Clear();
-        allTags.AddRange(allTagVMs);
+        AllTags.Clear();
+        AllTags.AddRange(allTagVMs);
+        ReloadSelection();
     }
 
     // Returns the selected tag (including an already selected one), or null on failure/no submission.
@@ -38,14 +41,14 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId, Safet
         static bool sameName(string a, string b)
             => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
-        if (host.Tags.FirstOrDefault(t => sameName(t.Name, tagName)) is TagVM selected)
+        if (SelectedTags.FirstOrDefault(t => sameName(t.Name, tagName)) is TagVM selected)
             return selected;
 
         isSavingTag = true;
 
         try
         {
-            var tagVM = allTags.SingleOrDefault(t => sameName(t.Name, tagName));
+            var tagVM = AllTags.SingleOrDefault(t => sameName(t.Name, tagName));
 
             if (tagVM is null)
             {
@@ -58,10 +61,10 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId, Safet
                     return null;
 
                 tagVM = new TagVM(result.Value);
-                allTags.Add(tagVM);
+                AllTags.Add(tagVM);
             }
 
-            host.Tags.Add(tagVM);
+            SelectedTags.Add(tagVM);
             eventBus.NotifyDomain();
             return tagVM;
         }
@@ -69,22 +72,27 @@ public partial class CardTagsVM(ITagRepo tr, IVMEventBus bus, long userId, Safet
         finally { isSavingTag = false; }
     }
 
-    public bool RemoveTag(long tagId)
+    public void ReloadSelection()
     {
-        int removed = host.Tags.RemoveAll(
-            t => t.Id == tagId);
+        // The host changes its draft after Add/Revert. Reuse suggestion instances so
+        // Syncfusion can exclude selected tags from its dropdown by object identity.
+        TagVM[] tags = [..host.Tags.Select(tag => AllTags.FirstOrDefault(t => t.Id == tag.Id) ?? tag)];
+        SelectedTags.CollectionChanged -= OnSelectionChanged;
+        SelectedTags.Clear();
+        SelectedTags.AddRange(tags);
+        SelectedTags.CollectionChanged += OnSelectionChanged;
+    }
 
-        if (removed > 1) throw new InvalidOperationException(
-            "There were more than one tag with same id, detected while removing.");
-
-        return removed == 1;
+    private void OnSelectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        host.Tags.Clear();
+        host.Tags.AddRange(SelectedTags);
     }
     #endregion
 
     #region private things
     private bool isSavingTag;
     private ICardTagsVMHost host = null!;
-    private readonly List<TagVM> allTags = [];
     private readonly ITagRepo tagRepo = tr;
     private readonly IVMEventBus eventBus = bus;
     private readonly long userId = userId;

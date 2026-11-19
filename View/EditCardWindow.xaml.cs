@@ -12,7 +12,6 @@ namespace FlashMemo.View
     public partial class EditCardWindow : Window, IViewFor<CardEditorVM>
     {
         private const double EditorFontSize = 24;
-        private TagChipInputController? tagInputController;
 
         public CardEditorVM VM { get; set; } = null!;
         public EditCardWindow()
@@ -23,35 +22,28 @@ namespace FlashMemo.View
             Closing += OnWindowClosing;
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
             MoreButton.ContextMenu.DataContext = VM.CtxMenuVM;
             LoadEditorsFromVm();
-
-            tagInputController = new(
-                VM.CardTagsVM,
-                TagInputBorder,
-                TagChipPanel,
-                TagInputBox,
-                TagSuggestionsPopup,
-                TagSuggestionsList);
-
-            await tagInputController.InitializeAsync();
         }
 
         public async void SaveButtonClicked(object sender, RoutedEventArgs e)
         {
+            if (TagsInput.IsCommitting) return;
+
             SaveEditorsToVm();
             await VM.SaveChangesCommand.ExecuteAsync(null);
         }
 
         public async void RevertButtonClicked(object sender, RoutedEventArgs e)
         {
+            if (TagsInput.IsCommitting) return;
+
             await VM.RevertChangesCommand.ExecuteAsync(null);
             LoadEditorsFromVm();
 
-            if (tagInputController is not null)
-                await tagInputController.RefreshAsync(reloadSuggestions: true);
+            TagsInput.Refresh();
         }
 
         public void MoreButtonClicked(object sender, RoutedEventArgs e)

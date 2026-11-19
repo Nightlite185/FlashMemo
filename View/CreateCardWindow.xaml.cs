@@ -11,7 +11,6 @@ namespace FlashMemo.View
     public partial class CreateCardWindow : Window, IViewFor<CreateCardVM>
     {
         private const double EditorFontSize = 24;
-        private TagChipInputController? tagInputController;
         public CreateCardVM VM { get; set; } = null!;
         public CreateCardWindow()
         {
@@ -24,6 +23,8 @@ namespace FlashMemo.View
 
         public async void AddButtonClicked(object sender, RoutedEventArgs e)
         {
+            if (TagsInput.IsCommitting) return;
+
             if (IsEditorEmpty())
             {
                 MessageBox.Show(
@@ -56,11 +57,10 @@ namespace FlashMemo.View
             FrontBox.Focus();
             Keyboard.Focus(FrontBox);
 
-            if (tagInputController is not null)
-                await tagInputController.RefreshAsync(reloadSuggestions: true);
+            TagsInput.Refresh();
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
             if (VM.WipCard.Note is null) throw new NullReferenceException();
 
@@ -76,16 +76,6 @@ namespace FlashMemo.View
                 .FromXaml(sn.BackContent);
 
             ApplyEditorDefaults();
-
-            tagInputController = new(
-                VM.CardTagsVM,
-                TagInputBorder,
-                TagChipPanel,
-                TagInputBox,
-                TagSuggestionsPopup,
-                TagSuggestionsList);
-
-            await tagInputController.InitializeAsync();
         }
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
@@ -141,4 +131,3 @@ namespace FlashMemo.View
         }
     }
 }
-

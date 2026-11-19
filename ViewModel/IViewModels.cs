@@ -63,10 +63,10 @@ public interface IClosingAware
 
 public interface ICardTagsVM
 {
-    IEnumerable<TagVM> CardTags { get; }
-    IEnumerable<TagVM> AllTags { get; }
+    ObservableCollection<TagVM> SelectedTags { get; }
+    ObservableCollection<TagVM> AllTags { get; }
     Task<TagVM?> TryAddTagAsync(string tagName);
-    bool RemoveTag(long tagId);
+    void ReloadSelection();
 }
 
 public interface ICardTagsVMHost

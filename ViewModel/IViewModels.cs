@@ -65,7 +65,7 @@ public interface ICardTagsVM
 {
     IEnumerable<TagVM> CardTags { get; }
     IEnumerable<TagVM> AllTags { get; }
-    Task<TagVM?> AddTagAsync(string tagName);
+    Task<TagVM?> TryAddTagAsync(string tagName);
     bool RemoveTag(long tagId);
 }
 

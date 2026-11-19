@@ -24,6 +24,7 @@ internal sealed class TagChipInputController(
     private readonly List<TagVM> displayTags = [];
     private TagVM? openedTag;
     private int inputSlotIndex;
+    private bool isCommitting;
 
     public async Task InitializeAsync()
     {
@@ -102,6 +103,12 @@ internal sealed class TagChipInputController(
 
     private async void OnInputPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (isCommitting)
+        {
+            e.Handled = true;
+            return;
+        }
+
         switch (e.Key)
         {
             case Key.Enter:
@@ -182,75 +189,87 @@ internal sealed class TagChipInputController(
 
     private async Task CommitTagAsync(string tagName)
     {
-        var normalized = tagName.Trim();
+        if (isCommitting)
+            return;
 
-        if (openedTag is not null)
+        isCommitting = true;
+        bool wasReadOnly = inputBox.IsReadOnly;
+        inputBox.IsReadOnly = true;
+
+        try
         {
-            await CommitOpenedChipAsync(normalized);
+            var normalized = tagName.Trim();
+
+            if (openedTag is not null)
+            {
+                if (!await CommitOpenedChipAsync(normalized))
+                    return;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(normalized))
+                    return;
+
+                var added = await vm.TryAddTagAsync(normalized);
+
+                if (added is null || displayTags.Any(t => t.Id == added.Id))
+                    return;
+
+                displayTags.Insert(inputSlotIndex, added);
+                inputSlotIndex = Math.Min(displayTags.Count, inputSlotIndex + 1);
+                inputBox.Clear();
+                await ReloadAllTagsAsync();
+                RebuildChips();
+                RefreshSuggestions();
+            }
+
             inputBox.Focus();
             HideSuggestions();
-            return;
         }
-
-        if (string.IsNullOrWhiteSpace(normalized))
-            return;
-
-        var added = await vm.AddTagAsync(normalized);
-
-        if (added is null || displayTags.Any(t => t.Id == added.Id))
-            return;
-
-        displayTags.Insert(inputSlotIndex, added);
-        inputSlotIndex = Math.Min(displayTags.Count, inputSlotIndex + 1);
-
-        inputBox.Clear();
-        await ReloadAllTagsAsync();
-        RebuildChips();
-        RefreshSuggestions();
-
-        inputBox.Focus();
-        HideSuggestions();
+        finally
+        {
+            inputBox.IsReadOnly = wasReadOnly;
+            isCommitting = false;
+        }
     }
 
-    private async Task CommitOpenedChipAsync(string normalized)
+    private async Task<bool> CommitOpenedChipAsync(string normalized)
     {
         var previous = openedTag!;
 
         if (string.IsNullOrWhiteSpace(normalized) ||
             string.Equals(previous.Name, normalized, StringComparison.OrdinalIgnoreCase))
         {
-            previous.Name = string.IsNullOrWhiteSpace(normalized)
-                ? previous.Name
-                : normalized;
-
+            // Keep the stored spelling; changing a chip does not rename a shared tag.
             displayTags.Insert(inputSlotIndex, previous);
-            openedTag = null;
-
-            inputBox.Clear();
-            inputSlotIndex = Math.Min(displayTags.Count, inputSlotIndex + 1);
-            RebuildChips();
-            RefreshSuggestions();
-            return;
         }
+        else
+        {
+            var added = await vm.TryAddTagAsync(normalized);
+            if (added is null)
+                return false;
 
-        vm.RemoveTag(previous.Id);
+            // Preserve the old selection and typed replacement until the new tag is available.
+            vm.RemoveTag(previous.Id);
+
+            if (displayTags.All(t => t.Id != added.Id))
+                displayTags.Insert(inputSlotIndex, added);
+        }
 
         openedTag = null;
         inputBox.Clear();
-
-        var added = await vm.AddTagAsync(normalized);
-
-        if (added is not null && displayTags.All(t => t.Id != added.Id))
-            displayTags.Insert(inputSlotIndex, added);
-
         inputSlotIndex = Math.Min(displayTags.Count, inputSlotIndex + 1);
         await ReloadAllTagsAsync();
         RebuildChips();
         RefreshSuggestions();
+        return true;
     }
 
     private bool NavigateAcrossChips(int direction, bool removeCurrentOpenTagIfInputEmpty = false)
     {
+        if (isCommitting)
+            return false;
+
         if (direction > 0 && inputSlotIndex >= displayTags.Count)
             return false;
 
@@ -466,6 +485,9 @@ internal sealed class TagChipInputController(
 
     private void OpenChipByReference(TagVM tag, bool caretAtEnd)
     {
+        if (isCommitting)
+            return;
+
         CloseOpenedChipForTraversal();
 
         var index = displayTags.IndexOf(tag);
@@ -487,6 +509,9 @@ internal sealed class TagChipInputController(
 
     private async Task RemoveChipAsync(TagVM tag)
     {
+        if (isCommitting)
+            return;
+
         var index = displayTags.IndexOf(tag);
 
         if (index < 0)

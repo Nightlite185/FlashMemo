@@ -35,7 +35,7 @@ public interface ITagRepo
 {
     Task<ICollection<Tag>> GetFromUser(long userId);
     Task<ICollection<Tag>> GetFromCard(long cardId);
-    Task<Tag> CreateNew(Tag newTag);
+    Task<Tag> GetOrCreate(Tag newTag);
     Task Remove(long tagId);
     Task SaveEdited(Tag updated);
     Task<Tag> GetById(long tagId);

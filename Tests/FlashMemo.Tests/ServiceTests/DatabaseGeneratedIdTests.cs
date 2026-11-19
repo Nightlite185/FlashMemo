@@ -25,7 +25,7 @@ public class DatabaseGeneratedIdTests : IDisposable
         deck.Id.Should().BePositive();
 
         var tag = await new TagRepo(factory)
-            .CreateNew(Tag.CreateNew("tag", user.Id));
+            .GetOrCreate(Tag.CreateNew("tag", user.Id));
         tag.Id.Should().BePositive();
 
         var card = await new CardRepo(factory).AddCard(CardEntity.CreateNew(

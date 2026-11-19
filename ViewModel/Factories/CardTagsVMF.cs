@@ -1,18 +1,14 @@
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.ViewModel.Other;
-using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Factories;
 
-public class CardTagsVMF(ITagRepo tr, IVMEventBus bus,
-                        ILogger<CardTagsVM> logger, IDialogService dialogs)
+public class CardTagsVMF(ITagRepo tr, IVMEventBus bus, SafetyNet net)
 {
     public async Task<CardTagsVM> CreateAsync(long userId, ICardTagsVMHost host)
     {
-        CardTagsVM vm = new(
-            tr, bus, userId,
-            logger, dialogs);
+        CardTagsVM vm = new(tr, bus, userId, net);
 
         await vm.InitAsync(host);
         return vm;

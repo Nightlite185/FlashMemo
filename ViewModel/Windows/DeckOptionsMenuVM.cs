@@ -18,8 +18,8 @@ public sealed partial class DeckOptionsMenuVM(
     : ObservableObject, IViewModel, IClosingAware, ICloseRequest
 {
     #region public properties
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsCurrentModified), nameof(CanEditSaveDelete))]
-    [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand), nameof(RevertChangesCommand),
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsCurrentModified), nameof(PresetEditable))]
+    [NotifyCanExecuteChangedFor(nameof(RevertChangesCommand),
     nameof(BeginRenameCurrentPresetCommand), nameof(ToDefaultCommand), nameof(RemovePresetCommand))]
     public partial DeckOptionsVM CurrentOptions { get; set; } = null!;
     [ObservableProperty] public partial bool IsCreatingPreset { get; set; }
@@ -38,22 +38,20 @@ public sealed partial class DeckOptionsMenuVM(
     public IEnumerable<SortingDirection> SortingDirectionEnums =>
         Enum.GetValues<SortingDirection>();
 
-    public bool CanEditSaveDelete => CurrentOptions.Id != DeckOptions.DefaultId;
-    public bool IsCurrentModified {
-        get {
-            if (CurrentOptions.Id == DeckOptions.DefaultId)
-                return false;
+    public bool PresetEditable => CurrentOptions.Id != DeckOptions.DefaultId;
+    public bool IsCurrentModified { get
+    {
+        if (!PresetEditable) return false;
 
-            if (CurrentOptions.Id != lastSaved.Id)
-                throw new InvalidOperationException(
-                "CurrentOptions's id must match with lastSaved's id");
+        if (CurrentOptions.Id != lastSaved.Id)
+            throw new InvalidOperationException(
+            "CurrentOptions's id must match with lastSaved's id");
 
-            var snapshot = mapper
-                .Map<DeckOptions>(CurrentOptions);
+        var snapshot = mapper
+            .Map<DeckOptions>(CurrentOptions);
 
-            return !snapshot.Equals(lastSaved);
-        }
-    }
+        return !snapshot.Equals(lastSaved);
+    }}
     #endregion
 
     #region methods
@@ -123,26 +121,30 @@ public sealed partial class DeckOptionsMenuVM(
     }
     private async Task<bool> SaveCore()
     {
-        //* this applies any changed made in the preset,
+        //* this applies any changes made in the preset,
         //* as well as syncs the relation between deck and its preset.
+        var curr = CurrentOptions;
 
-        ThrowIfDefault(CurrentOptions);
+        if (PresetEditable)
+        {
+            var saving = mapper.Map<DeckOptions>(curr);
 
-        var saving = mapper.Map<DeckOptions>(CurrentOptions);
+            if (!await net.TryUnsafe(
+                () => deckOptService.SaveEditedPreset(saving),
+                actionTried: "save the preset. The deck assignment has not been changed",
+                retry: false))
+                return false;
 
-        if (!await net.TryUnsafe(
-            () => deckOptService.SaveEditedPreset(saving),
-            actionTried: "save the preset. The deck assignment has not been changed",
-            retry: false))
-            return false;
-
-        lastSaved = saving;
+            lastSaved = saving;
+        }
 
         // Saving the preset is valid even if assigning it to this deck fails.
         bool assigned = await net.TryUnsafe(
-            () => deckOptService.AssignToDeck(deck.Id, saving.Id),
-            actionTried: "assign the preset to this deck. The preset itself was saved successfully",
-            retry: false);
+            () => deckOptService.AssignToDeck(deck.Id, curr.Id),
+            actionTried: curr.Id == DeckOptions.DefaultId
+                ? "assign the default preset to this deck"
+                : "assign the preset to this deck. The preset itself was saved successfully",
+            retry: true);
 
         eventBus.NotifyDeckOpt();
         return assigned;
@@ -159,14 +161,14 @@ public sealed partial class DeckOptionsMenuVM(
     #endregion
 
     #region ICommands
-    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    [RelayCommand]
     private async Task SaveChanges()
     {
         if (await SaveCore())
             OnCloseRequest?.Invoke();
     }
 
-    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    [RelayCommand(CanExecute = nameof(PresetEditable))]
     private async Task RemovePreset()
     {
         ThrowIfDefault(CurrentOptions);
@@ -254,20 +256,20 @@ public sealed partial class DeckOptionsMenuVM(
         NewPresetName = null;
     }
 
-    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    [RelayCommand(CanExecute = nameof(PresetEditable))]
     private void BeginRenameCurrentPreset()
     {
         CancelCreatePreset();
         CurrentOptions.BeginRenameCommand.Execute(null);
     }
 
-    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    [RelayCommand(CanExecute = nameof(PresetEditable))]
     private void ToDefault()
     {
         mapper.Map(DeckOptions.Default, CurrentOptions);
     }
 
-    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    [RelayCommand(CanExecute = nameof(PresetEditable))]
     private void RevertChanges()
     {
         mapper.Map(lastSaved, CurrentOptions);
@@ -299,7 +301,7 @@ public sealed partial class DeckOptionsMenuVM(
             $"Current preset needs to have deck count of at least 1, but it was {CurrentOptions.DeckCount}.");
     }
 
-    [RelayCommand(CanExecute = nameof(CanEditSaveDelete))]
+    [RelayCommand(CanExecute = nameof(PresetEditable))]
     private async Task RenamePreset(DeckOptionsVM options)
     {
         ThrowIfDefault(options);

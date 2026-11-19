@@ -43,8 +43,8 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="IsHitTestVisible" Value="{Binding CanEditSaveDelete}"/>
-            <Setter Property="Focusable" Value="{Binding CanEditSaveDelete}"/>
+            <Setter Property="IsHitTestVisible" Value="{Binding PresetEditable}"/>
+            <Setter Property="Focusable" Value="{Binding PresetEditable}"/>
             <Setter Property="Opacity" Value="{DynamicResource EditableEnabledOpacity}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -76,7 +76,7 @@
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding CanEditSaveDelete}" Value="False">
+                <DataTrigger Binding="{Binding PresetEditable}" Value="False">
                     <Setter Property="Opacity" Value="{DynamicResource EditableDisabledOpacity}"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -116,7 +116,7 @@
                         Command="{Binding ClonePresetCommand}"/>
                     <MenuItem Header="Delete"
                         Command="{Binding RemovePresetCommand}"
-                        IsEnabled="{Binding CanEditSaveDelete}"/>
+                        IsEnabled="{Binding PresetEditable}"/>
                     <MenuItem Header="Reset to Default"
                         Command="{Binding ToDefaultCommand}"/>
                     <MenuItem Header="Revert"

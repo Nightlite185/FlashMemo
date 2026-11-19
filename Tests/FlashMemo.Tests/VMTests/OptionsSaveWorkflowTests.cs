@@ -83,6 +83,13 @@ public class OptionsSaveWorkflowTests
                 .And.Contain("preset itself was saved successfully");
         else
             flow.Errors.Should().BeEmpty();
+
+        if (outcome < 2)
+        {
+            flow.Dialogs.Verify(dialog => dialog.ShowError(
+                It.IsAny<string>(), "Error",
+                outcome == 1 ? DialogButtons.RetryCancel : DialogButtons.OK), Times.Once);
+        }
     }
 
     [Fact]
@@ -122,9 +129,9 @@ public class OptionsSaveWorkflowTests
             .Returns(outcome == 1 ? Task.FromException(new IOException()) : Task.CompletedTask);
         var errors = new List<string>();
         var dialogs = new Mock<IDialogService>();
-        dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
+        dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", It.IsAny<DialogButtons>()))
             .Callback<string, string, DialogButtons>((message, _, _) => errors.Add(message))
-            .Returns(DialogResult.OK);
+            .Returns(DialogResult.Cancel);
         dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(DialogResult.Yes);
         dialogs.Setup(dialog => dialog.ShowWarning(It.IsAny<string>(), It.IsAny<string>(), DialogButtons.YesNoCancel)).Returns(DialogResult.Yes);
         var bus = new Mock<IVMEventBus>();
@@ -132,9 +139,9 @@ public class OptionsSaveWorkflowTests
             new Deck { Id = 1, UserId = 7, OptionsId = 11 }, bus.Object,
             NullLogger<DeckOptionsMenuVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
         await vm.InitializeAsync();
-        return new(vm, service, bus, calls, errors);
+        return new(vm, service, bus, calls, errors, dialogs);
     }
 
     private record PresetWorkflow(DeckOptionsMenuVM VM, Mock<IDeckOptionsService> Service,
-        Mock<IVMEventBus> Bus, List<string> Calls, List<string> Errors);
+        Mock<IVMEventBus> Bus, List<string> Calls, List<string> Errors, Mock<IDialogService> Dialogs);
 }

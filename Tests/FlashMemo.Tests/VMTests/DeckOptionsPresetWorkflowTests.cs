@@ -177,7 +177,7 @@ public class DeckOptionsPresetWorkflowTests
         flow.Other.DeckCount.Should().Be(outcome == 2 ? 1 : 0);
         flow.Original.DailyLimits.Reviews.Should().Be(savedReviews + 1);
         flow.VM.IsCurrentModified.Should().Be(outcome == 0);
-        VerifyErrors(flow, outcome == 2 ? 0 : 1);
+        VerifyErrors(flow, outcome == 2 ? 0 : 1, outcome == 1 ? DialogButtons.RetryCancel : DialogButtons.OK);
     }
 
     [Theory]
@@ -284,8 +284,91 @@ public class DeckOptionsPresetWorkflowTests
         VerifyErrors(flow, succeeds ? 0 : 1);
     }
 
-    private static void VerifyErrors(Workflow flow, int count)
-        => flow.Dialogs.Verify(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK),
+    [Fact]
+    public async Task SaveDefault_AssignsItWithoutSavingOrEnablingEditsToThePreset()
+    {
+        var flow = await CreateWorkflow();
+        await flow.VM.ChangePresetCommand.ExecuteAsync(flow.Default);
+        bool closed = false;
+        flow.VM.OnCloseRequest += () => closed = true;
+
+        flow.VM.PresetEditable.Should().BeFalse();
+        flow.VM.SaveChangesCommand.CanExecute(null).Should().BeTrue();
+        flow.VM.BeginRenameCurrentPresetCommand.CanExecute(null).Should().BeFalse();
+        flow.VM.RenamePresetCommand.CanExecute(flow.Default).Should().BeFalse();
+        flow.VM.RemovePresetCommand.CanExecute(null).Should().BeFalse();
+        flow.VM.ToDefaultCommand.CanExecute(null).Should().BeFalse();
+        flow.VM.RevertChangesCommand.CanExecute(null).Should().BeFalse();
+
+        await flow.VM.SaveChangesCommand.ExecuteAsync(null);
+
+        flow.Service.Verify(service => service.SaveEditedPreset(It.IsAny<DeckOptions>()), Times.Never);
+        flow.Service.Verify(service => service.AssignToDeck(1, DeckOptions.DefaultId), Times.Once);
+        flow.Bus.Verify(bus => bus.NotifyDeckOpt(), Times.Once);
+        closed.Should().BeTrue();
+        VerifyErrors(flow, 0);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task AssignmentFailure_RetriesOnlyWhenUserRequestsIt(bool useDefault, bool retry)
+    {
+        var flow = await CreateWorkflow();
+        var selected = useDefault ? flow.Default : flow.Other;
+        await flow.VM.ChangePresetCommand.ExecuteAsync(selected);
+        if (!useDefault)
+            selected.DailyLimits.Reviews++;
+
+        flow.Service.Setup(service => service.SaveEditedPreset(It.IsAny<DeckOptions>()))
+            .Returns(Task.CompletedTask);
+        flow.Service.SetupSequence(service => service.AssignToDeck(1, selected.Id))
+            .ThrowsAsync(new IOException())
+            .Returns(Task.CompletedTask);
+        flow.Dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
+            .Returns(retry ? DialogResult.Retry : DialogResult.Cancel);
+        bool closed = false;
+        flow.VM.OnCloseRequest += () => closed = true;
+
+        await flow.VM.SaveChangesCommand.ExecuteAsync(null);
+
+        closed.Should().Be(retry);
+        flow.VM.IsCurrentModified.Should().BeFalse();
+        flow.VM.SaveChangesCommand.CanExecute(null).Should().BeTrue();
+        flow.Service.Verify(service => service.SaveEditedPreset(It.IsAny<DeckOptions>()),
+            useDefault ? Times.Never() : Times.Once());
+        flow.Service.Verify(service => service.AssignToDeck(1, selected.Id), Times.Exactly(retry ? 2 : 1));
+        VerifyErrors(flow, 1, DialogButtons.RetryCancel);
+        if (useDefault)
+        {
+            flow.Dialogs.Verify(dialog => dialog.ShowError(
+                It.Is<string>(message => message.Contains("default preset") && !message.Contains("saved successfully")),
+                "Error", DialogButtons.RetryCancel), Times.Once);
+        }
+
+        // A reported assignment failure does not create pending work on close.
+        (await flow.VM.CanCloseAsync()).Should().BeTrue();
+        flow.Service.Verify(service => service.AssignToDeck(1, selected.Id), Times.Exactly(retry ? 2 : 1));
+        flow.Dialogs.Verify(dialog => dialog.ShowWarning(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DialogButtons>()), Times.Never);
+
+        if (!retry)
+        {
+            // Save remains available if the user chooses to try again explicitly.
+            await flow.VM.SaveChangesCommand.ExecuteAsync(null);
+
+            closed.Should().BeTrue();
+            flow.Service.Verify(service => service.AssignToDeck(1, selected.Id), Times.Exactly(2));
+            flow.Service.Verify(service => service.SaveEditedPreset(It.IsAny<DeckOptions>()),
+                useDefault ? Times.Never() : Times.Exactly(2));
+            VerifyErrors(flow, 1, DialogButtons.RetryCancel);
+        }
+    }
+
+    private static void VerifyErrors(Workflow flow, int count, DialogButtons buttons = DialogButtons.OK)
+        => flow.Dialogs.Verify(dialog => dialog.ShowError(It.IsAny<string>(), "Error", buttons),
             Times.Exactly(count));
 
     private static async Task<Workflow> CreateWorkflow()

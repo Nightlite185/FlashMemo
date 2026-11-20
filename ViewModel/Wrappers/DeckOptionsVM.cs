@@ -17,30 +17,22 @@ public partial class DeckOptionsVM: RenameVMBase
     [ObservableProperty] public partial SchedulingOpt Scheduling { get; set; }
     [ObservableProperty] public partial DailyLimitsOpt DailyLimits { get; set; }
 
-    public partial class SortingOpt: ObservableObject, IViewModel
+    public partial class SortingOpt: ObservableValidator, IViewModel
     {
-        [ObservableProperty] public partial LessonOrder LessonsOrder { get; set; }
-        [ObservableProperty] public partial ReviewOrder ReviewsOrder { get; set; }
-        [ObservableProperty] public partial CardStateOrder CardStateOrder { get; set; }
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(LessonOrder))]
+        public partial LessonOrder LessonsOrder { get; set; }
 
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ReviewsDirArrow))]
-        [NotifyPropertyChangedFor(nameof(ReviewsDirTooltip))]
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(ReviewOrder))]
+        public partial ReviewOrder ReviewsOrder { get; set; }
+        
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(CardStateOrder))]
+        public partial CardStateOrder CardStateOrder { get; set; }
+
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(SortingDirection))]
         public partial SortingDirection ReviewsSortDir { get; set; }
         
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(LessonsDirArrow))]
-        [NotifyPropertyChangedFor(nameof(LessonsDirTooltip))]
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(SortingDirection))]
         public partial SortingDirection LessonsSortDir { get; set; }
-
-        public string LessonsDirTooltip => LessonsSortDir.ToString();
-        public string ReviewsDirTooltip => ReviewsSortDir.ToString();
-        public string LessonsDirArrow =>
-            LessonsSortDir == SortingDirection.Ascending
-            ? "︽" : "︾";
-
-        public string ReviewsDirArrow =>
-            ReviewsSortDir == SortingDirection.Ascending
-            ? "︽" : "︾";
-
 
         [RelayCommand]
         private void ToggleLessonsDir()
@@ -61,31 +53,45 @@ public partial class DeckOptionsVM: RenameVMBase
     public partial class SchedulingOpt: ObservableValidator, IViewModel
     {
         #region multipliers
-        [ObservableProperty] [NotifyDataErrorInfo] [Range(1d, 5d)]
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(0.1d, 8d)]
         public partial double GoodMultiplier { get; set; }
 
 
-        [ObservableProperty] [NotifyDataErrorInfo] [Range(1d, 8d)]
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(0.1d, 8d)]
         public partial double EasyMultiplier { get; set; }
 
 
-        [ObservableProperty] [NotifyDataErrorInfo] [Range(0.1d, 2d)]
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(0.1d, 8d)]
         public partial double HardMultiplier { get; set; }
         #endregion
-        public LearningStagesVM LearningStages { get; set; } = null!;
-        [ObservableProperty] public partial LearningStage AgainOnReviewStage { get; set; }
-        [ObservableProperty] public partial LearningStage GoodOnNewStage { get; set; }
-        [ObservableProperty] public partial LearningStage HardOnNewStage { get; set; }
         
-        [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 30)]
+        #region learning stages
+        public LearningStagesVM LearningStages { get; set; } = null!;
+
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(LearningStage))]
+        public partial LearningStage AgainOnReviewStage { get; set; }
+
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(LearningStage))]
+        public partial LearningStage GoodOnNewStage { get; set; }
+
+        [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(LearningStage))]
+        public partial LearningStage HardOnNewStage { get; set; }
+        #endregion
+
+        #region day counts
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 100)]
         public partial int GraduateDayCount { get; set; }
         
-        [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 30)]
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 100)]
         public partial int EasyOnNewDayCount { get; set; }
+        #endregion
     }
-    public partial class DailyLimitsOpt: ObservableObject, IViewModel
+    public partial class DailyLimitsOpt: ObservableValidator, IViewModel
     {
-        [ObservableProperty] public partial int Reviews { get; set; }
-        [ObservableProperty] public partial int Lessons { get; set; }
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(minimum: 0, maximum: 1_000_000)]
+        public partial int Reviews { get; set; }
+
+        [ObservableProperty] [NotifyDataErrorInfo] [Range(minimum: 0, maximum: 1_000_000)]
+        public partial int Lessons { get; set; }
     }
 }

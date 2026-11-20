@@ -16,6 +16,7 @@
 
     <Window.Resources>
         <helpers:EnumEqualsConverter x:Key="EnumEqualsConverter"/>
+        <helpers:SortingDirectionToArrowConverter x:Key="DirectionArrow"/>
 
         <DataTemplate x:Key="EnumReadableItemTemplate">
             <TextBlock
@@ -236,6 +237,8 @@
                             <xceed:UIntegerUpDown
                                 Grid.Column="1"
                                 Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Minimum="0"
+                                Maximum="1000000"
                                 Value="{Binding CurrentOptions.DailyLimits.Lessons}"/>
 
                             <TextBlock
@@ -247,6 +250,8 @@
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Minimum="0"
+                                Maximum="1000000"
                                 Value="{Binding CurrentOptions.DailyLimits.Reviews}"/>
 
                         </Grid>
@@ -283,9 +288,10 @@
 
                             <xceed:DoubleUpDown
                                 Grid.Column="1"
-                                Minimum="0.1"
                                 MaxLength="5"
                                 Style="{StaticResource FlatDoubleUpDownStyle}"
+                                Minimum="0.1"
+                                Maximum="8"
                                 Value="{Binding CurrentOptions.Scheduling.GoodMultiplier}"/>
 
                             <TextBlock
@@ -297,9 +303,10 @@
                             <xceed:DoubleUpDown
                                 Grid.Row="1"
                                 Grid.Column="1"
-                                Minimum="0.1"
                                 MaxLength="5"
                                 Style="{StaticResource FlatDoubleUpDownStyle}"
+                                Minimum="0.1"
+                                Maximum="8"
                                 Value="{Binding CurrentOptions.Scheduling.EasyMultiplier}"/>
 
                             <TextBlock
@@ -311,9 +318,10 @@
                             <xceed:DoubleUpDown
                                 Grid.Row="2"
                                 Grid.Column="1"
-                                Minimum="0.1"
                                 MaxLength="5"
                                 Style="{StaticResource FlatDoubleUpDownStyle}"
+                                Minimum="0.1"
+                                Maximum="8"
                                 Value="{Binding CurrentOptions.Scheduling.HardMultiplier}"/>
 
                         </Grid>
@@ -354,6 +362,8 @@
                             <xceed:UIntegerUpDown
                                 Grid.Column="1"
                                 Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Minimum="1"
+                                Maximum="100"
                                 Value="{Binding CurrentOptions.Scheduling.GraduateDayCount}" />
 
                             <TextBlock
@@ -366,6 +376,8 @@
                                 Grid.Row="1"
                                 Grid.Column="1"
                                 Style="{StaticResource FlatUIntegerUpDownStyle}"
+                                Minimum="1"
+                                Maximum="100"
                                 Value="{Binding CurrentOptions.Scheduling.EasyOnNewDayCount}" />
 
                             <TextBlock
@@ -512,8 +524,6 @@
                                     MaxLength="2"
                                     Margin="0,4,10,4"
                                     Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                    Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
-                                    Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
                                     Value="{Binding CurrentOptions.Scheduling.LearningStages.I}"/>
 
                                 <xceed:UIntegerUpDown
@@ -521,8 +531,6 @@
                                     MaxLength="2"
                                     Margin="0,0,10,0"
                                     Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                    Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
-                                    Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
                                     Value="{Binding CurrentOptions.Scheduling.LearningStages.II}"/>
 
                                 <xceed:UIntegerUpDown
@@ -530,8 +538,6 @@
                                     MaxLength="2"
                                     Margin="0,0,0,0"
                                     Style="{StaticResource FlatUIntegerUpDownStyle}"
-                                    Maximum="{Binding CurrentOptions.Scheduling.LearningStages.MaxValueOnAnyStage}"
-                                    Minimum="{Binding CurrentOptions.Scheduling.LearningStages.MinValueOnAnyStage}"
                                     Value="{Binding CurrentOptions.Scheduling.LearningStages.III}"/>
 
                             </StackPanel>
@@ -591,8 +597,8 @@
                                 <!-- Direction Toggle -->
                                 <Button
                                     Style="{StaticResource SortDirButtonStyle}"
-                                    Content="{Binding CurrentOptions.Sorting.LessonsDirArrow}"
-                                    ToolTip="{Binding CurrentOptions.Sorting.LessonsDirTooltip}"
+                                    Content="{Binding CurrentOptions.Sorting.LessonsSortDir, Converter={StaticResource DirectionArrow}}"
+                                    ToolTip="{Binding CurrentOptions.Sorting.LessonsSortDir}"
                                     Command="{Binding CurrentOptions.Sorting.ToggleLessonsDirCommand}" Height="26" Margin="0,2,0,2" Foreground="#FFFDFF00"/>
                             </StackPanel>
 
@@ -627,8 +633,8 @@
                                 <!-- Direction Toggle -->
                                 <Button
                                     Style="{StaticResource SortDirButtonStyle}"
-                                    Content="{Binding CurrentOptions.Sorting.ReviewsDirArrow}"
-                                    ToolTip="{Binding CurrentOptions.Sorting.ReviewsDirTooltip}"
+                                    Content="{Binding CurrentOptions.Sorting.ReviewsSortDir, Converter={StaticResource DirectionArrow}}"
+                                    ToolTip="{Binding CurrentOptions.Sorting.ReviewsSortDir}"
                                     Command="{Binding CurrentOptions.Sorting.ToggleReviewsDirCommand}" Height="26" Margin="0,2,0,2" Foreground="#FFFFF500"/>
                             </StackPanel>
 

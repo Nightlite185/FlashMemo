@@ -131,6 +131,20 @@ public partial class EnumToReadableTextConverter : IValueConverter
         => throw new NotImplementedException();    
 }
 
+public class SortingDirectionToArrowConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value switch
+        {
+            SortingDirection.Ascending => "\uFE3D",
+            SortingDirection.Descending => "\uFE3E",
+            _ => DependencyProperty.UnsetValue
+        };
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
 public class EnumEqualsConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

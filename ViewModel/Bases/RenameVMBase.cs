@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace FlashMemo.ViewModel.Bases;
 
-public abstract partial class RenameVMBase: ObservableObject, IViewModel
+public abstract partial class RenameVMBase: ObservableValidator, IViewModel
 {
     private bool isSavingRename;
 

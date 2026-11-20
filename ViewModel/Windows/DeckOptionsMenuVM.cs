@@ -119,10 +119,8 @@ public sealed partial class DeckOptionsMenuVM(
         // only cancel clicked doesnt discard it
         return result is DialogResult.Yes or DialogResult.No;
     }
-    private async Task<bool> SaveCore()
+    private bool ValidateCurrentPreset()
     {
-        //* this applies any changes made in the preset,
-        //* as well as syncs the relation between deck and its preset.
         var curr = CurrentOptions;
         bool renaming = curr.IsRenaming;
 
@@ -135,6 +133,17 @@ public sealed partial class DeckOptionsMenuVM(
             dialogs.ShowError(reason);
             return false;
         }
+
+        return true;
+    }
+    private async Task<bool> SaveCore()
+    {
+        //* this applies any changes made in the preset,
+        //* as well as syncs the relation between deck and its preset.
+        if (!ValidateCurrentPreset())
+            return false;
+
+        var curr = CurrentOptions;
 
         if (PresetEditable)
         {
@@ -209,6 +218,9 @@ public sealed partial class DeckOptionsMenuVM(
     [RelayCommand]
     private async Task ClonePreset()
     {
+        if (!ValidateCurrentPreset())
+            return;
+
         var domainClone = mapper.Map<DeckOptions>(CurrentOptions) with
         {
             Id = 0,

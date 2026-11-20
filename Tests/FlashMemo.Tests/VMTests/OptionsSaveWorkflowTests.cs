@@ -111,14 +111,25 @@ public class OptionsSaveWorkflowTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task InvalidPreset_BlocksSaveAndCloseSaveUntilCorrected(bool fromClosing)
+    [InlineData(0, false)]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    [InlineData(1, true)]
+    [InlineData(2, false)]
+    [InlineData(2, true)]
+    [InlineData(3, false)]
+    [InlineData(3, true)]
+    [InlineData(4, false)]
+    [InlineData(4, true)]
+    [InlineData(5, false)]
+    [InlineData(5, true)]
+    public async Task InvalidPreset_BlocksSaveAndCloseSaveUntilCorrected(int invalidCase, bool fromClosing)
     {
         var flow = await CreatePresetWorkflow(outcome: 2);
         var current = flow.VM.CurrentOptions;
         var lastSaved = flow.VM.GetPrivateField<DeckOptions>("lastSaved");
-        current.Scheduling.GoodMultiplier = 0;
+        MakeInvalid(current, invalidCase);
+        var draft = Helpers.GetMapper().Map<DeckOptions>(current);
         bool closed = false;
         flow.VM.OnCloseRequest += () => closed = true;
 
@@ -128,26 +139,29 @@ public class OptionsSaveWorkflowTests
             await flow.VM.SaveChangesCommand.ExecuteAsync(null);
 
         closed.Should().BeFalse();
-        current.Scheduling.HasErrors.Should().BeTrue();
-        current.Scheduling.GoodMultiplier.Should().Be(0);
+        Helpers.GetMapper().Map<DeckOptions>(current).Should().BeEquivalentTo(draft);
         flow.VM.GetPrivateField<DeckOptions>("lastSaved").Should().BeSameAs(lastSaved);
         flow.Calls.Should().BeEmpty();
         flow.Errors.Should().ContainSingle().Which.Should().Contain("invalid settings");
         flow.Bus.Verify(events => events.NotifyDeckOpt(), Times.Never);
 
-        current.Scheduling.GoodMultiplier = 2;
+        Helpers.GetMapper().Map(lastSaved, current);
         await flow.VM.SaveChangesCommand.ExecuteAsync(null);
 
         closed.Should().BeTrue();
         flow.Calls.Should().Equal("save", "assign");
     }
 
-    [Fact]
-    public async Task InvalidPreset_BlocksSaveBeforeSwitchingPresets()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public async Task InvalidPreset_BlocksSaveBeforeSwitchingPresets(int invalidCase)
     {
         var flow = await CreatePresetWorkflow(outcome: 2);
         var current = flow.VM.CurrentOptions;
-        current.Scheduling.GoodMultiplier = 0;
+        MakeInvalid(current, invalidCase);
         var other = Helpers.GetMapper().Map<DeckOptionsVM>(DeckOptions.CreateNew("Other", 7) with { Id = 12 });
 
         await flow.VM.ChangePresetCommand.ExecuteAsync(other);
@@ -156,6 +170,102 @@ public class OptionsSaveWorkflowTests
         flow.Calls.Should().BeEmpty();
         flow.Errors.Should().ContainSingle().Which.Should().Contain("invalid settings");
         other.DeckCount.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    [InlineData(4)]
+    public async Task InvalidPreset_CannotBePersistedByCloning(int invalidCase)
+    {
+        var flow = await CreatePresetWorkflow(outcome: 2);
+        var current = flow.VM.CurrentOptions;
+        MakeInvalid(current, invalidCase);
+        var draft = Helpers.GetMapper().Map<DeckOptions>(current);
+
+        await flow.VM.ClonePresetCommand.ExecuteAsync(null);
+
+        flow.Service.Verify(service => service.CreateNew(It.IsAny<DeckOptions>()), Times.Never);
+        flow.Calls.Should().BeEmpty();
+        flow.VM.CurrentOptions.Should().BeSameAs(current);
+        flow.VM.AllPresets.Should().ContainSingle().Which.Should().BeSameAs(current);
+        Helpers.GetMapper().Map<DeckOptions>(current).Should().BeEquivalentTo(draft);
+        flow.Errors.Should().ContainSingle().Which.Should().Contain("invalid settings");
+    }
+
+    [Theory]
+    [InlineData("save")]
+    [InlineData("close")]
+    [InlineData("switch")]
+    [InlineData("clone")]
+    public async Task UnfinishedRename_BlocksPersistenceUntilCancelled(string operation)
+    {
+        var flow = await CreatePresetWorkflow(outcome: 2);
+        var current = flow.VM.CurrentOptions;
+        current.DailyLimits.Reviews++;
+        current.BeginRenameCommand.Execute(null);
+        current.TempName = "Unfinished name";
+        bool closed = false;
+        flow.VM.OnCloseRequest += () => closed = true;
+
+        switch (operation)
+        {
+            case "save": await flow.VM.SaveChangesCommand.ExecuteAsync(null); break;
+            case "close": (await flow.VM.CanCloseAsync()).Should().BeFalse(); break;
+            case "switch":
+                var other = Helpers.GetMapper().Map<DeckOptionsVM>(DeckOptions.CreateNew("Other", 7) with { Id = 12 });
+                await flow.VM.ChangePresetCommand.ExecuteAsync(other);
+                other.DeckCount.Should().Be(0);
+                break;
+            case "clone": await flow.VM.ClonePresetCommand.ExecuteAsync(null); break;
+        }
+
+        flow.Calls.Should().BeEmpty();
+        flow.Service.Verify(service => service.CreateNew(It.IsAny<DeckOptions>()), Times.Never);
+        flow.Errors.Should().ContainSingle().Which.Should().Contain("being renamed");
+        flow.VM.CurrentOptions.Should().BeSameAs(current);
+        current.TempName.Should().Be("Unfinished name");
+        current.IsRenaming.Should().BeTrue();
+        closed.Should().BeFalse();
+
+        current.CancelRenameCommand.Execute(null);
+        await flow.VM.SaveChangesCommand.ExecuteAsync(null);
+        flow.Calls.Should().Equal("save", "assign");
+        closed.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InclusiveBounds_CanBeSavedIncludingZeroDailyLimits(bool upperBounds)
+    {
+        var flow = await CreatePresetWorkflow(outcome: 2);
+        var current = flow.VM.CurrentOptions;
+        current.Scheduling.GoodMultiplier = current.Scheduling.EasyMultiplier
+            = current.Scheduling.HardMultiplier = upperBounds ? 8 : 0.1;
+        current.Scheduling.GraduateDayCount = current.Scheduling.EasyOnNewDayCount = upperBounds ? 100 : 1;
+        current.DailyLimits.Reviews = current.DailyLimits.Lessons = upperBounds ? 1_000_000 : 0;
+        var submitted = Helpers.GetMapper().Map<DeckOptions>(current);
+
+        await flow.VM.SaveChangesCommand.ExecuteAsync(null);
+
+        flow.Service.Verify(service => service.SaveEditedPreset(It.Is<DeckOptions>(preset => preset.Equals(submitted))), Times.Once);
+        flow.Calls.Should().Equal("save", "assign");
+        flow.Errors.Should().BeEmpty();
+    }
+
+    private static void MakeInvalid(DeckOptionsVM preset, int invalidCase)
+    {
+        switch (invalidCase)
+        {
+            case 0: preset.Scheduling.GoodMultiplier = 0; break;
+            case 1: preset.Scheduling.GraduateDayCount = 101; break;
+            case 2: preset.DailyLimits.Reviews = -1; break;
+            case 3: preset.DailyLimits.Lessons = 1_000_001; break;
+            case 4: preset.Sorting.LessonsOrder = (LessonOrder)99; break;
+            case 5: preset.Scheduling.GoodOnNewStage = (LearningStage)99; break;
+            default: throw new ArgumentOutOfRangeException(nameof(invalidCase));
+        }
     }
 
     private static async Task<PresetWorkflow> CreatePresetWorkflow(int outcome)

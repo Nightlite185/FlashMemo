@@ -95,16 +95,35 @@ public class ReviewSaveWorkflowTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task FailedForecast_PreservesCardAndTimerAndAllowsAnotherReveal(bool stopsOnReveal)
+    [InlineData(false, "undefined stage")]
+    [InlineData(true, "undefined stage")]
+    [InlineData(false, "day-count overflow")]
+    [InlineData(true, "day-count overflow")]
+    [InlineData(false, "interval overflow")]
+    [InlineData(true, "interval overflow")]
+    public async Task FailedForecast_PreservesCardAndTimerAndAllowsAnotherReveal(bool stopsOnReveal, string failure)
     {
+        var scheduling = failure switch
+        {
+            "undefined stage" => DeckOptions.SchedulingOpt.Default with { AgainOnReviewStage = (LearningStage)99 },
+            "day-count overflow" => DeckOptions.SchedulingOpt.Default with { EasyOnNewDayCount = int.MaxValue },
+            _ => DeckOptions.SchedulingOpt.Default
+        };
         var invalid = DeckOptions.Default with
         {
-            Scheduling = DeckOptions.SchedulingOpt.Default with { AgainOnReviewStage = (LearningStage)99 }
+            Scheduling = scheduling
         };
         var (vm, service, dialogs) = await CreateWorkflow(stopsOnReveal, invalid);
         var current = vm.CurrentCard;
+        if (failure != "undefined stage")
+        {
+            var card = CreateCard(1);
+            if (failure == "day-count overflow")
+                card.State = CardState.New;
+            else
+                card.Interval = TimeSpan.MaxValue;
+            current!.Refresh(card);
+        }
         var watch = vm.GetPrivateField<Stopwatch>("stopWatch");
         dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
             .Callback(() =>
@@ -133,6 +152,7 @@ public class ReviewSaveWorkflowTests
 
         typeof(ReviewVM).GetField("deckOptions", BindingFlags.Instance | BindingFlags.NonPublic)!
             .SetValue(vm, DeckOptions.Default);
+        current!.Refresh(CreateCard(1));
         await vm.RevealAnswerCommand.ExecuteAsync(null);
 
         vm.AnswerRevealed.Should().BeTrue();

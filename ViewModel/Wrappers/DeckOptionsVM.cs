@@ -13,10 +13,10 @@ public partial class DeckOptionsVM: RenameVMBase
     public bool CanDelete => Id != DeckOptions.DefaultId;
 
     public bool Validate()
-        => !Sorting.HasErrors
-        || !Scheduling.HasErrors
-        || !DailyLimits.HasErrors
-        || !IsRenaming;
+        => Sorting.Validate()
+        && Scheduling.Validate()
+        && DailyLimits.Validate()
+        && !IsRenaming;
     
     [ObservableProperty] public partial int DeckCount { get; set; }
     [ObservableProperty] public partial SortingOpt Sorting { get; set; }
@@ -25,6 +25,12 @@ public partial class DeckOptionsVM: RenameVMBase
 
     public partial class SortingOpt: ObservableValidator, IViewModel
     {
+        public bool Validate()
+        {
+            ValidateAllProperties();
+            return HasErrors;
+        }
+
         [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(LessonOrder))]
         public partial LessonOrder LessonsOrder { get; set; }
 
@@ -58,6 +64,12 @@ public partial class DeckOptionsVM: RenameVMBase
     }
     public partial class SchedulingOpt: ObservableValidator, IViewModel
     {
+        public bool Validate()
+        {
+            ValidateAllProperties();
+            return HasErrors;
+        }
+
         #region multipliers
         [ObservableProperty] [NotifyDataErrorInfo] [Range(0.1d, 8d)]
         public partial double GoodMultiplier { get; set; }
@@ -94,6 +106,12 @@ public partial class DeckOptionsVM: RenameVMBase
     }
     public partial class DailyLimitsOpt: ObservableValidator, IViewModel
     {
+        public bool Validate()
+        {
+            ValidateAllProperties();
+            return HasErrors;
+        }
+
         [ObservableProperty] [NotifyDataErrorInfo] [Range(minimum: 0, maximum: 1_000_000)]
         public partial int Reviews { get; set; }
 

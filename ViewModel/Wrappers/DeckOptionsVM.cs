@@ -11,6 +11,12 @@ public partial class DeckOptionsVM: RenameVMBase
 {
     public long Id { get; set; }
     public bool CanDelete => Id != DeckOptions.DefaultId;
+
+    public bool Validate()
+        => !Sorting.HasErrors
+        || !Scheduling.HasErrors
+        || !DailyLimits.HasErrors
+        || !IsRenaming;
     
     [ObservableProperty] public partial int DeckCount { get; set; }
     [ObservableProperty] public partial SortingOpt Sorting { get; set; }

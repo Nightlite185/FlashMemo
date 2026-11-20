@@ -17,8 +17,8 @@ namespace FlashMemo.ViewModel.Windows;
 public partial class ReviewVM(ICardService cardService, ICardQueryService cardQuery, long userId,
                             IDeckMeta deck, ICardRepo cardRepo, IVMEventBus eventBus, 
                             IUserOptionsService uOptionsService, IDeckOptionsService deckOptService,
-                            ILogger<ReviewVM> log, IDialogService dialogService, SafetyNet net)
-                            : BaseVM(eventBus, log, dialogService, net), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
+                            ILogger<ReviewVM> logger, IDialogService dialogs, SafetyNet net)
+                            : BaseVM(eventBus, logger, dialogs, net), IPopupHost, IFocusState, ICtxMenuHost, ICardsSource<CardVM>
 {
     #region public properties
     
@@ -82,7 +82,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     }
     private ScheduleInfo GetScheduleInfo(Answers answer)
     {
-        if (SchedulePerms is null)
+        if (SchedulePerms is null) //TODO: replace throw with logging, trying to load permutations again in a net, if failed: return, else continue work here.
             throw new NullReferenceException();
 
         return answer switch
@@ -93,7 +93,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
             Answers.Again => SchedulePerms.Again,
 
             _ => throw new ArgumentOutOfRangeException(
-                nameof(answer), 
+                nameof(answer), // TODO: log err here too, I think even critical..
                 $"Invalid Answers enum value: {answer}")
         };
     }
@@ -115,26 +115,22 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
 
         else ResumeTimer();
     }
-    private void UpdateOnReview(CardEntity reviewed)
+    private void UpdateOnReview(CardEntity reviewed, CardVM curr)
     {
-        if (CurrentCard is null) 
-            throw new NullReferenceException(
-            "Tried to update on review, but current card is null.");
+        curr.Refresh(reviewed);
 
-        CurrentCard.Refresh(reviewed);
-
-        switch (CurrentCard.State)
+        switch (curr.State)
         {
             case CardState.Learning:
-                learningPool.Add(CurrentCard);
+                learningPool.Add(curr);
                 break;
 
             case CardState.Review:
                 ReviewedCount++;
-                CurrentCard.IsInvalid = true; // flipping IsInvalid bc now its out of play, and the CardCountVM should skip it.
+                curr.IsInvalid = true; // flipping IsInvalid bc now its out of play, and the CardCountVM should skip it.
                 break;
 
-            default: throw new InvalidOperationException(
+            default: throw new InvalidOperationException( // TODO: log critical probably
             "Card after reviewing can't still have lesson state.");
         }
 
@@ -158,12 +154,11 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
 
     private async Task ReviewAsync(Answers answer)
     {
-        if (IsSavingReview)
-            return;
+        if (!CanReview) return;
 
         if (!IsCardLoaded)
             throw new InvalidOperationException(
-            "Review called without an active card.");
+            "Review called without an active card."); // TODO: log error and show next card quietly
 
         var updatedSchedule = GetScheduleInfo(answer);
 
@@ -176,14 +171,14 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         try
         {
             result = await net.TryUnsafe(
-                () => cardService.ReviewCardAsync(CurrentCard!.Id, updatedSchedule, answer, answerTime),
+                () => cardService.ReviewCardAsync(
+                    CurrentCard!.Id, updatedSchedule,
+                    answer, answerTime),
                 actionTried: "save the card review",
                 retry: false);
         }
-        finally
-        {
-            IsSavingReview = false;
-        }
+
+        finally { IsSavingReview = false; }
 
         if (!result.Success)
         {
@@ -196,7 +191,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         AnswerRevealed = false;
         SchedulePerms = null;
 
-        UpdateOnReview(result.Value);
+        UpdateOnReview(result.Value, CurrentCard!);
         ShowNextCard();
     }
 
@@ -330,15 +325,23 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     [RelayCommand(CanExecute = nameof(CanRevealAnswer))]
     private void RevealAnswer()
     {
-        AnswerRevealed = true;
-
         if (userOptions.TimerStopsOnReveal)
             stopWatch.Stop();
 
+        if (CurrentCard is null)
+        {
+            logger.LogError("Tried to reveal answer, but current card is not set to anything. Taking the next card from queue.");
+
+            ShowNextCard();
+            return;
+        }
+
         SchedulePerms = Scheduler.GetForecast(
-            CurrentCard ?? throw new NullReferenceException(),
+            CurrentCard,
             deckOptions.Scheduling,
             userOptions);
+
+        AnswerRevealed = true;
     }
     
     #region answer commands
@@ -366,7 +369,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     private async Task ShowCardEdit()
     {
         if (!IsCardLoaded) throw new InvalidOperationException(
-        "tried to open card editor, but no card was loaded.");
+        "tried to open card editor, but no card was loaded."); // TODO: log error, show dialog about card not loaded, show next card.
 
         await net.TryUnsafe(
             () => NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId)),
@@ -387,7 +390,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     private void ShowCtxMenu()
     {
         if (CurrentCard is null)
-            throw new InvalidOperationException(
+            throw new InvalidOperationException( // TODO: here too
             "Tried opening ctx menu with no currently loaded card.");
 
         CtxMenuVM.OpenMenu([CurrentCard.SavedEntity]);

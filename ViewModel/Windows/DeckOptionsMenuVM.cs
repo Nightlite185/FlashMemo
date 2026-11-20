@@ -125,6 +125,9 @@ public sealed partial class DeckOptionsMenuVM(
         //* as well as syncs the relation between deck and its preset.
         var curr = CurrentOptions;
 
+        if (!curr.Validate())
+            return false;
+
         if (PresetEditable)
         {
             var saving = mapper.Map<DeckOptions>(curr);

@@ -35,7 +35,14 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     [ObservableProperty] public partial int InitialCount { get; private set; }
     [ObservableProperty] public partial int ReviewedCount  { get; private set; }
     [ObservableProperty] public partial string ElapsedTime { get; set; } = "00:00";
-    [ObservableProperty] public partial SchedulePermutations? SchedulePerms { get; set; }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AgainAnswerCommand), nameof(HardAnswerCommand),
+        nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
+    public partial SchedulePermutations? SchedulePerms { get; set; }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
+        nameof(HardAnswerCommand), nameof(GoodAnswerCommand), nameof(EasyAnswerCommand))]
+    public partial bool IsPreparingForecast { get; private set; }
     [ObservableProperty] public partial bool IsSessionFinished { get; private set; }
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RevealAnswerCommand), nameof(AgainAnswerCommand),
@@ -82,8 +89,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     }
     private ScheduleInfo GetScheduleInfo(Answers answer)
     {
-        if (SchedulePerms is null) //TODO: replace throw with logging, trying to load permutations again in a net, if failed: return, else continue work here.
-            throw new NullReferenceException();
+        if (SchedulePerms is null)
+            throw new InvalidOperationException("Cannot review a card without its forecast.");
 
         return answer switch
         {
@@ -93,27 +100,38 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
             Answers.Again => SchedulePerms.Again,
 
             _ => throw new ArgumentOutOfRangeException(
-                nameof(answer), // TODO: log err here too, I think even critical..
+                nameof(answer),
                 $"Invalid Answers enum value: {answer}")
         };
     }
-    private void ShowNextCard()
+    private void ResetCurrentCardState()
     {
+        hasSubmittedAnswer = false;
+        AnswerRevealed = false;
+        SchedulePerms = null;
         stopWatch.Reset();
         UpdateTime();
+    }
+    private void ShowNextCard()
+    {
+        ResetCurrentCardState();
         learningPool.InjectDueInto(activeCards);
-        
-        CurrentCard = activeCards.TryPop(out var fromStack)
-            ? fromStack
-            : learningPool.TryPopEarly();
 
-        if (CurrentCard is null)
-            IsSessionFinished = true;
+        do
+        {
+            CurrentCard = activeCards.TryPop(out var fromStack)
+                ? fromStack
+                : learningPool.TryPopEarly();
+        }
+        while (CurrentCard?.IsInvalid == true);
 
-        else if (CurrentCard.IsInvalid)
-            ShowNextCard();
-
-        else ResumeTimer();
+        IsSessionFinished = CurrentCard is null;
+        ResumeTimer();
+    }
+    private void ReportMissingCard(string action)
+    {
+        logger.LogError("Cannot {Action}: no current card is loaded", action);
+        dialogs.ShowError($"Cannot {action} because no card is currently loaded.");
     }
     private void UpdateOnReview(CardEntity reviewed, CardVM curr)
     {
@@ -130,8 +148,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
                 curr.IsInvalid = true; // flipping IsInvalid bc now its out of play, and the CardCountVM should skip it.
                 break;
 
-            default: throw new InvalidOperationException( // TODO: log critical probably
-            "Card after reviewing can't still have lesson state.");
+            default: throw new InvalidOperationException(
+                $"Saved review returned an unexpected card state: {curr.State}.");
         }
 
         CardsCount.UpdateCount();
@@ -147,7 +165,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         $"{(int)stopWatch.Elapsed.TotalMinutes:00}:{stopWatch.Elapsed.Seconds:00}";
     private void ResumeTimer()
     {
-        if (isFocused && IsCardLoaded && !IsSessionFinished && !IsSavingReview
+        if (isFocused && IsCardLoaded && !IsSessionFinished && !IsSavingReview && !IsPreparingForecast
+            && !hasSubmittedAnswer
             && CurrentPopup is null && !(AnswerRevealed && userOptions.TimerStopsOnReveal))
             stopWatch.Start();
     }
@@ -156,13 +175,10 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     {
         if (!CanReview) return;
 
-        if (!IsCardLoaded)
-            throw new InvalidOperationException(
-            "Review called without an active card."); // TODO: log error and show next card quietly
+        var current = CurrentCard!;
 
-        var updatedSchedule = GetScheduleInfo(answer);
-
-        bool wasRunning = stopWatch.IsRunning;
+        // Answer time ends at the first submission, even when saving needs another attempt.
+        hasSubmittedAnswer = true;
         stopWatch.Stop();
         var answerTime = stopWatch.Elapsed;
         IsSavingReview = true;
@@ -172,7 +188,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
         {
             result = await net.TryUnsafe(
                 () => cardService.ReviewCardAsync(
-                    CurrentCard!.Id, updatedSchedule,
+                    current.Id, GetScheduleInfo(answer),
                     answer, answerTime),
                 actionTried: "save the card review",
                 retry: false);
@@ -180,19 +196,25 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
 
         finally { IsSavingReview = false; }
 
-        if (!result.Success)
+        if (!result.Success) return;
+
+        ResetCurrentCardState();
+
+        try
         {
-            if (wasRunning)
-                ResumeTimer();
-
-            return;
+            UpdateOnReview(result.Value, current);
+            ShowNextCard();
         }
-
-        AnswerRevealed = false;
-        SchedulePerms = null;
-
-        UpdateOnReview(result.Value, CurrentCard!);
-        ShowNextCard();
+        catch (Exception exception)
+        {
+            //* The write already succeeded. End this session rather than offering another save.
+            ResetCurrentCardState();
+            CurrentCard = null;
+            IsSessionFinished = true;
+            logger.LogError(exception, "Review of card {CardId} was saved, but updating the study session failed", current.Id);
+            dialogs.ShowError("Your answer was saved, but the study session could not be updated. "
+                + "Please return to the decks view and start a new study session.");
+        }
     }
 
     partial void OnCurrentPopupChanged(PopupVMBase? value)
@@ -309,24 +331,26 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     private UserOptions userOptions = null!;
     private readonly LearningPool<CardVM> learningPool = new();
     private readonly Stopwatch stopWatch = new();
+    private bool hasSubmittedAnswer;
     private List<CardVM> allSessionCards = [];
     internal Stack<CardVM> activeCards = null!;
     private const int HistoryCap = 10;
     
     private bool IsCardLoaded => CurrentCard is not null;
     private bool CanReview
-        => IsCardLoaded && AnswerRevealed && !IsSavingReview;
+        => IsCardLoaded && AnswerRevealed && SchedulePerms is not null
+            && !IsSavingReview && !IsPreparingForecast;
     private bool CanRevealAnswer
-        => IsCardLoaded && !AnswerRevealed && !IsSavingReview;
+        => IsCardLoaded && !AnswerRevealed && !IsSavingReview && !IsPreparingForecast;
     #endregion
 
     #region ICommands
     
     [RelayCommand(CanExecute = nameof(CanRevealAnswer))]
-    private void RevealAnswer()
+    private async Task RevealAnswer()
     {
-        if (userOptions.TimerStopsOnReveal)
-            stopWatch.Stop();
+        if (IsSavingReview || IsPreparingForecast)
+            return;
 
         if (CurrentCard is null)
         {
@@ -336,12 +360,34 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
             return;
         }
 
-        SchedulePerms = Scheduler.GetForecast(
-            CurrentCard,
-            deckOptions.Scheduling,
-            userOptions);
+        if (AnswerRevealed)
+            return;
 
-        AnswerRevealed = true;
+        var current = CurrentCard;
+        bool wasRunning = stopWatch.IsRunning;
+        stopWatch.Stop();
+        IsPreparingForecast = true;
+
+        try
+        {
+            var result = await net.TryUnsafe(
+                () => Task.FromResult(Scheduler.GetForecast(current, deckOptions.Scheduling, userOptions)),
+                actionTried: "calculate the review intervals. No answer was saved. Check the deck's scheduling settings before trying again",
+                retry: false);
+
+            if (!result.Success)
+                return;
+
+            SchedulePerms = result.Value;
+            AnswerRevealed = true;
+        }
+        finally
+        {
+            IsPreparingForecast = false;
+
+            if (wasRunning)
+                ResumeTimer();
+        }
     }
     
     #region answer commands
@@ -368,11 +414,14 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     [RelayCommand(CanExecute = nameof(IsCardLoaded))]
     private async Task ShowCardEdit()
     {
-        if (!IsCardLoaded) throw new InvalidOperationException(
-        "tried to open card editor, but no card was loaded."); // TODO: log error, show dialog about card not loaded, show next card.
+        if (CurrentCard is null)
+        {
+            ReportMissingCard("open the card editor");
+            return;
+        }
 
         await net.TryUnsafe(
-            () => NavigateTo(new EditCardNavRequest(CurrentCard!.Id, userId)),
+            () => NavigateTo(new EditCardNavRequest(CurrentCard.Id, userId)),
             actionTried: "open the card editor",
             retry: false);
     }
@@ -390,8 +439,10 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     private void ShowCtxMenu()
     {
         if (CurrentCard is null)
-            throw new InvalidOperationException( // TODO: here too
-            "Tried opening ctx menu with no currently loaded card.");
+        {
+            ReportMissingCard("open the card's context menu");
+            return;
+        }
 
         CtxMenuVM.OpenMenu([CurrentCard.SavedEntity]);
     }

@@ -110,6 +110,54 @@ public class OptionsSaveWorkflowTests
         flow.Errors.Should().ContainSingle();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InvalidPreset_BlocksSaveAndCloseSaveUntilCorrected(bool fromClosing)
+    {
+        var flow = await CreatePresetWorkflow(outcome: 2);
+        var current = flow.VM.CurrentOptions;
+        var lastSaved = flow.VM.GetPrivateField<DeckOptions>("lastSaved");
+        current.Scheduling.GoodMultiplier = 0;
+        bool closed = false;
+        flow.VM.OnCloseRequest += () => closed = true;
+
+        if (fromClosing)
+            (await flow.VM.CanCloseAsync()).Should().BeFalse();
+        else
+            await flow.VM.SaveChangesCommand.ExecuteAsync(null);
+
+        closed.Should().BeFalse();
+        current.Scheduling.HasErrors.Should().BeTrue();
+        current.Scheduling.GoodMultiplier.Should().Be(0);
+        flow.VM.GetPrivateField<DeckOptions>("lastSaved").Should().BeSameAs(lastSaved);
+        flow.Calls.Should().BeEmpty();
+        flow.Errors.Should().ContainSingle().Which.Should().Contain("invalid settings");
+        flow.Bus.Verify(events => events.NotifyDeckOpt(), Times.Never);
+
+        current.Scheduling.GoodMultiplier = 2;
+        await flow.VM.SaveChangesCommand.ExecuteAsync(null);
+
+        closed.Should().BeTrue();
+        flow.Calls.Should().Equal("save", "assign");
+    }
+
+    [Fact]
+    public async Task InvalidPreset_BlocksSaveBeforeSwitchingPresets()
+    {
+        var flow = await CreatePresetWorkflow(outcome: 2);
+        var current = flow.VM.CurrentOptions;
+        current.Scheduling.GoodMultiplier = 0;
+        var other = Helpers.GetMapper().Map<DeckOptionsVM>(DeckOptions.CreateNew("Other", 7) with { Id = 12 });
+
+        await flow.VM.ChangePresetCommand.ExecuteAsync(other);
+
+        flow.VM.CurrentOptions.Should().BeSameAs(current);
+        flow.Calls.Should().BeEmpty();
+        flow.Errors.Should().ContainSingle().Which.Should().Contain("invalid settings");
+        other.DeckCount.Should().Be(0);
+    }
+
     private static async Task<PresetWorkflow> CreatePresetWorkflow(int outcome)
     {
         var mapper = Helpers.GetMapper();

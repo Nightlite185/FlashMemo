@@ -124,9 +124,17 @@ public sealed partial class DeckOptionsMenuVM(
         //* this applies any changes made in the preset,
         //* as well as syncs the relation between deck and its preset.
         var curr = CurrentOptions;
+        bool renaming = curr.IsRenaming;
 
-        if (!curr.Validate())
+        if (renaming || !curr.Validate())
+        {
+            string reason = renaming
+                ? "Current preset is being renamed, cannot save it right now. Cancel or finish renaming first, then try saving again."
+                : "The preset contains invalid settings values. Correct the highlighted fields, then try saving again.";
+
+            dialogs.ShowError(reason);
             return false;
+        }
 
         if (PresetEditable)
         {

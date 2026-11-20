@@ -15,8 +15,7 @@ public partial class DeckOptionsVM: RenameVMBase
     public bool Validate()
         => Sorting.Validate()
         && Scheduling.Validate()
-        && DailyLimits.Validate()
-        && !IsRenaming;
+        && DailyLimits.Validate();
     
     [ObservableProperty] public partial int DeckCount { get; set; }
     [ObservableProperty] public partial SortingOpt Sorting { get; set; }
@@ -28,7 +27,7 @@ public partial class DeckOptionsVM: RenameVMBase
         public bool Validate()
         {
             ValidateAllProperties();
-            return HasErrors;
+            return !HasErrors;
         }
 
         [ObservableProperty] [NotifyDataErrorInfo] [EnumDataType(typeof(LessonOrder))]
@@ -67,7 +66,7 @@ public partial class DeckOptionsVM: RenameVMBase
         public bool Validate()
         {
             ValidateAllProperties();
-            return HasErrors;
+            return !HasErrors;
         }
 
         #region multipliers
@@ -109,7 +108,7 @@ public partial class DeckOptionsVM: RenameVMBase
         public bool Validate()
         {
             ValidateAllProperties();
-            return HasErrors;
+            return !HasErrors;
         }
 
         [ObservableProperty] [NotifyDataErrorInfo] [Range(minimum: 0, maximum: 1_000_000)]

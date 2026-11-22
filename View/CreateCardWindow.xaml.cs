@@ -10,6 +10,7 @@ namespace FlashMemo.View
 {
     public partial class CreateCardWindow : Window, IViewFor<CreateCardVM>
     {
+        public bool SavingLocked { get; private set; }
         private const double EditorFontSize = 24;
         public CreateCardVM VM { get; set; } = null!;
         public CreateCardWindow()
@@ -23,33 +24,52 @@ namespace FlashMemo.View
 
         public async void AddButtonClicked(object sender, RoutedEventArgs e)
         {
-            if (TagsInput.IsCommitting) return;
+            if (SavingLocked) return;
+            SavingLocked = true;
+            FrontBox.IsReadOnly = true;
+            BackBox.IsReadOnly = true;
 
-            if (IsEditorEmpty())
+            try
             {
-                MessageBox.Show(
-                    "Cannot create a card, since all fields in editor are empty",
-                    "Empty editor",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                if (TagsInput.IsCommitting)
+                    return;
 
-                return;
+                if (IsEditorEmpty())
+                {
+                    MessageBox.Show(
+                        "Cannot create a card, since all fields in editor are empty",
+                        "Empty editor",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    return;
+                }
+
+                var sn = TryGetNote(VM.WipCard.Note);
+
+                // Serialize editors
+                sn.FrontContent = XamlSerializer
+                    .ToXaml(FrontBox.Document);
+
+                sn.BackContent = XamlSerializer
+                    .ToXaml(BackBox.Document);
+
+                if (!await VM.AddCard())
+                    return;
+
+                ResetEditor();
             }
 
-            if (VM.WipCard.Note is not StandardNoteVM sn)
-                throw new NotSupportedException("Only Standard notes supported for now.");
+            finally
+            {
+                SavingLocked = false;
+                FrontBox.IsReadOnly = false;
+                BackBox.IsReadOnly = false;
+            }
+        }
 
-            // Serialize editors
-            sn.FrontContent = XamlSerializer
-                .ToXaml(FrontBox.Document);
-
-            sn.BackContent = XamlSerializer
-                .ToXaml(BackBox.Document);
-
-            if (!await VM.AddCard())
-                return;
-
-            // clearing the editor
+        private void ResetEditor()
+        {
             FrontBox.Document = new();
             BackBox.Document = new();
             ApplyEditorDefaults();
@@ -60,12 +80,19 @@ namespace FlashMemo.View
             TagsInput.Refresh();
         }
 
+        private static StandardNoteVM TryGetNote(NoteVM note)
+        {
+            return note as StandardNoteVM
+                ?? throw new NotSupportedException(
+                "Only Standard notes supported for now.");
+        }
+
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            if (VM.WipCard.Note is null) throw new NullReferenceException();
+            if (VM.WipCard.Note is null)
+                throw new NullReferenceException();
 
-            if (VM.WipCard.Note is not StandardNoteVM sn)
-                throw new NotSupportedException("Only Standard notes supported for now.");
+            var sn = TryGetNote(VM.WipCard.Note);
 
             // Load Front
             FrontBox.Document = XamlSerializer

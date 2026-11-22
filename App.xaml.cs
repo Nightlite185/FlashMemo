@@ -173,15 +173,8 @@ public partial class App : Application
         #endregion
 
         #region DB CONTEXT
-        sc.AddDbContext<AppDbContext>(o =>
-        {
-            o.UseSqlite($"Data Source={AppDbContext.DbPath}");
-            o.EnableSensitiveDataLogging(); // TODO: remove for the release build
-
-            o.LogTo(
-                log => Debug.WriteLine(log),
-                LogLevel.Information);
-        });
+        sc.AddDbContext<AppDbContext>(o => o
+            .UseSqlite($"Data Source={AppDbContext.DbPath}"));
 
         sc.AddDbContextFactory<AppDbContext>();
         #endregion

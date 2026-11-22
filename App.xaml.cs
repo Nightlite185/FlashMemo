@@ -7,8 +7,6 @@ using FlashMemo.Services;
 using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.Model;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 using System.IO;
 using Serilog;
 using Syncfusion.Licensing;
@@ -17,9 +15,29 @@ namespace FlashMemo;
 public partial class App : Application
 {
     private ServiceProvider sp = null!;
+    private Mutex? singleInstanceMutex;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        singleInstanceMutex = new Mutex(
+            initiallyOwned: true,
+            name: @"Local\FlashMemo.SingleInstance",
+            createdNew: out bool isFirstInstance);
+
+        if (!isFirstInstance)
+        {
+            singleInstanceMutex.Dispose();
+            singleInstanceMutex = null;
+
+            DialogService.ShowInfo(
+                message: "FlashMemo is already running. Please use the existing application window.",
+                title: "FlashMemo is already running",
+                buttons: DialogButtons.OK);
+
+            Shutdown();
+            return;
+        }
+
         // DI and the normal log directory may themselves fail to initialize.
         var startupNet = new SafetyNet(new StartupLogger(), new WpfDialogService());
 
@@ -60,6 +78,8 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         sp?.Dispose();
+        singleInstanceMutex?.ReleaseMutex();
+        singleInstanceMutex?.Dispose();
         base.OnExit(e);
     }
     

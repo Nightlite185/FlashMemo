@@ -20,7 +20,8 @@
     </Window.Background>
 
     <Grid>
-        <Grid Margin="20">
+        <Grid Margin="20"
+              IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

@@ -104,9 +104,18 @@ public class CardEditorSaveWorkflowTests
             null!, vm, NullLogger<CardEditorVM>.Instance, dialogs.Object,
             Helpers.GetSafetyNet(dialogs.Object));
         bool closed = false;
-        editor.OnCloseRequest += () => closed = true;
+        editor.OnCloseRequest += () =>
+        {
+            editor.IsSaving.Should().BeFalse();
+            closed = true;
+        };
 
         var saving = editor.SaveChangesCommand.ExecuteAsync(null);
+        editor.IsSaving.Should().BeTrue();
+        editor.CanClose("Edited front", "Edited back").Should().BeFalse();
+        await editor.SaveChangesCommand.ExecuteAsync(null);
+        saving.IsCompleted.Should().BeFalse();
+        editor.IsSaving.Should().BeTrue();
         vm.IsSameAsSavedNote("Original front", "Original back").Should().BeTrue();
         closed.Should().BeFalse();
         if (succeeds)
@@ -115,6 +124,7 @@ public class CardEditorSaveWorkflowTests
             completion.SetException(new IOException());
         await saving;
 
+        editor.IsSaving.Should().BeFalse();
         closed.Should().Be(succeeds);
         vm.IsSameAsSavedNote("Edited front", "Edited back").Should().Be(succeeds);
         vm.IsSameAsSavedNote("Original front", "Original back").Should().Be(!succeeds);
@@ -124,6 +134,46 @@ public class CardEditorSaveWorkflowTests
             succeeds ? Times.Never() : Times.Once());
         vm.RevertChanges();
         ((StandardNoteVM)vm.Note).FrontContent.Should().Be(succeeds ? "Edited front" : "Original front");
+    }
+
+    [Theory]
+    [InlineData("tag", false)]
+    [InlineData("tag", true)]
+    [InlineData("deck", false)]
+    [InlineData("deck", true)]
+    public void Close_ProtectsMetadataChangesAndRevertRestoresTheSavedDraft(string change, bool discard)
+    {
+        var card = CreateEditable(CreateSavedCard());
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(service => service.ShowWarning(It.IsAny<string>(), "Unsaved changes", DialogButtons.YesNo))
+            .Returns(discard ? DialogResult.Yes : DialogResult.No);
+        var editor = new CardEditorVM(null!, null!, Mock.Of<IVMEventBus>(), null!, card,
+            NullLogger<CardEditorVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
+
+        editor.CanClose("Original front", "Original back").Should().BeTrue();
+        if (change == "tag") card.Tags.Clear();
+        else card.ChangeDeck(new Deck { Id = 79 });
+
+        editor.CanClose("Original front", "Original back").Should().Be(discard);
+        dialogs.Verify(service => service.ShowWarning(It.IsAny<string>(), "Unsaved changes", DialogButtons.YesNo), Times.Once);
+
+        card.RevertChanges();
+        editor.CanClose("Original front", "Original back").Should().BeTrue();
+        dialogs.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public void ComparingTags_UsesMembershipRatherThanOrderOrVmIdentity()
+    {
+        var saved = CreateSavedCard();
+        saved.Tags.Add(new Tag { Id = 76, UserId = 71, Name = "Another tag" });
+        var card = CreateEditable(saved);
+        card.Tags.Reverse();
+
+        card.IsSameAsSaved("Original front", "Original back").Should().BeTrue();
+
+        card.Tags.Add(new TagVM(new Tag { Id = 77, UserId = 71, Name = "New tag" }));
+        card.IsSameAsSaved("Original front", "Original back").Should().BeFalse();
     }
 
     [Fact]

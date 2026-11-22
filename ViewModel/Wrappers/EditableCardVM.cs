@@ -40,10 +40,15 @@ public partial class EditableCardVM: ObservableObject
 
     public void ChangeDeck(IDeckMeta newDeck) => Deck = newDeck;
 
-    public bool IsSameAsSavedNote(string frontText, string backText)
+    public bool IsSameAsSaved(string frontContent, string backContent)
+        => Deck.Id == lastSaved.DeckId
+        && Tags.Select(tag => tag.Id).ToHashSet().SetEquals(lastSaved.Tags.Select(tag => tag.Id))
+        && IsSameAsSavedNote(frontContent, backContent);
+
+    public bool IsSameAsSavedNote(string frontContent, string backContent)
     {
         var saved = noteComparer.FromModel(lastSaved.Note);
-        var edited = noteComparer.FromEditor(Note.Type, frontText, backText);
+        var edited = noteComparer.FromEditor(Note.Type, frontContent, backContent);
 
         return noteComparer.AreEqual(saved, edited);
     }

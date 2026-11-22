@@ -24,16 +24,15 @@ namespace FlashMemo.View
 
         public async void AddButtonClicked(object sender, RoutedEventArgs e)
         {
-            if (SavingLocked) return;
+            if (SavingLocked || TagsInput.IsCommitting)
+                return;
+                
             SavingLocked = true;
             FrontBox.IsReadOnly = true;
             BackBox.IsReadOnly = true;
 
             try
             {
-                if (TagsInput.IsCommitting)
-                    return;
-
                 if (IsEditorEmpty())
                 {
                     MessageBox.Show(

@@ -126,7 +126,7 @@ public interface INoteComparer
 {
     bool AreEqual(NoteComparable first, NoteComparable second);
     NoteComparable FromModel(Note savedNote);
-    NoteComparable FromEditor(NoteTypes noteType, string frontText, string backText);
+    NoteComparable FromEditor(NoteTypes noteType, string frontContent, string backContent);
 }
 
 public interface IActivityVMBuilder

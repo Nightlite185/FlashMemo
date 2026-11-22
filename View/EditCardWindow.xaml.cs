@@ -30,7 +30,8 @@ namespace FlashMemo.View
 
         public async void SaveButtonClicked(object sender, RoutedEventArgs e)
         {
-            if (TagsInput.IsCommitting) return;
+            if (VM.IsSaving || TagsInput.IsCommitting)
+                return;
 
             SaveEditorsToVm();
             await VM.SaveChangesCommand.ExecuteAsync(null);
@@ -38,7 +39,8 @@ namespace FlashMemo.View
 
         public async void RevertButtonClicked(object sender, RoutedEventArgs e)
         {
-            if (TagsInput.IsCommitting) return;
+            if (VM.IsSaving || TagsInput.IsCommitting)
+                return;
 
             await VM.RevertChangesCommand.ExecuteAsync(null);
             LoadEditorsFromVm();
@@ -106,17 +108,15 @@ namespace FlashMemo.View
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
         {
-            if (IsSameAsSaved())
-                return;
-
-            var result = MessageBox.Show(
-                "You have unsaved changes. Discard them?",
-                "Unsaved changes",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.No)
+            if (VM.IsSaving || TagsInput.IsCommitting)
+            {
                 e.Cancel = true;
+                return;
+            }
+
+            e.Cancel = !VM.CanClose(
+                XamlSerializer.ToXaml(FrontBox.Document),
+                XamlSerializer.ToXaml(BackBox.Document));
         }
 
         private void ApplyEditorDefaults()
@@ -125,9 +125,5 @@ namespace FlashMemo.View
             BackBox.FontSize = EditorFontSize;
         }
 
-        private bool IsSameAsSaved()
-            => VM.Card.IsSameAsSavedNote(
-                XamlSerializer.GetPlainText(FrontBox.Document),
-                XamlSerializer.GetPlainText(BackBox.Document));
     }
 }

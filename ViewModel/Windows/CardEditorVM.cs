@@ -13,13 +13,16 @@ namespace FlashMemo.ViewModel.Windows;
 
 public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, IVMEventBus eventBus, 
                                 DeckSelectVMF deckSelectVMF, EditableCardVM cardVM,
-                                ILogger<CardEditorVM> log, IDialogService dialogService, SafetyNet net)
-                                : BaseVM(eventBus, log, dialogService, net), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
+                                ILogger<CardEditorVM> log, IDialogService dialogs, SafetyNet net)
+                                : BaseVM(eventBus, log, dialogs, net), ICloseRequest, IPopupHost, ICtxMenuHost, ICardTagsVMHost
 {
     public List<TagVM> Tags => Card.Tags;
     public EditableCardVM Card { get; private set; } = cardVM;
     public CardCtxMenuVM CtxMenuVM { get; private set; } = null!;
     public ICardTagsVM CardTagsVM { get; private set; } = null!;
+
+    [ObservableProperty]
+    public partial bool IsSaving { get; private set; }
 
     [ObservableProperty]
     public partial PopupVMBase? CurrentPopup { get; set; }
@@ -75,25 +78,47 @@ public partial class CardEditorVM(ICardService cardService, ICardRepo cardRepo, 
         await Task.CompletedTask;
     }
     private void CancelPopup() => CurrentPopup = null;
+
+    public bool CanClose(string frontContent, string backContent)
+    {
+        if (IsSaving) return false;
+
+        if (Card.IsSameAsSaved(frontContent, backContent))
+            return true;
+
+        return dialogs.ShowWarning(
+            message: "You have unsaved changes. Discard them?",
+            title: "Unsaved changes",
+            buttons: DialogButtons.YesNo) == DialogResult.Yes;
+    }
     #endregion
 
     #region ICommands
     [RelayCommand] private async Task SaveChanges()
     {
-        var edited = Card.ToEntity();
+        // ExecuteAsync can be called directly, bypassing command CanExecute.
+        if (IsSaving) return;
+        IsSaving = true;
 
-        Task action() => cardService.SaveEditedCard(
-            edited, CardAction.Modify);
-
-        if (!await net.TryUnsafe(action,
-            actionTried: "save the modified card.",
-            retry: false))
+        try
         {
-            return;
+            var edited = Card.ToEntity();
+
+            Task action() => cardService.SaveEditedCard(
+                edited, CardAction.Modify);
+
+            if (!await net.TryUnsafe(action,
+                actionTried: "save the modified card.",
+                retry: false))
+            {
+                return;
+            }
+
+            Card.UpdateLastSaved(edited);
+            eventBus.NotifyDomain();
         }
 
-        Card.UpdateLastSaved(edited);
-        eventBus.NotifyDomain();
+        finally { IsSaving = false; }
         OnCloseRequest?.Invoke();
     }
 

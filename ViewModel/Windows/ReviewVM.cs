@@ -347,7 +347,7 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
     #region ICommands
     
     [RelayCommand(CanExecute = nameof(CanRevealAnswer))]
-    private async Task RevealAnswer()
+    private void RevealAnswer()
     {
         if (IsSavingReview || IsPreparingForecast)
             return;
@@ -370,8 +370,8 @@ public partial class ReviewVM(ICardService cardService, ICardQueryService cardQu
 
         try
         {
-            var result = await net.TryUnsafe(
-                () => Task.FromResult(Scheduler.GetForecast(current, deckOptions.Scheduling, userOptions)),
+            var result = net.TryUnsafeSync(
+                () => Scheduler.GetForecast(current, deckOptions.Scheduling, userOptions),
                 actionTried: "calculate the review intervals. No answer was saved. Check the deck's scheduling settings before trying again",
                 retry: false);
 

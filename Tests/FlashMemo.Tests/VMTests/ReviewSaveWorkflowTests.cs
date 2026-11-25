@@ -137,7 +137,7 @@ public class ReviewSaveWorkflowTests
             })
             .Returns(DialogResult.OK);
 
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
         await vm.GoodAnswerCommand.ExecuteAsync(null);
 
         vm.CurrentCard.Should().BeSameAs(current);
@@ -153,7 +153,7 @@ public class ReviewSaveWorkflowTests
         typeof(ReviewVM).GetField("deckOptions", BindingFlags.Instance | BindingFlags.NonPublic)!
             .SetValue(vm, DeckOptions.Default);
         current!.Refresh(CreateCard(1));
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
 
         vm.AnswerRevealed.Should().BeTrue();
         vm.SchedulePerms.Should().NotBeNull();
@@ -165,7 +165,7 @@ public class ReviewSaveWorkflowTests
     public async Task MissingForecast_DisablesSubmissionWithoutRegeneratingOrSaving()
     {
         var (vm, service, dialogs) = await CreateWorkflow(stopsOnReveal: true);
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
         vm.SchedulePerms = null;
 
         vm.GoodAnswerCommand.CanExecute(null).Should().BeFalse();
@@ -181,7 +181,7 @@ public class ReviewSaveWorkflowTests
     public async Task InvalidAnswer_IsReportedWithoutSavingOrDiscardingTheForecast()
     {
         var (vm, service, dialogs) = await CreateWorkflow(stopsOnReveal: true);
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
         var forecast = vm.SchedulePerms;
 
         var reviewing = (Task)typeof(ReviewVM)
@@ -203,7 +203,7 @@ public class ReviewSaveWorkflowTests
     public async Task InvalidSavedState_EndsSessionAndNeverRetriesTheSavedReview(CardState savedState)
     {
         var (vm, service, dialogs) = await CreateWorkflow(stopsOnReveal: false);
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
         var saved = CreateCard(1);
         saved.State = savedState;
         service.Setup(repo => repo.ReviewCardAsync(1, It.IsAny<ScheduleInfo>(), Answers.Good, It.IsAny<TimeSpan>()))
@@ -251,10 +251,10 @@ public class ReviewSaveWorkflowTests
     public async Task MissingCard_OnRevealAdvancesWithFreshStateAndTimer()
     {
         var (vm, _, _) = await CreateWorkflow(stopsOnReveal: true);
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
         vm.CurrentCard = null;
 
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
 
         vm.CurrentCard!.Id.Should().Be(2);
         vm.AnswerRevealed.Should().BeFalse();
@@ -269,7 +269,7 @@ public class ReviewSaveWorkflowTests
     public async Task SkippingRevealedCard_ClearsItsForecastAndStartsTheNextCardTimer()
     {
         var (vm, _, _) = await CreateWorkflow(stopsOnReveal: true);
-        await vm.RevealAnswerCommand.ExecuteAsync(null);
+        vm.RevealAnswerCommand.Execute(null);
 
         await vm.OnActionExecuted(CtxMenuAction.Suspend, [CreateCard(1)]);
 

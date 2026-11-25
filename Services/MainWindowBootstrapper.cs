@@ -11,7 +11,6 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
 {
     private readonly IServiceProvider sp = sp;
     private readonly ILastSessionService lastSession = lss;
-    private bool fatalShutdownStarted = false;
     private bool exitSaveStarted = false;
 
     private void SetupMainWindow(MainVM mainVM)
@@ -28,7 +27,7 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
 
         win.Closing += async (_, e) =>
         {
-            if (exitSaveStarted || fatalShutdownStarted)
+            if (exitSaveStarted || App.IsFatalShutdownStarted)
                 return;
 
             if (win.DataContext is MainVM { IsOpeningDialog: true })
@@ -41,6 +40,9 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
             
             // Let the Closing event finish before saving and requesting application shutdown.
             await Task.Yield();
+            if (App.IsFatalShutdownStarted)
+                return;
+
             await SaveSessionOnExitAsync();
             App.Current.Shutdown();
         };
@@ -76,6 +78,9 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
 
     internal async Task SaveSessionOnExitAsync()
     {
+        if (App.IsFatalShutdownStarted)
+            return;
+
         try { await lastSession.SaveStateAsync(); }
         catch (Exception e)
         {
@@ -87,7 +92,7 @@ public class MainWindowBootstrapper(IServiceProvider sp, ILastSessionService lss
     public void Shutdown()
     {
         // Fatal shutdown must not start the normal asynchronous exit-save flow.
-        fatalShutdownStarted = true;
+        App.IsFatalShutdownStarted = true;
         App.Current.Shutdown(exitCode: 1);
     }
 }

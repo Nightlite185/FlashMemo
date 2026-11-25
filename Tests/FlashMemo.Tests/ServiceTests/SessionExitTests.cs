@@ -5,6 +5,7 @@ using Moq;
 
 namespace FlashMemo.Tests.ServiceTests;
 
+[Collection("WPF")]
 public class SessionExitTests
 {
     [Theory]

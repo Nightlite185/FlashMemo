@@ -176,12 +176,18 @@ public class WindowService(IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ec
 
         win.Activated += async (_, _) =>
         {
+            if (App.IsFatalShutdownStarted)
+                return;
+
             if (win.DataContext is IFocusState focusable)
                 await focusable.OnFocusGained();
         };
         
         win.Deactivated += (_, _) =>
         {
+            if (App.IsFatalShutdownStarted)
+                return;
+
             if (win.DataContext is IFocusState focusable)
                 focusable.OnFocusLost();
         };
@@ -191,6 +197,9 @@ public class WindowService(IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ec
 
         win.Closing += async (_, e) =>
         {
+            if (App.IsFatalShutdownStarted)
+                return;
+
             if (allowClose)
             {
                 allowClose = false;

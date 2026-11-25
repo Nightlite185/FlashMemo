@@ -8,14 +8,71 @@ using FlashMemo.Repositories;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.Model;
 using System.IO;
+using System.Windows.Threading;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Syncfusion.Licensing;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace FlashMemo;
 public partial class App : Application
 {
     private ServiceProvider sp = null!;
     private Mutex? singleInstanceMutex;
+    internal static bool IsFatalShutdownStarted { get; set; }
+
+    public App()
+    {
+        DispatcherUnhandledException += OnUnexpectedUiException;
+    }
+
+    private void OnUnexpectedUiException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        ILogger logger;
+        try { logger = sp?.GetService<ILogger<App>>() ?? (ILogger)new StartupLogger(); }
+        catch { logger = new StartupLogger(); }
+
+        // Suppress WPF's default handling only when our shutdown request succeeds.
+        e.Handled = TryHandleFatalException(e.Exception, logger, new WpfDialogService(),
+            () => Shutdown(exitCode: 1));
+    }
+
+    internal static bool TryHandleFatalException(Exception ex, ILogger logger,
+        IDialogService dialogs, Action shutdown)
+    {
+        // A second dispatcher failure during reporting/cleanup must use WPF's fatal path.
+        if (IsFatalShutdownStarted)
+            return false;
+
+        IsFatalShutdownStarted = true;
+
+        try { logger.LogCritical(ex, "Unexpected UI exception; FlashMemo will close"); }
+        catch
+        {
+            try { new StartupLogger().LogCritical(ex, "Unexpected UI exception; FlashMemo will close"); }
+            catch { } // Reporting must not prevent shutdown.
+        }
+
+        try
+        {
+            dialogs.ShowError(
+                message: "FlashMemo encountered an unexpected error and needs to close. Unsaved changes may be lost. Please restart the application.",
+                title: "Fatal error",
+                buttons: DialogButtons.OK);
+        }
+        catch { } // The UI may itself be the source of the failure.
+
+        try
+        {
+            shutdown();
+            return true;
+        }
+        catch
+        {
+            // Leave the dispatcher exception unhandled if orderly shutdown fails.
+            return false;
+        }
+    }
 
     protected override async void OnStartup(StartupEventArgs e)
     {

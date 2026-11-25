@@ -174,7 +174,8 @@ public class CardEditorWindowTests(WpfTestHost host)
             NullLogger<CardEditorVM>.Instance, dialogs.Object, Helpers.GetSafetyNet(dialogs.Object));
         vm.Initialize(null!, Mock.Of<ICardTagsVM>());
         var window = new EditCardWindow { VM = vm };
-        new WindowService(null!, null!, null!, null!, null!, null!, null!, NullLogger<WindowService>.Instance)
+        new WindowService(null!, null!, null!, null!, null!, null!, null!,
+            Helpers.GetSafetyNet(dialogs.Object), NullLogger<WindowService>.Instance)
             .WireEvents(vm, window);
         window.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
         window.Measure(new Size(900, 650));

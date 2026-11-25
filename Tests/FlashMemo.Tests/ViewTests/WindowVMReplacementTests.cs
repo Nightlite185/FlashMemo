@@ -18,7 +18,7 @@ public class WindowVMReplacementTests(WpfTestHost host)
     public Task ReplacingDataContext_UsesOnlyTheCurrentVMAndReleasesTheOldSubscriptions() => host.Run(() =>
     {
         var service = new WindowService(null!, null!, null!, null!, null!, null!, null!,
-            NullLogger<WindowService>.Instance);
+            Helpers.GetSafetyNet(), NullLogger<WindowService>.Instance);
         var first = new WindowVM();
         var current = new WindowVM();
         var window = new Window();
@@ -105,7 +105,7 @@ public class WindowVMReplacementTests(WpfTestHost host)
     {
         var window = new MainWindow();
         var service = new WindowService(null!, null!, null!, null!, null!, null!, null!,
-            NullLogger<WindowService>.Instance);
+            Helpers.GetSafetyNet(), NullLogger<WindowService>.Instance);
         var previous = new MainVM(null!, null!, Mock.Of<IVMEventBus>(), 1,
             NullLogger<MainVM>.Instance, null!, null!);
         var current = new MainVM(null!, null!, Mock.Of<IVMEventBus>(), 2,

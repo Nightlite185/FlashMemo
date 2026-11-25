@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using FlashMemo.ViewModel;
 using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.Services;
@@ -19,6 +18,7 @@ public class SafetyNet(ILogger<SafetyNet> logger, IDialogService dialogs)
         return result.Success && result.Value;
     }
 
+    /// <param name="retry">Generally put true for read-only operations, and false for ones that write.</param>
     public async Task<bool> TryUnsafe(
         Func<Task> action, string actionTried, bool retry,
         [CallerMemberName] string caller = "",
@@ -36,6 +36,7 @@ public class SafetyNet(ILogger<SafetyNet> logger, IDialogService dialogs)
         return result.Success;
     }
 
+    /// <param name="retry">Generally put true for read-only operations, and false for ones that write.</param>
     public async Task<UnsafeActionResult<T>> TryUnsafe<T>(
         Func<Task<T>> action, string actionTried, bool retry,
         [CallerMemberName] string caller = "",
@@ -69,6 +70,19 @@ public class SafetyNet(ILogger<SafetyNet> logger, IDialogService dialogs)
         }
 
         return new(Success: false);
+    }
+
+    /// <param name="retry">Generally put true for read-only operations, and false for ones that write.</param>
+    public UnsafeActionResult<T> TryUnsafeSync<T>(
+        Func<T> action, string actionTried, bool retry,
+        [CallerMemberName] string caller = "",
+        [CallerArgumentExpression(nameof(action))] string operation = "")
+    {
+        Task<T> taskWrapper()
+            => Task.FromResult(action());
+
+        return TryUnsafe(taskWrapper, actionTried,
+                        retry, caller, operation).Result;
     }
 }
 

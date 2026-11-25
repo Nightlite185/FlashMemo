@@ -8,10 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.Services;
 
-public class WindowService
-(IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ecVMF, 
-CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsMenuVMF domVMF,
-    ILogger<WindowService> logger)
+public class WindowService(IServiceProvider sp, BrowseVMF bVMF, CardEditorVMF ecVMF, 
+                            CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF,
+                            DeckOptionsMenuVMF domVMF, SafetyNet net, ILogger<WindowService> logger)
 {
     #region private fields
     private readonly IServiceProvider sp = sp;
@@ -60,27 +59,21 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
         var vm = await browseVMF.TryCreateAsync(e.UserId);
         if (vm is null) return;
 
-        var win = sp.GetRequiredService<BrowseWindow>();
-
-        WireHelper(vm, win);
+        TryWireAndShow(vm, sp.GetRequiredService<BrowseWindow>);
     }
     private async Task ShowEditCard(EditCardNavRequest e)
     {
         var vm = await editCardVMF.TryCreateAsync(e.CardId, e.UserId);
         if (vm is null) return;
 
-        var win = sp.GetRequiredService<EditCardWindow>();
-
-        WireHelper(vm, win);
+        TryWireAndShow(vm, sp.GetRequiredService<EditCardWindow>);
     }
     private async Task ShowCreateCard(CreateCardNavRequest e)
     {
         var vm = await createCardVMF.TryCreateAsync(e.TargetDeck);
         if (vm is null) return;
 
-        var win = sp.GetRequiredService<CreateCardWindow>();
-
-        WireHelper(vm, win);
+        TryWireAndShow(vm, sp.GetRequiredService<CreateCardWindow>);
     }
 
     ///<param name="currentUserId">
@@ -93,18 +86,14 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
         var vm = await userSelectVMF.TryCreateAsync(currentUserId);
         if (vm is null) return;
 
-        var win = sp.GetRequiredService<UserSelectWindow>();
-
-        WireHelper(vm, win);
+        TryWireAndShow(vm, sp.GetRequiredService<UserSelectWindow>);
     }
     private async Task ShowUserOptions(UserOptionsNavRequest e)
     {
         var vm = await userOptionsVMF.TryCreateAsync(e.UserId);
         if (vm is null) return;
 
-        var win = sp.GetRequiredService<UserOptionsWindow>();
-
-        WireHelper(vm, win);
+        TryWireAndShow(vm, sp.GetRequiredService<UserOptionsWindow>);
     }
 
     private async Task ShowDeckOptions(DeckOptionsNavRequest e)
@@ -112,19 +101,41 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
         var vm = await deckOptionsMenuVMF.TryCreateAsync(e.DeckId);
         if (vm is null) return;
 
-        var win = sp.GetRequiredService<DeckOptionsWindow>();
-
-        WireHelper(vm, win);
+        TryWireAndShow(vm, sp.GetRequiredService<DeckOptionsWindow>);
     }
     #endregion
     
     #region private helpers
-    private void WireHelper<TVM>(TVM vm, Window win) where TVM: class, IViewModel
+    private bool TryWireAndShow<TVM, TWindow>(TVM vm, Func<TWindow> getWindow)
+    where TVM: class, IViewModel
+    where TWindow: Window
     {
-        SetDataCtx(vm, win);
-        WireEvents(vm, win);
+        TWindow? win = null;
 
-        win.ShowDialog();
+        var attempt = net.TryUnsafeSync(
+            action: () =>
+            {
+                win = getWindow();
+                SetDataCtx(vm, win);
+                WireEvents(vm, win);
+                return win.ShowDialog();
+            },
+            actionTried: $"initialize and show {typeof(TWindow)}",
+            retry: false);
+
+        if (!attempt.Success)
+        {
+            try { win?.Close(); }
+
+            catch(Exception e) {
+                logger.LogError(e, "Failed to close the window as cleanup after failed ShowDialog attempt.");
+            }
+
+            Cleanup(vm, win);
+            return false;
+        }
+
+        return true;
     }
     private static void SetDataCtx<TVM>(TVM vm, Window win) where TVM: class, IViewModel
     {
@@ -137,34 +148,47 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
         else throw new InvalidOperationException(
             $"{win.GetType().Name} does not implement IViewFor<{typeof(TVM).Name}>");
     }
+    
+    private void Cleanup(object? vm, Window? win)
+    {
+        if (vm is INavRequestSender nav)
+            nav.NavRequested -= NavRequestHandler;
+            
+        if (vm is ICloseRequest close && win is not null)
+            close.OnCloseRequest -= win.Close;
+            
+        if (vm is IClosedHandler cleanup)
+            cleanup.OnClosed();
+    }
     internal void WireEvents(IViewModel vm, Window win)
     {
         win.DataContext = vm;
-        AttachVM(vm);
+        attachVM(vm);
 
         // Window handlers are attached once and always use the current VM.
         win.DataContextChanged += (_, e) =>
         {
-            DetachVM(e.OldValue);
-            (e.OldValue as IClosedHandler)?.OnClosed();
-            AttachVM(e.NewValue);
+            Cleanup(e.OldValue, win);
+            attachVM(e.NewValue);
         };
 
-        win.Closed += (_, _) =>
-        {
-            DetachVM(win.DataContext);
-            (win.DataContext as IClosedHandler)?.OnClosed();
-        };
+        win.Closed += (_, _) => Cleanup(win.DataContext, win);
 
         win.Activated += async (_, _) =>
         {
-            if (win.DataContext is IFocusState current)
-                await current.OnFocusGained();
+            if (win.DataContext is IFocusState focusable)
+                await focusable.OnFocusGained();
         };
-        win.Deactivated += (_, _) => (win.DataContext as IFocusState)?.OnFocusLost();
+        
+        win.Deactivated += (_, _) =>
+        {
+            if (win.DataContext is IFocusState focusable)
+                focusable.OnFocusLost();
+        };
 
         bool checkingClose = false;
         bool allowClose = false;
+
         win.Closing += async (_, e) =>
         {
             if (allowClose)
@@ -197,21 +221,12 @@ CreateCardVMF ccVMF, UserSelectVMF usVMF, UserOptionsMenuVMF uoVMF, DeckOptionsM
             finally { checkingClose = false; }
         };
 
-        void AttachVM(object? model)
+        void attachVM(object? vm)
         {
-            if (model is INavRequestSender navigation)
+            if (vm is INavRequestSender navigation)
                 navigation.NavRequested += NavRequestHandler;
-            if (model is ICloseRequest close)
+            if (vm is ICloseRequest close)
                 close.OnCloseRequest += win.Close;
-        }
-
-        void DetachVM(object? model)
-        {
-            // VM-owned events must release their subscriptions when its window closes or VM changes.
-            if (model is INavRequestSender navigation)
-                navigation.NavRequested -= NavRequestHandler;
-            if (model is ICloseRequest close)
-                close.OnCloseRequest -= win.Close;
         }
     }
     #endregion

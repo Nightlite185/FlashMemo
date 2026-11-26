@@ -10,6 +10,7 @@ namespace FlashMemo.ViewModel.Wrappers;
 public partial class DeckOptionsVM: RenameVMBase
 {
     public long Id { get; set; }
+    public long? UserId { get; set; }
     public bool CanDelete => Id != DeckOptions.DefaultId;
 
     public bool Validate()

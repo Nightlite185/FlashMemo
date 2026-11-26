@@ -289,7 +289,16 @@ public sealed partial class DeckOptionsMenuVM(
     [RelayCommand(CanExecute = nameof(PresetEditable))]
     private void ToDefault()
     {
+        var id = CurrentOptions.Id;
+        var userId = CurrentOptions.UserId;
+        var name = CurrentOptions.Name;
+
         mapper.Map(DeckOptions.Default, CurrentOptions);
+        
+        //* restoring identity after mapping to default.
+        CurrentOptions.Id = id;
+        CurrentOptions.UserId = userId;
+        CurrentOptions.Name = name;
     }
 
     [RelayCommand(CanExecute = nameof(PresetEditable))]

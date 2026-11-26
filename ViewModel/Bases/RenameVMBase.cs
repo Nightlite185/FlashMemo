@@ -8,7 +8,7 @@ public abstract partial class RenameVMBase: ObservableObject, IViewModel
     private bool isSavingRename;
 
     [ObservableProperty] public partial string? TempName { get; set; }
-    [ObservableProperty] public partial string Name { get; protected set; }
+    [ObservableProperty] public partial string Name { get; internal set; }
     
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BeginRenameCommand))]
     public partial bool IsRenaming { get; set; }

@@ -139,6 +139,61 @@ public class CardEditorWindowTests(WpfTestHost host)
         flow.Dialogs.Verify(dialog => dialog.ShowWarning(It.IsAny<string>(), "Unsaved changes", DialogButtons.YesNo), Times.Once);
     });
 
+    [Theory]
+    [InlineData("draft")]
+    [InlineData("save")]
+    [InlineData("tag")]
+    public Task FatalShutdown_ClosesDirtyEditorWithoutPromptOrStartingASave(string state) => host.Run(() =>
+    {
+        using var flow = CreateFlow();
+        new TextRange(flow.Front.Document.ContentStart, flow.Front.Document.ContentEnd).Text = "Unsaved draft";
+        var saveCompletion = new TaskCompletionSource();
+        var tagCompletion = new TaskCompletionSource<TagVM?>();
+        var tagsInput = (TagInput)flow.Window.FindName("TagsInput");
+        Task committing = Task.CompletedTask;
+
+        try
+        {
+            if (state == "save")
+            {
+                flow.Service.Setup(service => service.SaveEditedCard(It.IsAny<CardEntity>(), CardAction.Modify, null))
+                    .Returns(saveCompletion.Task);
+                flow.Window.SaveButtonClicked(flow.Window, new RoutedEventArgs());
+                flow.VM.IsSaving.Should().BeTrue();
+            }
+            else if (state == "tag")
+            {
+                Mock.Get(flow.VM.CardTagsVM).Setup(vm => vm.TryAddTagAsync("Pending tag"))
+                    .Returns(tagCompletion.Task);
+                tagsInput.DataContext = flow.VM.CardTagsVM;
+                tagsInput.Input.Text = "Pending tag";
+                committing = tagsInput.CommitAsync();
+                tagsInput.IsCommitting.Should().BeTrue();
+            }
+
+            bool handled = App.TryHandleFatalException(new Exception("Unexpected UI failure"), NullLogger.Instance,
+                Mock.Of<IDialogService>(), () => flow.Window.Close());
+
+            handled.Should().BeTrue();
+            flow.Closed.Should().BeTrue();
+            flow.VM.IsSaving.Should().Be(state == "save");
+            tagsInput.IsCommitting.Should().Be(state == "tag");
+            flow.Dialogs.VerifyNoOtherCalls();
+            flow.Service.Verify(service => service.SaveEditedCard(It.IsAny<CardEntity>(), CardAction.Modify, null),
+                state == "save" ? Times.Once() : Times.Never());
+            flow.Service.VerifyNoOtherCalls();
+        }
+        finally
+        {
+            // Complete existing operations while the hidden WPF dispatcher is still available.
+            saveCompletion.TrySetResult();
+            tagCompletion.TrySetResult(null);
+            Pump();
+            committing.GetAwaiter().GetResult();
+            App.IsFatalShutdownStarted = false;
+        }
+    });
+
     private static Flow CreateFlow(string blocks = "<Paragraph><Run>front</Run></Paragraph>")
     {
         // Use the app's embedded key without starting App or touching the user's database.

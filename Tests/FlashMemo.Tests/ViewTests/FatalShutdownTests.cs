@@ -1,10 +1,14 @@
+using System.ComponentModel;
+using System.Reflection;
 using System.Windows;
 using FlashMemo.Services;
+using FlashMemo.View;
 using FlashMemo.ViewModel;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Syncfusion.Licensing;
 
 namespace FlashMemo.Tests.ViewTests;
 
@@ -113,6 +117,46 @@ public class FatalShutdownTests(WpfTestHost host) : IDisposable
             closed.Should().BeTrue();
             closing.Verify(service => service.CanCloseAsync(), Times.Never);
             session.Verify(service => service.SaveStateAsync(), Times.Never);
+        });
+
+    [Fact]
+    public Task FatalShutdown_ClosesCreatorWithoutInspectingUnavailableEditorState()
+        => host.Run(() =>
+        {
+            using (var stream = typeof(App).Assembly.GetManifestResourceStream("FlashMemo.SyncfusionLicense"))
+            {
+                if (stream is not null)
+                {
+                    using var reader = new StreamReader(stream);
+                    string key = reader.ReadToEnd().Trim();
+                    if (!string.IsNullOrWhiteSpace(key)) SyncfusionLicenseProvider.RegisterLicense(key);
+                }
+            }
+            var window = new CreateCardWindow();
+            var editor = window.FrontBox;
+            bool closed = false;
+            window.Closed += (_, _) => closed = true;
+            // Fatal closing must not inspect draft controls. A missing reference makes a
+            // regression fail before the creator could display a blocking MessageBox.
+            window.FrontBox = null!;
+
+            try
+            {
+                bool handled = App.TryHandleFatalException(new Exception("Unexpected UI failure"), NullLogger.Instance,
+                    Mock.Of<IDialogService>(), () => window.Close());
+
+                handled.Should().BeTrue();
+                closed.Should().BeTrue();
+            }
+            finally
+            {
+                window.FrontBox = editor;
+                // Keep cleanup safe even if a regression made the closing handler throw.
+                var closing = typeof(CreateCardWindow).GetMethod("OnWindowClosing", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .CreateDelegate<CancelEventHandler>(window);
+                window.Closing -= closing;
+                window.Close();
+            }
         });
 
     public void Dispose() => App.IsFatalShutdownStarted = false;

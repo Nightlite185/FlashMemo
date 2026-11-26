@@ -108,6 +108,9 @@ namespace FlashMemo.View
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
         {
+            //* ignore all unsaved changes on fatal shutdown started.
+            if (App.IsFatalShutdownStarted) return;
+
             if (VM.IsSaving || TagsInput.IsCommitting)
             {
                 e.Cancel = true;

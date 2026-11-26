@@ -106,7 +106,9 @@ namespace FlashMemo.View
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
         {
-            if (IsEditorEmpty()) return;
+            //* ignore all unsaved changes on fatal shutdown started.
+            if (App.IsFatalShutdownStarted || IsEditorEmpty())
+                return;
 
             var result = MessageBox.Show(
                 "You have unsaved changes. Discard them?",

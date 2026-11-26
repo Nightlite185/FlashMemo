@@ -115,7 +115,7 @@ public partial class EnumToReadableTextConverter : IValueConverter
 
         var enumText = value.ToString() ?? string.Empty;
 
-        if (value is ExportFormat) 
+        if (value is FileFormat) 
             return value.ToString()!;
         
         if (enumText.Length == 0)

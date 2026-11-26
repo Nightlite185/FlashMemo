@@ -16,11 +16,11 @@
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
 
-        <ObjectDataProvider x:Key="ExportFormats"
+        <ObjectDataProvider x:Key="FileFormats"
                             MethodName="GetValues"
                             ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="popups:ExportFormat"/>
+                <x:Type TypeName="popups:FileFormat"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
@@ -209,7 +209,7 @@
                         <StackPanel Grid.Column="1">
                             <ComboBox x:Name="FormatComboBox"
                                       Style="{StaticResource ExportComboBoxStyle}"
-                                      ItemsSource="{Binding Source={StaticResource ExportFormats}}"
+                                      ItemsSource="{Binding Source={StaticResource FileFormats}}"
                                       ItemTemplate="{StaticResource EnumOptionTemplate}"
                                       SelectedItem="{Binding Format, Mode=TwoWay, ValidatesOnNotifyDataErrors=True}"/>
                             <ItemsControl Style="{StaticResource ExportValidationMessagesStyle}"
@@ -260,7 +260,7 @@
                         <Style TargetType="Border" BasedOn="{StaticResource ExportSectionStyle}">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:ExportFormat.txt}">
+                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:FileFormat.txt}">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -306,7 +306,7 @@
                         <Style TargetType="Border" BasedOn="{StaticResource ExportSectionStyle}">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:ExportFormat.csv}">
+                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:FileFormat.csv}">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>

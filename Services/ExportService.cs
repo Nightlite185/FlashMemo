@@ -8,14 +8,6 @@ using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Services;
 
-public interface IExportService
-{
-    string PrepareTxt(IEnumerable<CardEntity> cards, string fieldSeparator, char noteSeparator);
-    string PrepareCsv(IEnumerable<CardEntity> cards, IReadOnlyDictionary<long, string> deckPaths,
-        IEnumerable<CsvExportColumn> columns);
-    Task SaveAsync(string content, string path);
-}
-
 public class ExportService(INoteSerializer serializer) : IExportService
 {
     public string PrepareTxt(IEnumerable<CardEntity> cards, string fieldSeparator, char noteSeparator)

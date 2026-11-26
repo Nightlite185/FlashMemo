@@ -33,7 +33,7 @@ public class ExportWorkflowTests
     {
         var deck = new DeckNode(new Deck { Id = 1, Name = "Original" }, []);
         var (vm, _, exporter, _) = CreateWorkflow(deckTree: [deck]);
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
         deck.BeginRenameCommand.Execute(null);
         deck.TempName = "Renamed before confirming";
         await deck.RenameAsync(_ => Task.FromResult(true));
@@ -165,7 +165,7 @@ public class ExportWorkflowTests
     public async Task NoCsvColumns_ShowsErrorWithoutQueryingPreparingOrSaving()
     {
         var (vm, query, exporter, dialogs) = CreateWorkflow();
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
         foreach (var column in vm.CsvColumns)
             column.IsSelected = false;
         dialogs.Setup(service => service.ShowError("Select at least one column to export.", "Error", DialogButtons.OK))

@@ -2,6 +2,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Other;
+using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 
@@ -159,4 +160,18 @@ public interface IDialogService
     DialogResult ShowError(string message, string title = "Error", DialogButtons buttons = DialogButtons.OK);
     DialogResult ShowInfo(string message, string title = "Info", DialogButtons buttons = DialogButtons.OK);
     void ShowNoCardsFoundToExport();
+}
+
+public interface IExportService
+{
+    string PrepareTxt(IEnumerable<CardEntity> cards, string fieldSeparator, char noteSeparator);
+    string PrepareCsv(IEnumerable<CardEntity> cards,
+                    IReadOnlyDictionary<long, string> deckPaths,
+                    IEnumerable<CsvExportColumn> columns);
+    Task SaveAsync(string content, string path);
+}
+
+public interface IImportService
+{
+    Task ImportAsync(string path, FileFormat format);
 }

@@ -20,9 +20,9 @@ public class ExportIntegrationTests : IDisposable
     private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("FlashMemo-ExportIntegrationTests-");
 
     [Theory]
-    [InlineData(ExportFormat.txt)]
-    [InlineData(ExportFormat.csv)]
-    public Task Export_SelectedSubtreeUsesStoredXamlAndTagsWithoutChangingDatabase(ExportFormat format)
+    [InlineData(FileFormat.txt)]
+    [InlineData(FileFormat.csv)]
+    public Task Export_SelectedSubtreeUsesStoredXamlAndTagsWithoutChangingDatabase(FileFormat format)
         => Helpers.RunOnSta(async () =>
     {
         await new TestsDbSeeder(factory).SeedDefault();
@@ -59,7 +59,7 @@ public class ExportIntegrationTests : IDisposable
         vm.Should().NotBeNull();
         vm!.Format = format;
         vm.ExportPath = Path.Combine(directory.FullName, $"export.{format}");
-        if (format == ExportFormat.csv)
+        if (format == FileFormat.csv)
             vm.CsvColumns.Single(column => column.Name == "Tags").IsSelected = true;
 
         await vm.ConfirmCommand.ExecuteAsync(null);
@@ -67,7 +67,7 @@ public class ExportIntegrationTests : IDisposable
         closed.Should().BeTrue();
         dialogs.VerifyNoOtherCalls();
         directory.GetFiles().Should().ContainSingle(file => file.FullName == vm.ExportPath);
-        if (format == ExportFormat.txt)
+        if (format == FileFormat.txt)
         {
             (await File.ReadAllTextAsync(vm.ExportPath)).Should().Be(
                 $"Root front - answer{Environment.NewLine}second line\n"

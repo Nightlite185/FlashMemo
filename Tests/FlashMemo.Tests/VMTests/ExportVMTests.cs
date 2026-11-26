@@ -123,13 +123,13 @@ public class ExportVMTests : IDisposable
     public async Task ChangingFormat_UpdatesTheExtensionAndClearsUnsupportedFormatErrors()
     {
         var vm = await CreateViewModel();
-        vm.Format = (ExportFormat)99;
+        vm.Format = (FileFormat)99;
         vm.ExportPath = Path.Combine(Path.GetTempPath(), "export.csv");
 
         vm.GetErrors(nameof(ExportVM.Format)).Should().NotBeEmpty();
         vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
 
-        vm.Format = ExportFormat.txt;
+        vm.Format = FileFormat.txt;
 
         vm.GetErrors(nameof(ExportVM.Format)).Should().BeEmpty();
         Path.GetExtension(vm.ExportPath).Should().Be(".txt");
@@ -151,13 +151,13 @@ public class ExportVMTests : IDisposable
         var tags = vm.CsvColumns.Single(col => col.Name == "Tags");
         tags.IsSelected = true;
 
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
 
         Path.GetExtension(vm.ExportPath).Should().Be(".csv");
         vm.HasErrors.Should().BeFalse();
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
 
-        vm.Format = ExportFormat.txt;
+        vm.Format = FileFormat.txt;
 
         vm.FieldSeparator.Should().Be(";");
         vm.NoteSep.Should().Be(NoteSeparator.SemiColon);
@@ -170,12 +170,12 @@ public class ExportVMTests : IDisposable
     {
         var vm = await CreateViewModel();
         vm.FieldSeparator = "";
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
         vm.Validate();
 
         vm.HasErrors.Should().BeFalse();
 
-        vm.Format = ExportFormat.txt;
+        vm.Format = FileFormat.txt;
 
         vm.GetErrors(nameof(ExportVM.FieldSeparator)).Should().NotBeEmpty();
     }
@@ -244,7 +244,7 @@ public class ExportVMTests : IDisposable
         ];
         int closed = 0;
         var (vm, query) = await CreateExportViewModel([root, otherRoot], cards, () => closed++);
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
@@ -271,9 +271,9 @@ public class ExportVMTests : IDisposable
     }
 
     [Theory]
-    [InlineData(ExportFormat.txt)]
-    [InlineData(ExportFormat.csv)]
-    public async Task Export_WhenOverwriteIsDeclined_PreservesFileAndKeepsPopupOpen(ExportFormat format)
+    [InlineData(FileFormat.txt)]
+    [InlineData(FileFormat.csv)]
+    public async Task Export_WhenOverwriteIsDeclined_PreservesFileAndKeepsPopupOpen(FileFormat format)
     {
         string path = Path.Combine(exportDirectory.FullName, $"existing.{format}");
         await File.WriteAllTextAsync(path, "Existing export\r\nKeep this: żółw");
@@ -306,12 +306,12 @@ public class ExportVMTests : IDisposable
     }
 
     [Theory]
-    [InlineData(ExportFormat.txt, true)]
-    [InlineData(ExportFormat.csv, true)]
-    [InlineData(ExportFormat.txt, false)]
-    [InlineData(ExportFormat.csv, false)]
+    [InlineData(FileFormat.txt, true)]
+    [InlineData(FileFormat.csv, true)]
+    [InlineData(FileFormat.txt, false)]
+    [InlineData(FileFormat.csv, false)]
     public async Task Export_WhenDestinationIsNewOrOverwriteIsConfirmed_WritesFileBeforeClosing(
-        ExportFormat format, bool destinationExists)
+        FileFormat format, bool destinationExists)
     {
         string path = Path.Combine(exportDirectory.FullName, $"export.{format}");
         if (destinationExists)
@@ -343,7 +343,7 @@ public class ExportVMTests : IDisposable
         await vm.ConfirmCommand.ExecuteAsync(null);
 
         string exportedContent = await File.ReadAllTextAsync(path);
-        if (format == ExportFormat.txt)
+        if (format == FileFormat.txt)
             exportedContent.Should().Be("front 1 - back 1\n");
         else
         {
@@ -374,7 +374,7 @@ public class ExportVMTests : IDisposable
         selected.AddChild(child);
         var (vm, query) = await CreateExportViewModel(
             [selected], [CreateCard(selected), CreateCard(child)]);
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
@@ -406,7 +406,7 @@ public class ExportVMTests : IDisposable
             : [root, descendant, otherRoot];
         var (vm, query) = await CreateExportViewModel(selection,
             [CreateCard(root), CreateCard(child), CreateCard(grandchild), CreateCard(otherRoot)]);
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
@@ -434,7 +434,7 @@ public class ExportVMTests : IDisposable
         var vm = new ExportVM(7, query.Object, new ExportService(serializer.Object),
             Mock.Of<IDialogService>(), () => closed = true, [], [],
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
         vm.ExportPath = Path.Combine(exportDirectory.FullName, "all-cards.csv");
 
         await vm.ConfirmCommand.ExecuteAsync(null);
@@ -453,7 +453,7 @@ public class ExportVMTests : IDisposable
         var child = CreateDeck(2, "Child");
         root.AddChild(child);
         var (vm, _) = await CreateExportViewModel([root], [CreateCard(child)]);
-        vm.Format = ExportFormat.csv;
+        vm.Format = FileFormat.csv;
         foreach (var column in vm.CsvColumns)
             column.IsSelected = column.Name == "Deck";
 

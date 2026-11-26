@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public enum ExportFormat { txt, csv }
+public enum FileFormat { txt, csv, flamePkg }
 public enum NoteSeparator { Tab, Enter, Space, SemiColon }
 
 public partial class ExportVM(long userId, ICardQueryService cardQService, IExportService exporter, 
@@ -26,7 +26,7 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     #region public properties
     [ObservableProperty] [NotifyDataErrorInfo]
     [CustomValidation(typeof(ExportVM), nameof(ValidateFormat))]
-    public partial ExportFormat Format { get; set; } = ExportFormat.txt;
+    public partial FileFormat Format { get; set; } = FileFormat.txt;
 
     [ObservableProperty] [NotifyDataErrorInfo]
     [Required(ErrorMessage = "Choose a file to export to.")]
@@ -64,9 +64,9 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     #region validation stuff
     internal void Validate() => ValidateAllProperties();
 
-    partial void OnFormatChanged(ExportFormat value)
+    partial void OnFormatChanged(FileFormat value)
     {
-        if (value is ExportFormat.txt or ExportFormat.csv && !string.IsNullOrWhiteSpace(ExportPath))
+        if (value is FileFormat.txt or FileFormat.csv && !string.IsNullOrWhiteSpace(ExportPath))
             ExportPath = Path.ChangeExtension(ExportPath, $".{value}");
 
         ValidateProperty(ExportPath, nameof(ExportPath));
@@ -80,25 +80,25 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     partial void OnNoteSepChanged(NoteSeparator value)
         => ValidateProperty(FieldSeparator, nameof(FieldSeparator));
 
-    public static ValidationResult? ValidateFormat(ExportFormat value, ValidationContext context)
-        => value is ExportFormat.txt or ExportFormat.csv
+    public static ValidationResult? ValidateFormat(FileFormat value, ValidationContext context)
+        => value is FileFormat.txt or FileFormat.csv
             ? ValidationResult.Success
             : new ValidationResult("Choose a supported export format.");
 
     public static ValidationResult? ValidateNoteSeparator(NoteSeparator value, ValidationContext context)
-        => ((ExportVM)context.ObjectInstance).Format != ExportFormat.txt || Enum.IsDefined(value)
+        => ((ExportVM)context.ObjectInstance).Format != FileFormat.txt || Enum.IsDefined(value)
             ? ValidationResult.Success
             : new ValidationResult("Choose a note separator.");
 
     public static ValidationResult? ValidateFieldSeparator(string? value, ValidationContext context)
-        => ((ExportVM)context.ObjectInstance).Format != ExportFormat.txt || !string.IsNullOrEmpty(value)
+        => ((ExportVM)context.ObjectInstance).Format != FileFormat.txt || !string.IsNullOrEmpty(value)
             ? ValidationResult.Success
             : new ValidationResult("Enter a field separator.");
 
     public static ValidationResult? ValidateSeparators(object? value, ValidationContext context)
     {
         var vm = (ExportVM)context.ObjectInstance;
-        return vm.Format == ExportFormat.txt && Enum.IsDefined(vm.NoteSep)
+        return vm.Format == FileFormat.txt && Enum.IsDefined(vm.NoteSep)
             && vm.FieldSeparator == ToChar(vm.NoteSep).ToString()
             ? new ValidationResult("Field and note separators must be different.")
             : ValidationResult.Success;
@@ -118,7 +118,7 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
             return new ValidationResult("Choose a filename, not a folder, with valid characters.");
 
         var vm = (ExportVM)context.ObjectInstance;
-        if (vm.Format == ExportFormat.txt
+        if (vm.Format == FileFormat.txt
             && !string.Equals(Path.GetExtension(value), ".txt", StringComparison.OrdinalIgnoreCase))
             return new ValidationResult("The text export filename must end in .txt.");
 
@@ -139,13 +139,13 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
         var format = Format;
         string path = ExportPath;
         string fieldSep = FieldSeparator;
-        char noteSep = (format == ExportFormat.txt)
+        char noteSep = (format == FileFormat.txt)
             ? ToChar(NoteSep) : default;
 
         var columns = CsvColumns.Where(c => c.IsSelected)
             .Select(c => new CsvExportColumn(c.Name, c.PropSelector)).ToArray();
 
-        if (format == ExportFormat.csv && columns.Length == 0)
+        if (format == FileFormat.csv && columns.Length == 0)
         {
             dialogs.ShowError("Select at least one column to export.");
             return;
@@ -180,7 +180,7 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     }
 
     private async Task<string?> PrepareContentAsync(
-        ExportFormat format, string fieldSep, 
+        FileFormat format, string fieldSep, 
         char noteSep, IEnumerable<CsvExportColumn> columns)
     {
         var cards = flatDeckIds.Count > 0
@@ -204,10 +204,10 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
 
         switch (format)
         {
-            case ExportFormat.txt:
+            case FileFormat.txt:
                 return exporter.PrepareTxt(cards, fieldSep, noteSep);
 
-            case ExportFormat.csv:
+            case FileFormat.csv:
                 var paths = GetFullPaths(deckTree);
 
                 if (paths.Count != flatDeckIds.Count)

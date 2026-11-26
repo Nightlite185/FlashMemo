@@ -14,6 +14,94 @@ namespace FlashMemo.Tests.VMTests;
 
 public class DecksVMTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CreateDeck_FailedSaveKeepsPopupAndDraftUntilSuccessfulRetry(bool asChild)
+    {
+        var root = CreateDeck(1);
+        var existingChild = CreateDeck(2);
+        root.AddChild(existingChild);
+        var parent = asChild ? root : null;
+        var failedSave = new TaskCompletionSource<Deck>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var successfulSave = new TaskCompletionSource<Deck>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var repo = new Mock<IDeckRepo>(MockBehavior.Strict);
+        repo.SetupSequence(service => service.AddNewDeck(It.IsAny<Deck>()))
+            .Returns(failedSave.Task)
+            .Returns(successfulSave.Task);
+        var dialogs = new Mock<IDialogService>(MockBehavior.Strict);
+        dialogs.Setup(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK))
+            .Returns(DialogResult.OK);
+        var net = Helpers.GetSafetyNet(dialogs.Object);
+        var factory = new CreateDeckVMF(NullLogger<CreateDeckVM>.Instance, dialogs.Object, net);
+        var vm = new DecksVM(repo.Object, null!, null!, null!, null!, 1, new VMEventBus(), null!,
+            NullLogger<DecksVM>.Instance, dialogs.Object, factory, net, Helpers.GetMapper());
+        vm.DeckTree.Add(root);
+        vm.SelectedDecks.Add(existingChild);
+        vm.ShowCreateDeckCommand.Execute(parent);
+        var popup = vm.CurrentPopup.Should().BeOfType<CreateDeckVM>().Subject;
+        popup.NameField = "New deck";
+
+        var saving = popup.ConfirmCommand.ExecuteAsync(null);
+
+        vm.CurrentPopup.Should().BeSameAs(popup);
+        vm.DeckTree.Should().Equal(root);
+        root.Children.Should().Equal(existingChild);
+        vm.SelectedDecks.Should().Equal(existingChild);
+
+        failedSave.SetException(new IOException("Simulated deck creation failure"));
+        await saving;
+
+        vm.CurrentPopup.Should().BeSameAs(popup);
+        popup.NameField.Should().Be("New deck");
+        popup.ConfirmCommand.CanExecute(null).Should().BeTrue();
+        vm.DeckTree.Should().Equal(root);
+        root.Children.Should().Equal(existingChild);
+        vm.SelectedDecks.Should().Equal(existingChild);
+        repo.Verify(service => service.AddNewDeck(It.IsAny<Deck>()), Times.Once);
+        dialogs.Verify(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK), Times.Once);
+
+        var retrying = popup.ConfirmCommand.ExecuteAsync(null);
+
+        vm.CurrentPopup.Should().BeSameAs(popup);
+        vm.DeckTree.Should().Equal(root);
+        root.Children.Should().Equal(existingChild);
+        var saved = new Deck
+        {
+            Id = 10,
+            UserId = 1,
+            Name = "New deck",
+            OptionsId = -1,
+            ParentDeckId = parent?.Id
+        };
+        successfulSave.SetResult(saved);
+        await retrying;
+
+        vm.CurrentPopup.Should().BeNull();
+        var created = (asChild ? root.Children : vm.DeckTree).Single(deck => deck.Id == saved.Id);
+        created.Name.Should().Be(saved.Name);
+        created.UserId.Should().Be(saved.UserId);
+        created.Parent.Should().BeSameAs(parent);
+        created.SavedEntity.Should().BeSameAs(saved);
+        if (asChild)
+        {
+            vm.DeckTree.Should().Equal(root);
+            root.Children.Should().Equal(existingChild, created);
+        }
+        else
+        {
+            vm.DeckTree.Should().Equal(root, created);
+            root.Children.Should().Equal(existingChild);
+        }
+        vm.SelectedDecks.Should().Equal(existingChild);
+        repo.Verify(service => service.AddNewDeck(It.Is<Deck>(deck =>
+            deck.Id == 0 && deck.Name == "New deck" && deck.UserId == 1
+            && deck.ParentDeckId == (asChild ? root.Id : (long?)null))), Times.Exactly(2));
+        repo.VerifyNoOtherCalls();
+        dialogs.Verify(dialog => dialog.ShowError(It.IsAny<string>(), "Error", DialogButtons.OK), Times.Once);
+        dialogs.VerifyNoOtherCalls();
+    }
+
     [Fact]
     public async Task ShowExportMenu_WithNoSelection_ShowsInformationWithoutCountingCards()
     {

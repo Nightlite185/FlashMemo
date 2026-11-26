@@ -33,20 +33,15 @@ public partial class DecksVM(IDeckRepo deckRepo, IDeckTreeBuilder decksBuilder, 
     }
     private void PopupCancel() => CurrentPopup = null;
     
-    // Popup confirmation callback: let failures propagate to the popup's SafetyNet.
-    // Do not handle failures here; the popup closes only when this callback succeeds.
+    //! Popup confirmation callback: let failures propagate to the popup's SafetyNet.
+    //! Do not handle failures here; the popup closes only when this callback succeeds.
     private async Task CreateDeck(string name, DeckNode? parent = null)
     {
-        var deck = await net.TryUnsafe(
-            () => deckRepo.AddNewDeck(
-                Deck.CreateNew(name, userId, parent?.Id)),
-            actionTried: "create new deck",
-            retry: false);
-
-        if (!deck.Success) return;
+        var deck = await deckRepo.AddNewDeck(
+            Deck.CreateNew(name, userId, parent?.Id));
 
         DeckNode node = new(
-            deck.Value,
+            deck: deck,
             children: [],
             countByState: new());
 

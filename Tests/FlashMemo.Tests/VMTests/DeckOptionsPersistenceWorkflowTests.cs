@@ -101,6 +101,31 @@ public class DeckOptionsPersistenceWorkflowTests : IDisposable
         dialogs.VerifyNoOtherCalls();
     }
 
+    [Fact]
+    public async Task SaveAndReopen_PreservesSixtyMinuteLearningStages()
+    {
+        var (vm, original) = await CreateWorkflow();
+        vm.CurrentOptions.Scheduling.LearningStages.I = 60;
+        vm.CurrentOptions.Scheduling.LearningStages.II = 60;
+        vm.CurrentOptions.Scheduling.LearningStages.III = 60;
+        var expected = original with
+        {
+            Scheduling = original.Scheduling with { LearningStages = new LearningStages(60, 60, 60) }
+        };
+
+        await vm.SaveChangesCommand.ExecuteAsync(null);
+
+        var service = new DeckOptionsService(factory, mapper);
+        (await service.GetFromDeck(DeckId)).Should().Be(expected);
+        var reopened = await OpenMenu();
+        reopened.CurrentOptions.Scheduling.LearningStages.I.Should().Be(60);
+        reopened.CurrentOptions.Scheduling.LearningStages.II.Should().Be(60);
+        reopened.CurrentOptions.Scheduling.LearningStages.III.Should().Be(60);
+        mapper.Map<DeckOptions>(reopened.CurrentOptions).Should().Be(expected);
+        reopened.IsCurrentModified.Should().BeFalse();
+        dialogs.VerifyNoOtherCalls();
+    }
+
     private async Task<(DeckOptionsMenuVM VM, DeckOptions Original)> CreateWorkflow()
     {
         await new TestsDbSeeder(factory).SeedDefault();

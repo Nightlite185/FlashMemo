@@ -123,6 +123,12 @@ public class OptionsSaveWorkflowTests
     [InlineData(4, true)]
     [InlineData(5, false)]
     [InlineData(5, true)]
+    [InlineData(6, false)]
+    [InlineData(6, true)]
+    [InlineData(7, false)]
+    [InlineData(7, true)]
+    [InlineData(8, false)]
+    [InlineData(8, true)]
     public async Task InvalidPreset_BlocksSaveAndCloseSaveUntilCorrected(int invalidCase, bool fromClosing)
     {
         var flow = await CreatePresetWorkflow(outcome: 2);
@@ -157,6 +163,9 @@ public class OptionsSaveWorkflowTests
     [InlineData(2)]
     [InlineData(4)]
     [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(8)]
     public async Task InvalidPreset_BlocksSaveBeforeSwitchingPresets(int invalidCase)
     {
         var flow = await CreatePresetWorkflow(outcome: 2);
@@ -176,6 +185,9 @@ public class OptionsSaveWorkflowTests
     [InlineData(0)]
     [InlineData(2)]
     [InlineData(4)]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(8)]
     public async Task InvalidPreset_CannotBePersistedByCloning(int invalidCase)
     {
         var flow = await CreatePresetWorkflow(outcome: 2);
@@ -244,6 +256,8 @@ public class OptionsSaveWorkflowTests
         current.Scheduling.GoodMultiplier = current.Scheduling.EasyMultiplier
             = current.Scheduling.HardMultiplier = upperBounds ? 8 : 0.1;
         current.Scheduling.GraduateDayCount = current.Scheduling.EasyOnNewDayCount = upperBounds ? 100 : 1;
+        current.Scheduling.LearningStages.I = current.Scheduling.LearningStages.II
+            = current.Scheduling.LearningStages.III = upperBounds ? 60 : 1;
         current.DailyLimits.Reviews = current.DailyLimits.Lessons = upperBounds ? 1_000_000 : 0;
         var submitted = Helpers.GetMapper().Map<DeckOptions>(current);
 
@@ -264,6 +278,9 @@ public class OptionsSaveWorkflowTests
             case 3: preset.DailyLimits.Lessons = 1_000_001; break;
             case 4: preset.Sorting.LessonsOrder = (LessonOrder)99; break;
             case 5: preset.Scheduling.GoodOnNewStage = (LearningStage)99; break;
+            case 6: preset.Scheduling.LearningStages.I = 0; break;
+            case 7: preset.Scheduling.LearningStages.II = 0; break;
+            case 8: preset.Scheduling.LearningStages.III = 61; break;
             default: throw new ArgumentOutOfRangeException(nameof(invalidCase));
         }
     }

@@ -67,7 +67,7 @@ public partial class DeckOptionsVM: RenameVMBase
         public bool Validate()
         {
             ValidateAllProperties();
-            return !HasErrors;
+            return !HasErrors && LearningStages.Validate();
         }
 
         #region multipliers

@@ -1,23 +1,32 @@
+using System.ComponentModel.DataAnnotations;
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashMemo.Model.Domain;
 
 namespace FlashMemo.ViewModel.Wrappers;
 
-public partial class LearningStagesVM: ObservableObject
+public partial class LearningStagesVM: ObservableValidator
 {
     public LearningStagesVM(LearningStages ls)
     {
-        I = ls.I.Minutes;
-        II = ls.II.Minutes;
-        III = ls.III.Minutes;
+        I = (int)ls.I.TotalMinutes;
+        II = (int)ls.II.TotalMinutes;
+        III = (int)ls.III.TotalMinutes;
     }
 
-    public LearningStagesVM(){} // for json serializer
+    public LearningStagesVM(){} //* for json serializer
 
-    [ObservableProperty] public partial int I { get; set; }
-    [ObservableProperty] public partial int II { get; set; }
-    [ObservableProperty] public partial int III { get; set; }
+    public bool Validate()
+    {
+        ValidateAllProperties();
+        return !HasErrors;
+    }
 
-    public int MinValueOnAnyStage => 1;
-    public int MaxValueOnAnyStage => 60;
+    [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 60)]
+    public partial int I { get; set; }
+
+    [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 60)]
+    public partial int II { get; set; }
+
+    [ObservableProperty] [NotifyDataErrorInfo] [Range(1, 60)]
+    public partial int III { get; set; }
 }

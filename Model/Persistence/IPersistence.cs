@@ -6,6 +6,7 @@ public interface IDeckMeta
     string Name { get; }
     long UserId { get; }
     long OptionsId { get; }
+    long? ParentDeckId { get; }
 
     Deck ToEntity();
 }

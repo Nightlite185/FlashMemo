@@ -12,6 +12,7 @@ using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Extensions.Logging;
+using FlashMemo.Helpers;
 
 namespace FlashMemo.ViewModel.Popups;
 
@@ -99,7 +100,7 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     {
         var vm = (ExportVM)context.ObjectInstance;
         return vm.Format == FileFormat.txt && Enum.IsDefined(vm.NoteSep)
-            && vm.FieldSeparator == ToChar(vm.NoteSep).ToString()
+            && vm.FieldSeparator == (vm.NoteSep.ToChar()).ToString()
             ? new ValidationResult("Field and note separators must be different.")
             : ValidationResult.Success;
     }
@@ -140,7 +141,7 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
         string path = ExportPath;
         string fieldSep = FieldSeparator;
         char noteSep = (format == FileFormat.txt)
-            ? ToChar(NoteSep) : default;
+            ? NoteSep.ToChar() : default;
 
         var columns = CsvColumns.Where(c => c.IsSelected)
             .Select(c => new CsvExportColumn(c.Name, c.PropSelector)).ToArray();
@@ -224,14 +225,6 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
         }
     }
 
-    private static char ToChar(NoteSeparator separator) => separator switch
-    {
-        NoteSeparator.Tab => '\t',
-        NoteSeparator.Enter => '\n',
-        NoteSeparator.SemiColon => ';',
-        NoteSeparator.Space => ' ',
-        _ => throw new InvalidEnumArgumentException("note separator has invalid value")
-    };
     private static Dictionary<long, string> GetFullPaths(ICollection<DeckNode> deckTree)
     {
         if (deckTree.Count == 0) return [];

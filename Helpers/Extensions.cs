@@ -1,9 +1,11 @@
+using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
+using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using Expression = System.Linq.Expressions.Expression;
 
@@ -160,4 +162,13 @@ public static class Extensions
     {
         return low + (rand.NextDouble() * (high - low));
     }
+
+    public static char ToChar(this NoteSeparator noteSep) => noteSep switch
+    {
+        NoteSeparator.Tab => '\t',
+        NoteSeparator.Enter => '\n',
+        NoteSeparator.SemiColon => ';',
+        NoteSeparator.Space => ' ',
+        _ => throw new InvalidEnumArgumentException("note separator has invalid value")
+    };
 }

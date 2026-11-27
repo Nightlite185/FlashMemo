@@ -173,5 +173,7 @@ public interface IExportService
 
 public interface IImportService
 {
-    Task ImportAsync(string path, FileFormat format);
+    Task<bool> ImportTxtAsync(string path, string fieldSep, NoteSeparator noteSep, IDeckMeta deck);
+    Task<bool> ImportCsvAsync(string path, long deckId);
+    Task<bool> ImportFlameAsync(string path, long deckId);
 }

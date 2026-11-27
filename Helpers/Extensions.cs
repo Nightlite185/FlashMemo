@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Windows;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel.Popups;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 using Expression = System.Linq.Expressions.Expression;
 

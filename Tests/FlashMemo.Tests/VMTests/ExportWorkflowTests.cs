@@ -2,6 +2,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;
 using FluentAssertions;

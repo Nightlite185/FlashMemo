@@ -1,3 +1,4 @@
+/*
 using FlashMemo.Model.Persistence;
 
 namespace FlashMemo.Model;
@@ -22,3 +23,4 @@ public readonly struct DeckMeta(long id, string name, long userId,
         return deck;
     }
 }
+*/

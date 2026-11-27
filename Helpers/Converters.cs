@@ -8,7 +8,7 @@ using System.Windows.Media;
 using AutoMapper;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
-using FlashMemo.ViewModel.Popups;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Wrappers;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

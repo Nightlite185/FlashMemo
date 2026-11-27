@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashMemo.Model;
 using FlashMemo.Model.Domain;
@@ -15,36 +14,14 @@ using FlashMemo.Helpers;
 
 namespace FlashMemo.ViewModel.Popups;
 
-public enum FileFormat { txt, csv, flamePkg }
-public enum NoteSeparator { Tab, Enter, Space, SemiColon }
-
 public partial class ExportVM(long userId, ICardQueryService cardQService, IExportService exporter, 
                             IDialogService dialogs, Action cancel, ICollection<long> flatDeckIds, 
                             ICollection<DeckNode> deckTree, ILogger<ExportVM> logger, SafetyNet net)
-                            : PopupVMBase(cancel), IViewModel
+                            : ImportExportVMBase(cancel, Path.Combine(
+                                SpecialDirectories.MyDocuments,
+                                $"{DateTime.Today:dd.MM.yyyy} FM export.txt"))
 {
     #region public properties
-    [ObservableProperty] [NotifyDataErrorInfo]
-    [CustomValidation(typeof(ExportVM), nameof(ValidateFormat))]
-    public partial FileFormat Format { get; set; } = FileFormat.txt;
-
-    [ObservableProperty] [NotifyDataErrorInfo]
-    [Required(ErrorMessage = "Choose a file to export to.")]
-    [CustomValidation(typeof(ExportVM), nameof(ValidateExportPath))]
-    public partial string MyPath { get; set; } = Path.Combine(
-        SpecialDirectories.MyDocuments, 
-        $"{DateTime.Today:dd.MM.yyyy} FM export.txt");
-
-    [ObservableProperty] [NotifyDataErrorInfo]
-    [CustomValidation(typeof(ExportVM), nameof(ValidateFieldSeparator))]
-    [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
-    public partial string FieldSeparator { get; set; } = " - ";
-
-    [ObservableProperty] [NotifyDataErrorInfo]
-    [CustomValidation(typeof(ExportVM), nameof(ValidateNoteSeparator))]
-    [CustomValidation(typeof(ExportVM), nameof(ValidateSeparators))]
-    public partial NoteSeparator NoteSep { get; set; } = NoteSeparator.Enter;
-    
     public ObservableCollection<CsvColumnOptionVM> CsvColumns { get; init; } =
     [
         new("Front content", x => x.FrontContent, true),
@@ -64,68 +41,18 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     #endregion
 
     #region validation stuff
-    internal void Validate() => ValidateAllProperties();
-
-    partial void OnFormatChanged(FileFormat value)
+    protected override void HandleFormatChanged(FileFormat value)
     {
         if (value is FileFormat.txt or FileFormat.csv && !string.IsNullOrWhiteSpace(MyPath))
             MyPath = Path.ChangeExtension(MyPath, $".{value}");
 
-        ValidateProperty(MyPath, nameof(MyPath));
-        ValidateProperty(FieldSeparator, nameof(FieldSeparator));
-        ValidateProperty(NoteSep, nameof(NoteSep));
+        base.HandleFormatChanged(value);
     }
 
-    partial void OnFieldSeparatorChanged(string value)
-        => ValidateProperty(NoteSep, nameof(NoteSep));
-
-    partial void OnNoteSepChanged(NoteSeparator value)
-        => ValidateProperty(FieldSeparator, nameof(FieldSeparator));
-
-    public static ValidationResult? ValidateFormat(FileFormat value, ValidationContext context)
+    protected override ValidationResult? ValidateFormat(FileFormat value)
         => value is FileFormat.txt or FileFormat.csv
-            ? ValidationResult.Success
+            ? base.ValidateFormat(value)
             : new ValidationResult("Choose a supported export format.");
-
-    public static ValidationResult? ValidateNoteSeparator(NoteSeparator value, ValidationContext context)
-        => ((ExportVM)context.ObjectInstance).Format != FileFormat.txt || Enum.IsDefined(value)
-            ? ValidationResult.Success
-            : new ValidationResult("Choose a note separator.");
-
-    public static ValidationResult? ValidateFieldSeparator(string? value, ValidationContext context)
-        => ((ExportVM)context.ObjectInstance).Format != FileFormat.txt || !string.IsNullOrEmpty(value)
-            ? ValidationResult.Success
-            : new ValidationResult("Enter a field separator.");
-
-    public static ValidationResult? ValidateSeparators(object? value, ValidationContext context)
-    {
-        var vm = (ExportVM)context.ObjectInstance;
-        return vm.Format == FileFormat.txt && Enum.IsDefined(vm.NoteSep)
-            && vm.FieldSeparator == (vm.NoteSep.ToChar()).ToString()
-            ? new ValidationResult("Field and note separators must be different.")
-            : ValidationResult.Success;
-    }
-
-    public static ValidationResult? ValidateExportPath(string? value, ValidationContext context)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return ValidationResult.Success; // empty path already handled by [Required] attribute; no more to add.
-
-        if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
-            return new ValidationResult("Enter a valid file path.");
-
-        string fileName = Path.GetFileName(value);
-        if (string.IsNullOrWhiteSpace(fileName) || Directory.Exists(value)
-            || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-            return new ValidationResult("Choose a filename, not a folder, with valid characters.");
-
-        var vm = (ExportVM)context.ObjectInstance;
-        if (vm.Format == FileFormat.txt
-            && !string.Equals(Path.GetExtension(value), ".txt", StringComparison.OrdinalIgnoreCase))
-            return new ValidationResult("The text export filename must end in .txt.");
-
-        return ValidationResult.Success;
-    }
     #endregion
     
     #region methods
@@ -133,9 +60,7 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     {
         #region Snapshotting UI props and validation
 
-        ValidateAllProperties();
-
-        if (HasErrors)
+        if (!Validate())
             return;
 
         var format = Format;

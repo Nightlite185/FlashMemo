@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:popups="clr-namespace:FlashMemo.ViewModel.Popups"
+             xmlns:bases="clr-namespace:FlashMemo.ViewModel.Bases"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              d:DataContext="{d:DesignInstance Type=popups:ExportVM}"
              PreviewKeyDown="Root_PreviewKeyDown"
@@ -20,7 +21,7 @@
                             MethodName="GetValues"
                             ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="popups:FileFormat"/>
+                <x:Type TypeName="bases:FileFormat"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
@@ -28,7 +29,7 @@
                             MethodName="GetValues"
                             ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="popups:NoteSeparator"/>
+                <x:Type TypeName="bases:NoteSeparator"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
@@ -260,7 +261,7 @@
                         <Style TargetType="Border" BasedOn="{StaticResource ExportSectionStyle}">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:FileFormat.txt}">
+                                <DataTrigger Binding="{Binding Format}" Value="{x:Static bases:FileFormat.txt}">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -306,7 +307,7 @@
                         <Style TargetType="Border" BasedOn="{StaticResource ExportSectionStyle}">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Format}" Value="{x:Static popups:FileFormat.csv}">
+                                <DataTrigger Binding="{Binding Format}" Value="{x:Static bases:FileFormat.csv}">
                                     <Setter Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
                             </Style.Triggers>

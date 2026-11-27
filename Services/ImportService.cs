@@ -2,7 +2,7 @@ using System.IO;
 using FlashMemo.Helpers;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
-using FlashMemo.ViewModel.Popups;
+using FlashMemo.ViewModel.Bases;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlashMemo.Services;

@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Popups;
 using Microsoft.Win32;
 

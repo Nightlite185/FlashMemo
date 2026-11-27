@@ -4,6 +4,7 @@ using CsvHelper;
 using FlashMemo.Model;
 using FlashMemo.Model.Persistence;
 using FlashMemo.Services;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Popups;
 using FlashMemo.ViewModel.Wrappers;

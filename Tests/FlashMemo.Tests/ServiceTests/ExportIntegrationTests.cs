@@ -5,6 +5,7 @@ using FlashMemo.Model.Persistence;
 using FlashMemo.Repositories;
 using FlashMemo.Services;
 using FlashMemo.Tests.Fakes.Model;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Factories;
 using FlashMemo.ViewModel.Popups;
 using FluentAssertions;

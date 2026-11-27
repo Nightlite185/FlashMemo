@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace FlashMemo.ViewModel.Bases;
 
 public abstract partial class PopupVMBase
-    (Action cancel): ObservableValidator
+    (Action cancel): ObservableValidator, IViewModel
 {
     private readonly Action cancel = cancel;
 

@@ -2,7 +2,7 @@ using FlashMemo.Model;
 using FlashMemo.Model.Domain;
 using FlashMemo.Model.Persistence;
 using FlashMemo.ViewModel.Other;
-using FlashMemo.ViewModel.Popups;
+using FlashMemo.ViewModel.Bases;
 using FlashMemo.ViewModel.Windows;
 using FlashMemo.ViewModel.Wrappers;
 

@@ -11,7 +11,10 @@ public sealed class CsvImportMap : ClassMap<CsvImportDTO>
         Map(dto => dto.FrontContent).Name("Front content");
         Map(dto => dto.BackContent).Name("Back content");
         Map(dto => dto.DeckPath).Name("Deck").Optional();
-        Map(dto => dto.Tags).Name("Tags").Optional();
+        Map(dto => dto.Tags).Name("Tags").Optional()
+            .Convert(args => args.Row.TryGetField<string>("Tags", out var tags) && tags is not null
+                ? tags.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                : []);
 
         Map(dto => dto.Due).Name("Due date").Optional()
             .TypeConverterOption.CultureInfo(CultureInfo.CurrentCulture)

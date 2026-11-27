@@ -59,7 +59,7 @@ public class CsvImportMapTests
             row.FrontContent.Should().Be(((StandardNote)card.Note).FrontContent);
             row.BackContent.Should().Be("N/A");
             row.DeckPath.Should().Be("Root/Child");
-            row.Tags.Should().Be("first,second");
+            row.Tags.Should().Equal("first", "second");
             row.Due.Should().Be(card.Due);
             row.Interval.Should().Be(card.Interval);
             row.State.Should().Be(card.State);
@@ -120,6 +120,29 @@ public class CsvImportMapTests
         Action read = () => Read($"Front content,Back content,{column}\r\nfront,back,{value}\r\n");
 
         read.Should().Throw<TypeConverterException>();
+    }
+
+    [Theory]
+    [InlineData("first,second")]
+    [InlineData("first, second")]
+    [InlineData(" first , second ,, ")]
+    public void Tags_AreSplitAndTrimmed(string value)
+    {
+        var row = Read($"Front content,Back content,Tags\r\nfront,back,\"{value}\"\r\n")
+            .Should().ContainSingle().Subject;
+
+        row.Tags.Should().Equal("first", "second");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void EmptyTags_AreReadAsAnEmptyArray(string value)
+    {
+        var row = Read($"Front content,Back content,Tags\r\nfront,back,\"{value}\"\r\n")
+            .Should().ContainSingle().Subject;
+
+        row.Tags.Should().BeEmpty();
     }
 
     private static List<CsvImportDTO> Read(string content)

@@ -5,7 +5,7 @@ public class CsvImportDTO
     public string FrontContent { get; set; } = string.Empty;
     public string BackContent { get; set; } = string.Empty;
     public string? DeckPath { get; set; }
-    public string? Tags { get; set; }
+    public string[] Tags { get; set; } = [];
 
     // Optional metadata stays null when its column is omitted.
     public DateTime? Due { get; set; }

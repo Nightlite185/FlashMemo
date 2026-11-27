@@ -35,6 +35,15 @@ public class ExportVMF(ICardQueryService cardQService, IExportService exporter,
                     logger, net);
 
                 vm.ErrorsChanged += (_, _) => vm.ConfirmCommand.NotifyCanExecuteChanged();
+                
+                foreach (var column in vm.CsvColumns)
+                {
+                    column.PropertyChanged += (_, args) =>
+                    {
+                        if (args.PropertyName == nameof(CsvColumnOptionVM.IsSelected))
+                            vm.ValidateCsvColumns();
+                    };
+                }
                 vm.Validate();
 
                 return vm;

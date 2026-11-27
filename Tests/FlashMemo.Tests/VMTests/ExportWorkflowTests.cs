@@ -162,21 +162,33 @@ public class ExportWorkflowTests
         dialogs.VerifyNoOtherCalls();
     }
 
-    [Fact]
-    public async Task NoCsvColumns_ShowsErrorWithoutQueryingPreparingOrSaving()
+    [Theory]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(false, false, true)]
+    [InlineData(false, false, false)]
+    public async Task MissingRequiredCsvColumns_FailsValidationWithoutQueryingPreparingSavingOrClosing(
+        bool selectFront, bool selectBack, bool selectOptional)
     {
-        var (vm, query, exporter, dialogs) = CreateWorkflow();
+        int closed = 0;
+        var (vm, query, exporter, dialogs) = CreateWorkflow(() => closed++);
         vm.Format = FileFormat.csv;
         foreach (var column in vm.CsvColumns)
-            column.IsSelected = false;
-        dialogs.Setup(service => service.ShowError("Select at least one column to export.", "Error", DialogButtons.OK))
-            .Returns(DialogResult.OK);
+            column.IsSelected = column.Name switch
+            {
+                "Front content" => selectFront,
+                "Back content" => selectBack,
+                _ => selectOptional
+            };
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
+        vm.GetErrors(nameof(ExportVM.CsvColumns)).Should().ContainSingle()
+            .Which.ErrorMessage.Should().Be("Select both front and back content columns to export.");
+        vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
+        closed.Should().Be(0);
         query.VerifyNoOtherCalls();
         exporter.VerifyNoOtherCalls();
-        dialogs.Verify(service => service.ShowError("Select at least one column to export.", "Error", DialogButtons.OK), Times.Once);
         dialogs.VerifyNoOtherCalls();
     }
 

@@ -22,12 +22,13 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
                                 $"{DateTime.Today:dd.MM.yyyy} FM export.txt"))
 {
     #region public properties
+    [CustomValidation(typeof(ExportVM), nameof(ValidateCsvColumnsProperty))]
     public ObservableCollection<CsvColumnOptionVM> CsvColumns { get; init; } =
     [
-        new("Front content", x => x.FrontContent, true),
-        new("Back content", x => x.BackContent, true),
-        new("Deck", x => x.Deck, true),
-        new("Due date", x => x.DueDate, true),
+        new("Front content", x => x.FrontContent, isDefault: true, isRequired: true),
+        new("Back content", x => x.BackContent, isDefault: true, isRequired: true),
+        new("Deck", x => x.Deck, isDefault: true),
+        new("Due date", x => x.DueDate, isDefault: true),
         new("Tags", x => x.Tags),
         new("Interval days", x => x.IntervalDays),
         new("State", x => x.State),
@@ -41,17 +42,30 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     #endregion
 
     #region validation stuff
+    internal void ValidateCsvColumns() => ValidateProperty(CsvColumns, nameof(CsvColumns));
+
+    public static ValidationResult? ValidateCsvColumnsProperty(
+        IEnumerable<CsvColumnOptionVM> value, ValidationContext context)
+    {
+        if (((ExportVM)context.ObjectInstance).Format == FileFormat.csv
+            && (value.Any(c => c.IsRequired && !c.IsSelected)))
+            return new ValidationResult("Select both front and back content columns to export.");
+
+        return ValidationResult.Success;
+    }
+
     protected override void HandleFormatChanged(FileFormat value)
     {
         if (value is FileFormat.txt or FileFormat.csv && !string.IsNullOrWhiteSpace(MyPath))
             MyPath = Path.ChangeExtension(MyPath, $".{value}");
 
         base.HandleFormatChanged(value);
+        ValidateCsvColumns();
     }
 
     protected override ValidationResult? ValidateFormat(FileFormat value)
         => value is FileFormat.txt or FileFormat.csv
-            ? base.ValidateFormat(value)
+            ? base.ValidateFormat(value) // TODO: remove when flame released.
             : new ValidationResult("Choose a supported export format.");
     #endregion
     
@@ -69,15 +83,9 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
         char noteSep = (format == FileFormat.txt)
             ? NoteSep.ToChar() : default;
 
-        var columns = CsvColumns.Where(c => c.IsSelected)
+        var columns = CsvColumns.Where(c => c.IsSelected || c.IsRequired)
             .Select(c => new CsvExportColumn(c.Name, c.PropSelector)).ToArray();
 
-        if (format == FileFormat.csv && columns.Length == 0)
-        {
-            dialogs.ShowError("Select at least one column to export.");
-            return;
-        }
-        
         if (File.Exists(path))
         {
             var answer = dialogs.ShowWarning(

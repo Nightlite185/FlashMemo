@@ -185,15 +185,73 @@ public class ExportVMTests : IDisposable
     public async Task ResetCsvColumns_RestoresDefaultsAfterSelectingAll()
     {
         var vm = await CreateViewModel();
+        vm.Format = FileFormat.csv;
         vm.CsvColumns.Where(col => col.IsDefault).Select(col => col.Name)
             .Should().Equal("Front content", "Back content", "Deck", "Due date");
 
+        foreach (var column in vm.CsvColumns)
+            column.IsSelected = false;
+        vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
+
         vm.SelectAllCsvColumnsCommand.Execute(null);
         vm.CsvColumns.Should().OnlyContain(col => col.IsSelected);
+        vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
+
+        foreach (var column in vm.CsvColumns)
+            column.IsSelected = false;
+        vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
 
         vm.ResetCsvColumnsCommand.Execute(null);
 
         vm.CsvColumns.Should().OnlyContain(col => col.IsSelected == col.IsDefault);
+        vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("Front content")]
+    [InlineData("Back content")]
+    public async Task RequiredCsvColumn_UpdatesValidationAndNotifiesConfirmation(string columnName)
+    {
+        var vm = await CreateViewModel();
+        vm.Format = FileFormat.csv;
+        var column = vm.CsvColumns.Single(option => option.Name == columnName);
+        var commandStates = new List<bool>();
+        vm.ConfirmCommand.CanExecuteChanged += (_, _) =>
+            commandStates.Add(vm.ConfirmCommand.CanExecute(null));
+
+        column.IsSelected = false;
+
+        vm.GetErrors(nameof(ExportVM.CsvColumns)).Should().NotBeEmpty();
+        vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
+
+        column.IsSelected = true;
+
+        vm.GetErrors(nameof(ExportVM.CsvColumns)).Should().BeEmpty();
+        vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
+        commandStates.Should().Equal(false, true);
+    }
+
+    [Fact]
+    public async Task SwitchingFormats_OnlyRequiresCsvContentColumnsForCsv()
+    {
+        var vm = await CreateViewModel();
+        vm.Format = FileFormat.csv;
+        vm.CsvColumns.Single(column => column.Name == "Front content").IsSelected = false;
+        vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
+        var commandStates = new List<bool>();
+        vm.ConfirmCommand.CanExecuteChanged += (_, _) =>
+            commandStates.Add(vm.ConfirmCommand.CanExecute(null));
+
+        vm.Format = FileFormat.txt;
+
+        vm.GetErrors(nameof(ExportVM.CsvColumns)).Should().BeEmpty();
+        vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
+
+        vm.Format = FileFormat.csv;
+
+        vm.GetErrors(nameof(ExportVM.CsvColumns)).Should().NotBeEmpty();
+        vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
+        commandStates.Should().Equal(true, false);
     }
 
     [Fact]
@@ -447,8 +505,10 @@ public class ExportVMTests : IDisposable
         closed.Should().BeTrue();
     }
 
-    [Fact]
-    public async Task CsvExport_OnlyWritesSelectedColumns()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CsvExport_OnlyWritesRequiredAndSelectedOptionalColumns(bool includeDeck)
     {
         var root = CreateDeck(1, "Root");
         var child = CreateDeck(2, "Child");
@@ -456,14 +516,19 @@ public class ExportVMTests : IDisposable
         var (vm, _) = await CreateExportViewModel([root], [CreateCard(child)]);
         vm.Format = FileFormat.csv;
         foreach (var column in vm.CsvColumns)
-            column.IsSelected = column.Name == "Deck";
+            column.IsSelected = column.Name is "Front content" or "Back content"
+                || (includeDeck && column.Name == "Deck");
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
         var records = ReadCsv(vm.MyPath);
         records.Should().HaveCount(2);
-        records[0].Should().Equal("Deck");
-        records[1].Should().Equal("Root/Child");
+        records[0].Should().Equal(includeDeck
+            ? ["Front content", "Back content", "Deck"]
+            : ["Front content", "Back content"]);
+        records[1].Should().Equal(includeDeck
+            ? ["front 2", "back 2", "Root/Child"]
+            : ["front 2", "back 2"]);
     }
 
     [Fact]

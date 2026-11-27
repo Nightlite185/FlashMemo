@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -32,7 +31,9 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
     [ObservableProperty] [NotifyDataErrorInfo]
     [Required(ErrorMessage = "Choose a file to export to.")]
     [CustomValidation(typeof(ExportVM), nameof(ValidateExportPath))]
-    public partial string ExportPath { get; set; } = Path.Combine(SpecialDirectories.MyDocuments, $"{DateTime.Today:dd.MM.yyyy} FM export.txt");
+    public partial string MyPath { get; set; } = Path.Combine(
+        SpecialDirectories.MyDocuments, 
+        $"{DateTime.Today:dd.MM.yyyy} FM export.txt");
 
     [ObservableProperty] [NotifyDataErrorInfo]
     [CustomValidation(typeof(ExportVM), nameof(ValidateFieldSeparator))]
@@ -67,10 +68,10 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
 
     partial void OnFormatChanged(FileFormat value)
     {
-        if (value is FileFormat.txt or FileFormat.csv && !string.IsNullOrWhiteSpace(ExportPath))
-            ExportPath = Path.ChangeExtension(ExportPath, $".{value}");
+        if (value is FileFormat.txt or FileFormat.csv && !string.IsNullOrWhiteSpace(MyPath))
+            MyPath = Path.ChangeExtension(MyPath, $".{value}");
 
-        ValidateProperty(ExportPath, nameof(ExportPath));
+        ValidateProperty(MyPath, nameof(MyPath));
         ValidateProperty(FieldSeparator, nameof(FieldSeparator));
         ValidateProperty(NoteSep, nameof(NoteSep));
     }
@@ -138,7 +139,7 @@ public partial class ExportVM(long userId, ICardQueryService cardQService, IExpo
             return;
 
         var format = Format;
-        string path = ExportPath;
+        string path = MyPath;
         string fieldSep = FieldSeparator;
         char noteSep = (format == FileFormat.txt)
             ? NoteSep.ToChar() : default;

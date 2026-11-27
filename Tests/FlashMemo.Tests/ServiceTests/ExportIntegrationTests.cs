@@ -58,7 +58,7 @@ public class ExportIntegrationTests : IDisposable
             .TryCreateAsync(7, [root], () => closed = true);
         vm.Should().NotBeNull();
         vm!.Format = format;
-        vm.ExportPath = Path.Combine(directory.FullName, $"export.{format}");
+        vm.MyPath = Path.Combine(directory.FullName, $"export.{format}");
         if (format == FileFormat.csv)
             vm.CsvColumns.Single(column => column.Name == "Tags").IsSelected = true;
 
@@ -66,16 +66,16 @@ public class ExportIntegrationTests : IDisposable
 
         closed.Should().BeTrue();
         dialogs.VerifyNoOtherCalls();
-        directory.GetFiles().Should().ContainSingle(file => file.FullName == vm.ExportPath);
+        directory.GetFiles().Should().ContainSingle(file => file.FullName == vm.MyPath);
         if (format == FileFormat.txt)
         {
-            (await File.ReadAllTextAsync(vm.ExportPath)).Should().Be(
+            (await File.ReadAllTextAsync(vm.MyPath)).Should().Be(
                 $"Root front - answer{Environment.NewLine}second line\n"
                 + $"Żółw, \"quoted\" 🐢 - answer{Environment.NewLine}second line\n");
         }
         else
         {
-            using var reader = new CsvReader(new StreamReader(vm.ExportPath), CultureInfo.InvariantCulture);
+            using var reader = new CsvReader(new StreamReader(vm.MyPath), CultureInfo.InvariantCulture);
             reader.Read().Should().BeTrue();
             reader.ReadHeader();
             reader.HeaderRecord.Should().Equal("Front content", "Back content", "Deck", "Due date", "Tags");

@@ -17,14 +17,14 @@ public class ExportWorkflowTests
     {
         var tree = new Mock<ICollection<DeckNode>>(MockBehavior.Strict);
         var (vm, _, exporter, _) = CreateWorkflow(deckTree: tree.Object);
-        exporter.Setup(service => service.SaveAsync("prepared content", vm.ExportPath))
+        exporter.Setup(service => service.SaveAsync("prepared content", vm.MyPath))
             .Returns(Task.CompletedTask);
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
         tree.VerifyNoOtherCalls();
         exporter.Verify(service => service.PrepareTxt(It.IsAny<IEnumerable<CardEntity>>(), " - ", '\n'), Times.Once);
-        exporter.Verify(service => service.SaveAsync("prepared content", vm.ExportPath), Times.Once);
+        exporter.Verify(service => service.SaveAsync("prepared content", vm.MyPath), Times.Once);
         exporter.VerifyNoOtherCalls();
     }
 
@@ -42,14 +42,14 @@ public class ExportWorkflowTests
                 It.Is<IReadOnlyDictionary<long, string>>(paths => paths.Count == 1
                     && paths[1] == "Renamed before confirming"), It.IsAny<IEnumerable<CsvExportColumn>>()))
             .Returns("prepared csv");
-        exporter.Setup(service => service.SaveAsync("prepared csv", vm.ExportPath)).Returns(Task.CompletedTask);
+        exporter.Setup(service => service.SaveAsync("prepared csv", vm.MyPath)).Returns(Task.CompletedTask);
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
         exporter.Verify(service => service.PrepareCsv(It.IsAny<IEnumerable<CardEntity>>(),
             It.Is<IReadOnlyDictionary<long, string>>(paths => paths.Count == 1
                 && paths[1] == "Renamed before confirming"), It.IsAny<IEnumerable<CsvExportColumn>>()), Times.Once);
-        exporter.Verify(service => service.SaveAsync("prepared csv", vm.ExportPath), Times.Once);
+        exporter.Verify(service => service.SaveAsync("prepared csv", vm.MyPath), Times.Once);
         exporter.VerifyNoOtherCalls();
     }
 
@@ -58,7 +58,7 @@ public class ExportWorkflowTests
     {
         int closed = 0;
         var (vm, query, exporter, dialogs) = CreateWorkflow(() => closed++);
-        string path = vm.ExportPath;
+        string path = vm.MyPath;
         exporter.SetupSequence(service => service.SaveAsync("prepared content", path))
             .ThrowsAsync(new IOException("File is locked"))
             .ThrowsAsync(new UnauthorizedAccessException("Access denied"))
@@ -67,7 +67,7 @@ public class ExportWorkflowTests
             .Callback(() =>
             {
                 closed.Should().Be(0);
-                vm.ExportPath = Path.ChangeExtension(path, ".changed.txt");
+                vm.MyPath = Path.ChangeExtension(path, ".changed.txt");
             })
             .Returns(DialogResult.Retry);
 
@@ -93,7 +93,7 @@ public class ExportWorkflowTests
         int closed = 0;
         var (vm, _, exporter, dialogs) = CreateWorkflow(() => closed++);
         Exception failure = accessDenied ? new UnauthorizedAccessException() : new IOException();
-        exporter.Setup(service => service.SaveAsync("prepared content", vm.ExportPath)).ThrowsAsync(failure);
+        exporter.Setup(service => service.SaveAsync("prepared content", vm.MyPath)).ThrowsAsync(failure);
         dialogs.Setup(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel))
             .Returns(DialogResult.Cancel);
 
@@ -101,7 +101,7 @@ public class ExportWorkflowTests
 
         closed.Should().Be(0);
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
-        exporter.Verify(service => service.SaveAsync("prepared content", vm.ExportPath), Times.Once);
+        exporter.Verify(service => service.SaveAsync("prepared content", vm.MyPath), Times.Once);
         dialogs.Verify(service => service.ShowError(It.IsAny<string>(), "Error", DialogButtons.RetryCancel),
             Times.Once);
         dialogs.VerifyNoOtherCalls();
@@ -193,7 +193,7 @@ public class ExportWorkflowTests
             [1], deckTree ?? [new DeckNode(new Deck { Id = 1, Name = "Deck" }, [])],
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object))
         {
-            ExportPath = Path.Combine(Path.GetTempPath(), $"FlashMemo-{Guid.NewGuid():N}.txt")
+            MyPath = Path.Combine(Path.GetTempPath(), $"FlashMemo-{Guid.NewGuid():N}.txt")
         };
 
         return (vm, query, exporter, dialogs);

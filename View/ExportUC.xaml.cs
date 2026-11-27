@@ -36,24 +36,24 @@ public partial class ExportUC : UserControl
             Title = "Export cards"
         };
 
-        if (Directory.Exists(vm.ExportPath))
+        if (Directory.Exists(vm.MyPath))
         {
-            dialog.InitialDirectory = vm.ExportPath;
+            dialog.InitialDirectory = vm.MyPath;
             dialog.FileName = $"FlashMemo export{extension}";
         }
-        else if (!string.IsNullOrWhiteSpace(vm.ExportPath))
+        else if (!string.IsNullOrWhiteSpace(vm.MyPath))
         {
-            string? directory = Path.GetDirectoryName(vm.ExportPath);
+            string? directory = Path.GetDirectoryName(vm.MyPath);
             if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
                 dialog.InitialDirectory = directory;
 
-            dialog.FileName = Path.GetFileName(vm.ExportPath);
+            dialog.FileName = Path.GetFileName(vm.MyPath);
         }
 
         if (dialog.ShowDialog() != true)
             return;
 
-        vm.ExportPath = dialog.FileName;
+        vm.MyPath = dialog.FileName;
         ExportPathTextBox.CaretIndex = ExportPathTextBox.Text.Length;
         ExportPathTextBox.Focus();
     }

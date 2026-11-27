@@ -22,7 +22,7 @@ public class ExportVMTests : IDisposable
     {
         var vm = await CreateViewModel();
 
-        Path.GetExtension(vm.ExportPath).Should().Be(".txt");
+        Path.GetExtension(vm.MyPath).Should().Be(".txt");
         vm.HasErrors.Should().BeFalse();
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
     }
@@ -39,11 +39,11 @@ public class ExportVMTests : IDisposable
     public async Task ExportPath_ReportsErrorsAndControlsConfirmation(string fileName, bool valid)
     {
         var vm = await CreateViewModel();
-        vm.ExportPath = string.IsNullOrWhiteSpace(fileName)
+        vm.MyPath = string.IsNullOrWhiteSpace(fileName)
             ? fileName
             : Path.Combine(Path.GetTempPath(), fileName);
 
-        vm.GetErrors(nameof(ExportVM.ExportPath)).Any().Should().Be(!valid);
+        vm.GetErrors(nameof(ExportVM.MyPath)).Any().Should().Be(!valid);
         vm.ConfirmCommand.CanExecute(null).Should().Be(valid);
     }
 
@@ -51,9 +51,9 @@ public class ExportVMTests : IDisposable
     public async Task FolderPath_IsRejected()
     {
         var vm = await CreateViewModel();
-        vm.ExportPath = Path.GetTempPath();
+        vm.MyPath = Path.GetTempPath();
 
-        vm.GetErrors(nameof(ExportVM.ExportPath)).Should().NotBeEmpty();
+        vm.GetErrors(nameof(ExportVM.MyPath)).Should().NotBeEmpty();
         vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
     }
 
@@ -64,8 +64,8 @@ public class ExportVMTests : IDisposable
         int commandChanges = 0;
         vm.ConfirmCommand.CanExecuteChanged += (_, _) => commandChanges++;
 
-        vm.ExportPath = Path.Combine(Path.GetTempPath(), "export.csv");
-        vm.ExportPath = Path.Combine(Path.GetTempPath(), "export.txt");
+        vm.MyPath = Path.Combine(Path.GetTempPath(), "export.csv");
+        vm.MyPath = Path.Combine(Path.GetTempPath(), "export.txt");
 
         vm.HasErrors.Should().BeFalse();
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
@@ -124,7 +124,7 @@ public class ExportVMTests : IDisposable
     {
         var vm = await CreateViewModel();
         vm.Format = (FileFormat)99;
-        vm.ExportPath = Path.Combine(Path.GetTempPath(), "export.csv");
+        vm.MyPath = Path.Combine(Path.GetTempPath(), "export.csv");
 
         vm.GetErrors(nameof(ExportVM.Format)).Should().NotBeEmpty();
         vm.ConfirmCommand.CanExecute(null).Should().BeFalse();
@@ -132,10 +132,10 @@ public class ExportVMTests : IDisposable
         vm.Format = FileFormat.txt;
 
         vm.GetErrors(nameof(ExportVM.Format)).Should().BeEmpty();
-        Path.GetExtension(vm.ExportPath).Should().Be(".txt");
-        vm.GetErrors(nameof(ExportVM.ExportPath)).Should().BeEmpty();
+        Path.GetExtension(vm.MyPath).Should().Be(".txt");
+        vm.GetErrors(nameof(ExportVM.MyPath)).Should().BeEmpty();
 
-        vm.ExportPath = Path.Combine(Path.GetTempPath(), "export.txt");
+        vm.MyPath = Path.Combine(Path.GetTempPath(), "export.txt");
 
         vm.HasErrors.Should().BeFalse();
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
@@ -153,7 +153,7 @@ public class ExportVMTests : IDisposable
 
         vm.Format = FileFormat.csv;
 
-        Path.GetExtension(vm.ExportPath).Should().Be(".csv");
+        Path.GetExtension(vm.MyPath).Should().Be(".csv");
         vm.HasErrors.Should().BeFalse();
         vm.ConfirmCommand.CanExecute(null).Should().BeTrue();
 
@@ -248,7 +248,7 @@ public class ExportVMTests : IDisposable
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
-        var records = ReadCsv(vm.ExportPath);
+        var records = ReadCsv(vm.MyPath);
         records[0].Should().Equal("Front content", "Back content", "Deck", "Due date");
         records.Skip(1).Select(row => row[2]).Should().Equal(
             "Languages, \"daily\"",
@@ -267,7 +267,7 @@ public class ExportVMTests : IDisposable
             CardsOrder.Created, SortingDirection.Ascending), Times.Once);
         query.VerifyNoOtherCalls();
         closed.Should().Be(1);
-        exportDirectory.GetFiles().Should().ContainSingle(file => file.FullName == vm.ExportPath);
+        exportDirectory.GetFiles().Should().ContainSingle(file => file.FullName == vm.MyPath);
     }
 
     [Theory]
@@ -291,7 +291,7 @@ public class ExportVMTests : IDisposable
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object))
         {
             Format = format,
-            ExportPath = path
+            MyPath = path
         };
 
         await vm.ConfirmCommand.ExecuteAsync(null);
@@ -337,7 +337,7 @@ public class ExportVMTests : IDisposable
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet(dialogs.Object))
         {
             Format = format,
-            ExportPath = path
+            MyPath = path
         };
 
         await vm.ConfirmCommand.ExecuteAsync(null);
@@ -378,7 +378,7 @@ public class ExportVMTests : IDisposable
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
-        ReadCsv(vm.ExportPath).Skip(1).Select(row => row[2])
+        ReadCsv(vm.MyPath).Skip(1).Select(row => row[2])
             .Should().Equal("Selected", "Selected/Child");
         query.Verify(service => service.GetCardsWhere(
             It.Is<Filters>(filters => filters.DeckIds.SequenceEqual(new long[] { 2, 3 })),
@@ -410,7 +410,7 @@ public class ExportVMTests : IDisposable
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
-        ReadCsv(vm.ExportPath).Skip(1).Select(row => row[2]).Should().Equal(
+        ReadCsv(vm.MyPath).Skip(1).Select(row => row[2]).Should().Equal(
             "Root", "Root/Child", "Root/Child/Grandchild", "Other root");
         query.Verify(service => service.GetCardsWhere(
             It.Is<Filters>(filters => filters.DeckIds.Count == 4
@@ -435,11 +435,11 @@ public class ExportVMTests : IDisposable
             Mock.Of<IDialogService>(), () => closed = true, [], [],
             NullLogger<ExportVM>.Instance, Helpers.GetSafetyNet());
         vm.Format = FileFormat.csv;
-        vm.ExportPath = Path.Combine(exportDirectory.FullName, "all-cards.csv");
+        vm.MyPath = Path.Combine(exportDirectory.FullName, "all-cards.csv");
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
-        ReadCsv(vm.ExportPath)[1].Should().Equal("front 1", "back 1", "Standalone", "N/A");
+        ReadCsv(vm.MyPath)[1].Should().Equal("front 1", "back 1", "Standalone", "N/A");
         query.Verify(service => service.GetAllFromUser(7), Times.Once);
         query.VerifyNoOtherCalls();
         serializer.Verify(service => service.Serialize(cards), Times.Once);
@@ -459,7 +459,7 @@ public class ExportVMTests : IDisposable
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
-        var records = ReadCsv(vm.ExportPath);
+        var records = ReadCsv(vm.MyPath);
         records.Should().HaveCount(2);
         records[0].Should().Equal("Deck");
         records[1].Should().Equal("Root/Child");
@@ -478,7 +478,7 @@ public class ExportVMTests : IDisposable
 
         await vm.ConfirmCommand.ExecuteAsync(null);
 
-        (await File.ReadAllTextAsync(vm.ExportPath)).Should().Be("front 1 | back 1;front 2 | back 2;");
+        (await File.ReadAllTextAsync(vm.MyPath)).Should().Be("front 1 | back 1;front 2 | back 2;");
         query.Verify(service => service.GetCardsWhere(
             It.Is<Filters>(filters => filters.UserId == 7
                 && filters.DeckIds.SequenceEqual(new long[] { 1, 2 })),
@@ -494,7 +494,7 @@ public class ExportVMTests : IDisposable
             It.IsAny<Filters>(), CardsOrder.Created, SortingDirection.Ascending)).ReturnsAsync(cards);
         var serializer = CreateSerializer(cards);
         var vm = await CreateViewModel(query.Object, serializer.Object, cancel, deckTree, userId: 7);
-        vm.ExportPath = Path.Combine(exportDirectory.FullName, "export.txt");
+        vm.MyPath = Path.Combine(exportDirectory.FullName, "export.txt");
         return (vm, query);
     }
 
